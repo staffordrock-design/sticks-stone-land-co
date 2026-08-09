@@ -1,0 +1,26 @@
+{
+  "name": "DataRoomAccess",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string"
+    },
+    "listing_title": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "stripe_session_id": {
+      "type": "string"
+    },
+    "paid": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "listing_id",
+    "paid"
+  ]
+}
