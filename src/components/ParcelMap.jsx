@@ -1,0 +1,45 @@
+import React from "react";
+import { MapContainer, TileLayer, Polygon, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+export default function ParcelMap({ lat, lng, polygon, height = 380 }) {
+  const center = [lat, lng];
+  const positions = (polygon || []).map((p) => [p.lat, p.lng]);
+
+  return (
+    <MapContainer
+      center={center}
+      zoom={13}
+      style={{ height, width: "100%" }}
+      scrollWheelZoom={false}
+      className="rounded-xl overflow-hidden border border-border"
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap contributors"
+      />
+      {positions.length > 0 && (
+        <Polygon
+          positions={positions}
+          pathOptions={{
+            color: "#b8732e",
+            weight: 2,
+            fillColor: "#d4923f",
+            fillOpacity: 0.22,
+          }}
+        />
+      )}
+      <Marker position={center}>
+        <Popup>Parcel centroid</Popup>
+      </Marker>
+    </MapContainer>
+  );
+}

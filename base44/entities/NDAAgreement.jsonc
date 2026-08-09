@@ -1,0 +1,26 @@
+{
+  "name": "NDAAgreement",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string"
+    },
+    "listing_title": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "agreed": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "listing_id",
+    "agreed"
+  ]
+}

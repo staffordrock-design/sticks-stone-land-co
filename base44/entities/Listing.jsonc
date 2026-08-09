@@ -1,0 +1,107 @@
+{
+  "name": "Listing",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "Quarry",
+        "Aggregate",
+        "Mineral Rights",
+        "Royalty"
+      ],
+      "default": "Aggregate"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Under Contract",
+        "Sold"
+      ],
+      "default": "Active"
+    },
+    "state": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "location_name": {
+      "type": "string"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "asking_price": {
+      "type": "number"
+    },
+    "zoning": {
+      "type": "string"
+    },
+    "mineral_rights": {
+      "type": "string",
+      "enum": [
+        "Included",
+        "Separate",
+        "Negotiable"
+      ],
+      "default": "Included"
+    },
+    "royalty_terms": {
+      "type": "string"
+    },
+    "lat": {
+      "type": "number"
+    },
+    "lng": {
+      "type": "number"
+    },
+    "polygon_boundary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "primary_image": {
+      "type": "string"
+    },
+    "core_drilling_url": {
+      "type": "string"
+    },
+    "environmental_report_url": {
+      "type": "string"
+    },
+    "nda_required": {
+      "type": "boolean",
+      "default": true
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "tier",
+    "state",
+    "acreage",
+    "asking_price",
+    "lat",
+    "lng"
+  ]
+}
