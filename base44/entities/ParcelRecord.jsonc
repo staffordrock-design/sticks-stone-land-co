@@ -1,0 +1,84 @@
+{
+  "name": "ParcelRecord",
+  "type": "object",
+  "properties": {
+    "state": {
+      "type": "string",
+      "default": "TN"
+    },
+    "county": {
+      "type": "string"
+    },
+    "parcel_id": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "property_address": {
+      "type": "string"
+    },
+    "mailing_address": {
+      "type": "string"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "assessed_value": {
+      "type": "number"
+    },
+    "land_value": {
+      "type": "number"
+    },
+    "improvement_value": {
+      "type": "number"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "tdec_permit_number": {
+      "type": "string"
+    },
+    "deed_book_page": {
+      "type": "string"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "state",
+    "county",
+    "parcel_id"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

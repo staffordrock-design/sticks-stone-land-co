@@ -1,0 +1,55 @@
+{
+  "name": "MSHAInspection",
+  "type": "object",
+  "properties": {
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "event_number": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "inspection_type": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "msha_mine_id",
+    "event_number"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

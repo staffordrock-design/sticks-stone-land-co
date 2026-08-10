@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
 import NdaGate from "@/components/NdaGate";
+import ParcelRecords from "@/components/ParcelRecords";
 import { Mountain, MapPin, ArrowLeft, Layers, Ruler, FileBadge, Coins } from "lucide-react";
 
 const tierStyles = {
@@ -16,6 +17,8 @@ export default function ListingDetail() {
   const { id } = useParams();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [parcelData, setParcelData] = useState(null);
+  const [parcelLoading, setParcelLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -29,6 +32,28 @@ export default function ListingDetail() {
       }
     })();
   }, [id]);
+
+  useEffect(() => {
+    if (!listing?.lat || !listing?.lng) return;
+    let active = true;
+    (async () => {
+      setParcelLoading(true);
+      try {
+        const res = await base44.functions.invoke("fetch-parcel-data", {
+          lat: listing.lat,
+          lng: listing.lng,
+        });
+        if (active) setParcelData(res.data);
+      } catch (e) {
+        /* ignore */
+      } finally {
+        if (active) setParcelLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [listing?.id]);
 
   if (loading) {
     return (
@@ -126,11 +151,13 @@ export default function ListingDetail() {
             <ParcelMap
               lat={listing.lat}
               lng={listing.lng}
-              polygon={listing.polygon_boundary}
+              polygon={parcelData?.boundary?.length ? parcelData.boundary : listing.polygon_boundary}
               height={400}
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              Interactive polygon reflects recorded boundary survey. Centroid marker shown for reference.
+              {parcelData?.boundary?.length
+                ? "Official parcel boundary from Regrid (register of deeds / tax map). Centroid marker shown for reference."
+                : "Interactive polygon reflects recorded boundary survey. Centroid marker shown for reference."}
             </p>
           </div>
 
@@ -150,6 +177,9 @@ export default function ListingDetail() {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="mt-6">
+              <ParcelRecords data={parcelData} loading={parcelLoading} />
             </div>
           </div>
         </div>

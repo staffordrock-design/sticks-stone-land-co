@@ -1,0 +1,116 @@
+{
+  "name": "MiningSite",
+  "type": "object",
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": [
+        "MSHA",
+        "TDEC",
+        "County GIS",
+        "Register of Deeds",
+        "Other"
+      ],
+      "default": "MSHA"
+    },
+    "source_record_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "mine_status": {
+      "type": "string"
+    },
+    "mine_type": {
+      "type": "string"
+    },
+    "commodity": {
+      "type": "string"
+    },
+    "operator_name": {
+      "type": "string"
+    },
+    "controller_name": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "zip": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "tdec_permit_number": {
+      "type": "string"
+    },
+    "npdes_permit_number": {
+      "type": "string"
+    },
+    "parcel_id": {
+      "type": "string"
+    },
+    "parcel_owner": {
+      "type": "string"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "is_verified_listing": {
+      "type": "boolean",
+      "default": false
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "source",
+    "mine_name",
+    "state"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

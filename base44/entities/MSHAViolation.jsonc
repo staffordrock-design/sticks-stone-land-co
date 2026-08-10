@@ -1,0 +1,73 @@
+{
+  "name": "MSHAViolation",
+  "type": "object",
+  "properties": {
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "event_number": {
+      "type": "string"
+    },
+    "violation_number": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "issue_date": {
+      "type": "string"
+    },
+    "termination_date": {
+      "type": "string"
+    },
+    "section_of_act": {
+      "type": "string"
+    },
+    "standard": {
+      "type": "string"
+    },
+    "action_type": {
+      "type": "string"
+    },
+    "significant_and_substantial": {
+      "type": "boolean"
+    },
+    "proposed_penalty": {
+      "type": "number"
+    },
+    "assessment_amount": {
+      "type": "number"
+    },
+    "condition_or_practice": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "msha_mine_id",
+    "violation_number"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

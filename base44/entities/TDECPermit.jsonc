@@ -1,0 +1,83 @@
+{
+  "name": "TDECPermit",
+  "type": "object",
+  "properties": {
+    "permit_number": {
+      "type": "string"
+    },
+    "permit_type": {
+      "type": "string"
+    },
+    "facility_name": {
+      "type": "string"
+    },
+    "operator_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "default": "TN"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "npdes_permit_number": {
+      "type": "string"
+    },
+    "surface_mining_permit_number": {
+      "type": "string"
+    },
+    "arap_permit_number": {
+      "type": "string"
+    },
+    "effective_date": {
+      "type": "string"
+    },
+    "expiration_date": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "permit_number",
+    "permit_type"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
