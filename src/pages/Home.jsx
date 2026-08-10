@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import ListingCard from "@/components/ListingCard";
+import MiningSiteCard from "@/components/MiningSiteCard";
 import ParcelMap from "@/components/ParcelMap";
 import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
 
-const TIERS = ["All", "Quarry", "Aggregate", "Mineral Rights", "Royalty"];
+const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 
 export default function Home() {
-  const [listings, setListings] = useState([]);
+  const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [tier, setTier] = useState("All");
+  const [source, setSource] = useState("All");
 
   useEffect(() => {
     (async () => {
       try {
-        const data = await base44.entities.Listing.list("-created_date", 50);
-        setListings(data);
+        const data = await base44.entities.MiningSite.list("-created_date", 100);
+        setSites(data);
       } catch (e) {
         /* ignore */
       } finally {
@@ -25,18 +25,19 @@ export default function Home() {
     })();
   }, []);
 
-  const filtered = listings.filter((l) => {
-    const matchesTier = tier === "All" || l.tier === tier;
+  const filtered = sites.filter((s) => {
+    const matchesSource = source === "All" || s.source === source;
     const q = query.toLowerCase();
     const matchesQuery =
       !q ||
-      l.title?.toLowerCase().includes(q) ||
-      l.state?.toLowerCase().includes(q) ||
-      l.county?.toLowerCase().includes(q);
-    return matchesTier && matchesQuery;
+      s.mine_name?.toLowerCase().includes(q) ||
+      s.state?.toLowerCase().includes(q) ||
+      s.county?.toLowerCase().includes(q) ||
+      s.commodity?.toLowerCase().includes(q);
+    return matchesSource && matchesQuery;
   });
 
-  const featured = listings.filter((l) => l.featured).slice(0, 1)[0];
+  const featured = sites.filter((s) => s.latitude && s.longitude).slice(0, 1)[0];
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,47 +106,48 @@ export default function Home() {
           <div className="mb-6 flex items-end justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Featured Parcel
+                Featured Mine Site
               </p>
               <h2 className="mt-1 font-heading text-2xl font-bold text-foreground">
-                {featured.title}
+                {featured.mine_name}
               </h2>
             </div>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
             <ParcelMap
-              lat={featured.lat}
-              lng={featured.lng}
-              polygon={featured.polygon_boundary}
+              lat={featured.latitude}
+              lng={featured.longitude}
               height={420}
             />
             <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8">
               <span className="inline-flex w-fit items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
-                {featured.tier}
+                {featured.source}
               </span>
               <h3 className="mt-4 font-heading text-2xl font-bold text-foreground">
-                {featured.location_name || `${featured.county}, ${featured.state}`}
+                {featured.county ? `${featured.county}, ` : ""}
+                {featured.state}
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {featured.description}
+                {featured.commodity ? `Commodity: ${featured.commodity}. ` : ""}
+                {featured.operator_name ? `Operator: ${featured.operator_name}.` : ""}
               </p>
               <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-6">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">Acreage</p>
                   <p className="mt-1 font-display text-lg font-bold text-foreground">
-                    {Number(featured.acreage).toLocaleString()}
+                    {featured.acreage ? Number(featured.acreage).toLocaleString() : "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Zoning</p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Status</p>
                   <p className="mt-1 font-display text-sm font-semibold text-foreground">
-                    {featured.zoning || "—"}
+                    {featured.mine_status || "—"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Asking</p>
-                  <p className="mt-1 font-display text-lg font-bold text-foreground">
-                    ${Number(featured.asking_price).toLocaleString()}
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Source</p>
+                  <p className="mt-1 font-display text-sm font-semibold text-foreground">
+                    {featured.source}
                   </p>
                 </div>
               </div>
@@ -158,7 +160,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-heading text-2xl font-bold text-foreground">
-            Available Parcels
+            Potential Mine Sites
           </h2>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
@@ -166,22 +168,22 @@ export default function Home() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by title, state, or county…"
+                placeholder="Search by mine, state, county, or commodity…"
                 className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-64"
               />
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {TIERS.map((t) => (
+              {SOURCES.map((s) => (
                 <button
-                  key={t}
-                  onClick={() => setTier(t)}
+                  key={s}
+                  onClick={() => setSource(s)}
                   className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
-                    tier === t
+                    source === s
                       ? "bg-stone-900 text-stone-50"
                       : "border border-border bg-card text-muted-foreground hover:bg-muted"
                   }`}
                 >
-                  {t}
+                  {s}
                 </button>
               ))}
             </div>
@@ -199,12 +201,12 @@ export default function Home() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">
-            No parcels match your search.
+            No mine sites match your search.
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((l) => (
-              <ListingCard key={l.id} listing={l} />
+            {filtered.map((s) => (
+              <MiningSiteCard key={s.id} site={s} />
             ))}
           </div>
         )}
