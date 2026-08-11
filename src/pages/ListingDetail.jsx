@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
 import NdaGate from "@/components/NdaGate";
 import ParcelRecords from "@/components/ParcelRecords";
+import DealActions from "@/components/DealActions";
 import { Mountain, MapPin, ArrowLeft, Layers, Ruler, FileBadge, Coins } from "lucide-react";
 
 const tierStyles = {
@@ -193,6 +194,8 @@ export default function ListingDetail() {
             </p>
           </div>
         )}
+
+        <DealActions listing={listing} />
 
         {/* Seller-provided confidential due diligence */}
         <div className="mt-10">
