@@ -79,14 +79,14 @@ export default function Home() {
               Where quarry, aggregate &amp; mineral land changes hands.
             </h1>
             <p className="mt-5 max-w-xl text-base text-stone-300 sm:text-lg">
-              A GIS-mapped marketplace built for the extraction industry —
-              polygon-tracked parcels, NDA-gated data rooms, and royalty-grade
+              A GIS-mapped marketplace and quarry-intelligence platform built for the extraction industry —
+              source-backed S&S Quarry Intelligence Reports, mapped parcels, and seller-provided confidential
               due diligence, all in one place.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-stone-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-amber-300" />
-                NDA-gated data rooms
+                Seller confidential data rooms
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-amber-300" />
