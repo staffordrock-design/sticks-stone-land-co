@@ -20,6 +20,7 @@ import SellProperty from './pages/SellProperty';
 import BuyerProfile from './pages/BuyerProfile';
 import MyOpportunities from './pages/MyOpportunities';
 import DealDesk from './pages/DealDesk';
+import Subscription from './pages/Subscription';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -61,6 +62,7 @@ const AuthenticatedApp = () => {
       <Route path="/buyer-profile" element={<BuyerProfile />} />
       <Route path="/saved" element={<MyOpportunities />} />
       <Route path="/admin/deals" element={<DealDesk />} />
+      <Route path="/subscribe" element={<Subscription />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
