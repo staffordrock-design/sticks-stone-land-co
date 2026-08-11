@@ -11,8 +11,40 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function ParcelMap({ lat, lng, polygon, height = 380 }) {
-  const center = [lat, lng];
-  const positions = (polygon || []).map((p) => [p.lat, p.lng]);
+  const numericLat = Number(lat);
+  const numericLng = Number(lng);
+  const hasValidCenter =
+    Number.isFinite(numericLat) &&
+    Number.isFinite(numericLng) &&
+    numericLat >= -90 &&
+    numericLat <= 90 &&
+    numericLng >= -180 &&
+    numericLng <= 180;
+
+  const positions = (polygon || [])
+    .map((p) => [Number(p?.lat), Number(p?.lng)])
+    .filter(
+      ([pLat, pLng]) =>
+        Number.isFinite(pLat) &&
+        Number.isFinite(pLng) &&
+        pLat >= -90 &&
+        pLat <= 90 &&
+        pLng >= -180 &&
+        pLng <= 180
+    );
+
+  if (!hasValidCenter) {
+    return (
+      <div
+        style={{ height }}
+        className="flex w-full items-center justify-center rounded-xl border border-border bg-muted/30 px-6 text-center text-sm text-muted-foreground"
+      >
+        Map location unavailable for this record.
+      </div>
+    );
+  }
+
+  const center = [numericLat, numericLng];
 
   return (
     <MapContainer
@@ -26,7 +58,7 @@ export default function ParcelMap({ lat, lng, polygon, height = 380 }) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"
       />
-      {positions.length > 0 && (
+      {positions.length >= 3 && (
         <Polygon
           positions={positions}
           pathOptions={{

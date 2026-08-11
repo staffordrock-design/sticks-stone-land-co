@@ -1,0 +1,80 @@
+{
+  "name": "EnvironmentalViolation",
+  "type": "object",
+  "properties": {
+    "facility_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "epa_registry_id": {
+      "type": "string"
+    },
+    "npdes_permit_number": {
+      "type": "string"
+    },
+    "agency": {
+      "type": "string"
+    },
+    "program": {
+      "type": "string"
+    },
+    "violation_type": {
+      "type": "string"
+    },
+    "violation_date": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "formal_enforcement": {
+      "type": "boolean"
+    },
+    "enforcement_action": {
+      "type": "string"
+    },
+    "penalty_amount": {
+      "type": "number"
+    },
+    "pollutant": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "facility_name",
+    "state",
+    "agency"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

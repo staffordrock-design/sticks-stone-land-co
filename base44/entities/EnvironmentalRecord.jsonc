@@ -1,0 +1,95 @@
+{
+  "name": "EnvironmentalRecord",
+  "type": "object",
+  "properties": {
+    "facility_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "epa_registry_id": {
+      "type": "string"
+    },
+    "npdes_permit_number": {
+      "type": "string"
+    },
+    "program": {
+      "type": "string"
+    },
+    "record_type": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "agency": {
+      "type": "string"
+    },
+    "issue_date": {
+      "type": "string"
+    },
+    "effective_date": {
+      "type": "string"
+    },
+    "expiration_date": {
+      "type": "string"
+    },
+    "violation_count": {
+      "type": "number"
+    },
+    "enforcement_action": {
+      "type": "string"
+    },
+    "penalty_amount": {
+      "type": "number"
+    },
+    "pollutants": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "facility_name",
+    "state",
+    "program"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "name": "EnvironmentalInspection",
+  "type": "object",
+  "properties": {
+    "facility_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "epa_registry_id": {
+      "type": "string"
+    },
+    "npdes_permit_number": {
+      "type": "string"
+    },
+    "agency": {
+      "type": "string"
+    },
+    "inspection_date": {
+      "type": "string"
+    },
+    "inspection_type": {
+      "type": "string"
+    },
+    "result": {
+      "type": "string"
+    },
+    "violations_found": {
+      "type": "boolean"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "facility_name",
+    "state",
+    "agency"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
