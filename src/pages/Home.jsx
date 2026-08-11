@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
 import ParcelMap from "@/components/ParcelMap";
@@ -8,6 +10,7 @@ import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react"
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 
 export default function Home() {
+  const { user } = useAuth();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -58,12 +61,14 @@ export default function Home() {
               </p>
             </div>
           </div>
-          <nav className="hidden items-center gap-8 text-sm text-muted-foreground sm:flex">
+          <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
             <span className="font-medium text-foreground">Marketplace</span>
-            <span className="cursor-default">How it works</span>
-            <span className="cursor-default">For Sellers</span>
+            <Link to="/sell" className="hover:text-foreground">Sell / List</Link>
+            <Link to="/buyer-profile" className="hover:text-foreground">Buyer Profile</Link>
+            <Link to="/saved" className="hover:text-foreground">Saved</Link>
+            {user?.role === "admin" && <Link to="/admin/deals" className="font-semibold text-amber-800 hover:text-amber-900">Deal Desk</Link>}
           </nav>
-          <div className="text-sm font-medium text-foreground">Sign in</div>
+          <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Account"}</div>
         </div>
       </header>
 
@@ -83,6 +88,10 @@ export default function Home() {
               source-backed S&S Quarry Intelligence Reports, mapped parcels, and seller-provided confidential
               due diligence, all in one place.
             </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/sell" className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-stone-950 hover:bg-amber-400">Sell / Market a Property</Link>
+              <Link to="/buyer-profile" className="rounded-xl border border-stone-500 bg-stone-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-stone-800">Join Buyer Network</Link>
+            </div>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-stone-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-amber-300" />
