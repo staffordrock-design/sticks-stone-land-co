@@ -1,0 +1,73 @@
+{
+  "name": "ProductionRecord",
+  "type": "object",
+  "properties": {
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "year": {
+      "type": "integer"
+    },
+    "period": {
+      "type": "string"
+    },
+    "commodity": {
+      "type": "string"
+    },
+    "production_amount": {
+      "type": "number"
+    },
+    "production_unit": {
+      "type": "string"
+    },
+    "employee_hours": {
+      "type": "number"
+    },
+    "average_employees": {
+      "type": "number"
+    },
+    "source_agency": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_record_id": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mine_name",
+    "source_agency"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

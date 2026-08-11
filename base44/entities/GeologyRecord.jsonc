@@ -1,0 +1,93 @@
+{
+  "name": "GeologyRecord",
+  "type": "object",
+  "properties": {
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "parcel_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "default": "TN"
+    },
+    "county": {
+      "type": "string"
+    },
+    "primary_rock": {
+      "type": "string"
+    },
+    "secondary_rock": {
+      "type": "string"
+    },
+    "geologic_unit": {
+      "type": "string"
+    },
+    "formation_name": {
+      "type": "string"
+    },
+    "geologic_age": {
+      "type": "string"
+    },
+    "lithology": {
+      "type": "string"
+    },
+    "commodity_interpretation": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "default": "Low"
+    },
+    "source_agency": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_map_layer": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mine_name",
+    "state",
+    "source_agency"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

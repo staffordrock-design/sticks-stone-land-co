@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
-import { ArrowLeft, ExternalLink, FileSearch, Gauge, Landmark, Leaf, MapPinned, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BarChart3, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck } from "lucide-react";
 
 function sameValue(a, b) {
   if (a == null || b == null || a === "" || b === "") return false;
@@ -44,13 +44,15 @@ export default function MineSiteDetail() {
   const [inspections, setInspections] = useState([]);
   const [violations, setViolations] = useState([]);
   const [profiles, setProfiles] = useState([]);
+  const [production, setProduction] = useState([]);
+  const [geology, setGeology] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     (async () => {
       try {
-        const [mine, parcelData, permitData, envData, inspectionData, violationData, profileData] = await Promise.all([
+        const [mine, parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData] = await Promise.all([
           base44.entities.MiningSite.get(id),
           base44.entities.ParcelRecord.list("-updated_date", 500),
           base44.entities.TDECPermit.list("-updated_date", 500),
@@ -58,6 +60,8 @@ export default function MineSiteDetail() {
           base44.entities.MSHAInspection.list("-updated_date", 500),
           base44.entities.MSHAViolation.list("-updated_date", 500),
           base44.entities.QuarryPotentialProfile.list("-updated_date", 500),
+          base44.entities.ProductionRecord.list("-year", 500),
+          base44.entities.GeologyRecord.list("-updated_date", 500),
         ]);
         setSite(mine);
         setParcels(parcelData || []);
@@ -66,6 +70,8 @@ export default function MineSiteDetail() {
         setInspections(inspectionData || []);
         setViolations(violationData || []);
         setProfiles(profileData || []);
+        setProduction(productionData || []);
+        setGeology(geologyData || []);
       } catch (e) {
         setError(e?.message || "Unable to load site intelligence.");
       } finally {
@@ -115,6 +121,23 @@ export default function MineSiteDetail() {
     if (!site) return null;
     return profiles.find((p) => sameValue(p.mining_site_id, site.id) || sameValue(p.msha_mine_id, site.msha_mine_id)) || null;
   }, [site, profiles]);
+
+  const relatedProduction = useMemo(() => {
+    if (!site) return [];
+    return production.filter((r) =>
+      sameValue(r.mining_site_id, site.id) ||
+      sameValue(r.msha_mine_id, site.msha_mine_id)
+    );
+  }, [site, production]);
+
+  const geologyRecord = useMemo(() => {
+    if (!site) return null;
+    return geology.find((r) =>
+      sameValue(r.mining_site_id, site.id) ||
+      sameValue(r.msha_mine_id, site.msha_mine_id) ||
+      sameValue(r.parcel_id, site.parcel_id)
+    ) || null;
+  }, [site, geology]);
 
   if (loading) return <div className="min-h-screen bg-background p-10 text-center text-muted-foreground">Loading site intelligence…</div>;
   if (error || !site) return <div className="min-h-screen bg-background p-10 text-center text-destructive">{error || "Site not found."}</div>;
@@ -201,6 +224,54 @@ export default function MineSiteDetail() {
               </>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">Potential profile not generated yet. The app will only show a score after enough source-backed geology, parcel, access, regulatory and market inputs are connected.</p>
+            )}
+          </Card>
+
+          <Card title="Production History" icon={BarChart3}>
+            {relatedProduction.length ? (
+              <div className="space-y-3">
+                {relatedProduction.slice(0, 12).map((r) => (
+                  <div key={r.id} className="rounded-xl border border-border p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-semibold text-foreground">{r.year || "Year not loaded"}{r.period ? ` · ${r.period}` : ""}</div>
+                        <div className="mt-1 text-sm text-muted-foreground">{r.commodity || site.commodity || "Commodity not loaded"}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-foreground">{r.production_amount != null ? Number(r.production_amount).toLocaleString() : "—"}</div>
+                        <div className="text-xs text-muted-foreground">{r.production_unit || "production unit"}</div>
+                      </div>
+                    </div>
+                    {(r.employee_hours != null || r.average_employees != null) && (
+                      <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
+                        <div>Employee hours: <strong className="text-foreground">{r.employee_hours != null ? Number(r.employee_hours).toLocaleString() : "—"}</strong></div>
+                        <div>Avg. employees: <strong className="text-foreground">{r.average_employees ?? "—"}</strong></div>
+                      </div>
+                    )}
+                    {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open production source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground">No production history is connected yet. MSHA production/employment records will populate here when a mine-level record is available.</p>
+            )}
+          </Card>
+
+          <Card title="Geology / Rock Identification" icon={Gem}>
+            {geologyRecord ? (
+              <>
+                <Row label="Primary rock" value={geologyRecord.primary_rock} />
+                <Row label="Secondary" value={geologyRecord.secondary_rock} />
+                <Row label="Formation" value={geologyRecord.formation_name} />
+                <Row label="Geologic unit" value={geologyRecord.geologic_unit} />
+                <Row label="Age" value={geologyRecord.geologic_age} />
+                <Row label="Lithology" value={geologyRecord.lithology} />
+                <Row label="Interpretation" value={geologyRecord.commodity_interpretation} />
+                <Row label="Confidence" value={geologyRecord.confidence} />
+                {geologyRecord.source_url && <a href={geologyRecord.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open geology source <ExternalLink className="h-3.5 w-3.5" /></a>}
+              </>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground">No mapped geology record is connected yet. Tennessee Geological Survey bedrock/lithology data will appear here rather than guessing rock type from the mine name.</p>
             )}
           </Card>
 
