@@ -158,7 +158,7 @@ export default function MineSiteDetail() {
       <main className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">Quarry Intelligence Profile</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">S&amp;S Quarry Intelligence Report</p>
             <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{site.mine_name}</h1>
             <p className="mt-2 text-muted-foreground">{[site.city, site.county, site.state].filter(Boolean).join(" · ")}</p>
           </div>
@@ -296,6 +296,11 @@ export default function MineSiteDetail() {
               </div>
             ) : <p className="text-sm text-muted-foreground">No connected environmental, inspection or violation records are loaded for this site yet.</p>}
           </Card>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-6">
+          <div className="flex items-center gap-2 font-heading text-lg font-bold text-amber-950"><FileSearch className="h-5 w-5" /> About this S&amp;S Quarry Intelligence Report</div>
+          <p className="mt-2 text-sm leading-relaxed text-amber-950/80">This report is assembled by Sticks &amp; Stone from source-labeled public and licensed data connected to this site, including mine, parcel, permit, geology, production/activity, and compliance information when available. It is a screening and business-intelligence product—not a certified reserve estimate, engineering opinion, title opinion, appraisal, environmental assessment, or guarantee that commercially recoverable stone exists.</p>
         </div>
 
         {site.notes && (
