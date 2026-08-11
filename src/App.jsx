@@ -12,6 +12,7 @@ import Home from './pages/Home';
 import ListingDetail from './pages/ListingDetail';
 import MineSiteDetail from './pages/MineSiteDetail';
 import AdminActivity from './pages/AdminActivity';
+import AdminDataSync from './pages/AdminDataSync';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -44,6 +45,7 @@ const AuthenticatedApp = () => {
       <Route path="/listings/:id" element={<ListingDetail />} />
       <Route path="/mines/:id" element={<MineSiteDetail />} />
       <Route path="/admin/activity" element={<AdminActivity />} />
+      <Route path="/admin/data-sync" element={<AdminDataSync />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
