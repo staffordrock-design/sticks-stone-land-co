@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 // Add page imports here
 import Home from './pages/Home';
 import ListingDetail from './pages/ListingDetail';
+import MineSiteDetail from './pages/MineSiteDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -39,6 +40,7 @@ const AuthenticatedApp = () => {
       {/* Add your page Route elements here */}
       <Route path="/" element={<Home />} />
       <Route path="/listings/:id" element={<ListingDetail />} />
+      <Route path="/mines/:id" element={<MineSiteDetail />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
