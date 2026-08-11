@@ -129,8 +129,8 @@ export default function NdaGate({ listing }) {
       <>
         <div className="rounded-2xl border border-border bg-gradient-to-br from-stone-50 to-amber-50/40 p-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-stone-900 text-stone-50"><Lock className="h-6 w-6" /></div>
-          <h3 className="mt-4 font-heading text-xl font-semibold text-foreground">NDA-Gated Data Room</h3>
-          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Core drilling logs and environmental reports are confidential. Sign the mutual NDA to request access.</p>
+          <h3 className="mt-4 font-heading text-xl font-semibold text-foreground">Seller Confidential Data Room</h3>
+          <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">This area is only for confidential due-diligence documents actually supplied by the seller, owner, operator, or their professionals. Sign the mutual NDA to request access when documents are available.</p>
           <Button className="mt-5" onClick={() => setOpen(true)}><ShieldCheck className="mr-2 h-4 w-4" />Request NDA & Access</Button>
         </div>
 
@@ -138,7 +138,7 @@ export default function NdaGate({ listing }) {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Mutual Non-Disclosure Agreement</DialogTitle>
-              <DialogDescription>By signing, you agree to keep confidential parcel data, drilling results, environmental reports, surveys, and related due-diligence materials private.</DialogDescription>
+              <DialogDescription>By signing, you agree to keep seller-provided confidential materials—such as drilling results, environmental reports, surveys, production records, leases, reserve studies, or other due-diligence documents—private.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div className="space-y-2"><Label htmlFor="company">Company / Organization</Label><Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" /></div>
@@ -178,16 +178,16 @@ export default function NdaGate({ listing }) {
 
   return (
     <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-6">
-      <div className="flex items-center gap-2 text-emerald-800"><ShieldCheck className="h-5 w-5" /><h3 className="font-heading text-lg font-semibold">Data Room Unlocked</h3></div>
-      <p className="mt-1 text-sm text-emerald-700">Your account has a signed NDA and verified paid access.</p>
+      <div className="flex items-center gap-2 text-emerald-800"><ShieldCheck className="h-5 w-5" /><h3 className="font-heading text-lg font-semibold">Seller Confidential Data Room Unlocked</h3></div>
+      <p className="mt-1 text-sm text-emerald-700">Your account has a signed NDA and verified access to seller-provided confidential materials for this listing.</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <a href={listing.core_drilling_url || "#"} target="_blank" rel="noreferrer" className={`flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition hover:shadow-md ${!listing.core_drilling_url ? "pointer-events-none opacity-50" : ""}`}>
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stone-900 text-stone-50"><FileText className="h-5 w-5" /></div>
-          <div className="min-w-0 flex-1"><div className="font-semibold text-foreground">Core Drilling Logs</div><div className="text-xs text-muted-foreground">Confidential document</div></div><Download className="h-4 w-4 text-muted-foreground" />
+          <div className="min-w-0 flex-1"><div className="font-semibold text-foreground">Core Drilling Logs</div><div className="text-xs text-muted-foreground">Seller-provided document · when available</div></div><Download className="h-4 w-4 text-muted-foreground" />
         </a>
         <a href={listing.environmental_report_url || "#"} target="_blank" rel="noreferrer" className={`flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition hover:shadow-md ${!listing.environmental_report_url ? "pointer-events-none opacity-50" : ""}`}>
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 text-white"><FlaskConical className="h-5 w-5" /></div>
-          <div className="min-w-0 flex-1"><div className="font-semibold text-foreground">Environmental Reports</div><div className="text-xs text-muted-foreground">Confidential document</div></div><Download className="h-4 w-4 text-muted-foreground" />
+          <div className="min-w-0 flex-1"><div className="font-semibold text-foreground">Environmental Reports</div><div className="text-xs text-muted-foreground">Seller-provided document · when available</div></div><Download className="h-4 w-4 text-muted-foreground" />
         </a>
       </div>
     </div>
