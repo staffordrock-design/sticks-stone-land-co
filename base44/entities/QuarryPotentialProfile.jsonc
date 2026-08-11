@@ -1,0 +1,89 @@
+{
+  "name": "QuarryPotentialProfile",
+  "type": "object",
+  "properties": {
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "parcel_id": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "default": "TN"
+    },
+    "county": {
+      "type": "string"
+    },
+    "screening_score": {
+      "type": "number"
+    },
+    "screening_band": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Moderate",
+        "High",
+        "Very High"
+      ]
+    },
+    "geology_score": {
+      "type": "number"
+    },
+    "access_score": {
+      "type": "number"
+    },
+    "regulatory_score": {
+      "type": "number"
+    },
+    "market_score": {
+      "type": "number"
+    },
+    "parcel_score": {
+      "type": "number"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "default": "Low"
+    },
+    "basis_summary": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "string"
+    },
+    "last_scored": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mining_site_id",
+    "state"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
