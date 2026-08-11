@@ -6,10 +6,12 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
+import ActivityTracker from './components/ActivityTracker';
 // Add page imports here
 import Home from './pages/Home';
 import ListingDetail from './pages/ListingDetail';
 import MineSiteDetail from './pages/MineSiteDetail';
+import AdminActivity from './pages/AdminActivity';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -41,6 +43,7 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Home />} />
       <Route path="/listings/:id" element={<ListingDetail />} />
       <Route path="/mines/:id" element={<MineSiteDetail />} />
+      <Route path="/admin/activity" element={<AdminActivity />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
@@ -54,6 +57,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
+          <ActivityTracker />
           <AuthenticatedApp />
         </Router>
         <Toaster />
