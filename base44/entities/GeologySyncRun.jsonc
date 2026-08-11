@@ -1,0 +1,58 @@
+{
+  "name": "GeologySyncRun",
+  "type": "object",
+  "properties": {
+    "ran_at": {
+      "type": "string"
+    },
+    "queried": {
+      "type": "number"
+    },
+    "matched": {
+      "type": "number"
+    },
+    "created": {
+      "type": "number"
+    },
+    "updated": {
+      "type": "number"
+    },
+    "no_match": {
+      "type": "number"
+    },
+    "no_coordinates": {
+      "type": "number"
+    },
+    "source": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "ran_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

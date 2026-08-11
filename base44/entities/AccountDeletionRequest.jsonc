@@ -1,0 +1,66 @@
+{
+  "name": "AccountDeletionRequest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "in_review",
+        "completed",
+        "cancelled"
+      ],
+      "default": "requested"
+    },
+    "requested_at": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "user_email",
+    "requested_at"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
