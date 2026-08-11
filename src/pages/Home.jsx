@@ -66,6 +66,7 @@ export default function Home() {
             <Link to="/sell" className="hover:text-foreground">Sell / List</Link>
             <Link to="/buyer-profile" className="hover:text-foreground">Buyer Profile</Link>
             <Link to="/saved" className="hover:text-foreground">Saved</Link>
+            <Link to="/subscribe" className="hover:text-foreground">Professional</Link>
             {user?.role === "admin" && <Link to="/admin/deals" className="font-semibold text-amber-800 hover:text-amber-900">Deal Desk</Link>}
           </nav>
           <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Account"}</div>
