@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, DatabaseZap, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArrowLeft, DatabaseZap, Gem, RefreshCw, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function AdminDataSync() {
   const { user } = useAuth();
   const [running, setRunning] = useState(false);
+  const [runningGeology, setRunningGeology] = useState(false);
   const [result, setResult] = useState(null);
+  const [geologyResult, setGeologyResult] = useState(null);
   const [error, setError] = useState("");
 
   if (!user || user.role !== "admin") {
@@ -25,6 +27,20 @@ export default function AdminDataSync() {
       setError(e?.message || "MSHA sync failed.");
     } finally {
       setRunning(false);
+    }
+  };
+
+  const syncGeology = async () => {
+    setRunningGeology(true);
+    setError("");
+    setGeologyResult(null);
+    try {
+      const response = await base44.functions.invoke("sync-tn-geology", {});
+      setGeologyResult(response?.data || response);
+    } catch (e) {
+      setError(e?.message || "Tennessee geology sync failed.");
+    } finally {
+      setRunningGeology(false);
     }
   };
 
@@ -84,6 +100,56 @@ export default function AdminDataSync() {
                 <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Updated</div><div className="mt-1 font-bold">{result.updated ?? 0}</div></div>
               </div>
               {result.note && <p className="mt-4 text-sm text-muted-foreground">{result.note}</p>}
+            </div>
+          )}
+        </section>
+
+        <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <Gem className="h-5 w-5 text-amber-700" />
+                <h2 className="font-heading text-xl font-bold text-foreground">Tennessee Rock Identification</h2>
+              </div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Matches each Tennessee mine coordinate to the statewide geology polygon layer and stores the mapped primary rock, secondary rock, geologic age and unit. This is location-based screening intelligence, not drilling or laboratory proof.
+              </p>
+            </div>
+            <button
+              onClick={syncGeology}
+              disabled={runningGeology}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${runningGeology ? "animate-spin" : ""}`} />
+              {runningGeology ? "Matching geology…" : "Sync rock types"}
+            </button>
+          </div>
+
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>Rock types come from the mapped polygon at the mine coordinates. The profile keeps the source link and confidence label so users can tell mapped geology from confirmed reserve data.</span>
+          </div>
+
+          {geologyResult && (
+            <div className="mt-5 rounded-xl border border-border bg-muted/20 p-5">
+              <div className="grid gap-4 sm:grid-cols-4">
+                <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Queried</div><div className="mt-1 font-bold">{geologyResult.queried ?? 0}</div></div>
+                <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Matched</div><div className="mt-1 font-bold">{geologyResult.matched ?? 0}</div></div>
+                <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Created</div><div className="mt-1 font-bold">{geologyResult.created ?? 0}</div></div>
+                <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Updated</div><div className="mt-1 font-bold">{geologyResult.updated ?? 0}</div></div>
+              </div>
+              {geologyResult.sample?.length > 0 && (
+                <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                  {geologyResult.sample.slice(0, 8).map((item, index) => (
+                    <div key={`${item.msha || item.mine}-${index}`} className="rounded-lg border border-border bg-background p-3 text-sm">
+                      <div className="font-semibold text-foreground">{item.mine}</div>
+                      <div className="mt-1 text-muted-foreground">{[item.primaryRock, item.secondaryRock].filter(Boolean).join(" / ") || "Rock type unavailable"}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">{[item.age, item.unit].filter(Boolean).join(" · ")}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {geologyResult.note && <p className="mt-4 text-sm text-muted-foreground">{geologyResult.note}</p>}
             </div>
           )}
         </section>
