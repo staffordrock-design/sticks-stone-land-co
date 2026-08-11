@@ -19,7 +19,7 @@ import AccountDeletion from './pages/AccountDeletion';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
-  const publicLegalPath = ['/privacy', '/terms'].includes(window.location.pathname);
+  const publicLegalPath = ['/privacy', '/terms', '/account/delete'].includes(window.location.pathname);
 
   // Show loading spinner while checking app public settings or auth
   if ((isLoadingPublicSettings || isLoadingAuth) && !publicLegalPath) {
