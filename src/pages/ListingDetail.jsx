@@ -194,11 +194,14 @@ export default function ListingDetail() {
           </div>
         )}
 
-        {/* NDA data room */}
+        {/* Seller-provided confidential due diligence */}
         <div className="mt-10">
-          <h2 className="mb-3 font-heading text-xl font-bold text-foreground">
-            Confidential Data Room
+          <h2 className="mb-2 font-heading text-xl font-bold text-foreground">
+            Seller Confidential Data Room
           </h2>
+          <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+            Separate from S&S Quarry Intelligence. This area contains only confidential documents actually supplied by the seller, owner, operator, or their professional advisers. Availability varies by listing.
+          </p>
           <NdaGate listing={listing} />
         </div>
       </div>
