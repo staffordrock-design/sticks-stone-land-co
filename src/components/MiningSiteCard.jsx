@@ -97,6 +97,8 @@ export default function MiningSiteCard({ site }) {
       {body}
     </Link>
   ) : (
-    <div className="h-full">{body}</div>
+    <Link to={`/mines/${site.id}`} className="block h-full">
+      {body}
+    </Link>
   );
 }
