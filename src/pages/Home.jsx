@@ -222,8 +222,13 @@ export default function Home() {
       </section>
 
       <footer className="border-t border-border bg-stone-50">
-        <div className="mx-auto max-w-7xl px-6 py-8 text-center text-sm text-muted-foreground">
-          Sticks &amp; Stone Land Co. — Industrial land &amp; mineral marketplace
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
+          <div>Sticks &amp; Stone Land Co. — Industrial land &amp; mineral marketplace</div>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a href="/privacy" className="hover:text-foreground hover:underline">Privacy</a>
+            <a href="/terms" className="hover:text-foreground hover:underline">Terms</a>
+            <a href="/account/delete" className="hover:text-foreground hover:underline">Delete account</a>
+          </div>
         </div>
       </footer>
     </div>
