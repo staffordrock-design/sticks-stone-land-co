@@ -1,0 +1,93 @@
+{
+  "name": "SubscriptionEntitlement",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "plan_code": {
+      "type": "string",
+      "enum": [
+        "free",
+        "professional_monthly",
+        "professional_annual"
+      ],
+      "default": "free"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "inactive",
+        "trial",
+        "active",
+        "grace_period",
+        "expired",
+        "cancelled"
+      ],
+      "default": "inactive"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "apple",
+        "google",
+        "web",
+        "admin"
+      ],
+      "default": "admin"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "original_transaction_id": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "last_verified_at": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "plan_code",
+    "status",
+    "platform"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

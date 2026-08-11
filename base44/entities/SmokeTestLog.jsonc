@@ -1,0 +1,45 @@
+{
+  "name": "SmokeTestLog",
+  "type": "object",
+  "properties": {
+    "test_name": {
+      "type": "string"
+    },
+    "ran_at": {
+      "type": "string"
+    },
+    "result": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "test_name",
+    "ran_at",
+    "result"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
