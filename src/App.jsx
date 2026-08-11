@@ -32,7 +32,7 @@ const AuthenticatedApp = () => {
 
   // Handle authentication errors
   if (authError) {
-    if (authError.type === 'user_not_registered') {
+    if (authError.type === 'user_not_registered' && !publicLegalPath) {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required' && !publicLegalPath) {
       // Redirect protected app areas to login, while keeping legal pages public.
