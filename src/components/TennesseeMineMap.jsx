@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -65,6 +66,12 @@ export default function TennesseeMineMap({ sites = [], height = 520 }) {
                 {site.mine_status && <div>Status: {site.mine_status}</div>}
                 {site.commodity && <div>Commodity: {site.commodity}</div>}
                 {site.msha_mine_id && <div>MSHA ID: {site.msha_mine_id}</div>}
+                <Link
+                  to={`/mines/${site.id}`}
+                  className="mt-2 inline-block font-semibold text-amber-800 hover:underline"
+                >
+                  View site intelligence →
+                </Link>
               </div>
             </Popup>
           </Marker>
