@@ -1,0 +1,92 @@
+{
+  "name": "DealPipeline",
+  "type": "object",
+  "properties": {
+    "deal_name": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "seller_name": {
+      "type": "string"
+    },
+    "seller_email": {
+      "type": "string"
+    },
+    "buyer_name": {
+      "type": "string"
+    },
+    "buyer_email": {
+      "type": "string"
+    },
+    "buyer_company": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Lead",
+        "Seller Review",
+        "Preparing Listing",
+        "Marketing",
+        "Buyer Qualified",
+        "NDA",
+        "Due Diligence",
+        "Offer",
+        "Negotiation",
+        "Under Contract",
+        "Closed",
+        "Lost"
+      ],
+      "default": "Lead"
+    },
+    "estimated_value": {
+      "type": "number"
+    },
+    "offer_amount": {
+      "type": "number"
+    },
+    "next_action": {
+      "type": "string"
+    },
+    "next_action_date": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_activity_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deal_name",
+    "stage"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

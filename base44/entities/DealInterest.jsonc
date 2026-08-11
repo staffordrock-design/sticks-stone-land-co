@@ -1,0 +1,99 @@
+{
+  "name": "DealInterest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "buyer_email": {
+      "type": "string"
+    },
+    "buyer_company": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "listing_title": {
+      "type": "string"
+    },
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "interest_type": {
+      "type": "string",
+      "enum": [
+        "Request Information",
+        "Request Data Room",
+        "Indication of Interest",
+        "Offer"
+      ]
+    },
+    "offer_amount": {
+      "type": "number"
+    },
+    "terms_summary": {
+      "type": "string"
+    },
+    "financing_status": {
+      "type": "string"
+    },
+    "due_diligence_days": {
+      "type": "number"
+    },
+    "closing_days": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Contacted",
+        "Qualified",
+        "Data Room",
+        "Offer Submitted",
+        "Negotiating",
+        "Accepted",
+        "Declined",
+        "Closed"
+      ],
+      "default": "New"
+    },
+    "submitted_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "buyer_email",
+    "interest_type",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

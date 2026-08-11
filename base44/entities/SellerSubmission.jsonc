@@ -1,0 +1,113 @@
+{
+  "name": "SellerSubmission",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "seller_name": {
+      "type": "string"
+    },
+    "seller_email": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "property_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "Operating Quarry",
+        "Potential Quarry Land",
+        "Aggregate Operation",
+        "Mineral Rights",
+        "Royalty Interest",
+        "Other"
+      ]
+    },
+    "asking_price": {
+      "type": "number"
+    },
+    "commodity": {
+      "type": "string"
+    },
+    "ownership_summary": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "confidential_notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Submitted",
+        "Reviewing",
+        "Approved",
+        "Marketing",
+        "Under Offer",
+        "Closed",
+        "Declined"
+      ],
+      "default": "Submitted"
+    },
+    "submitted_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "seller_email",
+    "property_name",
+    "state",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
