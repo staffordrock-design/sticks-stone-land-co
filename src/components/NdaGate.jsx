@@ -161,8 +161,8 @@ export default function NdaGate({ listing }) {
         <h3 className="mt-4 font-heading text-xl font-semibold text-foreground">NDA Signed</h3>
         {nativeLike ? (
           <>
-            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Confidential data-room purchases are handled on the Sticks & Stone website. If you already purchased access on the website, sign in with the same account and your access will appear here.</p>
-            <div className="mx-auto mt-5 max-w-md rounded-xl border border-border bg-card p-4 text-left text-xs leading-relaxed text-muted-foreground">No external checkout is launched from the mobile app. This keeps website billing separate from the native app experience.</div>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Purchase of confidential data-room access is not offered inside this mobile app. If your account already has authorized access, it will appear here automatically.</p>
+            <div className="mx-auto mt-5 max-w-md rounded-xl border border-border bg-card p-4 text-left text-xs leading-relaxed text-muted-foreground">This screen does not contain a payment link, external checkout button, price, or call to purchase outside the app.</div>
           </>
         ) : (
           <>
