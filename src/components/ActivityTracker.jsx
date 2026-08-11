@@ -23,9 +23,11 @@ function classifyPath(pathname) {
 
 export default function ActivityTracker() {
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, authChecked } = useAuth();
 
   useEffect(() => {
+    if (!authChecked) return;
+
     const track = async () => {
       try {
         const meta = classifyPath(location.pathname);
@@ -48,7 +50,7 @@ export default function ActivityTracker() {
     };
 
     track();
-  }, [location.pathname, location.search, user?.id, user?.email, user?.name, user?.role]);
+  }, [authChecked, location.pathname, location.search, user?.id, user?.email, user?.name, user?.role]);
 
   return null;
 }
