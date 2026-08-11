@@ -16,6 +16,10 @@ import AdminDataSync from './pages/AdminDataSync';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
 import AccountDeletion from './pages/AccountDeletion';
+import SellProperty from './pages/SellProperty';
+import BuyerProfile from './pages/BuyerProfile';
+import MyOpportunities from './pages/MyOpportunities';
+import DealDesk from './pages/DealDesk';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -53,6 +57,10 @@ const AuthenticatedApp = () => {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
+      <Route path="/sell" element={<SellProperty />} />
+      <Route path="/buyer-profile" element={<BuyerProfile />} />
+      <Route path="/saved" element={<MyOpportunities />} />
+      <Route path="/admin/deals" element={<DealDesk />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
