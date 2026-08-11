@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
 import ParcelMap from "@/components/ParcelMap";
+import TennesseeMineMap from "@/components/TennesseeMineMap";
 import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
@@ -155,6 +156,14 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Tennessee intelligence map */}
+      <section className="mx-auto max-w-7xl px-6 pb-14">
+        <TennesseeMineMap
+          sites={filtered.filter((s) => s.state?.toUpperCase() === "TN")}
+          height={560}
+        />
+      </section>
 
       {/* Marketplace */}
       <section className="mx-auto max-w-7xl px-6 pb-24">
