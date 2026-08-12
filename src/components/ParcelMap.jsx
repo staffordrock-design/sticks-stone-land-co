@@ -1,5 +1,5 @@
 import React from "react";
-import { MapContainer, TileLayer, Polygon, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Polygon, Marker, Popup, LayersControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -54,10 +54,20 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
       scrollWheelZoom={false}
       className="rounded-xl overflow-hidden border border-border"
     >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap contributors"
-      />
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="Street map">
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="&copy; OpenStreetMap contributors"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Satellite / aerial">
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution="Tiles &copy; Esri"
+          />
+        </LayersControl.BaseLayer>
+      </LayersControl>
       {positions.length >= 3 && (
         <Polygon
           positions={positions}
