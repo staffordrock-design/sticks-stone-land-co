@@ -81,6 +81,12 @@ export default function MiningSiteCard({ site, valuation }) {
         </div>
 
         <div className="mt-3 flex flex-wrap gap-1.5">
+          {site.opportunity_availability && (
+            <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900">{site.opportunity_availability}</span>
+          )}
+          {site.opportunity_score != null && (
+            <span className="rounded-md border border-border bg-card px-2 py-0.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>
+          )}
           {site.commodity && (
             <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               {site.commodity}
