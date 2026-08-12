@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import { ArrowLeft, DatabaseZap, Gem, RefreshCw, ShieldCheck } from "lucide-react";
+import { ArrowLeft, DatabaseZap, Gem, MapPinned, RefreshCw, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function AdminDataSync() {
   const { user } = useAuth();
   const [running, setRunning] = useState(false);
   const [runningGeology, setRunningGeology] = useState(false);
+  const [runningParcels, setRunningParcels] = useState(false);
   const [result, setResult] = useState(null);
   const [geologyResult, setGeologyResult] = useState(null);
+  const [parcelResult, setParcelResult] = useState(null);
   const [error, setError] = useState("");
 
   if (!user || user.role !== "admin") {
@@ -41,6 +43,20 @@ export default function AdminDataSync() {
       setError(e?.message || "Tennessee geology sync failed.");
     } finally {
       setRunningGeology(false);
+    }
+  };
+
+  const syncParcels = async () => {
+    setRunningParcels(true);
+    setError("");
+    setParcelResult(null);
+    try {
+      const response = await base44.functions.invoke("sync-parcel-boundaries", { limit: 500 });
+      setParcelResult(response?.data || response);
+    } catch (e) {
+      setError(e?.message || "Tennessee parcel boundary sync failed.");
+    } finally {
+      setRunningParcels(false);
     }
   };
 
