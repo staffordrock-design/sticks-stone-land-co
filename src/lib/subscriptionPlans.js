@@ -9,6 +9,11 @@ export const SUBSCRIPTION_PRODUCTS = {
   },
 };
 
+export const PLAN_DISPLAY = {
+  monthly: { name: "Professional Monthly", price: "$149/mo" },
+  annual: { name: "Professional Annual", price: "$1,490/yr", note: "Two months of professional access included" },
+};
+
 export const PROFESSIONAL_FEATURES = [
   "Full S&S Quarry Intelligence Reports",
   "Parcel, geology, rock-type and regulatory intelligence",
