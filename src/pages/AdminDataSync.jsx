@@ -169,6 +169,49 @@ export default function AdminDataSync() {
             </div>
           )}
         </section>
+
+        <section className="mt-6 rounded-2xl border border-border bg-card p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <MapPinned className="h-5 w-5 text-amber-700" />
+                <h2 className="font-heading text-xl font-bold text-foreground">Tennessee Parcel Boundaries</h2>
+              </div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Matches each mapped Tennessee quarry/mine coordinate against the Tennessee Comptroller IMPACT parcel feature service, stores the returned parcel polygon and acreage, and links the boundary to the same parcel record used for owner and geology intelligence.
+              </p>
+            </div>
+            <button
+              onClick={syncParcels}
+              disabled={runningParcels}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${runningParcels ? "animate-spin" : ""}`} />
+              {runningParcels ? "Matching parcels…" : "Sync parcel boundaries"}
+            </button>
+          </div>
+
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>Parcel polygons are graphical GIS reference geometry from the Tennessee Comptroller and are not legal surveys or legal boundary determinations.</span>
+          </div>
+
+          {parcelResult && (
+            <div className="mt-5 rounded-xl border border-border bg-muted/20 p-5">
+              <div className="grid gap-4 sm:grid-cols-4">
+                <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Queried</div><div className="mt-1 font-bold">{parcelResult.queried ?? 0}</div></div>
+                <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Matched</div><div className="mt-1 font-bold">{parcelResult.matched ?? 0}</div></div>
+                <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Created</div><div className="mt-1 font-bold">{parcelResult.created ?? 0}</div></div>
+                <div><div className="text-xs uppercase tracking-wider text-muted-foreground">Updated</div><div className="mt-1 font-bold">{parcelResult.updated ?? 0}</div></div>
+              </div>
+              <div className="mt-4 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                <div>No coordinates: <strong className="text-foreground">{parcelResult.no_coordinates ?? 0}</strong></div>
+                <div>No parcel match: <strong className="text-foreground">{parcelResult.no_match ?? 0}</strong></div>
+              </div>
+              {parcelResult.note && <p className="mt-4 text-sm text-muted-foreground">{parcelResult.note}</p>}
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
