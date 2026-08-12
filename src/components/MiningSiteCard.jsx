@@ -3,6 +3,16 @@ import { Link } from "react-router-dom";
 import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, DollarSign } from "lucide-react";
 import { formatCompactMoney } from "@/utils/quarryValuation";
 
+function worldImageryTile(lat, lng, zoom = 14) {
+  if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return null;
+  const z = Math.max(1, Math.min(19, zoom));
+  const n = 2 ** z;
+  const x = Math.floor(((Number(lng) + 180) / 360) * n);
+  const latRad = (Number(lat) * Math.PI) / 180;
+  const y = Math.floor((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2 * n);
+  return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+}
+
 const sourceStyles = {
   MSHA: "bg-stone-900 text-stone-50",
   TDEC: "bg-emerald-100 text-emerald-900 border border-emerald-300",
@@ -14,12 +24,18 @@ const sourceStyles = {
 export default function MiningSiteCard({ site, valuation }) {
   const location = [site.county ? `${site.county}, ` : "", site.state].join("");
   const verified = site.is_verified_listing && site.listing_id;
+  const aerialPreview = worldImageryTile(site.latitude, site.longitude);
+  const heroImage = site.site_images?.[0] || aerialPreview;
+  const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location preview" : null;
 
   const body = (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative h-40 overflow-hidden bg-gradient-to-br from-stone-200 to-stone-100">
-        {site.site_images?.[0] ? (
-          <img src={site.site_images[0]} alt={site.mine_name || "Quarry opportunity"} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        {heroImage ? (
+          <>
+            <img src={heroImage} alt={site.mine_name || "Quarry opportunity"} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            {heroLabel && <div className="absolute bottom-2 left-2 rounded-md bg-stone-950/75 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">{heroLabel}</div>}
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-stone-400">
             <Mountain className="h-10 w-10" />
