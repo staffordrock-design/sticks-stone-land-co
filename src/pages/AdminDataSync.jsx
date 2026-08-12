@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, DatabaseZap, Gem, MapPinned, RefreshCw, ShieldCheck } from "lucide-react";
@@ -12,7 +12,18 @@ export default function AdminDataSync() {
   const [result, setResult] = useState(null);
   const [geologyResult, setGeologyResult] = useState(null);
   const [parcelResult, setParcelResult] = useState(null);
+  const [freshness, setFreshness] = useState([]);
+  const [runningFreshness, setRunningFreshness] = useState(false);
   const [error, setError] = useState("");
+
+  const loadFreshness = async () => {
+    try {
+      const rows = await base44.entities.DataFreshnessStatus.list("source", 20);
+      setFreshness(rows || []);
+    } catch (_) {}
+  };
+
+  useEffect(() => { if (user?.role === "admin") loadFreshness(); }, [user?.role]);
 
   if (!user || user.role !== "admin") {
     return <div className="min-h-screen bg-background p-10 text-center text-muted-foreground">Admin access required.</div>;
@@ -43,6 +54,19 @@ export default function AdminDataSync() {
       setError(e?.message || "Tennessee geology sync failed.");
     } finally {
       setRunningGeology(false);
+    }
+  };
+
+  const refreshFreshness = async () => {
+    setRunningFreshness(true);
+    setError("");
+    try {
+      await base44.functions.invoke("report-data-freshness", {});
+      await loadFreshness();
+    } catch (e) {
+      setError(e?.message || "Freshness check failed.");
+    } finally {
+      setRunningFreshness(false);
     }
   };
 
@@ -78,6 +102,14 @@ export default function AdminDataSync() {
             Refresh public-source intelligence used by S&S Rock Holdings Data is source-labeled and missing values stay blank rather than being guessed.
           </p>
         </div>
+
+        <section className="mb-6 rounded-2xl border border-border bg-card p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div><h2 className="font-heading text-xl font-bold text-foreground">Report Source Freshness</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">Every customer report carries the current freshness state for MSHA, TDEC, geology, parcel/tax, and environmental sources. Stale layers stay visible instead of being presented as current.</p></div>
+            <button onClick={refreshFreshness} disabled={runningFreshness} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningFreshness ? "animate-spin" : ""}`} />{runningFreshness ? "Checking…" : "Recheck freshness"}</button>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{freshness.map((f) => <div key={f.source} className="rounded-xl border border-border bg-muted/20 p-4"><div className="flex items-center justify-between gap-3"><div className="font-semibold text-foreground">{f.source}</div><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${f.status === "Current" ? "bg-emerald-100 text-emerald-800" : f.status === "Stale" || f.status === "Error" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-900"}`}>{f.status}</span></div><div className="mt-2 text-xs text-muted-foreground">Last sync: {f.last_sync_at ? new Date(f.last_sync_at).toLocaleString() : "Not recorded"}</div></div>)}</div>
+        </section>
 
         <section className="rounded-2xl border border-border bg-card p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
