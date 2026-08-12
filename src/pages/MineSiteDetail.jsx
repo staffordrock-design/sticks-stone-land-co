@@ -183,7 +183,17 @@ export default function MineSiteDetail() {
         </div>
 
         <div className="mb-8 grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
-          <ParcelMap lat={mapLat} lng={mapLng} height={440} />
+          <ParcelMap
+            lat={mapLat}
+            lng={mapLng}
+            polygon={parcel?.boundary_polygon}
+            ownerName={parcel?.owner_name || site.parcel_owner}
+            parcelId={parcel?.parcel_id || site.parcel_id}
+            acreage={parcel?.acreage ?? site.acreage}
+            rockType={geologyRecord?.primary_rock || geologyRecord?.lithology || site.commodity}
+            boundarySource={parcel?.boundary_source || parcel?.source_name}
+            height={440}
+          />
           <Card title="Mine Record" icon={MapPinned}>
             <Row label="MSHA ID" value={site.msha_mine_id} />
             <Row label="Commodity" value={site.commodity} />
@@ -212,6 +222,9 @@ export default function MineSiteDetail() {
                 <Row label="Land value" value={money(parcel.land_value)} />
                 <Row label="Deed" value={parcel.deed_book_page} />
                 <Row label="Source" value={parcel.source_name} />
+                <Row label="Boundary" value={parcel.boundary_polygon?.length >= 3 ? "GIS parcel outline loaded" : "Boundary geometry not loaded yet"} />
+                <Row label="Boundary source" value={parcel.boundary_source} />
+                {parcel.boundary_source_url && <a href={parcel.boundary_source_url} target="_blank" rel="noreferrer" className="mt-4 mr-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open boundary source <ExternalLink className="h-3.5 w-3.5" /></a>}
                 {parcel.source_url && <a href={parcel.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </>
             ) : (
