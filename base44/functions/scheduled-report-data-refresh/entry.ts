@@ -24,6 +24,10 @@ export default async function(req: Request) {
   // Parcel GIS can change more often, so refresh the Tennessee working set weekly.
   if (day === 0) results.push(await run(base44, "sync-parcel-boundaries", { limit: 500 }));
 
+  // EPA ICIS-NPDES is our dependable automated permit/compliance cross-check for Tennessee mining sites.
+  // DMGR remains the controlling Tennessee record source; this job never invents missing DMGR-only fields.
+  if (day === 1) results.push(await run(base44, "sync-tn-npdes-environmental", { limit: 500 }));
+
   // Bedrock geology is comparatively stable; refresh once a month.
   if (date === 1) results.push(await run(base44, "sync-tn-geology", {}));
 
