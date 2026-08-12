@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "mining_site_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "Full Intelligence Report",
+        "Acquisition Review",
+        "Seller Review"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Requested",
+        "In Review",
+        "Ready",
+        "Closed"
+      ],
+      "default": "Requested"
+    },
+    "requested_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "mining_site_id",
+    "request_type"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "name": "ReportRequest"
+}
