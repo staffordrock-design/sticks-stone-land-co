@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, LayersControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -50,10 +50,20 @@ export default function TennesseeMineMap({ sites = [], height = 520 }) {
         style={{ height, width: "100%" }}
         scrollWheelZoom
       >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="Street map">
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; OpenStreetMap contributors"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Satellite / aerial">
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution="Tiles &copy; Esri"
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
         {mappedSites.map((site) => (
           <Marker
             key={site.id}
