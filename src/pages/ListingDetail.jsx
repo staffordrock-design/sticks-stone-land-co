@@ -92,7 +92,7 @@ export default function ListingDetail() {
               <Mountain className="h-5 w-5" />
             </div>
             <span className="font-heading text-base font-bold tracking-tight text-foreground">
-              Sticks &amp; Stone
+              S&amp;S Rock Holdings
             </span>
           </Link>
           <Link
