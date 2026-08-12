@@ -1,0 +1,63 @@
+{
+  "name": "ReportAccessGrant",
+  "type": "object",
+  "properties": {
+    "report_order_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "View",
+        "Download"
+      ],
+      "default": "View"
+    },
+    "granted_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "revoked_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "report_order_id",
+    "user_id",
+    "access_level"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

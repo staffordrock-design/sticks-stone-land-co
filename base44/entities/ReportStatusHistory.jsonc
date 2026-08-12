@@ -1,0 +1,47 @@
+{
+  "name": "ReportStatusHistory",
+  "type": "object",
+  "properties": {
+    "report_order_id": {
+      "type": "string"
+    },
+    "from_status": {
+      "type": "string"
+    },
+    "to_status": {
+      "type": "string"
+    },
+    "changed_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "report_order_id",
+    "to_status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

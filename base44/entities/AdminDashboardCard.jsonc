@@ -1,0 +1,65 @@
+{
+  "name": "AdminDashboardCard",
+  "type": "object",
+  "properties": {
+    "card_code": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "source_entity": {
+      "type": "string"
+    },
+    "metric_type": {
+      "type": "string",
+      "enum": [
+        "Count",
+        "Sum",
+        "Average",
+        "Status"
+      ]
+    },
+    "filter_json": {
+      "type": "string"
+    },
+    "field": {
+      "type": "string"
+    },
+    "sort_order": {
+      "type": "number"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "card_code",
+    "title",
+    "source_entity",
+    "metric_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "name": "DunningAttempt",
+  "type": "object",
+  "properties": {
+    "payment_issue_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "attempt_number": {
+      "type": "number"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "Store Retry",
+        "Stripe Retry",
+        "Email",
+        "Manual"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Scheduled",
+        "Attempted",
+        "Succeeded",
+        "Failed"
+      ],
+      "default": "Scheduled"
+    },
+    "attempted_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "payment_issue_id",
+    "attempt_number",
+    "method",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

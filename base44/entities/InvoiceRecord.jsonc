@@ -1,0 +1,91 @@
+{
+  "name": "InvoiceRecord",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "invoice_number": {
+      "type": "string"
+    },
+    "billing_event_id": {
+      "type": "string"
+    },
+    "amount_due": {
+      "type": "number"
+    },
+    "amount_paid": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Open",
+        "Paid",
+        "Void",
+        "Uncollectible",
+        "Refunded"
+      ],
+      "default": "Draft"
+    },
+    "issued_at": {
+      "type": "string"
+    },
+    "due_at": {
+      "type": "string"
+    },
+    "paid_at": {
+      "type": "string"
+    },
+    "external_invoice_id": {
+      "type": "string"
+    },
+    "receipt_url": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "invoice_number",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

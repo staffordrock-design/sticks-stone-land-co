@@ -1,0 +1,46 @@
+{
+  "name": "SubscriptionNotificationPreference",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "renewal_reminders": {
+      "type": "boolean",
+      "default": true
+    },
+    "product_updates": {
+      "type": "boolean",
+      "default": true
+    },
+    "buyer_alerts": {
+      "type": "boolean",
+      "default": true
+    },
+    "seller_activity": {
+      "type": "boolean",
+      "default": true
+    },
+    "billing_alerts": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

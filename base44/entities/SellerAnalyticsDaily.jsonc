@@ -1,0 +1,50 @@
+{
+  "name": "SellerAnalyticsDaily",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "new_submissions": {
+      "type": "number",
+      "default": 0
+    },
+    "published_listings": {
+      "type": "number",
+      "default": 0
+    },
+    "featured_listings": {
+      "type": "number",
+      "default": 0
+    },
+    "package_revenue": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

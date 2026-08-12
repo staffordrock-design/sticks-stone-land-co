@@ -1,0 +1,45 @@
+{
+  "name": "SellerPackageFeature",
+  "type": "object",
+  "properties": {
+    "package_code": {
+      "type": "string"
+    },
+    "feature_code": {
+      "type": "string"
+    },
+    "feature_name": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "package_code",
+    "feature_code",
+    "feature_name"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

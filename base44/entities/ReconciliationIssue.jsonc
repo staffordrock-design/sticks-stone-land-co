@@ -1,0 +1,67 @@
+{
+  "name": "ReconciliationIssue",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string"
+    },
+    "external_id": {
+      "type": "string"
+    },
+    "issue_type": {
+      "type": "string",
+      "enum": [
+        "Missing Billing Event",
+        "Amount Mismatch",
+        "Duplicate",
+        "Missing Payout",
+        "Other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Investigating",
+        "Resolved"
+      ],
+      "default": "Open"
+    },
+    "description": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "resolved_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "issue_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

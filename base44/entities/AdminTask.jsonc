@@ -1,0 +1,80 @@
+{
+  "name": "AdminTask",
+  "type": "object",
+  "properties": {
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "Payment Follow-up",
+        "Seller Follow-up",
+        "Buyer Follow-up",
+        "Report Delivery",
+        "Deal Follow-up",
+        "Subscription Review",
+        "Other"
+      ]
+    },
+    "related_entity_type": {
+      "type": "string"
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Progress",
+        "Done",
+        "Dismissed"
+      ],
+      "default": "Open"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Normal",
+        "High",
+        "Urgent"
+      ],
+      "default": "Normal"
+    },
+    "due_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "task_type",
+    "title",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

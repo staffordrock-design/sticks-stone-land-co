@@ -1,0 +1,82 @@
+{
+  "name": "NotificationQueue",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "recipient_email": {
+      "type": "string"
+    },
+    "notification_type": {
+      "type": "string",
+      "enum": [
+        "Payment Receipt",
+        "Payment Failed",
+        "Renewal",
+        "Subscription Expiring",
+        "Seller Lead",
+        "Buyer Interest",
+        "NDA Signed",
+        "Data Room Access",
+        "Offer Received",
+        "Deal Stage",
+        "Report Ready"
+      ]
+    },
+    "subject": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Queued",
+        "Sent",
+        "Failed",
+        "Cancelled"
+      ],
+      "default": "Queued"
+    },
+    "related_entity_type": {
+      "type": "string"
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "queued_at": {
+      "type": "string"
+    },
+    "sent_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "notification_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

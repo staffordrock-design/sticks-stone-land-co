@@ -1,0 +1,55 @@
+{
+  "name": "ServiceLevelDefinition",
+  "type": "object",
+  "properties": {
+    "service_code": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "target_response_hours": {
+      "type": "number"
+    },
+    "target_delivery_hours": {
+      "type": "number"
+    },
+    "applies_to_plan": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Active"
+      ],
+      "default": "Draft"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "service_code",
+    "name",
+    "status"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

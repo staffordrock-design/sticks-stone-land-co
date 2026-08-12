@@ -1,0 +1,53 @@
+{
+  "name": "EnterpriseUsageCommitment",
+  "type": "object",
+  "properties": {
+    "company_account_id": {
+      "type": "string"
+    },
+    "contract_record_id": {
+      "type": "string"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "included_quantity": {
+      "type": "number"
+    },
+    "overage_unit_amount": {
+      "type": "number"
+    },
+    "period": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_account_id",
+    "metric"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "SubscriptionPlanDefinition",
+  "type": "object",
+  "properties": {
+    "plan_family": {
+      "type": "string",
+      "enum": [
+        "Free",
+        "Professional",
+        "Business",
+        "Enterprise"
+      ]
+    },
+    "plan_code": {
+      "type": "string"
+    },
+    "billing_period": {
+      "type": "string",
+      "enum": [
+        "None",
+        "Monthly",
+        "Annual",
+        "Custom"
+      ]
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Active",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "recommended_for": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_family",
+    "plan_code",
+    "billing_period",
+    "display_name",
+    "status"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

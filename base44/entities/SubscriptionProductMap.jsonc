@@ -1,0 +1,53 @@
+{
+  "name": "SubscriptionProductMap",
+  "type": "object",
+  "properties": {
+    "plan_code": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Apple",
+        "Google",
+        "Web"
+      ]
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "billing_period": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "plan_code",
+    "platform",
+    "product_id"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

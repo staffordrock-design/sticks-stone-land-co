@@ -1,0 +1,60 @@
+{
+  "name": "CustomerRevenueSummary",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "subscription_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "report_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "seller_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "other_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "lifetime_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "last_recalculated_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

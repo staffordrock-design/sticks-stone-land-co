@@ -1,0 +1,49 @@
+{
+  "name": "ReportConversionFunnel",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string"
+    },
+    "report_views": {
+      "type": "number"
+    },
+    "orders_started": {
+      "type": "number"
+    },
+    "paid": {
+      "type": "number"
+    },
+    "delivered": {
+      "type": "number"
+    },
+    "repeat_buyers": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "period"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

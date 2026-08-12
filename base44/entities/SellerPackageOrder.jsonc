@@ -1,0 +1,86 @@
+{
+  "name": "SellerPackageOrder",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "seller_email": {
+      "type": "string"
+    },
+    "property_name": {
+      "type": "string"
+    },
+    "package_code": {
+      "type": "string",
+      "enum": [
+        "basic",
+        "featured",
+        "managed"
+      ],
+      "default": "basic"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Pending Payment",
+        "Active",
+        "Paused",
+        "Completed",
+        "Cancelled"
+      ],
+      "default": "Draft"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "features": {
+      "type": "string"
+    },
+    "external_transaction_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "package_code",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

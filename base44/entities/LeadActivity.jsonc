@@ -1,0 +1,68 @@
+{
+  "name": "LeadActivity",
+  "type": "object",
+  "properties": {
+    "lead_type": {
+      "type": "string",
+      "enum": [
+        "Seller",
+        "Buyer",
+        "Customer",
+        "Deal"
+      ]
+    },
+    "lead_id": {
+      "type": "string"
+    },
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "Created",
+        "Viewed",
+        "Contacted",
+        "Qualified",
+        "NDA Signed",
+        "Data Room Opened",
+        "Offer Submitted",
+        "Payment",
+        "Note",
+        "Stage Change"
+      ]
+    },
+    "actor_user_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "lead_type",
+    "activity_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

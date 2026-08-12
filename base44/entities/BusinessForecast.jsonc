@@ -1,0 +1,61 @@
+{
+  "name": "BusinessForecast",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string"
+    },
+    "scenario": {
+      "type": "string",
+      "enum": [
+        "Conservative",
+        "Base",
+        "Growth"
+      ]
+    },
+    "subscription_revenue": {
+      "type": "number"
+    },
+    "seller_revenue": {
+      "type": "number"
+    },
+    "report_revenue": {
+      "type": "number"
+    },
+    "enterprise_revenue": {
+      "type": "number"
+    },
+    "total_revenue": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "period",
+    "scenario"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

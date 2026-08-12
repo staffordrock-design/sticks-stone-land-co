@@ -1,0 +1,66 @@
+{
+  "name": "RevenuePeriod",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Closed"
+      ],
+      "default": "Open"
+    },
+    "gross_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "refunds": {
+      "type": "number",
+      "default": 0
+    },
+    "platform_fees": {
+      "type": "number",
+      "default": 0
+    },
+    "taxes": {
+      "type": "number",
+      "default": 0
+    },
+    "net_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "closed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "period",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

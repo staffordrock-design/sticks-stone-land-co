@@ -1,0 +1,64 @@
+{
+  "name": "SellerPerformance",
+  "type": "object",
+  "properties": {
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "unique_viewers": {
+      "type": "number",
+      "default": 0
+    },
+    "inquiries": {
+      "type": "number",
+      "default": 0
+    },
+    "ndas": {
+      "type": "number",
+      "default": 0
+    },
+    "data_room_opens": {
+      "type": "number",
+      "default": 0
+    },
+    "offers": {
+      "type": "number",
+      "default": 0
+    },
+    "last_updated_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "seller_submission_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

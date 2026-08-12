@@ -1,0 +1,61 @@
+{
+  "name": "BusinessReadinessSummary",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "foundation_ready": {
+      "type": "boolean"
+    },
+    "pricing_ready": {
+      "type": "boolean"
+    },
+    "apple_ready": {
+      "type": "boolean"
+    },
+    "google_ready": {
+      "type": "boolean"
+    },
+    "web_billing_ready": {
+      "type": "boolean"
+    },
+    "marketplace_ready": {
+      "type": "boolean"
+    },
+    "report_ops_ready": {
+      "type": "boolean"
+    },
+    "deal_ops_ready": {
+      "type": "boolean"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

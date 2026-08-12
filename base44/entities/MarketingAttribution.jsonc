@@ -1,0 +1,56 @@
+{
+  "name": "MarketingAttribution",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "lead_email": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "medium": {
+      "type": "string"
+    },
+    "campaign": {
+      "type": "string"
+    },
+    "landing_page": {
+      "type": "string"
+    },
+    "first_seen_at": {
+      "type": "string"
+    },
+    "converted_at": {
+      "type": "string"
+    },
+    "conversion_type": {
+      "type": "string"
+    }
+  },
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "required": []
+}

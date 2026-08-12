@@ -1,0 +1,52 @@
+{
+  "name": "SubscriptionConversionFunnel",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string"
+    },
+    "visitors": {
+      "type": "number"
+    },
+    "registered": {
+      "type": "number"
+    },
+    "pricing_views": {
+      "type": "number"
+    },
+    "purchase_started": {
+      "type": "number"
+    },
+    "subscribed": {
+      "type": "number"
+    },
+    "renewed": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "period"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

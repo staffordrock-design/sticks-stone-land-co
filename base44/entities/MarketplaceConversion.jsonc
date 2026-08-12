@@ -1,0 +1,60 @@
+{
+  "name": "MarketplaceConversion",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "conversion_type": {
+      "type": "string",
+      "enum": [
+        "Registered",
+        "Subscribed",
+        "Seller Submitted",
+        "Buyer Profile",
+        "Inquiry",
+        "NDA",
+        "Data Room",
+        "Offer",
+        "Closed Deal"
+      ]
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "conversion_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "name": "DataLicenseRequest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "requested_scope": {
+      "type": "string"
+    },
+    "intended_use": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Reviewing",
+        "Quoted",
+        "Approved",
+        "Declined"
+      ],
+      "default": "New"
+    },
+    "quoted_amount": {
+      "type": "number"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "email",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

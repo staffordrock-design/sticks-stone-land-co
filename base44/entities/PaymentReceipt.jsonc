@@ -1,0 +1,67 @@
+{
+  "name": "PaymentReceipt",
+  "type": "object",
+  "properties": {
+    "billing_event_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "receipt_number": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "paid_at": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "external_receipt_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "billing_event_id",
+    "receipt_number"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

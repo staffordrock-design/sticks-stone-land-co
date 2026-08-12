@@ -1,0 +1,59 @@
+{
+  "name": "MarketplaceMetric",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "metric": {
+      "type": "string",
+      "enum": [
+        "New Sellers",
+        "New Buyers",
+        "New Listings",
+        "Inquiries",
+        "NDAs",
+        "Data Room Opens",
+        "Offers",
+        "Closings"
+      ]
+    },
+    "count": {
+      "type": "number",
+      "default": 0
+    },
+    "value": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "date",
+    "metric"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

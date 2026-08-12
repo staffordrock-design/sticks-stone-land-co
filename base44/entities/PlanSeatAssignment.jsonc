@@ -1,0 +1,83 @@
+{
+  "name": "PlanSeatAssignment",
+  "type": "object",
+  "properties": {
+    "company_account_id": {
+      "type": "string"
+    },
+    "owner_user_id": {
+      "type": "string"
+    },
+    "member_user_id": {
+      "type": "string"
+    },
+    "member_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Invited",
+        "Active",
+        "Revoked"
+      ],
+      "default": "Invited"
+    },
+    "assigned_at": {
+      "type": "string"
+    },
+    "revoked_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_account_id",
+    "owner_user_id",
+    "member_email",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.owner_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

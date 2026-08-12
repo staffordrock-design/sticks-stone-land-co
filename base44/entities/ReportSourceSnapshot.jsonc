@@ -1,0 +1,72 @@
+{
+  "name": "ReportSourceSnapshot",
+  "type": "object",
+  "properties": {
+    "report_order_id": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "MSHA",
+        "TDEC",
+        "Geology",
+        "Parcel",
+        "Tax",
+        "Environmental",
+        "Other"
+      ]
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "retrieved_at": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ]
+    }
+  },
+  "required": [
+    "report_order_id",
+    "source_type",
+    "source_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

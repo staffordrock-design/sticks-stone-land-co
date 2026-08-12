@@ -1,0 +1,60 @@
+{
+  "name": "StoreFeeRecord",
+  "type": "object",
+  "properties": {
+    "billing_event_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Apple",
+        "Google",
+        "Stripe"
+      ]
+    },
+    "gross_amount": {
+      "type": "number"
+    },
+    "fee_amount": {
+      "type": "number"
+    },
+    "net_amount": {
+      "type": "number"
+    },
+    "fee_rate": {
+      "type": "number"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -73,6 +73,20 @@
     "acreage": {
       "type": "number"
     },
+    "site_images": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "photo_condition_score": {
+      "type": "number",
+      "description": "Reviewed 0-100 visual/site-condition screening score derived from available property photos; not a reserve or engineering conclusion."
+    },
+    "photo_notes": {
+      "type": "string"
+    },
     "is_verified_listing": {
       "type": "boolean",
       "default": false

@@ -1,0 +1,76 @@
+{
+  "name": "OperationalError",
+  "type": "object",
+  "properties": {
+    "area": {
+      "type": "string",
+      "enum": [
+        "Billing",
+        "Store",
+        "Report",
+        "Marketplace",
+        "Data",
+        "Deal",
+        "Notification"
+      ]
+    },
+    "operation": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Warning",
+        "Error",
+        "Critical"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Resolved",
+        "Ignored"
+      ],
+      "default": "Open"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "resolved_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "area",
+    "operation",
+    "error_message",
+    "severity",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

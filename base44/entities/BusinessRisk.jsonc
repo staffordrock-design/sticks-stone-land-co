@@ -1,0 +1,74 @@
+{
+  "name": "BusinessRisk",
+  "type": "object",
+  "properties": {
+    "risk_code": {
+      "type": "string"
+    },
+    "area": {
+      "type": "string",
+      "enum": [
+        "Legal",
+        "Billing",
+        "Data",
+        "Store",
+        "Marketplace",
+        "Security",
+        "Operations"
+      ]
+    },
+    "risk": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ]
+    },
+    "mitigation": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Mitigated",
+        "Accepted"
+      ],
+      "default": "Open"
+    }
+  },
+  "required": [
+    "risk_code",
+    "area",
+    "risk",
+    "severity",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

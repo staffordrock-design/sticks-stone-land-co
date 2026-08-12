@@ -1,0 +1,67 @@
+{
+  "name": "DealMilestone",
+  "type": "object",
+  "properties": {
+    "deal_pipeline_id": {
+      "type": "string"
+    },
+    "milestone_type": {
+      "type": "string",
+      "enum": [
+        "NDA",
+        "LOI",
+        "Due Diligence Start",
+        "Due Diligence End",
+        "Financing",
+        "Purchase Agreement",
+        "Closing"
+      ]
+    },
+    "target_date": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Complete",
+        "Missed",
+        "Waived"
+      ],
+      "default": "Pending"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deal_pipeline_id",
+    "milestone_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

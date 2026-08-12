@@ -1,0 +1,58 @@
+{
+  "name": "DealAnalyticsDaily",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "new_deals": {
+      "type": "number",
+      "default": 0
+    },
+    "offers": {
+      "type": "number",
+      "default": 0
+    },
+    "under_contract": {
+      "type": "number",
+      "default": 0
+    },
+    "closed": {
+      "type": "number",
+      "default": 0
+    },
+    "pipeline_value": {
+      "type": "number",
+      "default": 0
+    },
+    "closed_value": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

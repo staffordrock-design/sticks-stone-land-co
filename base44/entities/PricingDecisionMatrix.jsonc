@@ -1,0 +1,59 @@
+{
+  "name": "PricingDecisionMatrix",
+  "type": "object",
+  "properties": {
+    "product_code": {
+      "type": "string"
+    },
+    "value_driver": {
+      "type": "string"
+    },
+    "cost_driver": {
+      "type": "string"
+    },
+    "buyer_type": {
+      "type": "string"
+    },
+    "billing_model": {
+      "type": "string"
+    },
+    "decision_status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Ready",
+        "Approved"
+      ],
+      "default": "Open"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_code",
+    "decision_status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "name": "StoreProductStatus",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Apple",
+        "Google"
+      ]
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "plan_code": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Created",
+        "Created",
+        "Ready to Submit",
+        "Submitted",
+        "Approved",
+        "Active",
+        "Rejected"
+      ],
+      "default": "Not Created"
+    },
+    "last_checked_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "product_id",
+    "plan_code",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

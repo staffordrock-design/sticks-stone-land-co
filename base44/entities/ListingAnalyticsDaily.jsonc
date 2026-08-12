@@ -1,0 +1,62 @@
+{
+  "name": "ListingAnalyticsDaily",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
+    },
+    "views": {
+      "type": "number",
+      "default": 0
+    },
+    "unique_viewers": {
+      "type": "number",
+      "default": 0
+    },
+    "saves": {
+      "type": "number",
+      "default": 0
+    },
+    "inquiries": {
+      "type": "number",
+      "default": 0
+    },
+    "data_room_requests": {
+      "type": "number",
+      "default": 0
+    },
+    "offers": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "listing_id",
+    "date"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

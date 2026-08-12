@@ -1,0 +1,92 @@
+{
+  "name": "IntelligenceReportOrder",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "mining_site_id": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "site_name": {
+      "type": "string"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "Standard",
+        "Enhanced",
+        "Custom"
+      ],
+      "default": "Standard"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Requested",
+        "Pending Payment",
+        "Processing",
+        "Ready",
+        "Delivered",
+        "Cancelled"
+      ],
+      "default": "Requested"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "requested_at": {
+      "type": "string"
+    },
+    "delivered_at": {
+      "type": "string"
+    },
+    "report_url": {
+      "type": "string"
+    },
+    "source_snapshot_date": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "report_type",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

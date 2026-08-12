@@ -1,0 +1,67 @@
+{
+  "name": "StoreReviewIssue",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Apple",
+        "Google"
+      ]
+    },
+    "category": {
+      "type": "string"
+    },
+    "issue": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Info",
+        "Warning",
+        "Blocking"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Fixed",
+        "Accepted Risk"
+      ],
+      "default": "Open"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "issue",
+    "severity",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

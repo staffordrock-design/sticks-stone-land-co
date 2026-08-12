@@ -1,0 +1,69 @@
+{
+  "name": "PaymentMethodReference",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Stripe",
+        "Apple",
+        "Google"
+      ]
+    },
+    "external_customer_id": {
+      "type": "string"
+    },
+    "display_hint": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Expired",
+        "Removed"
+      ],
+      "default": "Active"
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "platform",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

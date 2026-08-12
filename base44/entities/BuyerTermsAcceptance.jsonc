@@ -1,0 +1,55 @@
+{
+  "name": "BuyerTermsAcceptance",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "terms_version": {
+      "type": "string"
+    },
+    "accepted_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Accepted",
+        "Withdrawn"
+      ],
+      "default": "Accepted"
+    }
+  },
+  "required": [
+    "user_id",
+    "terms_version",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

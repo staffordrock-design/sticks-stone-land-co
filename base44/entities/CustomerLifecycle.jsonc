@@ -1,0 +1,76 @@
+{
+  "name": "CustomerLifecycle",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Visitor",
+        "Registered",
+        "Trial",
+        "Subscriber",
+        "Buyer",
+        "Seller",
+        "Active Deal",
+        "Churned"
+      ],
+      "default": "Registered"
+    },
+    "first_seen_at": {
+      "type": "string"
+    },
+    "last_seen_at": {
+      "type": "string"
+    },
+    "converted_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "stage"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

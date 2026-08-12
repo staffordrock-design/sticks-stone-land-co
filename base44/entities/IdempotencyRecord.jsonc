@@ -1,0 +1,50 @@
+{
+  "name": "IdempotencyRecord",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string"
+    },
+    "operation": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "result_entity_type": {
+      "type": "string"
+    },
+    "result_entity_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key",
+    "operation"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

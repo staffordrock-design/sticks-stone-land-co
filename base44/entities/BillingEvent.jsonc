@@ -1,0 +1,88 @@
+{
+  "name": "BillingEvent",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "revenue_type": {
+      "type": "string",
+      "enum": [
+        "Subscription",
+        "Intelligence Report",
+        "Seller Package",
+        "Data Room",
+        "Other"
+      ]
+    },
+    "plan_or_product": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Apple",
+        "Google",
+        "Stripe",
+        "Manual"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Paid",
+        "Failed",
+        "Refunded",
+        "Cancelled"
+      ],
+      "default": "Pending"
+    },
+    "external_transaction_id": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "revenue_type",
+    "status",
+    "platform"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

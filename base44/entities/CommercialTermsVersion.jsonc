@@ -1,0 +1,60 @@
+{
+  "name": "CommercialTermsVersion",
+  "type": "object",
+  "properties": {
+    "terms_type": {
+      "type": "string",
+      "enum": [
+        "Subscription",
+        "Seller Package",
+        "Report",
+        "Enterprise",
+        "Deal Service"
+      ]
+    },
+    "version": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Active",
+        "Retired"
+      ],
+      "default": "Draft"
+    },
+    "effective_at": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "document_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "terms_type",
+    "version",
+    "status"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

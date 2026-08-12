@@ -1,0 +1,54 @@
+{
+  "name": "BusinessRule",
+  "type": "object",
+  "properties": {
+    "rule_code": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Info",
+        "Guardrail",
+        "Critical"
+      ],
+      "default": "Guardrail"
+    }
+  },
+  "required": [
+    "rule_code",
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

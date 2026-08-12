@@ -1,0 +1,60 @@
+{
+  "name": "PlatformCost",
+  "type": "object",
+  "properties": {
+    "cost_type": {
+      "type": "string",
+      "enum": [
+        "Base44",
+        "Apple Developer",
+        "Google Play",
+        "Stripe Fee",
+        "Data Provider",
+        "Other"
+      ]
+    },
+    "period": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Estimated",
+        "Actual"
+      ],
+      "default": "Estimated"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "cost_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

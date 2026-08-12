@@ -1,0 +1,50 @@
+{
+  "name": "CustomerAcquisitionCost",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "spend": {
+      "type": "number"
+    },
+    "new_customers": {
+      "type": "number"
+    },
+    "cac": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "period",
+    "channel"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

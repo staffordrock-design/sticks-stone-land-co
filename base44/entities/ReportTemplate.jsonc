@@ -1,0 +1,62 @@
+{
+  "name": "ReportTemplate",
+  "type": "object",
+  "properties": {
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "Standard",
+        "Enhanced",
+        "Custom"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "sections": {
+      "type": "string"
+    },
+    "disclaimer": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Active",
+        "Retired"
+      ],
+      "default": "Draft"
+    }
+  },
+  "required": [
+    "report_type",
+    "name",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

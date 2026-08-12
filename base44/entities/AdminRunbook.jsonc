@@ -1,0 +1,47 @@
+{
+  "name": "AdminRunbook",
+  "type": "object",
+  "properties": {
+    "scenario": {
+      "type": "string"
+    },
+    "steps": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Active"
+      ],
+      "default": "Draft"
+    }
+  },
+  "required": [
+    "scenario",
+    "steps",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "name": "OwnerDecision",
+  "type": "object",
+  "properties": {
+    "decision_type": {
+      "type": "string",
+      "enum": [
+        "Pricing",
+        "Product",
+        "Legal",
+        "Store",
+        "Operations"
+      ]
+    },
+    "subject": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Needed",
+        "Decided",
+        "Deferred"
+      ],
+      "default": "Needed"
+    },
+    "decision": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "decision_type",
+    "subject",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

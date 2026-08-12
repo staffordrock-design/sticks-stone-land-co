@@ -1,0 +1,75 @@
+{
+  "name": "ContractRecord",
+  "type": "object",
+  "properties": {
+    "contract_type": {
+      "type": "string",
+      "enum": [
+        "Enterprise",
+        "Seller Marketing",
+        "Data License",
+        "Consulting",
+        "Other"
+      ]
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "counterparty_name": {
+      "type": "string"
+    },
+    "counterparty_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Sent",
+        "Signed",
+        "Expired",
+        "Terminated"
+      ],
+      "default": "Draft"
+    },
+    "effective_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "document_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "counterparty_name",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

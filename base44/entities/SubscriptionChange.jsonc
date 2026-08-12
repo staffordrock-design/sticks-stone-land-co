@@ -1,0 +1,72 @@
+{
+  "name": "SubscriptionChange",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "from_plan": {
+      "type": "string"
+    },
+    "to_plan": {
+      "type": "string"
+    },
+    "change_type": {
+      "type": "string",
+      "enum": [
+        "Started",
+        "Upgrade",
+        "Downgrade",
+        "Renewed",
+        "Cancelled",
+        "Expired",
+        "Reactivated"
+      ]
+    },
+    "effective_at": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "external_transaction_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "change_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

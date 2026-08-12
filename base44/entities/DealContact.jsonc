@@ -1,0 +1,64 @@
+{
+  "name": "DealContact",
+  "type": "object",
+  "properties": {
+    "deal_pipeline_id": {
+      "type": "string"
+    },
+    "contact_type": {
+      "type": "string",
+      "enum": [
+        "Seller",
+        "Buyer",
+        "Attorney",
+        "Geologist",
+        "Engineer",
+        "Surveyor",
+        "Environmental",
+        "Other"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deal_pipeline_id",
+    "contact_type",
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

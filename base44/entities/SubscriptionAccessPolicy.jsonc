@@ -1,0 +1,47 @@
+{
+  "name": "SubscriptionAccessPolicy",
+  "type": "object",
+  "properties": {
+    "feature_code": {
+      "type": "string"
+    },
+    "minimum_plan_family": {
+      "type": "string",
+      "enum": [
+        "Free",
+        "Professional",
+        "Business",
+        "Enterprise"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "feature_code",
+    "minimum_plan_family"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

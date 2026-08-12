@@ -1,0 +1,62 @@
+{
+  "name": "BusinessNotificationRule",
+  "type": "object",
+  "properties": {
+    "event_type": {
+      "type": "string"
+    },
+    "recipient_type": {
+      "type": "string",
+      "enum": [
+        "Admin",
+        "Customer",
+        "Seller",
+        "Buyer"
+      ]
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "In App",
+        "Email"
+      ]
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "template_key": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "event_type",
+    "recipient_type",
+    "channel"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

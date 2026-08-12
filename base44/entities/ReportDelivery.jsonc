@@ -1,0 +1,70 @@
+{
+  "name": "ReportDelivery",
+  "type": "object",
+  "properties": {
+    "report_order_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "delivered_at": {
+      "type": "string"
+    },
+    "delivery_method": {
+      "type": "string",
+      "enum": [
+        "In App",
+        "Email",
+        "Secure Link"
+      ]
+    },
+    "access_url": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "download_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "report_order_id",
+    "user_id",
+    "delivery_method"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

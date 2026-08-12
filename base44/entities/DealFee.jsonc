@@ -1,0 +1,67 @@
+{
+  "name": "DealFee",
+  "type": "object",
+  "properties": {
+    "deal_pipeline_id": {
+      "type": "string"
+    },
+    "fee_type": {
+      "type": "string",
+      "enum": [
+        "Marketing",
+        "Technology",
+        "Research",
+        "Data Room",
+        "Consulting",
+        "Other"
+      ]
+    },
+    "amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Proposed",
+        "Invoiced",
+        "Paid",
+        "Waived",
+        "Cancelled"
+      ],
+      "default": "Proposed"
+    },
+    "billing_event_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deal_pipeline_id",
+    "fee_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

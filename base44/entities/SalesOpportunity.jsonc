@@ -1,0 +1,77 @@
+{
+  "name": "SalesOpportunity",
+  "type": "object",
+  "properties": {
+    "customer_user_id": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "opportunity_type": {
+      "type": "string",
+      "enum": [
+        "Professional",
+        "Business",
+        "Enterprise",
+        "Seller Package",
+        "Custom Report",
+        "Data License"
+      ]
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Lead",
+        "Qualified",
+        "Demo",
+        "Proposal",
+        "Negotiation",
+        "Won",
+        "Lost"
+      ],
+      "default": "Lead"
+    },
+    "estimated_value": {
+      "type": "number"
+    },
+    "next_action": {
+      "type": "string"
+    },
+    "next_action_date": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunity_type",
+    "stage"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "name": "RevenueExport",
+  "type": "object",
+  "properties": {
+    "period_start": {
+      "type": "string"
+    },
+    "period_end": {
+      "type": "string"
+    },
+    "export_type": {
+      "type": "string",
+      "enum": [
+        "Revenue Summary",
+        "Transactions",
+        "Invoices",
+        "Payouts",
+        "Taxes"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Requested",
+        "Ready",
+        "Failed",
+        "Expired"
+      ],
+      "default": "Requested"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "export_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

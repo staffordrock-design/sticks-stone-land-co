@@ -1,0 +1,52 @@
+{
+  "name": "DocumentAccessEvent",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "seller_document_id": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "Viewed",
+        "Downloaded"
+      ]
+    },
+    "occurred_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "seller_document_id",
+    "event_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "RevenueDashboardPreference",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "date_range": {
+      "type": "string",
+      "default": "30d"
+    },
+    "show_pipeline": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_gross": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_net": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_store_fees": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

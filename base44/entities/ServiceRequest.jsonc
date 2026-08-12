@@ -1,0 +1,83 @@
+{
+  "name": "ServiceRequest",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "Custom Report",
+        "Enterprise Demo",
+        "Seller Consultation",
+        "Deal Support",
+        "Data Request"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Contacted",
+        "Scoped",
+        "Quoted",
+        "Accepted",
+        "In Progress",
+        "Completed",
+        "Declined"
+      ],
+      "default": "New"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "details": {
+      "type": "string"
+    },
+    "quoted_amount": {
+      "type": "number"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "service_type",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

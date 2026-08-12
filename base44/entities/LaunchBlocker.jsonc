@@ -1,0 +1,57 @@
+{
+  "name": "LaunchBlocker",
+  "type": "object",
+  "properties": {
+    "blocker_code": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Progress",
+        "Resolved"
+      ],
+      "default": "Open"
+    },
+    "blocking_area": {
+      "type": "string"
+    },
+    "next_step": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "blocker_code",
+    "title",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

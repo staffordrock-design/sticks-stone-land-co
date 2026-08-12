@@ -1,0 +1,52 @@
+{
+  "name": "AuditEvent",
+  "type": "object",
+  "properties": {
+    "actor_user_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "ip_hint": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

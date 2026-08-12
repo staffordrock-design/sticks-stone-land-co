@@ -1,0 +1,59 @@
+{
+  "name": "SellerLeadMatch",
+  "type": "object",
+  "properties": {
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "buyer_profile_id": {
+      "type": "string"
+    },
+    "match_score": {
+      "type": "number"
+    },
+    "match_reasons": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Suggested",
+        "Reviewed",
+        "Contacted",
+        "Interested",
+        "Passed"
+      ],
+      "default": "Suggested"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "seller_submission_id",
+    "buyer_profile_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

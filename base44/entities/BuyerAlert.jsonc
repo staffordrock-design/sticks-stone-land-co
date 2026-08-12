@@ -1,0 +1,73 @@
+{
+  "name": "BuyerAlert",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "states": {
+      "type": "string"
+    },
+    "commodities": {
+      "type": "string"
+    },
+    "min_acres": {
+      "type": "number"
+    },
+    "max_acres": {
+      "type": "number"
+    },
+    "max_price": {
+      "type": "number"
+    },
+    "asset_types": {
+      "type": "string"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "Instant",
+        "Daily",
+        "Weekly"
+      ],
+      "default": "Instant"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_sent_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

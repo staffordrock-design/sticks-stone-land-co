@@ -1,0 +1,64 @@
+{
+  "name": "AppStoreSubmission",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Apple",
+        "Google"
+      ]
+    },
+    "version": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Preparing",
+        "Ready",
+        "Submitted",
+        "In Review",
+        "Approved",
+        "Rejected"
+      ],
+      "default": "Preparing"
+    },
+    "submitted_at": {
+      "type": "string"
+    },
+    "review_notes": {
+      "type": "string"
+    },
+    "build_reference": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "version",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

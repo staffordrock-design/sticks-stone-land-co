@@ -1,0 +1,76 @@
+{
+  "name": "ReferralRecord",
+  "type": "object",
+  "properties": {
+    "referrer_name": {
+      "type": "string"
+    },
+    "referrer_email": {
+      "type": "string"
+    },
+    "lead_type": {
+      "type": "string",
+      "enum": [
+        "Buyer",
+        "Seller",
+        "Enterprise"
+      ]
+    },
+    "lead_email": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Submitted",
+        "Qualified",
+        "Converted",
+        "Closed",
+        "Not Qualified"
+      ],
+      "default": "Submitted"
+    },
+    "compensation_type": {
+      "type": "string",
+      "enum": [
+        "None",
+        "Fixed Marketing Fee",
+        "Other"
+      ],
+      "default": "None"
+    },
+    "compensation_amount": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "referrer_name",
+    "lead_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

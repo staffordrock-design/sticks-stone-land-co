@@ -1,0 +1,50 @@
+{
+  "name": "ChurnEvent",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "plan_code": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "recovered": {
+      "type": "boolean",
+      "default": false
+    },
+    "recovered_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

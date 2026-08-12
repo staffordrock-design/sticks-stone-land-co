@@ -1,0 +1,52 @@
+{
+  "name": "SellerPayoutRecord",
+  "type": "object",
+  "properties": {
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "deal_pipeline_id": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Applicable",
+        "Pending",
+        "Recorded"
+      ],
+      "default": "Not Applicable"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

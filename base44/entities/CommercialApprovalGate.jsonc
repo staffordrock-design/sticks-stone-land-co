@@ -1,0 +1,55 @@
+{
+  "name": "CommercialApprovalGate",
+  "type": "object",
+  "properties": {
+    "gate_code": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "required_for": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Passed",
+        "Waived"
+      ],
+      "default": "Open"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "gate_code",
+    "name",
+    "required_for",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

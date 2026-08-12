@@ -1,0 +1,58 @@
+{
+  "name": "SubscriptionAnalyticsDaily",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "new_subscribers": {
+      "type": "number",
+      "default": 0
+    },
+    "renewals": {
+      "type": "number",
+      "default": 0
+    },
+    "cancellations": {
+      "type": "number",
+      "default": 0
+    },
+    "expirations": {
+      "type": "number",
+      "default": 0
+    },
+    "active_end_of_day": {
+      "type": "number",
+      "default": 0
+    },
+    "mrr": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

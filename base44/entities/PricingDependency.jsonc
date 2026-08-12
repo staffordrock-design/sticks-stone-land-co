@@ -1,0 +1,51 @@
+{
+  "name": "PricingDependency",
+  "type": "object",
+  "properties": {
+    "product_code": {
+      "type": "string"
+    },
+    "dependency": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Resolved",
+        "Not Required"
+      ],
+      "default": "Open"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_code",
+    "dependency",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

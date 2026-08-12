@@ -1,0 +1,50 @@
+{
+  "name": "BillingStatusHistory",
+  "type": "object",
+  "properties": {
+    "billing_event_id": {
+      "type": "string"
+    },
+    "from_status": {
+      "type": "string"
+    },
+    "to_status": {
+      "type": "string"
+    },
+    "changed_at": {
+      "type": "string"
+    },
+    "provider_event_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "billing_event_id",
+    "to_status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

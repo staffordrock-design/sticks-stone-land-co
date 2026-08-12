@@ -1,0 +1,54 @@
+{
+  "name": "CommissionHold",
+  "type": "object",
+  "properties": {
+    "deal_pipeline_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "proposed_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Legal Review",
+        "Approved",
+        "Rejected",
+        "Not Applicable"
+      ],
+      "default": "Legal Review"
+    },
+    "legal_basis_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "description",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

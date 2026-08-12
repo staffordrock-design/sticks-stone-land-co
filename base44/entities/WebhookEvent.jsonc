@@ -1,0 +1,67 @@
+{
+  "name": "WebhookEvent",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string",
+      "enum": [
+        "Stripe",
+        "Apple",
+        "Google"
+      ]
+    },
+    "external_event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Received",
+        "Processed",
+        "Failed",
+        "Ignored"
+      ],
+      "default": "Received"
+    },
+    "received_at": {
+      "type": "string"
+    },
+    "processed_at": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "provider",
+    "external_event_id",
+    "event_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

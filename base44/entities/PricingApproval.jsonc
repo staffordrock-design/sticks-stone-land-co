@@ -1,0 +1,60 @@
+{
+  "name": "PricingApproval",
+  "type": "object",
+  "properties": {
+    "product_code": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "approved_by_user_id": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Proposed",
+        "Approved",
+        "Superseded"
+      ],
+      "default": "Proposed"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_code",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

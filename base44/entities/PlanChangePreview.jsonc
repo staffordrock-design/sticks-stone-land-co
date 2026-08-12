@@ -1,0 +1,52 @@
+{
+  "name": "PlanChangePreview",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "current_plan": {
+      "type": "string"
+    },
+    "target_plan": {
+      "type": "string"
+    },
+    "estimated_charge": {
+      "type": "number"
+    },
+    "effective_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Preview",
+        "Accepted",
+        "Expired"
+      ],
+      "default": "Preview"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "target_plan",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "name": "ConsentRecord",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "consent_type": {
+      "type": "string",
+      "enum": [
+        "Terms",
+        "Privacy",
+        "NDA",
+        "Marketing"
+      ]
+    },
+    "version": {
+      "type": "string"
+    },
+    "accepted": {
+      "type": "boolean"
+    },
+    "accepted_at": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "consent_type",
+    "accepted"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "InvoiceLineItem",
+  "type": "object",
+  "properties": {
+    "invoice_record_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 1
+    },
+    "unit_amount": {
+      "type": "number"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "product_code": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "invoice_record_id",
+    "description"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

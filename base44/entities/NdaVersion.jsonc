@@ -1,0 +1,50 @@
+{
+  "name": "NdaVersion",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "effective_at": {
+      "type": "string"
+    },
+    "text_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Active",
+        "Retired"
+      ],
+      "default": "Draft"
+    }
+  },
+  "required": [
+    "version",
+    "title",
+    "status"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "name": "ReportReview",
+  "type": "object",
+  "properties": {
+    "report_order_id": {
+      "type": "string"
+    },
+    "review_status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Source Check",
+        "Ready",
+        "Approved",
+        "Needs Revision"
+      ],
+      "default": "Pending"
+    },
+    "reviewer_user_id": {
+      "type": "string"
+    },
+    "reviewed_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "report_order_id",
+    "review_status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

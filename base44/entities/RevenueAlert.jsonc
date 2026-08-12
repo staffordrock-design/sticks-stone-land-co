@@ -1,0 +1,75 @@
+{
+  "name": "RevenueAlert",
+  "type": "object",
+  "properties": {
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "Payment Failed",
+        "Large Sale",
+        "Refund",
+        "Chargeback",
+        "Subscription Drop",
+        "Payout Received",
+        "High Value Offer"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Info",
+        "Warning",
+        "Critical"
+      ],
+      "default": "Info"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Seen",
+        "Resolved"
+      ],
+      "default": "New"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "alert_type",
+    "title",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

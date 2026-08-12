@@ -1,0 +1,68 @@
+{
+  "name": "RetentionOffer",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "plan_code": {
+      "type": "string"
+    },
+    "offer_type": {
+      "type": "string",
+      "enum": [
+        "None",
+        "Credit",
+        "Discount",
+        "Extended Access"
+      ]
+    },
+    "value": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Proposed",
+        "Offered",
+        "Accepted",
+        "Declined",
+        "Expired"
+      ],
+      "default": "Proposed"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "offer_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

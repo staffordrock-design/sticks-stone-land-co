@@ -1,0 +1,50 @@
+{
+  "name": "AdminAlertPreference",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "payment_failures": {
+      "type": "boolean",
+      "default": true
+    },
+    "large_sales": {
+      "type": "boolean",
+      "default": true
+    },
+    "seller_leads": {
+      "type": "boolean",
+      "default": true
+    },
+    "offers": {
+      "type": "boolean",
+      "default": true
+    },
+    "data_room_requests": {
+      "type": "boolean",
+      "default": true
+    },
+    "store_issues": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

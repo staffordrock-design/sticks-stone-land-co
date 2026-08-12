@@ -1,0 +1,74 @@
+{
+  "name": "SellerActivityDigest",
+  "type": "object",
+  "properties": {
+    "seller_user_id": {
+      "type": "string"
+    },
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "period": {
+      "type": "string"
+    },
+    "views": {
+      "type": "number"
+    },
+    "inquiries": {
+      "type": "number"
+    },
+    "ndas": {
+      "type": "number"
+    },
+    "offers": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Queued",
+        "Sent",
+        "Skipped"
+      ],
+      "default": "Queued"
+    },
+    "sent_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "seller_user_id",
+    "seller_submission_id",
+    "period",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.seller_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

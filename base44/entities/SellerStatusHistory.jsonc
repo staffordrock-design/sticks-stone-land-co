@@ -1,0 +1,47 @@
+{
+  "name": "SellerStatusHistory",
+  "type": "object",
+  "properties": {
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "from_status": {
+      "type": "string"
+    },
+    "to_status": {
+      "type": "string"
+    },
+    "changed_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "seller_submission_id",
+    "to_status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

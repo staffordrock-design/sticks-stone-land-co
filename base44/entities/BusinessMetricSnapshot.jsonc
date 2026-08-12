@@ -1,0 +1,45 @@
+{
+  "name": "BusinessMetricSnapshot",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "metric_code": {
+      "type": "string"
+    },
+    "value": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "date",
+    "metric_code",
+    "value"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

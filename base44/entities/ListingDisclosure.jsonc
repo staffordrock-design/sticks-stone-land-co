@@ -1,0 +1,60 @@
+{
+  "name": "ListingDisclosure",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string"
+    },
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "disclosure_type": {
+      "type": "string",
+      "enum": [
+        "Seller Supplied",
+        "Public Source",
+        "S&S Intelligence",
+        "Unverified Claim",
+        "Professional Report"
+      ]
+    },
+    "text": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published",
+        "Retired"
+      ],
+      "default": "Draft"
+    }
+  },
+  "required": [
+    "disclosure_type",
+    "text",
+    "status"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

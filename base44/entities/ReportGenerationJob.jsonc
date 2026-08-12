@@ -1,0 +1,59 @@
+{
+  "name": "ReportGenerationJob",
+  "type": "object",
+  "properties": {
+    "report_order_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Queued",
+        "Gathering Sources",
+        "Generating",
+        "Review Required",
+        "Ready",
+        "Failed"
+      ],
+      "default": "Queued"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "output_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "report_order_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

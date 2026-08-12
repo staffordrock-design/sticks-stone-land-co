@@ -1,0 +1,56 @@
+{
+  "name": "SellerMarketingActivity",
+  "type": "object",
+  "properties": {
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "Published",
+        "Featured",
+        "Buyer Outreach",
+        "Email Campaign",
+        "Private Match",
+        "Updated",
+        "Paused"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "seller_submission_id",
+    "activity_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

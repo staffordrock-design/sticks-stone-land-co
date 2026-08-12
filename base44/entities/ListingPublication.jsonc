@@ -1,0 +1,66 @@
+{
+  "name": "ListingPublication",
+  "type": "object",
+  "properties": {
+    "seller_submission_id": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "package_order_id": {
+      "type": "string"
+    },
+    "publication_status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Review",
+        "Published",
+        "Paused",
+        "Sold",
+        "Withdrawn"
+      ],
+      "default": "Draft"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "published_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "approved_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "seller_submission_id",
+    "publication_status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

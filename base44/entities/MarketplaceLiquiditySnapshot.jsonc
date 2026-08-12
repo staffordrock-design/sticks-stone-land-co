@@ -1,0 +1,52 @@
+{
+  "name": "MarketplaceLiquiditySnapshot",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "active_listings": {
+      "type": "number"
+    },
+    "active_buyers": {
+      "type": "number"
+    },
+    "buyer_to_listing_ratio": {
+      "type": "number"
+    },
+    "inquiries_per_listing": {
+      "type": "number"
+    },
+    "offers_per_listing": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "name": "ReportSectionResult",
+  "type": "object",
+  "properties": {
+    "report_order_id": {
+      "type": "string"
+    },
+    "section_code": {
+      "type": "string"
+    },
+    "section_title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low",
+        "Unknown"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Generated",
+        "Reviewed",
+        "Excluded"
+      ],
+      "default": "Pending"
+    },
+    "source_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "report_order_id",
+    "section_code",
+    "section_title",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

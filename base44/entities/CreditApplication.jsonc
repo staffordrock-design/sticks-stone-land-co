@@ -1,0 +1,45 @@
+{
+  "name": "CreditApplication",
+  "type": "object",
+  "properties": {
+    "account_credit_id": {
+      "type": "string"
+    },
+    "billing_event_id": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "applied_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "account_credit_id",
+    "billing_event_id",
+    "amount"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

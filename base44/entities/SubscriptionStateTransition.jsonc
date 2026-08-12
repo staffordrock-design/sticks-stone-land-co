@@ -1,0 +1,54 @@
+{
+  "name": "SubscriptionStateTransition",
+  "type": "object",
+  "properties": {
+    "entitlement_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "from_status": {
+      "type": "string"
+    },
+    "to_status": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    },
+    "provider_event_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "entitlement_id",
+    "user_id",
+    "to_status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

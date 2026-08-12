@@ -1,0 +1,66 @@
+{
+  "name": "LaunchChecklist",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "Billing",
+        "Store",
+        "Legal",
+        "Marketplace",
+        "Data",
+        "Security",
+        "Operations"
+      ]
+    },
+    "item": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Blocked",
+        "Ready",
+        "Done"
+      ],
+      "default": "Not Started"
+    },
+    "blocking": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "category",
+    "item",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

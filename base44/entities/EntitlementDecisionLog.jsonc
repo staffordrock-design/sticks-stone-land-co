@@ -1,0 +1,55 @@
+{
+  "name": "EntitlementDecisionLog",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "feature_code": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "Allowed",
+        "Denied"
+      ]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "plan_code": {
+      "type": "string"
+    },
+    "occurred_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "feature_code",
+    "decision"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

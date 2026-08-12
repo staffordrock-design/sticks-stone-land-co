@@ -1,0 +1,67 @@
+{
+  "name": "SalesTaxConfig",
+  "type": "object",
+  "properties": {
+    "product_category": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "Apple",
+        "Google",
+        "Stripe",
+        "S&S"
+      ]
+    },
+    "tax_handling": {
+      "type": "string",
+      "enum": [
+        "Provider Managed",
+        "S&S Review",
+        "Not Applicable",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Active"
+      ],
+      "default": "Draft"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_category",
+    "provider",
+    "tax_handling",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

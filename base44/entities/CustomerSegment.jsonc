@@ -1,0 +1,54 @@
+{
+  "name": "CustomerSegment",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "segment": {
+      "type": "string",
+      "enum": [
+        "Prospect",
+        "Professional",
+        "Business",
+        "Enterprise",
+        "Buyer",
+        "Seller",
+        "High Intent",
+        "At Risk"
+      ]
+    },
+    "assigned_at": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "segment"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

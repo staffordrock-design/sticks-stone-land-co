@@ -1,0 +1,61 @@
+{
+  "name": "CustomerOnboarding",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "account_type": {
+      "type": "string"
+    },
+    "profile_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "billing_ready": {
+      "type": "boolean",
+      "default": false
+    },
+    "buyer_profile_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "seller_profile_complete": {
+      "type": "boolean",
+      "default": false
+    },
+    "terms_accepted": {
+      "type": "boolean",
+      "default": false
+    },
+    "completed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

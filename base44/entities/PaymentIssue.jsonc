@@ -1,0 +1,77 @@
+{
+  "name": "PaymentIssue",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "billing_event_id": {
+      "type": "string"
+    },
+    "issue_type": {
+      "type": "string",
+      "enum": [
+        "Failed Payment",
+        "Expired Card",
+        "Refund",
+        "Chargeback",
+        "Subscription Expired",
+        "Other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Contacted",
+        "Resolved",
+        "Ignored"
+      ],
+      "default": "Open"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "opened_at": {
+      "type": "string"
+    },
+    "resolved_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "issue_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

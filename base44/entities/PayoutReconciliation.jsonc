@@ -1,0 +1,74 @@
+{
+  "name": "PayoutReconciliation",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "enum": [
+        "Stripe",
+        "Apple",
+        "Google"
+      ]
+    },
+    "payout_id": {
+      "type": "string"
+    },
+    "period_start": {
+      "type": "string"
+    },
+    "period_end": {
+      "type": "string"
+    },
+    "gross_amount": {
+      "type": "number"
+    },
+    "fees": {
+      "type": "number"
+    },
+    "net_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Expected",
+        "Received",
+        "Reconciled",
+        "Disputed"
+      ],
+      "default": "Expected"
+    },
+    "received_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

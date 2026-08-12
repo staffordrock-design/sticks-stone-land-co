@@ -1,0 +1,56 @@
+{
+  "name": "PaymentAllocation",
+  "type": "object",
+  "properties": {
+    "billing_event_id": {
+      "type": "string"
+    },
+    "allocation_type": {
+      "type": "string",
+      "enum": [
+        "Subscription",
+        "Report",
+        "Seller Package",
+        "Data Room",
+        "Deal Fee",
+        "Other"
+      ]
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "billing_event_id",
+    "allocation_type",
+    "amount"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

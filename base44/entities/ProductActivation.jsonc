@@ -1,0 +1,57 @@
+{
+  "name": "ProductActivation",
+  "type": "object",
+  "properties": {
+    "product_code": {
+      "type": "string"
+    },
+    "ready_for_sale": {
+      "type": "boolean",
+      "default": false
+    },
+    "pricing_approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "billing_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "legal_ready": {
+      "type": "boolean",
+      "default": false
+    },
+    "operations_ready": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_code"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

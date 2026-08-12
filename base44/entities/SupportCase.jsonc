@@ -1,0 +1,96 @@
+{
+  "name": "SupportCase",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Billing",
+        "Subscription",
+        "Report",
+        "Listing",
+        "Data Room",
+        "Technical",
+        "Other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Waiting",
+        "Resolved",
+        "Closed"
+      ],
+      "default": "Open"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Normal",
+        "High",
+        "Urgent"
+      ],
+      "default": "Normal"
+    },
+    "description": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "resolved_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "subject",
+    "category",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

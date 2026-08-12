@@ -1,0 +1,52 @@
+{
+  "name": "SellerConversionFunnel",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string"
+    },
+    "submissions": {
+      "type": "number"
+    },
+    "approved": {
+      "type": "number"
+    },
+    "published": {
+      "type": "number"
+    },
+    "with_inquiries": {
+      "type": "number"
+    },
+    "with_offers": {
+      "type": "number"
+    },
+    "closed": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "period"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

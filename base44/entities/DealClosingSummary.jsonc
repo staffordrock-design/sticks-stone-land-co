@@ -1,0 +1,49 @@
+{
+  "name": "DealClosingSummary",
+  "type": "object",
+  "properties": {
+    "deal_pipeline_id": {
+      "type": "string"
+    },
+    "closing_date": {
+      "type": "string"
+    },
+    "transaction_value": {
+      "type": "number"
+    },
+    "s_and_s_fee_revenue": {
+      "type": "number"
+    },
+    "fee_basis": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deal_pipeline_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

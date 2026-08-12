@@ -1,0 +1,46 @@
+{
+  "name": "RenewalForecast",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string"
+    },
+    "expected_renewals": {
+      "type": "number"
+    },
+    "expected_revenue": {
+      "type": "number"
+    },
+    "at_risk_count": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "period"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

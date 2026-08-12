@@ -1,0 +1,54 @@
+{
+  "name": "CustomerNote",
+  "type": "object",
+  "properties": {
+    "customer_user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Sales",
+        "Billing",
+        "Support",
+        "Deal",
+        "General"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "note",
+    "category"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

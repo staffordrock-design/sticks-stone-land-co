@@ -1,0 +1,68 @@
+{
+  "name": "RefundRecord",
+  "type": "object",
+  "properties": {
+    "billing_event_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "external_refund_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Requested",
+        "Processing",
+        "Completed",
+        "Denied"
+      ],
+      "default": "Requested"
+    },
+    "requested_at": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

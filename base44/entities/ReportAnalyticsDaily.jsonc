@@ -1,0 +1,49 @@
+{
+  "name": "ReportAnalyticsDaily",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string"
+    },
+    "orders": {
+      "type": "number",
+      "default": 0
+    },
+    "delivered": {
+      "type": "number",
+      "default": 0
+    },
+    "revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "average_turnaround_hours": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "date"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

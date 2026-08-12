@@ -1,0 +1,71 @@
+{
+  "name": "DealDocument",
+  "type": "object",
+  "properties": {
+    "deal_pipeline_id": {
+      "type": "string"
+    },
+    "document_name": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "LOI",
+        "Offer",
+        "Purchase Agreement",
+        "NDA",
+        "Due Diligence",
+        "Closing",
+        "Other"
+      ]
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Received",
+        "Signed",
+        "Superseded",
+        "Final"
+      ],
+      "default": "Received"
+    },
+    "uploaded_at": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deal_pipeline_id",
+    "document_name",
+    "document_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

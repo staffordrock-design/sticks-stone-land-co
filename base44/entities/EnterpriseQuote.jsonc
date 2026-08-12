@@ -1,0 +1,70 @@
+{
+  "name": "EnterpriseQuote",
+  "type": "object",
+  "properties": {
+    "service_request_id": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "seat_count": {
+      "type": "number"
+    },
+    "annual_amount": {
+      "type": "number"
+    },
+    "setup_amount": {
+      "type": "number"
+    },
+    "included_features": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Sent",
+        "Accepted",
+        "Declined",
+        "Expired"
+      ],
+      "default": "Draft"
+    },
+    "valid_until": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "name": "TeamMembership",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string"
+    },
+    "member_user_id": {
+      "type": "string"
+    },
+    "member_email": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Owner",
+        "Admin",
+        "Analyst",
+        "Viewer"
+      ],
+      "default": "Viewer"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Invited",
+        "Active",
+        "Removed"
+      ],
+      "default": "Invited"
+    },
+    "invited_at": {
+      "type": "string"
+    },
+    "joined_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "member_email",
+    "role",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.owner_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "data.member_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

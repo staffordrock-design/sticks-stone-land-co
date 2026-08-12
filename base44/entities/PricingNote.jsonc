@@ -1,0 +1,52 @@
+{
+  "name": "PricingNote",
+  "type": "object",
+  "properties": {
+    "product_code": {
+      "type": "string"
+    },
+    "note_type": {
+      "type": "string",
+      "enum": [
+        "Value",
+        "Competitor",
+        "Cost",
+        "Customer Feedback",
+        "Decision"
+      ]
+    },
+    "note": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_code",
+    "note_type",
+    "note"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

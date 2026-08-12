@@ -1,0 +1,66 @@
+{
+  "name": "TaxRecord",
+  "type": "object",
+  "properties": {
+    "billing_event_id": {
+      "type": "string"
+    },
+    "jurisdiction": {
+      "type": "string"
+    },
+    "tax_type": {
+      "type": "string"
+    },
+    "tax_amount": {
+      "type": "number"
+    },
+    "collected_by": {
+      "type": "string",
+      "enum": [
+        "Stripe",
+        "Apple",
+        "Google",
+        "S&S",
+        "Unknown"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Estimated",
+        "Collected",
+        "Remitted",
+        "Not Applicable"
+      ],
+      "default": "Estimated"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

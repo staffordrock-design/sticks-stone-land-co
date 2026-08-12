@@ -1,0 +1,65 @@
+{
+  "name": "DataFreshnessStatus",
+  "type": "object",
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": [
+        "MSHA",
+        "TDEC",
+        "Geology",
+        "Parcel",
+        "Tax",
+        "Environmental"
+      ]
+    },
+    "last_sync_at": {
+      "type": "string"
+    },
+    "latest_source_period": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Current",
+        "Due",
+        "Stale",
+        "Error"
+      ],
+      "default": "Due"
+    },
+    "records_updated": {
+      "type": "number"
+    },
+    "error_message": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "source",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

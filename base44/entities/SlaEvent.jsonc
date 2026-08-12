@@ -1,0 +1,58 @@
+{
+  "name": "SlaEvent",
+  "type": "object",
+  "properties": {
+    "service_code": {
+      "type": "string"
+    },
+    "related_entity_id": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "due_at": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Running",
+        "Met",
+        "Missed",
+        "Waived"
+      ],
+      "default": "Running"
+    }
+  },
+  "required": [
+    "service_code",
+    "related_entity_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

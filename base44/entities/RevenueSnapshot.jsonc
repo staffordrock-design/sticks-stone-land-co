@@ -1,0 +1,73 @@
+{
+  "name": "RevenueSnapshot",
+  "type": "object",
+  "properties": {
+    "snapshot_date": {
+      "type": "string"
+    },
+    "mrr": {
+      "type": "number",
+      "default": 0
+    },
+    "active_subscribers": {
+      "type": "number",
+      "default": 0
+    },
+    "subscription_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "report_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "seller_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "data_room_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "total_revenue": {
+      "type": "number",
+      "default": 0
+    },
+    "open_pipeline_value": {
+      "type": "number",
+      "default": 0
+    },
+    "closed_deal_value": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "snapshot_date"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

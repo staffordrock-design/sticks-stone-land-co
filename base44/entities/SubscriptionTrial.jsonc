@@ -1,0 +1,65 @@
+{
+  "name": "SubscriptionTrial",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "plan_code": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "ends_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Converted",
+        "Expired",
+        "Cancelled"
+      ],
+      "default": "Active"
+    },
+    "converted_transaction_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "plan_code",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

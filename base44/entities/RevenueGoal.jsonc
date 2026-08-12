@@ -1,0 +1,52 @@
+{
+  "name": "RevenueGoal",
+  "type": "object",
+  "properties": {
+    "period": {
+      "type": "string"
+    },
+    "goal_type": {
+      "type": "string",
+      "enum": [
+        "MRR",
+        "Total Revenue",
+        "Subscriptions",
+        "Seller Revenue",
+        "Report Revenue",
+        "Deal Pipeline"
+      ]
+    },
+    "target_amount": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "period",
+    "goal_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
