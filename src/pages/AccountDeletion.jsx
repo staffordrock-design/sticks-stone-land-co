@@ -42,7 +42,7 @@ export default function AccountDeletion() {
         requested_at: new Date().toISOString(),
       });
       if (user?.id) setExisting(row);
-      setMessage("Your Sticks & Stone account deletion request has been submitted. We will process the account and associated personal data, except records we must retain for legitimate legal, security, payment, transaction, or NDA purposes.");
+      setMessage("Your S&S Rock Holdings account deletion request has been submitted. We will process the account and associated personal data, except records we must retain for legitimate legal, security, payment, transaction, or NDA purposes.");
       if (!user?.id) {
         setReason("");
         setEmail("");
@@ -58,12 +58,12 @@ export default function AccountDeletion() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto max-w-3xl px-6 py-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Back to Sticks & Stone</Link>
+          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" />Back to S&S Rock Holdings</Link>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-6 py-12">
         <div className="rounded-2xl border border-border bg-card p-7">
-          <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-700"><Trash2 className="h-5 w-5" /></div><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Sticks & Stone Land Co.</p><h1 className="font-heading text-2xl font-bold">Delete my account</h1></div></div>
+          <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-700"><Trash2 className="h-5 w-5" /></div><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-2xl font-bold">Delete my account</h1></div></div>
 
           {existing ? (
             <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950">
@@ -73,7 +73,7 @@ export default function AccountDeletion() {
             </div>
           ) : (
             <>
-              <p className="mt-6 text-sm leading-6 text-muted-foreground">You can request deletion here whether or not the app is installed. If you are signed in, we tie the request directly to your account. Otherwise, enter the email address used for your Sticks & Stone account.</p>
+              <p className="mt-6 text-sm leading-6 text-muted-foreground">You can request deletion here whether or not the app is installed. If you are signed in, we tie the request directly to your account. Otherwise, enter the email address used for your S&S Rock Holdings account.</p>
               <label className="mt-5 block text-sm font-medium text-foreground" htmlFor="delete-email">Account email</label>
               <Input id="delete-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-2" placeholder="name@example.com" disabled={Boolean(user?.email)} />
               <label className="mt-5 block text-sm font-medium text-foreground" htmlFor="delete-reason">Reason (optional)</label>
