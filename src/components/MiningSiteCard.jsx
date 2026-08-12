@@ -34,7 +34,7 @@ export default function MiningSiteCard({ site, valuation }) {
         {heroImage ? (
           <>
             <img src={heroImage} alt={site.mine_name || "Quarry opportunity"} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-            {heroLabel && <div className="absolute bottom-2 left-2 rounded-md bg-stone-950/75 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">{heroLabel}</div>}
+            {heroLabel && <div className="absolute bottom-2 left-2 rounded-md bg-stone-950/75 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">{heroLabel}{heroLabel === "Aerial location preview" ? " · Esri World Imagery" : ""}</div>}
           </>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-stone-400">
