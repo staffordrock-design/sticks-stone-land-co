@@ -16,7 +16,7 @@ function date(value) {
   return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-export function generateQuarryReportPdf({ site, parcel, geology, profile, permits = [], production = [], environmental = [], inspections = [], violations = [], valuation, sourceSnapshotDate = new Date().toISOString() }) {
+export function generateQuarryReportPdf({ site, parcel, geology, profile, permits = [], production = [], environmental = [], inspections = [], violations = [], valuation, sourceSnapshotDate = new Date().toISOString(), reportType = "Standard", freshness = {}, nearbySites = [] }) {
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const width = doc.internal.pageSize.getWidth();
   const height = doc.internal.pageSize.getHeight();
@@ -66,7 +66,7 @@ export function generateQuarryReportPdf({ site, parcel, geology, profile, permit
   doc.text("S&S ROCK HOLDINGS LLC", margin, y);
   y += 18;
   doc.setFontSize(22);
-  doc.text("Quarry Intelligence Report", margin, y);
+  doc.text(`${reportType} Quarry Intelligence Report`, margin, y);
   y += 27;
   line(site?.mine_name || "Mine / Quarry Site", { size: 15, bold: true, gap: 3 });
   line([site?.city, site?.county, site?.state].filter(Boolean).join(" · ") || "Location not recorded", { size: 10 });
@@ -155,6 +155,28 @@ export function generateQuarryReportPdf({ site, parcel, geology, profile, permit
   environmental.slice(0, 10).forEach((r, i) => line(`${i + 1}. ${text(r.agency)} · ${text(r.program)} · ${text(r.record_type || r.status)} · ${date(r.issue_date || r.effective_date)}${r.penalty_amount ? ` · Penalty ${money(r.penalty_amount)}` : ""}`));
   violations.slice(0, 10).forEach((r, i) => line(`MSHA violation ${i + 1}: ${text(r.violation_number)} · ${date(r.issue_date)} · Standard ${text(r.standard)}${r.assessment_amount ? ` · Assessment ${money(r.assessment_amount)}` : ""}`));
 
+  heading("Source Freshness");
+  ["MSHA", "TDEC", "Geology", "Parcel", "Tax", "Environmental"].forEach((key) => {
+    const rowData = freshness?.[key];
+    row(key, rowData ? `${rowData.status || "Unknown"} · last sync ${date(rowData.last_sync_at)}` : "Unknown / not yet evaluated");
+  });
+
+  if (reportType === "Enhanced") {
+    heading("Enhanced Property Context");
+    row("Coordinates", site?.latitude != null && site?.longitude != null ? `${site.latitude}, ${site.longitude}` : null);
+    row("Mapped acreage", parcel?.acreage ?? site?.acreage);
+    row("Ownership source", parcel?.source_name);
+    row("Current owner field", parcel?.owner_name || site?.parcel_owner);
+    line("This section summarizes connected desktop property context. It does not replace a survey, title examination, access agreement review, or field inspection.", { size: 9 });
+
+    heading("Nearby / County Market Context");
+    if (!nearbySites.length) line("No additional mapped mine or quarry records were connected for the same county at generation time.");
+    nearbySites.slice(0, 15).forEach((n, i) => line(`${i + 1}. ${text(n.mine_name)} · ${text(n.mine_status)} · ${text(n.commodity)} · ${text(n.operator_name)}`));
+
+    heading("Access / Logistics Screening");
+    line("The site is mapped for desktop review, but road suitability, legal access, haul-route restrictions, bridge limits, rail access, utilities, traffic impacts, and transportation economics are not inferred when no connected source exists. These items require project-specific verification.");
+  }
+
   heading("Source & Reliability Notes");
   line("This report uses source-labeled public, licensed, and S&S platform data connected to the site at the time shown above. Missing fields are intentionally left unavailable rather than guessed. Public records can lag real-world changes; parcel, ownership, permitting, environmental, operating, and market conditions should be independently verified before a transaction or investment decision.");
   if (site?.source_url) line(`Mine source: ${site.source_url}`, { size: 8 });
@@ -170,11 +192,11 @@ export function generateQuarryReportPdf({ site, parcel, geology, profile, permit
     doc.setPage(i);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.text(`S&S Rock Holdings LLC · Quarry Intelligence Report · Page ${i} of ${pages}`, margin, height - 24);
+    doc.text(`S&S Rock Holdings LLC · ${reportType} Quarry Intelligence Report · Page ${i} of ${pages}`, margin, height - 24);
   }
 
   const safeName = String(site?.mine_name || "quarry").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase();
-  const filename = `SS-Quarry-Intelligence-${safeName || "report"}-${new Date().toISOString().slice(0, 10)}.pdf`;
+  const filename = `SS-${reportType}-Quarry-Intelligence-${safeName || "report"}-${new Date().toISOString().slice(0, 10)}.pdf`;
   doc.save(filename);
   return filename;
 }
