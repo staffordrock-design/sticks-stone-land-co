@@ -205,6 +205,8 @@ export default function MineSiteDetail() {
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
             <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{opportunityLabel(site)}</span>
+            {site.opportunity_availability && <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{site.opportunity_availability}</span>}
+            {site.opportunity_score != null && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>}
           </div>
         </div>
 
@@ -233,6 +235,8 @@ export default function MineSiteDetail() {
             <Row label="Operator" value={site.operator_name} />
             <Row label="Controller" value={site.controller_name} />
             <Row label="Acreage" value={site.acreage != null ? Number(site.acreage).toLocaleString() : null} />
+            <Row label="Availability" value={site.opportunity_availability} />
+            <Row label="Opportunity" value={site.opportunity_score != null ? `${Number(site.opportunity_score).toFixed(0)}/100 · ${site.opportunity_band || "Screening"}` : null} />
             <Row label="Parcel" value={site.parcel_id} />
             <Row label="TDEC permit" value={site.tdec_permit_number} />
             {site.source_url && (
