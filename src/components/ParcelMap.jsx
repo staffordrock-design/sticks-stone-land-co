@@ -10,7 +10,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-export default function ParcelMap({ lat, lng, polygon, height = 380 }) {
+export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acreage, rockType, boundarySource, height = 380 }) {
   const numericLat = Number(lat);
   const numericLng = Number(lng);
   const hasValidCenter =
@@ -63,14 +63,32 @@ export default function ParcelMap({ lat, lng, polygon, height = 380 }) {
           positions={positions}
           pathOptions={{
             color: "#b8732e",
-            weight: 2,
+            weight: 3,
             fillColor: "#d4923f",
-            fillOpacity: 0.22,
+            fillOpacity: 0.2,
           }}
-        />
+        >
+          <Popup>
+            <div className="min-w-[220px]">
+              <strong>{parcelId ? `Parcel ${parcelId}` : "Mapped parcel"}</strong>
+              {ownerName && <div>Owner: {ownerName}</div>}
+              {acreage != null && <div>Acreage: {Number(acreage).toLocaleString()}</div>}
+              {rockType && <div>Rock: {rockType}</div>}
+              {boundarySource && <div className="mt-1 text-xs">Boundary source: {boundarySource}</div>}
+            </div>
+          </Popup>
+        </Polygon>
       )}
       <Marker position={center}>
-        <Popup>Parcel centroid</Popup>
+        <Popup>
+          <div className="min-w-[220px]">
+            <strong>{parcelId ? `Parcel ${parcelId}` : "Parcel location"}</strong>
+            {ownerName && <div>Owner: {ownerName}</div>}
+            {acreage != null && <div>Acreage: {Number(acreage).toLocaleString()}</div>}
+            {rockType && <div>Rock: {rockType}</div>}
+            <div className="mt-1 text-xs">{positions.length >= 3 ? "Boundary loaded" : "Boundary geometry not loaded yet"}</div>
+          </div>
+        </Popup>
       </Marker>
     </MapContainer>
   );
