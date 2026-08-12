@@ -20,6 +20,15 @@ function sameValue(a, b) {
   return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 }
 
+function opportunityLabel(site) {
+  if (site?.is_verified_listing && site?.listing_id) return "Verified Listing";
+  const s = String(site?.mine_status || "").toLowerCase();
+  if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Off-Market Acquisition Opportunity · Inactive / Idled";
+  if (s.includes("historical") || s.includes("abandon")) return "Off-Market Acquisition Opportunity · Historical / Abandoned";
+  if (s.includes("new mine") || !s.trim()) return "Potential Quarry / Mineral Opportunity";
+  return "Operating Site Intelligence";
+}
+
 function money(value) {
   if (value == null || value === "") return "—";
   return Number(value).toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
@@ -195,9 +204,15 @@ export default function MineSiteDetail() {
           <div className="flex flex-wrap gap-2">
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
-            <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">Screening intelligence</span>
+            <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{opportunityLabel(site)}</span>
           </div>
         </div>
+
+        {!site.is_verified_listing && (
+          <div className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 p-5 text-sm leading-relaxed text-stone-700">
+            <strong>Off-market / public-source intelligence:</strong> this record is shown for acquisition and research screening. Sticks & Stone is not representing that the property is currently offered for sale, lease, or mineral-rights transfer. Ownership, availability, title, permits, and operating status require verification.
+          </div>
+        )}
 
         <div className="mb-8 grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
           <ParcelMap
