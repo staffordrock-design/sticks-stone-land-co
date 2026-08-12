@@ -9,6 +9,16 @@ import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react"
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
+const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
+
+function statusGroup(status = "") {
+  const s = String(status).toLowerCase();
+  if (s.includes("active")) return "Active";
+  if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Inactive / Idled";
+  if (s.includes("historical") || s.includes("abandon")) return "Historical / Abandoned";
+  if (s.includes("new mine") || !s.trim()) return "New / Potential";
+  return "New / Potential";
+}
 
 export default function Home() {
   const { user } = useAuth();
@@ -19,12 +29,13 @@ export default function Home() {
   const [geology, setGeology] = useState([]);
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   useEffect(() => {
     (async () => {
       try {
         const [data, profileData, parcelData, geologyData] = await Promise.all([
-          base44.entities.MiningSite.list("-created_date", 100),
+          base44.entities.MiningSite.list("-created_date", 500),
           base44.entities.QuarryPotentialProfile.list("-updated_date", 500),
           base44.entities.ParcelRecord.list("-updated_date", 500),
           base44.entities.GeologyRecord.list("-updated_date", 500),
@@ -50,7 +61,8 @@ export default function Home() {
       s.state?.toLowerCase().includes(q) ||
       s.county?.toLowerCase().includes(q) ||
       s.commodity?.toLowerCase().includes(q);
-    return matchesSource && matchesQuery;
+    const matchesStatus = statusFilter === "All" || statusGroup(s.mine_status) === statusFilter;
+    return matchesSource && matchesQuery && matchesStatus;
   });
 
   const featured = sites.filter((s) => s.latitude && s.longitude).slice(0, 1)[0];
@@ -191,9 +203,10 @@ export default function Home() {
       {/* Marketplace */}
       <section className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="font-heading text-2xl font-bold text-foreground">
-            Potential Mine Sites
-          </h2>
+          <div>
+            <h2 className="font-heading text-2xl font-bold text-foreground">Quarry & Mineral Opportunities</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Active operations, inactive/idled sites, historical/abandoned records, and new/potential opportunities. Unverified sites are not represented as being for sale.</p>
+          </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -204,20 +217,27 @@ export default function Home() {
                 className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-64"
               />
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {SOURCES.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSource(s)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
-                    source === s
-                      ? "bg-stone-900 text-stone-50"
-                      : "border border-border bg-card text-muted-foreground hover:bg-muted"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-1.5">
+                {STATUS_GROUPS.map((s) => (
+                  <button key={s} onClick={() => setStatusFilter(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-amber-700 text-white" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {SOURCES.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSource(s)}
+                    className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
+                      source === s
+                        ? "bg-stone-900 text-stone-50"
+                        : "border border-border bg-card text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
