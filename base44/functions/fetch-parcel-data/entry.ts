@@ -1,4 +1,5 @@
 const TN_PARCEL_QUERY = 'https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcels/FeatureServer/0/query';
+const TN_ASSESSMENT_QUERY = 'https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcel_Layer_Labels/FeatureServer/1/query';
 
 function boundaryFromGeometry(geom) {
   if (!geom) return [];
@@ -28,20 +29,50 @@ async function fetchTennesseeParcel(lat, lon) {
   const feature = data?.features?.[0];
   if (!feature) return null;
   const fields = feature.properties || {};
+  const parcelId = String(fields.GISLINK || fields.GISLINK2 || '').trim();
+  let assessment = null;
+  if (parcelId) {
+    try {
+      const escaped = parcelId.replace(/'/g, "''");
+      const ap = new URLSearchParams({
+        f: 'json',
+        where: `GISLINK='${escaped}'`,
+        outFields: 'GISLINK,PARCELID,OWNER,OWNER2,OWNJAN1,ADDRESS,MAILADDR,MAILCITY,STATE,ZIP,CALC_ACRE,LANDVAL,IMPVAL,APPRAISAL,DEEDBKPG,TAXYR,UPDATED,LASTUPD,COUNTY',
+        returnGeometry: 'false',
+        resultRecordCount: '1',
+      });
+      const ar = await fetch(`${TN_ASSESSMENT_QUERY}?${ap}`);
+      if (ar.ok) assessment = (await ar.json())?.features?.[0]?.attributes || null;
+    } catch (error) {
+      console.error('TN assessment fetch failed:', error);
+    }
+  }
+
+  const mailing = [assessment?.MAILADDR, assessment?.MAILCITY, assessment?.STATE, assessment?.ZIP]
+    .map((v) => String(v || '').trim()).filter(Boolean).join(', ');
+
   return {
-    source: 'TN Comptroller IMPACT Parcel GIS',
+    source: assessment ? 'TN Comptroller IMPACT Property Assessment GIS' : 'TN Comptroller IMPACT Parcel GIS',
     boundary: boundaryFromGeometry(feature.geometry),
-    owner: '',
-    parcel_id: fields.GISLINK || fields.GISLINK2 || '',
+    owner: String(assessment?.OWNER || assessment?.OWNJAN1 || '').trim(),
+    owner_2: String(assessment?.OWNER2 || '').trim(),
+    parcel_id: parcelId,
+    parcel_display_id: String(assessment?.PARCELID || '').trim(),
     legal_description: '',
-    assessed_value: null,
+    assessed_value: Number(assessment?.APPRAISAL) || null,
+    land_value: Number(assessment?.LANDVAL) || null,
+    improvement_value: Number(assessment?.IMPVAL) || null,
     sale_price: null,
-    acreage: Number(fields.CALC_ACRE) || null,
+    acreage: Number(assessment?.CALC_ACRE) || Number(fields.CALC_ACRE) || null,
     sqft: null,
     zoning: '',
     land_use: '',
-    situs_address: '',
-    mailing_address: '',
+    situs_address: String(assessment?.ADDRESS || '').trim(),
+    mailing_address: mailing,
+    deed_book_page: String(assessment?.DEEDBKPG || '').trim(),
+    tax_year: Number(assessment?.TAXYR) || null,
+    source_updated: String(assessment?.UPDATED || assessment?.LASTUPD || '').trim(),
+    source_url: 'https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcel_Layer_Labels/FeatureServer/1',
     boundary_source_url: 'https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcels/FeatureServer/0',
     county_id: fields.COUNTY_ID ?? null,
     parcel_type: fields.PARCEL_TYPE ?? null,
