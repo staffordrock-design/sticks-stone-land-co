@@ -214,35 +214,25 @@ export default function MineSiteDetail() {
         return;
       }
 
-      const snapshotDate = new Date().toISOString();
+      const response = await base44.functions.invoke("build-intelligence-report", { mining_site_id: site.id, report_type: "Standard" });
+      const result = response?.data || response;
+      if (!result?.success || !result?.payload?.site) throw new Error(result?.error || "Report package could not be assembled.");
+      const p = result.payload;
+      const packagedValuation = calculateIndicativeQuarryValue({ site: p.site, parcel: p.parcel, profile: p.profile, geology: p.geology });
       generateQuarryReportPdf({
-        site,
-        parcel,
-        geology: geologyRecord,
-        profile,
-        permits: relatedPermits,
-        production: relatedProduction,
-        environmental: relatedEnvironmental,
-        inspections: relatedInspections,
-        violations: relatedViolations,
-        valuation,
-        sourceSnapshotDate: snapshotDate,
+        site: p.site,
+        parcel: p.parcel,
+        geology: p.geology,
+        profile: p.profile,
+        permits: p.permits || [],
+        production: p.production || [],
+        environmental: p.environmental || [],
+        inspections: p.inspections || [],
+        violations: p.violations || [],
+        valuation: packagedValuation,
+        sourceSnapshotDate: result.source_snapshot_date,
       });
-
-      try {
-        await base44.entities.ReportRequest.create({
-          user_id: user.id,
-          email: user.email || "",
-          mining_site_id: site.id,
-          mine_name: site.mine_name || "",
-          request_type: "Full Intelligence Report",
-          status: "Ready",
-          requested_at: snapshotDate,
-        });
-      } catch (_) {
-        // PDF delivery should not fail because operational logging is temporarily unavailable.
-      }
-      setReportMessage("PDF generated from the source-backed data currently connected to this site.");
+      setReportMessage(`PDF generated and logged as report ${result.report_order_id}.`);
     } catch (e) {
       setReportMessage(e?.message || "Unable to generate the PDF report.");
     } finally {
