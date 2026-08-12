@@ -185,7 +185,7 @@ export default function Home() {
           sites={filtered.filter((s) => s.state?.toUpperCase() === "TN")}
           height={560}
         />
-        <p className="mt-2 text-xs text-muted-foreground">Marketplace aerial previews use mapped imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Marketplace aerial previews use Esri World Imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions.</p>
       </section>
 
       {/* Marketplace */}
