@@ -85,10 +85,10 @@ export default function Home() {
             </div>
             <div className="leading-none">
               <p className="font-heading text-base font-bold tracking-tight text-foreground">
-                Sticks &amp; Stone
+                S&amp;S Rock Holdings
               </p>
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Land Co.
+                Quarry Marketplace
               </p>
             </div>
           </div>
@@ -282,7 +282,7 @@ export default function Home() {
 
       <footer className="border-t border-border bg-stone-50">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
-          <div>Sticks &amp; Stone Land Co. — Industrial land &amp; mineral marketplace</div>
+          <div>S&amp;S Rock Holdings Quarry Marketplace — Industrial land &amp; mineral marketplace</div>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a href="/privacy" className="hover:text-foreground hover:underline">Privacy</a>
             <a href="/terms" className="hover:text-foreground hover:underline">Terms</a>

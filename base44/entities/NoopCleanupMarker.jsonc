@@ -1,0 +1,10 @@
+{
+  "name": "NoopCleanupMarker",
+  "type": "object",
+  "properties": {
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": []
+}
