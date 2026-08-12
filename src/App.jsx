@@ -21,6 +21,11 @@ import BuyerProfile from './pages/BuyerProfile';
 import MyOpportunities from './pages/MyOpportunities';
 import DealDesk from './pages/DealDesk';
 import Subscription from './pages/Subscription';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import OAuthConsent from './pages/OAuthConsent';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,6 +68,11 @@ const AuthenticatedApp = () => {
       <Route path="/saved" element={<MyOpportunities />} />
       <Route path="/admin/deals" element={<DealDesk />} />
       <Route path="/subscribe" element={<Subscription />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
