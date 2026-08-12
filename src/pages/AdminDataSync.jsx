@@ -14,6 +14,8 @@ export default function AdminDataSync() {
   const [parcelResult, setParcelResult] = useState(null);
   const [freshness, setFreshness] = useState([]);
   const [runningFreshness, setRunningFreshness] = useState(false);
+  const [runningEnvironmental, setRunningEnvironmental] = useState(false);
+  const [environmentalResult, setEnvironmentalResult] = useState(null);
   const [error, setError] = useState("");
 
   const loadFreshness = async () => {
@@ -54,6 +56,21 @@ export default function AdminDataSync() {
       setError(e?.message || "Tennessee geology sync failed.");
     } finally {
       setRunningGeology(false);
+    }
+  };
+
+  const syncEnvironmental = async () => {
+    setRunningEnvironmental(true);
+    setEnvironmentalResult(null);
+    setError("");
+    try {
+      const response = await base44.functions.invoke("sync-tn-npdes-environmental", { limit: 500 });
+      setEnvironmentalResult(response?.data || response);
+      await loadFreshness();
+    } catch (e) {
+      setError(e?.message || "Tennessee NPDES/environmental sync failed.");
+    } finally {
+      setRunningEnvironmental(false);
     }
   };
 
@@ -109,6 +126,17 @@ export default function AdminDataSync() {
             <button onClick={refreshFreshness} disabled={runningFreshness} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningFreshness ? "animate-spin" : ""}`} />{runningFreshness ? "Checking…" : "Recheck freshness"}</button>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{freshness.map((f) => <div key={f.source} className="rounded-xl border border-border bg-muted/20 p-4"><div className="flex items-center justify-between gap-3"><div className="font-semibold text-foreground">{f.source}</div><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${f.status === "Current" ? "bg-emerald-100 text-emerald-800" : f.status === "Stale" || f.status === "Error" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-900"}`}>{f.status}</span></div><div className="mt-2 text-xs text-muted-foreground">Last sync: {f.last_sync_at ? new Date(f.last_sync_at).toLocaleString() : "Not recorded"}</div></div>)}</div>
+        </section>
+
+        <section className="mb-6 rounded-2xl border border-border bg-card p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-emerald-700" /><h2 className="font-heading text-xl font-bold text-foreground">Tennessee NPDES & Environmental Compliance</h2></div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">Cross-checks mapped Tennessee quarry sites against EPA ECHO / ICIS-NPDES for permit identity, status, expiration, inspection and compliance fields. Tennessee DMGR remains the controlling mining-permit source; unsupported state-only fields are never guessed.</p>
+            </div>
+            <button onClick={syncEnvironmental} disabled={runningEnvironmental} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningEnvironmental ? "animate-spin" : ""}`} />{runningEnvironmental ? "Refreshing…" : "Sync NPDES / compliance"}</button>
+          </div>
+          {environmentalResult && <div className="mt-5 rounded-xl border border-border bg-muted/20 p-5"><div className="grid gap-4 sm:grid-cols-4"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">EPA TN facilities</div><div className="mt-1 font-bold">{environmentalResult.epa_tn_facilities ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Mine matches</div><div className="mt-1 font-bold">{environmentalResult.matched ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Environmental</div><div className="mt-1 font-bold">{(environmentalResult.environmental_created ?? 0) + (environmentalResult.environmental_updated ?? 0)}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Permit records</div><div className="mt-1 font-bold">{(environmentalResult.permits_created ?? 0) + (environmentalResult.permits_updated ?? 0)}</div></div></div>{environmentalResult.note && <p className="mt-4 text-sm text-muted-foreground">{environmentalResult.note}</p>}</div>}
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-6">
