@@ -66,7 +66,7 @@ export default async function(req: Request) {
     const parcelId = site.parcel_id;
     const permitNo = site.tdec_permit_number;
 
-    const [parcels, permits, geologyRows, profileRows, production, inspections, violations, environmental] = await Promise.all([
+    const [parcels, permits, geologyRows, profileRows, production, inspections, violations, environmental, freshnessRows, countySites] = await Promise.all([
       collect(base44.asServiceRole.entities.ParcelRecord, [
         { parcel_id: parcelId }, { msha_mine_id: msha }, { tdec_permit_number: permitNo }
       ], "-updated_date", 20),
@@ -87,11 +87,16 @@ export default async function(req: Request) {
       collect(base44.asServiceRole.entities.EnvironmentalRecord, [
         { msha_mine_id: msha }, { npdes_permit_number: site.npdes_permit_number }
       ], "-updated_date", 100),
+      base44.asServiceRole.entities.DataFreshnessStatus.list("source", 20),
+      reportType === "Enhanced" && site.county ? base44.asServiceRole.entities.MiningSite.filter({ state: site.state || "TN", county: site.county }, "-updated_date", 100, 0) : Promise.resolve([]),
     ]);
 
     const parcel = parcels[0] || null;
     const geology = geologyRows[0] || null;
     const profile = profileRows[0] || null;
+    const freshness = Object.fromEntries((freshnessRows || []).map((r: any) => [r.source, r]));
+    const nearbySites = reportType === "Enhanced" ? (countySites || []).filter((r: any) => r.id !== site.id).slice(0, 20) : [];
+    const freshnessSummary = ["MSHA", "TDEC", "Geology", "Parcel", "Tax", "Environmental"].map((key) => `${key}:${freshness[key]?.status || "Unknown"}`).join(" · ");
     const now = new Date().toISOString();
 
     const order: any = await base44.asServiceRole.entities.IntelligenceReportOrder.create({
@@ -105,7 +110,7 @@ export default async function(req: Request) {
       amount: 0,
       requested_at: now,
       source_snapshot_date: now,
-      notes: "Generated in-app from exact site-linked source records. Included with Professional access; no separate report charge recorded.",
+      notes: `Generated in-app from exact site-linked source records. Included with Professional access; no separate report charge recorded. Source freshness: ${freshnessSummary}`,
     });
 
     await base44.asServiceRole.entities.ReportGenerationJob.create({
@@ -135,6 +140,12 @@ export default async function(req: Request) {
       ["permits", "Permits / Regulatory", `${permits.length} connected permit record(s).`],
       ["activity", "Production / Activity", `${production.length} connected production/employment record(s).`],
       ["compliance", "Environmental / Compliance", `${inspections.length} MSHA inspection(s), ${violations.length} MSHA violation(s), ${environmental.length} environmental record(s).`],
+      ["freshness", "Source Freshness", freshnessSummary],
+      ...(reportType === "Enhanced" ? [
+        ["property_context", "Enhanced Property Context", `Coordinates ${site.latitude ?? "not recorded"}, ${site.longitude ?? "not recorded"}; mapped acreage ${parcel?.acreage ?? site.acreage ?? "not recorded"}; ownership source ${parcel?.source_name || "not connected"}.`],
+        ["market_context", "Nearby / County Market Context", `${nearbySites.length} other mapped mine or quarry record(s) in ${site.county || "the same county"} included for screening context.`],
+        ["access_logistics", "Access / Logistics Screening", `Site location is mapped for desktop review. Road, rail, haul-route, utility, and traffic suitability require project-specific verification and are not inferred when no connected source exists.`],
+      ] : []),
     ];
 
     for (const [code, title, content] of sections) {
@@ -161,6 +172,14 @@ export default async function(req: Request) {
       download_count: 1,
     });
 
+    await base44.asServiceRole.entities.ReportReview.create({
+      report_order_id: order.id,
+      review_status: "Ready",
+      reviewer_user_id: user.role === "admin" ? user.id : "",
+      reviewed_at: now,
+      notes: reportType === "Enhanced" ? "Automated enhanced screening package generated from connected source data; professional verification remains required for transaction-grade conclusions." : "Automated standard screening package generated from connected source data.",
+    });
+
     await base44.asServiceRole.entities.ReportAccessGrant.create({
       report_order_id: order.id,
       user_id: user.id,
@@ -182,6 +201,9 @@ export default async function(req: Request) {
         environmental,
         inspections,
         violations,
+        freshness,
+        nearby_sites: nearbySites,
+        report_type: reportType,
       },
     });
   } catch (error: any) {
