@@ -403,7 +403,7 @@ export default function MineSiteDetail() {
 
         <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-6">
           <div className="flex items-center gap-2 font-heading text-lg font-bold text-amber-950"><FileSearch className="h-5 w-5" /> About this S&amp;S Quarry Intelligence Report</div>
-          <p className="mt-2 text-sm leading-relaxed text-amber-950/80">This report is assembled by Sticks &amp; Stone from source-labeled public and licensed data connected to this site, including mine, parcel, permit, geology, production/activity, and compliance information when available. It is a screening and business-intelligence product—not a certified reserve estimate, engineering opinion, title opinion, appraisal, environmental assessment, or guarantee that commercially recoverable stone exists.</p>
+          <p className="mt-2 text-sm leading-relaxed text-amber-950/80">This report is assembled by S&amp;S Rock Holdings from source-labeled public and licensed data connected to this site, including mine, parcel, permit, geology, production/activity, and compliance information when available. It is a screening and business-intelligence product—not a certified reserve estimate, engineering opinion, title opinion, appraisal, environmental assessment, or guarantee that commercially recoverable stone exists.</p>
         </div>
 
         {site.notes && (
