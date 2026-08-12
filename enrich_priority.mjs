@@ -36,21 +36,21 @@ const sites = [
 const parcelBase='https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcels/FeatureServer/0/query';
 const geoBase='https://services4.arcgis.com/QdHwhlbx61LR3TWb/arcgis/rest/services/TN_Geology/FeatureServer/0/query';
 const out=[];
-for (const [id,name,county,lat,lng,msha,commodity] of sites){
+async function enrich([id,name,county,lat,lng,msha,commodity]){
   let parcel=null, geology=null;
   try {
     const p=new URLSearchParams({f:'geojson',where:'1=1',geometry:`${lng},${lat}`,geometryType:'esriGeometryPoint',inSR:'4326',spatialRel:'esriSpatialRelIntersects',outFields:'GISLINK,GISLINK2,CALC_ACRE,COUNTY_ID,PARCEL_TYPE',returnGeometry:'true',outSR:'4326',resultRecordCount:'1'});
-    const d=await (await fetch(`${parcelBase}?${p}`)).json();
+    const d=await (await fetch(`${parcelBase}?${p}`,{signal:AbortSignal.timeout(7000)})).json();
     const f=d?.features?.[0];
     if(f){let ring=[]; if(f.geometry?.type==='Polygon') ring=f.geometry.coordinates?.[0]||[]; else if(f.geometry?.type==='MultiPolygon') ring=f.geometry.coordinates?.[0]?.[0]||[]; parcel={parcel_id:String(f.properties?.GISLINK||f.properties?.GISLINK2||'').trim(), acreage:Number(f.properties?.CALC_ACRE)||null, boundary_polygon:ring.map(([x,y])=>({lat:Number(y),lng:Number(x)})).filter(q=>Number.isFinite(q.lat)&&Number.isFinite(q.lng))};}
   } catch(e){parcel={error:String(e)}}
   try {
     const p=new URLSearchParams({f:'json',geometry:`${lng},${lat}`,geometryType:'esriGeometryPoint',inSR:'4326',spatialRel:'esriSpatialRelIntersects',outFields:'ORIG_LABEL,SGMC_LABEL,UNIT_LINK,SOURCE,UNIT_AGE,ROCKTYPE1,ROCKTYPE2',returnGeometry:'false'});
-    const url=`${geoBase}?${p}`; const d=await (await fetch(url)).json(); const a=d?.features?.[0]?.attributes;
+    const url=`${geoBase}?${p}`; const d=await (await fetch(url,{signal:AbortSignal.timeout(7000)})).json(); const a=d?.features?.[0]?.attributes;
     if(a) geology={primary_rock:a.ROCKTYPE1||null,secondary_rock:a.ROCKTYPE2||null,geologic_unit:a.SGMC_LABEL||a.ORIG_LABEL||null,formation_name:a.UNIT_LINK||null,geologic_age:a.UNIT_AGE||null,source_url:url,orig_label:a.ORIG_LABEL||null,source_code:a.SOURCE||null};
   } catch(e){geology={error:String(e)}}
-  out.push({id,name,county,lat,lng,msha,commodity,parcel,geology});
-  await new Promise(r=>setTimeout(r,80));
+  return {id,name,county,lat,lng,msha,commodity,parcel,geology};
 }
+for(let i=0;i<sites.length;i+=8){ const batch=sites.slice(i,i+8); out.push(...await Promise.all(batch.map(enrich))); }
 await import('node:fs').then(fs=>fs.writeFileSync('/app/enrichment_results.json', JSON.stringify(out)));
 console.log(JSON.stringify({count:out.length,parcelMatched:out.filter(x=>x.parcel?.parcel_id).length,geologyMatched:out.filter(x=>x.geology?.primary_rock||x.geology?.geologic_unit).length,parcelNoMatch:out.filter(x=>!x.parcel?.parcel_id).map(x=>x.name),geoNoMatch:out.filter(x=>!x.geology).map(x=>x.name)}));
