@@ -1,4 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
+import { deriveCommodityInterpretation, rockQualityTier } from "../../shared/rockTypes.js";
 
 const GEOLOGY_QUERY = "https://services4.arcgis.com/QdHwhlbx61LR3TWb/arcgis/rest/services/TN_Geology/FeatureServer/0/query";
 const GEOLOGY_LAYER = "TN_Geology / tngeol_poly_dd";
@@ -71,6 +72,16 @@ export default async function(req: Request) {
         const primaryRock = titleRock(attrs.ROCKTYPE1);
         const secondaryRock = titleRock(attrs.ROCKTYPE2);
         const unitLabel = attrs.SGMC_LABEL || attrs.ORIG_LABEL || null;
+        const commodityInterpretation = deriveCommodityInterpretation({
+          primary: primaryRock,
+          secondary: secondaryRock,
+          siteCommodity: site.commodity || null,
+        });
+        const qualityTier = rockQualityTier(primaryRock, secondaryRock);
+        // Confidence scales with how specific the mapped lithology is:
+        // High = a classified quarry-relevant rock type; Medium = a unit label
+        // but no classifiable rock type; Low = only an age/label fragment.
+        const confidence = qualityTier ? "High" : unitLabel ? "Medium" : "Low";
         const sourceKey = `TN-GEOLOGY-${site.id}`;
 
         const record = {
@@ -86,13 +97,13 @@ export default async function(req: Request) {
           formation_name: attrs.UNIT_LINK || null,
           geologic_age: attrs.UNIT_AGE || null,
           lithology: [primaryRock, secondaryRock].filter(Boolean).join(" / ") || null,
-          commodity_interpretation: site.commodity || null,
-          confidence: "High",
+          commodity_interpretation: commodityInterpretation,
+          confidence: qualityTier ? "High" : confidence,
           source_agency: GEOLOGY_SOURCE,
           source_url: url,
           source_map_layer: GEOLOGY_LAYER,
           last_source_update: new Date().toISOString(),
-          notes: `Spatial point-in-polygon match at ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}. Original label: ${attrs.ORIG_LABEL || "—"}; SGMC label: ${attrs.SGMC_LABEL || "—"}; source code: ${attrs.SOURCE || "—"}. This is mapped surface/bedrock geology context, not drilling, reserve estimation, lab testing, or proof of economic recoverability.`,
+          notes: `Spatial point-in-polygon match at ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}. Original label: ${attrs.ORIG_LABEL || "—"}; SGMC label: ${attrs.SGMC_LABEL || "—"}; source code: ${attrs.SOURCE || "—"}. Derived quarry category: ${commodityInterpretation || "Unclassified"}; aggregate-quality tier: ${qualityTier || "Unknown"}. This is mapped surface/bedrock geology context, not drilling, reserve estimation, lab testing, or proof of economic recoverability.`,
         };
 
         const existing = await base44.asServiceRole.entities.GeologyRecord.filter(
@@ -114,6 +125,8 @@ export default async function(req: Request) {
             county: site.county || null,
             primaryRock,
             secondaryRock,
+            category: commodityInterpretation,
+            qualityTier,
             age: attrs.UNIT_AGE || null,
             unit: unitLabel,
           });

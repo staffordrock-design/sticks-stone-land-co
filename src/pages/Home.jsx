@@ -275,7 +275,7 @@ export default function Home() {
               const parcel = parcels.find((p) => (s.parcel_id && p.parcel_id === s.parcel_id) || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
               const geologyRecord = geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
               const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
-              return <MiningSiteCard key={s.id} site={s} valuation={valuation} />;
+              return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} />;
             })}
           </div>
         )}

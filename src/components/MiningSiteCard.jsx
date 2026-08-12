@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, DollarSign } from "lucide-react";
+import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, DollarSign, Gem } from "lucide-react";
 import { formatCompactMoney } from "@/utils/quarryValuation";
+import { classifyRock } from "../../base44/shared/rockTypes.js";
 
 function worldImageryTile(lat, lng, zoom = 14) {
   if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return null;
@@ -30,7 +31,9 @@ function opportunityLabel(site) {
   return "Operating Site";
 }
 
-export default function MiningSiteCard({ site, valuation }) {
+export default function MiningSiteCard({ site, valuation, geology }) {
+  const rockClass = geology ? classifyRock(geology.primary_rock || geology.lithology) : null;
+  const rockChip = geology?.primary_rock || geology?.lithology || site.commodity;
   const location = [site.county ? `${site.county}, ` : "", site.state].join("");
   const verified = site.is_verified_listing && site.listing_id;
   const aerialPreview = worldImageryTile(site.latitude, site.longitude);
@@ -87,7 +90,19 @@ export default function MiningSiteCard({ site, valuation }) {
           {site.opportunity_score != null && (
             <span className="rounded-md border border-border bg-card px-2 py-0.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>
           )}
-          {site.commodity && (
+          {rockChip && (
+            <span className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs font-semibold text-slate-700">
+              <Gem className="h-3 w-3" />
+              {rockChip}
+              {geology?.geologic_age ? ` · ${geology.geologic_age}` : ""}
+            </span>
+          )}
+          {rockClass?.category && (
+            <span className="rounded-md bg-stone-800 px-2 py-0.5 text-xs font-semibold text-stone-50">
+              {rockClass.category}
+            </span>
+          )}
+          {site.commodity && site.commodity !== rockChip && (
             <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               {site.commodity}
             </span>

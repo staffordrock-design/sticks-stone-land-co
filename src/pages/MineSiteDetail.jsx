@@ -5,6 +5,7 @@ import ParcelMap from "@/components/ParcelMap";
 import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
+import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
 
 function worldImageryTile(lat, lng, zoom = 15) {
@@ -268,6 +269,13 @@ export default function MineSiteDetail() {
             <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{opportunityLabel(site)}</span>
             {site.opportunity_availability && <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{site.opportunity_availability}</span>}
             {site.opportunity_score != null && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>}
+            {geologyRecord?.primary_rock && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800">
+                <Gem className="h-3.5 w-3.5" />
+                {geologyRecord.primary_rock}
+                {geologyRecord.geologic_age ? ` · ${geologyRecord.geologic_age}` : ""}
+              </span>
+            )}
           </div>
         </div>
 
@@ -412,6 +420,14 @@ export default function MineSiteDetail() {
           <Card title="Geology / Rock Identification" icon={Gem}>
             {geologyRecord ? (
               <>
+                <div className="mb-4 rounded-xl border border-slate-300 bg-slate-100/70 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-700">Derived quarry classification</div>
+                  <div className="mt-1 font-display text-lg font-bold text-slate-900">{classifyRock(geologyRecord.primary_rock || geologyRecord.lithology)?.category || geologyRecord.commodity_interpretation || "Unclassified"}</div>
+                  <div className="mt-0.5 text-xs text-slate-600">
+                    Aggregate-quality tier: <strong className="text-slate-800">{rockQualityTier(geologyRecord.primary_rock, geologyRecord.secondary_rock) || "Unknown"}</strong>
+                    {geologyRecord.geologic_age ? ` · ${geologyRecord.geologic_age}` : ""}
+                  </div>
+                </div>
                 <Row label="Primary rock" value={geologyRecord.primary_rock} />
                 <Row label="Secondary" value={geologyRecord.secondary_rock} />
                 <Row label="Formation" value={geologyRecord.formation_name} />
