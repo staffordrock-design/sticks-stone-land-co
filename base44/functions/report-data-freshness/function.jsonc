@@ -1,0 +1,14 @@
+{
+  "automations": [
+    {
+      "name": "Daily report data freshness check",
+      "description": "Recalculate source freshness and data health for quarry intelligence reporting.",
+      "type": "scheduled",
+      "schedule_mode": "recurring",
+      "schedule_type": "cron",
+      "cron_expression": "15 7 * * *",
+      "function_args": {},
+      "is_active": true
+    }
+  ]
+}
