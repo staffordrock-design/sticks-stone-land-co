@@ -29,10 +29,10 @@ import OAuthConsent from './pages/OAuthConsent';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
-  const publicLegalPath = ['/privacy', '/terms', '/account/delete'].includes(window.location.pathname);
+  const publicPath = ['/privacy', '/terms', '/account/delete', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(window.location.pathname);
 
   // Show loading spinner while checking app public settings or auth
-  if ((isLoadingPublicSettings || isLoadingAuth) && !publicLegalPath) {
+  if ((isLoadingPublicSettings || isLoadingAuth) && !publicPath) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -42,9 +42,9 @@ const AuthenticatedApp = () => {
 
   // Handle authentication errors
   if (authError) {
-    if (authError.type === 'user_not_registered' && !publicLegalPath) {
+    if (authError.type === 'user_not_registered' && !publicPath) {
       return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required' && !publicLegalPath) {
+    } else if (authError.type === 'auth_required' && !publicPath) {
       // Redirect protected app areas to login, while keeping legal pages public.
       navigateToLogin();
       return null;
