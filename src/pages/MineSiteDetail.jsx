@@ -258,6 +258,14 @@ export default function MineSiteDetail() {
           </Card>
         </div>
 
+        <div className="mb-6 rounded-2xl border border-stone-300 bg-stone-950 p-6 text-stone-50">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-amber-300"><LockKeyhole className="h-4 w-4" /> Acquisition Diligence Snapshot</div><div className="mt-2 text-2xl font-bold">{diligenceReady}/{diligence.length} intelligence layers connected</div><p className="mt-1 max-w-2xl text-sm text-stone-300">A fast completeness check for buyers, operators and advisers before deeper title, engineering, reserve, environmental and financial diligence.</p></div>
+            <div className="min-w-32 rounded-2xl border border-stone-700 bg-stone-900 px-5 py-4 text-center"><div className="text-3xl font-black text-amber-300">{diligencePct}%</div><div className="text-[11px] uppercase tracking-wider text-stone-400">data coverage</div></div>
+          </div>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{diligence.map((item) => <div key={item.label} className="flex gap-2 rounded-xl border border-stone-800 bg-stone-900/70 p-3">{item.ready ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />}<div><div className="text-xs font-bold">{item.label}</div><div className="mt-0.5 text-[11px] text-stone-400">{item.detail || "Not connected"}</div></div></div>)}</div>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-2">
           <Card title="Parcel & Tax Intelligence" icon={Landmark}>
             {parcel ? (
