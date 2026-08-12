@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Check, Crown, Smartphone } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { PROFESSIONAL_FEATURES, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
+import { PLAN_DISPLAY, PROFESSIONAL_FEATURES, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
 
 function isNativeLikeEnvironment() {
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
@@ -45,8 +45,8 @@ export default function Subscription() {
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950"><div className="font-bold">Professional access active</div><div className="mt-1 text-sm">Plan: {active.plan_code} · Platform: {active.platform}{active.expires_at ? ` · Renews/expires ${new Date(active.expires_at).toLocaleDateString()}` : ""}</div></div>
           ) : (
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-border p-6"><div className="text-sm font-semibold">Monthly</div><div className="mt-1 text-xs text-muted-foreground">Product ID: {SUBSCRIPTION_PRODUCTS[platform].monthly}</div><div className="mt-5 rounded-xl bg-muted p-4 text-sm text-muted-foreground">{nativeLike ? "Purchase button becomes active when the Apple/Google store product is connected to the native build." : "Mobile subscription purchases are completed through Apple or Google inside the native app."}</div></div>
-              <div className="rounded-2xl border border-amber-300 bg-amber-50/50 p-6"><div className="text-sm font-semibold text-amber-950">Annual</div><div className="mt-1 text-xs text-amber-900/70">Product ID: {SUBSCRIPTION_PRODUCTS[platform].annual}</div><div className="mt-5 rounded-xl bg-white/70 p-4 text-sm text-amber-950/70">Annual billing is prepared as the second store product so we can offer a lower effective monthly price later.</div></div>
+              <div className="rounded-2xl border border-border p-6"><div className="text-sm font-semibold">{PLAN_DISPLAY.monthly.name}</div><div className="mt-2 text-3xl font-bold text-foreground">{PLAN_DISPLAY.monthly.price}</div><div className="mt-1 text-xs text-muted-foreground">Store product: {SUBSCRIPTION_PRODUCTS[platform].monthly}</div><div className="mt-5 rounded-xl bg-muted p-4 text-sm text-muted-foreground">{nativeLike ? "Purchase activates when the Apple/Google store product is connected to the native build." : "Professional subscriptions are purchased through Apple or Google in the native app."}</div></div>
+              <div className="rounded-2xl border border-amber-300 bg-amber-50/50 p-6"><div className="text-sm font-semibold text-amber-950">{PLAN_DISPLAY.annual.name}</div><div className="mt-2 text-3xl font-bold text-amber-950">{PLAN_DISPLAY.annual.price}</div><div className="mt-1 text-xs font-semibold text-amber-800">{PLAN_DISPLAY.annual.note}</div><div className="mt-1 text-xs text-amber-900/70">Store product: {SUBSCRIPTION_PRODUCTS[platform].annual}</div><div className="mt-5 rounded-xl bg-white/70 p-4 text-sm text-amber-950/70">Built for active buyers, operators, brokers and land professionals using S&S intelligence throughout the year.</div></div>
             </div>
           )}
 
