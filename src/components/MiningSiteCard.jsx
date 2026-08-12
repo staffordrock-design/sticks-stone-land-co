@@ -59,7 +59,7 @@ export default function MiningSiteCard({ site, valuation }) {
             {site.source}
           </span>
         </div>
-        <div className="absolute right-3 top-3 max-w-[70%] rounded-full bg-amber-500/90 px-3 py-1 text-right text-xs font-semibold text-white backdrop-blur">
+        <div className="absolute right-3 top-3 max-w-[70%] rounded-full bg-slate-900/85 px-3 py-1 text-right text-xs font-semibold text-white backdrop-blur">
           {opportunityLabel(site)}
         </div>
       </div>
@@ -82,7 +82,7 @@ export default function MiningSiteCard({ site, valuation }) {
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {site.opportunity_availability && (
-            <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-900">{site.opportunity_availability}</span>
+            <span className="rounded-md border border-sky-200 bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-900">{site.opportunity_availability}</span>
           )}
           {site.opportunity_score != null && (
             <span className="rounded-md border border-border bg-card px-2 py-0.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>
@@ -110,15 +110,15 @@ export default function MiningSiteCard({ site, valuation }) {
           </div>
         )}
 
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/70 p-3">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-800"><DollarSign className="h-3.5 w-3.5" /> Indicative opportunity value</div>
+        <div className="mt-4 rounded-xl border border-slate-300 bg-slate-100/70 p-3">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-700"><DollarSign className="h-3.5 w-3.5" /> Indicative opportunity value</div>
           {valuation?.available ? (
             <>
-              <div className="mt-1 font-display text-lg font-bold text-amber-950">{formatCompactMoney(valuation.low)}–{formatCompactMoney(valuation.high)}</div>
-              <div className="mt-0.5 text-xs text-amber-900/80">{valuation.confidence} confidence · screening estimate</div>
+              <div className="mt-1 font-display text-lg font-bold text-slate-900">{formatCompactMoney(valuation.low)}–{formatCompactMoney(valuation.high)}</div>
+              <div className="mt-0.5 text-xs text-slate-600">{valuation.confidence} confidence · screening estimate</div>
             </>
           ) : (
-            <div className="mt-1 text-sm font-semibold text-amber-950">Pricing data pending</div>
+            <div className="mt-1 text-sm font-semibold text-slate-900">Pricing data pending</div>
           )}
         </div>
 

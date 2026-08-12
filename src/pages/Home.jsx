@@ -98,44 +98,44 @@ export default function Home() {
             <Link to="/buyer-profile" className="hover:text-foreground">Buyer Profile</Link>
             <Link to="/saved" className="hover:text-foreground">Saved</Link>
             <Link to="/subscribe" className="hover:text-foreground">Professional</Link>
-            {user?.role === "admin" && <Link to="/admin/deals" className="font-semibold text-amber-800 hover:text-amber-900">Deal Desk</Link>}
-            {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-amber-800 hover:text-amber-900">Reports</Link>}
+            {user?.role === "admin" && <Link to="/admin/deals" className="font-semibold text-sky-700 hover:text-sky-800">Deal Desk</Link>}
+            {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
           </nav>
           <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Account"}</div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-stone-900 via-stone-800 to-amber-900/80 text-stone-50">
+      <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-slate-50">
         <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-100/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-amber-200">
+            <span className="inline-flex items-center gap-2 rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-sky-300">
               <Layers className="h-3.5 w-3.5" />
               Industrial Land &amp; Mineral Marketplace
             </span>
             <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
               Where quarry, aggregate &amp; mineral land changes hands.
             </h1>
-            <p className="mt-5 max-w-xl text-base text-stone-300 sm:text-lg">
+            <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
               A GIS-mapped marketplace and quarry-intelligence platform built for the extraction industry —
               source-backed S&S Quarry Intelligence Reports, mapped parcels, and seller-provided confidential
               due diligence, all in one place.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/sell" className="rounded-xl bg-amber-500 px-5 py-3 text-sm font-bold text-stone-950 hover:bg-amber-400">Sell / Market a Property</Link>
-              <Link to="/buyer-profile" className="rounded-xl border border-stone-500 bg-stone-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-stone-800">Join Buyer Network</Link>
+              <Link to="/sell" className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white hover:bg-sky-500">Sell / Market a Property</Link>
+              <Link to="/buyer-profile" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Join Buyer Network</Link>
             </div>
-            <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-stone-300">
+            <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-amber-300" />
+                <ShieldCheck className="h-4 w-4 text-sky-400" />
                 Seller confidential data rooms
               </div>
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-amber-300" />
+                <TrendingUp className="h-4 w-4 text-sky-400" />
                 Royalty &amp; mineral rights
               </div>
               <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-amber-300" />
+                <Layers className="h-4 w-4 text-sky-400" />
                 GIS boundary tracking
               </div>
             </div>
@@ -163,7 +163,7 @@ export default function Home() {
               height={420}
             />
             <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8">
-              <span className="inline-flex w-fit items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-900">
+              <span className="inline-flex w-fit items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-900">
                 {featured.source}
               </span>
               <h3 className="mt-4 font-heading text-2xl font-bold text-foreground">
@@ -233,7 +233,7 @@ export default function Home() {
               </select>
               <div className="flex flex-wrap gap-1.5">
                 {STATUS_GROUPS.map((s) => (
-                  <button key={s} onClick={() => setStatusFilter(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-amber-700 text-white" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
+                  <button key={s} onClick={() => setStatusFilter(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-sky-700 text-white" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
                 ))}
               </div>
               <div className="flex flex-wrap gap-1.5">
