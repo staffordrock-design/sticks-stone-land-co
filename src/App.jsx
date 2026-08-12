@@ -13,6 +13,7 @@ import ListingDetail from './pages/ListingDetail';
 import MineSiteDetail from './pages/MineSiteDetail';
 import AdminActivity from './pages/AdminActivity';
 import AdminDataSync from './pages/AdminDataSync';
+import AdminReports from './pages/AdminReports';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
 import AccountDeletion from './pages/AccountDeletion';
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
       <Route path="/mines/:id" element={<MineSiteDetail />} />
       <Route path="/admin/activity" element={<AdminActivity />} />
       <Route path="/admin/data-sync" element={<AdminDataSync />} />
+      <Route path="/admin/reports" element={<AdminReports />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
