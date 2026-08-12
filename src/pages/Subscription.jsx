@@ -69,6 +69,8 @@ export default function Subscription() {
 
           <div className="mt-8 grid gap-3 sm:grid-cols-2">{PROFESSIONAL_FEATURES.map((feature) => <div key={feature} className="flex items-start gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" /><span>{feature}</span></div>)}</div>
 
+          {!active && user?.email && <div className="mt-8 rounded-2xl border border-stone-300 bg-stone-50 p-5"><div className="font-semibold text-foreground">Want Professional access when billing opens?</div><p className="mt-1 text-sm text-muted-foreground">Join the launch list and S&S Rock Holdings can follow up with your account when subscriptions are activated.</p><button onClick={requestAccess} disabled={leadSaved} className="mt-4 rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{leadSaved ? "You're on the launch list" : "Request Professional Access"}</button></div>}
+
           <div className="mt-8 flex items-start gap-3 rounded-2xl border border-border bg-muted/20 p-5 text-sm text-muted-foreground"><Smartphone className="mt-0.5 h-5 w-5 shrink-0" /><span>The app is prepared for Apple/Google subscription entitlements. Actual purchasing cannot be activated until the matching products are created in App Store Connect and Google Play Console and the native billing bridge is connected.</span></div>
         </div>
       </div>
