@@ -5,6 +5,16 @@ import ParcelMap from "@/components/ParcelMap";
 import { ArrowLeft, BarChart3, Camera, DollarSign, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 
+function worldImageryTile(lat, lng, zoom = 15) {
+  if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return null;
+  const z = Math.max(1, Math.min(19, zoom));
+  const n = 2 ** z;
+  const x = Math.floor(((Number(lng) + 180) / 360) * n);
+  const latRad = (Number(lat) * Math.PI) / 180;
+  const y = Math.floor((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2 * n);
+  return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+}
+
 function sameValue(a, b) {
   if (a == null || b == null || a === "" || b === "") return false;
   return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
@@ -146,6 +156,7 @@ export default function MineSiteDetail() {
   const mapLat = site.latitude ?? parcel?.latitude;
   const mapLng = site.longitude ?? parcel?.longitude;
   const valuation = calculateIndicativeQuarryValue({ site, parcel, profile, geology: geologyRecord });
+  const aerialPreview = worldImageryTile(mapLat, mapLng);
 
   return (
     <div className="min-h-screen bg-background">
@@ -296,15 +307,25 @@ export default function MineSiteDetail() {
             )}
           </Card>
 
-          {site.site_images?.length > 0 && (
-            <Card title="Property Photos" icon={Camera}>
+          {(site.site_images?.length > 0 || aerialPreview) && (
+            <Card title="Property & Aerial Imagery" icon={Camera}>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {site.site_images.map((src, index) => (
-                  <img key={`${src}-${index}`} src={src} alt={`${site.mine_name} property ${index + 1}`} className="aspect-[4/3] w-full rounded-xl border border-border object-cover" />
+                {site.site_images?.map((src, index) => (
+                  <div key={`${src}-${index}`} className="overflow-hidden rounded-xl border border-border bg-muted/20">
+                    <img src={src} alt={`${site.mine_name} property ${index + 1}`} className="aspect-[4/3] w-full object-cover" />
+                    <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">Property photo</div>
+                  </div>
                 ))}
+                {aerialPreview && (
+                  <div className="overflow-hidden rounded-xl border border-border bg-muted/20">
+                    <img src={aerialPreview} alt={`${site.mine_name} aerial location preview`} className="aspect-[4/3] w-full object-cover" />
+                    <div className="px-2 py-1.5 text-[11px] font-medium text-muted-foreground">Aerial location preview</div>
+                  </div>
+                )}
               </div>
               {site.photo_condition_score != null && <div className="mt-4 text-sm text-foreground"><strong>Reviewed photo/site-condition score:</strong> {Number(site.photo_condition_score).toFixed(0)}/100</div>}
               {site.photo_notes && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{site.photo_notes}</p>}
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Aerial imagery is a location preview from a mapped imagery service and may not show current site conditions or exact parcel boundaries.</p>
             </Card>
           )}
 
