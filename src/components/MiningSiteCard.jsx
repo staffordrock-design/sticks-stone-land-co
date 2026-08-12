@@ -10,7 +10,7 @@ function worldImageryTile(lat, lng, zoom = 14) {
   const x = Math.floor(((Number(lng) + 180) / 360) * n);
   const latRad = (Number(lat) * Math.PI) / 180;
   const y = Math.floor((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2 * n);
-  return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`;
+  return `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`; // Esri cached imagery tile endpoint
 }
 
 const sourceStyles = {
