@@ -2,8 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
-import { ArrowLeft, BarChart3, Camera, DollarSign, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
+import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
+import { useAuth } from "@/lib/AuthContext";
 
 function worldImageryTile(lat, lng, zoom = 15) {
   if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return null;
@@ -57,6 +59,7 @@ function Row({ label, value }) {
 
 export default function MineSiteDetail() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [site, setSite] = useState(null);
   const [parcels, setParcels] = useState([]);
   const [permits, setPermits] = useState([]);
@@ -69,6 +72,8 @@ export default function MineSiteDetail() {
   const [liveParcel, setLiveParcel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reportGenerating, setReportGenerating] = useState(false);
+  const [reportMessage, setReportMessage] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -195,6 +200,56 @@ export default function MineSiteDetail() {
   const diligenceReady = diligence.filter((item) => item.ready).length;
   const diligencePct = Math.round((diligenceReady / diligence.length) * 100);
 
+  const downloadIntelligenceReport = async () => {
+    setReportGenerating(true);
+    setReportMessage("");
+    try {
+      let allowed = user?.role === "admin";
+      if (!allowed && user?.id) {
+        const entitlements = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 10);
+        allowed = (entitlements || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code));
+      }
+      if (!allowed) {
+        setReportMessage(user?.id ? "Professional access is required to download the full PDF report." : "Sign in with a Professional account to download the full PDF report.");
+        return;
+      }
+
+      const snapshotDate = new Date().toISOString();
+      generateQuarryReportPdf({
+        site,
+        parcel,
+        geology: geologyRecord,
+        profile,
+        permits: relatedPermits,
+        production: relatedProduction,
+        environmental: relatedEnvironmental,
+        inspections: relatedInspections,
+        violations: relatedViolations,
+        valuation,
+        sourceSnapshotDate: snapshotDate,
+      });
+
+      try {
+        await base44.entities.ReportRequest.create({
+          user_id: user.id,
+          email: user.email || "",
+          mining_site_id: site.id,
+          mine_name: site.mine_name || "",
+          request_type: "Full Intelligence Report",
+          status: "Ready",
+          requested_at: snapshotDate,
+        });
+      } catch (_) {
+        // PDF delivery should not fail because operational logging is temporarily unavailable.
+      }
+      setReportMessage("PDF generated from the source-backed data currently connected to this site.");
+    } catch (e) {
+      setReportMessage(e?.message || "Unable to generate the PDF report.");
+    } finally {
+      setReportGenerating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-background/90 backdrop-blur">
@@ -212,7 +267,8 @@ export default function MineSiteDetail() {
             <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{site.mine_name}</h1>
             <p className="mt-2 text-muted-foreground">{[site.city, site.county, site.state].filter(Boolean).join(" · ")}</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={downloadIntelligenceReport} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-amber-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Download Full Report PDF"}</button>
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
             <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{opportunityLabel(site)}</span>
@@ -220,6 +276,8 @@ export default function MineSiteDetail() {
             {site.opportunity_score != null && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>}
           </div>
         </div>
+
+        {reportMessage && <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-950">{reportMessage}</div>}
 
         {!site.is_verified_listing && (
           <div className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 p-5 text-sm leading-relaxed text-stone-700">
