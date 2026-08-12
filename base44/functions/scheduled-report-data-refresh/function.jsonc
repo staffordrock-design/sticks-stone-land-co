@@ -1,0 +1,14 @@
+{
+  "automations": [
+    {
+      "name": "Daily report data maintenance",
+      "description": "Run scheduled quarry data refresh tasks when due, then recalculate source freshness for report generation.",
+      "type": "scheduled",
+      "schedule_mode": "recurring",
+      "schedule_type": "cron",
+      "cron_expression": "30 7 * * *",
+      "function_args": {},
+      "is_active": true
+    }
+  ]
+}
