@@ -200,7 +200,7 @@ export default function MineSiteDetail() {
   const diligenceReady = diligence.filter((item) => item.ready).length;
   const diligencePct = Math.round((diligenceReady / diligence.length) * 100);
 
-  const downloadIntelligenceReport = async () => {
+  const downloadIntelligenceReport = async (reportType = "Standard") => {
     setReportGenerating(true);
     setReportMessage("");
     try {
@@ -214,7 +214,7 @@ export default function MineSiteDetail() {
         return;
       }
 
-      const response = await base44.functions.invoke("build-intelligence-report", { mining_site_id: site.id, report_type: "Standard" });
+      const response = await base44.functions.invoke("build-intelligence-report", { mining_site_id: site.id, report_type: reportType });
       const result = response?.data || response;
       if (!result?.success || !result?.payload?.site) throw new Error(result?.error || "Report package could not be assembled.");
       const p = result.payload;
@@ -231,6 +231,9 @@ export default function MineSiteDetail() {
         violations: p.violations || [],
         valuation: packagedValuation,
         sourceSnapshotDate: result.source_snapshot_date,
+        reportType: p.report_type || reportType,
+        freshness: p.freshness || {},
+        nearbySites: p.nearby_sites || [],
       });
       setReportMessage(`PDF generated and logged as report ${result.report_order_id}.`);
     } catch (e) {
@@ -258,7 +261,8 @@ export default function MineSiteDetail() {
             <p className="mt-2 text-muted-foreground">{[site.city, site.county, site.state].filter(Boolean).join(" · ")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={downloadIntelligenceReport} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-amber-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Download Full Report PDF"}</button>
+            <button onClick={() => downloadIntelligenceReport("Standard")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-amber-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Standard PDF"}</button>
+            <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-amber-400 bg-stone-950 px-4 py-2 text-xs font-bold text-amber-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Enhanced PDF"}</button>
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
             <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{opportunityLabel(site)}</span>
