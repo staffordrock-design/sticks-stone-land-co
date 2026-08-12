@@ -292,7 +292,7 @@ export default function MineSiteDetail() {
             lat={mapLat}
             lng={mapLng}
             polygon={parcel?.boundary_polygon?.length >= 3 ? parcel.boundary_polygon : liveParcel?.boundary}
-            ownerName={parcel?.owner_name || site.parcel_owner}
+            ownerName={parcel?.owner_name || liveParcel?.owner || site.parcel_owner}
             parcelId={parcel?.parcel_id || liveParcel?.parcel_id || site.parcel_id}
             acreage={parcel?.acreage ?? liveParcel?.acreage ?? site.acreage}
             rockType={geologyRecord?.primary_rock || geologyRecord?.lithology || site.commodity}
@@ -328,22 +328,26 @@ export default function MineSiteDetail() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card title="Parcel & Tax Intelligence" icon={Landmark}>
-            {parcel ? (
+            {(parcel || liveParcel) ? (
               <>
-                <Row label="Parcel" value={parcel.parcel_id} />
-                <Row label="Owner" value={parcel.owner_name} />
-                <Row label="Acreage" value={parcel.acreage != null ? Number(parcel.acreage).toLocaleString() : null} />
-                <Row label="Assessed" value={money(parcel.assessed_value)} />
-                <Row label="Land value" value={money(parcel.land_value)} />
-                <Row label="Deed" value={parcel.deed_book_page} />
-                <Row label="Source" value={parcel.source_name} />
-                <Row label="Boundary" value={parcel.boundary_polygon?.length >= 3 ? "GIS parcel outline loaded" : "Boundary geometry not loaded yet"} />
-                <Row label="Boundary source" value={parcel.boundary_source} />
-                {parcel.boundary_source_url && <a href={parcel.boundary_source_url} target="_blank" rel="noreferrer" className="mt-4 mr-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open boundary source <ExternalLink className="h-3.5 w-3.5" /></a>}
-                {parcel.source_url && <a href={parcel.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                <Row label="Parcel" value={parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
+                <Row label="Owner" value={parcel?.owner_name || liveParcel?.owner || site.parcel_owner} />
+                <Row label="Acreage" value={(parcel?.acreage ?? liveParcel?.acreage ?? site.acreage) != null ? Number(parcel?.acreage ?? liveParcel?.acreage ?? site.acreage).toLocaleString() : null} />
+                <Row label="Property address" value={parcel?.property_address || liveParcel?.situs_address} />
+                <Row label="Mailing address" value={parcel?.mailing_address || liveParcel?.mailing_address} />
+                <Row label="Assessed" value={money(parcel?.assessed_value ?? liveParcel?.assessed_value)} />
+                <Row label="Land value" value={money(parcel?.land_value ?? liveParcel?.land_value)} />
+                <Row label="Improvement value" value={money(parcel?.improvement_value ?? liveParcel?.improvement_value)} />
+                <Row label="Deed" value={parcel?.deed_book_page || liveParcel?.deed_book_page} />
+                <Row label="Tax year" value={liveParcel?.tax_year} />
+                <Row label="Source" value={parcel?.source_name || liveParcel?.source} />
+                <Row label="Boundary" value={(parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3) ? "GIS parcel outline loaded" : "Boundary geometry not loaded yet"} />
+                <Row label="Boundary source" value={parcel?.boundary_source || liveParcel?.source} />
+                {(parcel?.boundary_source_url || liveParcel?.boundary_source_url) && <a href={parcel?.boundary_source_url || liveParcel?.boundary_source_url} target="_blank" rel="noreferrer" className="mt-4 mr-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open boundary source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                {(parcel?.source_url || liveParcel?.source_url) && <a href={parcel?.source_url || liveParcel?.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </>
             ) : (
-              <p className="text-sm leading-relaxed text-muted-foreground">No verified parcel record is connected yet. This site remains visible, but owner, acreage, tax value and parcel boundary are not being guessed.</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">No parcel match is available yet for this site.</p>
             )}
           </Card>
 
