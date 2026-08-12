@@ -212,7 +212,7 @@ export default function MineSiteDetail() {
 
         {!site.is_verified_listing && (
           <div className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 p-5 text-sm leading-relaxed text-stone-700">
-            <strong>Off-market / public-source intelligence:</strong> this record is shown for acquisition and research screening. Sticks & Stone is not representing that the property is currently offered for sale, lease, or mineral-rights transfer. Ownership, availability, title, permits, and operating status require verification.
+            <strong>Off-market / public-source intelligence:</strong> this record is shown for acquisition and research screening. S&S Rock Holdings is not representing that the property is currently offered for sale, lease, or mineral-rights transfer. Ownership, availability, title, permits, and operating status require verification.
           </div>
         )}
 

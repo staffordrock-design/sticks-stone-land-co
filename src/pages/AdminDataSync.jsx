@@ -75,7 +75,7 @@ export default function AdminDataSync() {
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Admin Data Operations</p>
           <h1 className="mt-2 font-heading text-3xl font-bold text-foreground">Quarry Intelligence Sync</h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Refresh public-source intelligence used by Sticks & Stone Land Co. Data is source-labeled and missing values stay blank rather than being guessed.
+            Refresh public-source intelligence used by S&S Rock Holdings Data is source-labeled and missing values stay blank rather than being guessed.
           </p>
         </div>
 

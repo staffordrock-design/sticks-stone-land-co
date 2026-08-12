@@ -59,7 +59,7 @@ export default function AdminActivity() {
 
         <div className="mt-6 flex flex-col gap-2">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Private Admin Analytics</p>
-          <h1 className="text-3xl font-bold text-foreground">Who’s looking at Sticks & Stone</h1>
+          <h1 className="text-3xl font-bold text-foreground">Who’s looking at S&S Rock Holdings</h1>
           <p className="text-sm text-muted-foreground">Recent registered-user and session activity captured inside the app.</p>
         </div>
 
