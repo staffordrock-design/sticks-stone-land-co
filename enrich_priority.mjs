@@ -39,14 +39,14 @@ const out=[];
 async function enrich([id,name,county,lat,lng,msha,commodity]){
   let parcel=null, geology=null;
   try {
-    const p=new URLSearchParams({f:'geojson',where:'1=1',geometry:`${lng},${lat}`,geometryType:'esriGeometryPoint',inSR:'4326',spatialRel:'esriSpatialRelIntersects',outFields:'GISLINK,GISLINK2,CALC_ACRE,COUNTY_ID,PARCEL_TYPE',returnGeometry:'true',outSR:'4326',resultRecordCount:'1'});
-    const d=await (await fetch(`${parcelBase}?${p}`,{signal:AbortSignal.timeout(7000)})).json();
+    const p=new URLSearchParams({f:'geojson',where:'1=1',geometry:`${lng},${lat}`,geometryType:'esriGeometryPoint',inSR:'4326',spatialRel:'esriSpatialRelIntersects',outFields:'GISLINK,GISLINK2,CALC_ACRE,COUNTY_ID,PARCEL_TYPE,PARCELWP',returnGeometry:'true',outSR:'4326',resultRecordCount:'1'});
+    const d=await (await fetch(`${parcelBase}?${p}`,{signal:AbortSignal.timeout(30000)})).json();
     const f=d?.features?.[0];
-    if(f){let ring=[]; if(f.geometry?.type==='Polygon') ring=f.geometry.coordinates?.[0]||[]; else if(f.geometry?.type==='MultiPolygon') ring=f.geometry.coordinates?.[0]?.[0]||[]; parcel={parcel_id:String(f.properties?.GISLINK||f.properties?.GISLINK2||'').trim(), acreage:Number(f.properties?.CALC_ACRE)||null, boundary_polygon:ring.map(([x,y])=>({lat:Number(y),lng:Number(x)})).filter(q=>Number.isFinite(q.lat)&&Number.isFinite(q.lng))};}
+    if(f){let ring=[]; if(f.geometry?.type==='Polygon') ring=f.geometry.coordinates?.[0]||[]; else if(f.geometry?.type==='MultiPolygon') ring=f.geometry.coordinates?.[0]?.[0]||[]; parcel={parcel_id:String(f.properties?.GISLINK||f.properties?.GISLINK2||'').trim(), tax_map:String(f.properties?.GISLINK||'').trim().slice(3,6).trim()||null, parcel_workpaper:String(f.properties?.PARCELWP||'').trim()||null, county_id:Number(f.properties?.COUNTY_ID)||null, acreage:Number(f.properties?.CALC_ACRE)||null, boundary_polygon:ring.map(([x,y])=>({lat:Number(y),lng:Number(x)})).filter(q=>Number.isFinite(q.lat)&&Number.isFinite(q.lng))};}
   } catch(e){parcel={error:String(e)}}
   try {
     const p=new URLSearchParams({f:'json',geometry:`${lng},${lat}`,geometryType:'esriGeometryPoint',inSR:'4326',spatialRel:'esriSpatialRelIntersects',outFields:'ORIG_LABEL,SGMC_LABEL,UNIT_LINK,SOURCE,UNIT_AGE,ROCKTYPE1,ROCKTYPE2',returnGeometry:'false'});
-    const url=`${geoBase}?${p}`; const d=await (await fetch(url,{signal:AbortSignal.timeout(7000)})).json(); const a=d?.features?.[0]?.attributes;
+    const url=`${geoBase}?${p}`; const d=await (await fetch(url,{signal:AbortSignal.timeout(30000)})).json(); const a=d?.features?.[0]?.attributes;
     if(a) geology={primary_rock:a.ROCKTYPE1||null,secondary_rock:a.ROCKTYPE2||null,geologic_unit:a.SGMC_LABEL||a.ORIG_LABEL||null,formation_name:a.UNIT_LINK||null,geologic_age:a.UNIT_AGE||null,source_url:url,orig_label:a.ORIG_LABEL||null,source_code:a.SOURCE||null};
   } catch(e){geology={error:String(e)}}
   return {id,name,county,lat,lng,msha,commodity,parcel,geology};
