@@ -6,6 +6,7 @@ import MiningSiteCard from "@/components/MiningSiteCard";
 import ParcelMap from "@/components/ParcelMap";
 import TennesseeMineMap from "@/components/TennesseeMineMap";
 import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
+import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 
@@ -13,14 +14,25 @@ export default function Home() {
   const { user } = useAuth();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [profiles, setProfiles] = useState([]);
+  const [parcels, setParcels] = useState([]);
+  const [geology, setGeology] = useState([]);
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("All");
 
   useEffect(() => {
     (async () => {
       try {
-        const data = await base44.entities.MiningSite.list("-created_date", 100);
-        setSites(data);
+        const [data, profileData, parcelData, geologyData] = await Promise.all([
+          base44.entities.MiningSite.list("-created_date", 100),
+          base44.entities.QuarryPotentialProfile.list("-updated_date", 500),
+          base44.entities.ParcelRecord.list("-updated_date", 500),
+          base44.entities.GeologyRecord.list("-updated_date", 500),
+        ]);
+        setSites(data || []);
+        setProfiles(profileData || []);
+        setParcels(parcelData || []);
+        setGeology(geologyData || []);
       } catch (e) {
         /* ignore */
       } finally {
@@ -224,9 +236,13 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((s) => (
-              <MiningSiteCard key={s.id} site={s} />
-            ))}
+            {filtered.map((s) => {
+              const profile = profiles.find((p) => p.mining_site_id === s.id || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
+              const parcel = parcels.find((p) => (s.parcel_id && p.parcel_id === s.parcel_id) || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
+              const geologyRecord = geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
+              const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
+              return <MiningSiteCard key={s.id} site={s} valuation={valuation} />;
+            })}
           </div>
         )}
       </section>
