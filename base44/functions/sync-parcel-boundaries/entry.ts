@@ -8,12 +8,36 @@ function ringToLatLng(ring: number[][]) {
     .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
 }
 
+function isPriorityStatus(status: unknown) {
+  const value = String(status || "").toLowerCase();
+  return value.includes("intermittent") || value.includes("temporarily idled") || value.includes("nonproducing") || value.includes("non-producing") || value.includes("inactive") || value.includes("historical") || value.includes("abandon");
+}
+
+async function fetchParcel(url: string) {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(20000) });
+      if (!response.ok) throw new Error(`Parcel service ${response.status}`);
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 750));
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
     const limit = Math.min(Math.max(Number(body?.limit || 100), 1), 500);
-    const sites = await base44.asServiceRole.entities.MiningSite.list("-updated_date", limit);
+    const allSites = await base44.asServiceRole.entities.MiningSite.list("-updated_date", 500);
+    const sites = (allSites || [])
+      .filter((site: any) => String(site.state || "").toUpperCase() === "TN")
+      .sort((a: any, b: any) => Number(isPriorityStatus(b.mine_status)) - Number(isPriorityStatus(a.mine_status)))
+      .slice(0, limit);
 
     let queried = 0;
     let matched = 0;
@@ -45,9 +69,7 @@ Deno.serve(async (req) => {
           outSR: "4326",
           resultRecordCount: "1",
         });
-        const response = await fetch(`${PARCEL_SERVICE}?${params.toString()}`);
-        if (!response.ok) throw new Error(`Parcel service ${response.status}`);
-        const data = await response.json();
+        const data = await fetchParcel(`${PARCEL_SERVICE}?${params.toString()}`);
         const feature = data?.features?.[0];
         if (!feature) {
           noMatch++;
