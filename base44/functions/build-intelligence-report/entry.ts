@@ -25,6 +25,49 @@ async function collect(entity: any, filters: any[], sort = "-updated_date", limi
   return uniqueById(batches);
 }
 
+async function fetchLiveTnParcel(site: any) {
+  const lat = Number(site?.latitude);
+  const lng = Number(site?.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || String(site?.state || "TN").toUpperCase() !== "TN") return null;
+  try {
+    const parcelParams = new URLSearchParams({
+      f: "geojson", where: "1=1", geometry: `${lng},${lat}`, geometryType: "esriGeometryPoint",
+      inSR: "4326", spatialRel: "esriSpatialRelIntersects", outFields: "GISLINK,GISLINK2,CALC_ACRE",
+      returnGeometry: "false", resultRecordCount: "1"
+    });
+    const pr = await fetch(`https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcels/FeatureServer/0/query?${parcelParams}`);
+    if (!pr.ok) return null;
+    const pf = (await pr.json())?.features?.[0];
+    if (!pf) return null;
+    const parcelId = String(pf?.properties?.GISLINK || pf?.properties?.GISLINK2 || "").trim();
+    if (!parcelId) return null;
+    const escaped = parcelId.replace(/'/g, "''");
+    const ap = new URLSearchParams({
+      f: "json", where: `GISLINK='${escaped}'`,
+      outFields: "GISLINK,PARCELID,OWNER,OWNER2,OWNJAN1,ADDRESS,MAILADDR,MAILCITY,STATE,ZIP,CALC_ACRE,LANDVAL,IMPVAL,APPRAISAL,DEEDBKPG,TAXYR,UPDATED,LASTUPD,COUNTY",
+      returnGeometry: "false", resultRecordCount: "1"
+    });
+    const ar = await fetch(`https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcel_Layer_Labels/FeatureServer/1/query?${ap}`);
+    const a = ar.ok ? (await ar.json())?.features?.[0]?.attributes : null;
+    return {
+      parcel_id: parcelId,
+      owner_name: String(a?.OWNER || a?.OWNJAN1 || "").trim(),
+      property_address: String(a?.ADDRESS || "").trim(),
+      mailing_address: [a?.MAILADDR, a?.MAILCITY, a?.STATE, a?.ZIP].map((v: any) => String(v || "").trim()).filter(Boolean).join(", "),
+      acreage: Number(a?.CALC_ACRE) || Number(pf?.properties?.CALC_ACRE) || null,
+      assessed_value: Number(a?.APPRAISAL) || null,
+      land_value: Number(a?.LANDVAL) || null,
+      improvement_value: Number(a?.IMPVAL) || null,
+      deed_book_page: String(a?.DEEDBKPG || "").trim(),
+      source_name: a ? "TN Comptroller IMPACT Property Assessment GIS" : "TN Comptroller IMPACT Parcel GIS",
+      source_url: "https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcel_Layer_Labels/FeatureServer/1",
+      last_source_update: String(a?.UPDATED || a?.LASTUPD || "").trim(),
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
 function sourceRow(reportOrderId: string, type: string, name: string, url: string | undefined, summary: string, confidence: string = "Medium") {
   return {
     report_order_id: reportOrderId,
@@ -91,7 +134,11 @@ export default async function(req: Request) {
       reportType === "Enhanced" && site.county ? base44.asServiceRole.entities.MiningSite.filter({ state: site.state || "TN", county: site.county }, "-updated_date", 100, 0) : Promise.resolve([]),
     ]);
 
-    const parcel = parcels[0] || null;
+    let parcel = parcels[0] || null;
+    if (!parcel || !parcel.owner_name) {
+      const liveParcel = await fetchLiveTnParcel(site);
+      if (liveParcel) parcel = { ...(parcel || {}), ...liveParcel };
+    }
     const geology = geologyRows[0] || null;
     const profile = profileRows[0] || null;
     const freshness = Object.fromEntries((freshnessRows || []).map((r: any) => [r.source, r]));
