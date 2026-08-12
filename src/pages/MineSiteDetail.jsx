@@ -325,7 +325,7 @@ export default function MineSiteDetail() {
               </div>
               {site.photo_condition_score != null && <div className="mt-4 text-sm text-foreground"><strong>Reviewed photo/site-condition score:</strong> {Number(site.photo_condition_score).toFixed(0)}/100</div>}
               {site.photo_notes && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{site.photo_notes}</p>}
-              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Aerial imagery is a location preview from a mapped imagery service and may not show current site conditions or exact parcel boundaries.</p>
+              <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Aerial imagery is a location preview from a mapped imagery service and may not show current site conditions or exact parcel boundaries. Imagery source: Esri World Imagery.</p>
             </Card>
           )}
 
