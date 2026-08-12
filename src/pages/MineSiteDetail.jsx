@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
-import { ArrowLeft, BarChart3, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BarChart3, Camera, DollarSign, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck } from "lucide-react";
+import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 
 function sameValue(a, b) {
   if (a == null || b == null || a === "" || b === "") return false;
@@ -144,6 +145,7 @@ export default function MineSiteDetail() {
 
   const mapLat = site.latitude ?? parcel?.latitude;
   const mapLng = site.longitude ?? parcel?.longitude;
+  const valuation = calculateIndicativeQuarryValue({ site, parcel, profile, geology: geologyRecord });
 
   return (
     <div className="min-h-screen bg-background">
@@ -203,6 +205,25 @@ export default function MineSiteDetail() {
               </>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No verified parcel record is connected yet. This site remains visible, but owner, acreage, tax value and parcel boundary are not being guessed.</p>
+            )}
+          </Card>
+
+          <Card title="Indicative Marketplace Value" icon={DollarSign}>
+            {valuation?.available ? (
+              <>
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-amber-800">Estimated opportunity range</div>
+                  <div className="mt-1 text-3xl font-bold text-amber-950">{formatCompactMoney(valuation.low)}–{formatCompactMoney(valuation.high)}</div>
+                  <div className="mt-1 text-sm text-amber-900">{valuation.confidence} confidence · {money(valuation.perAcreLow)}–{money(valuation.perAcreHigh)} per acre</div>
+                </div>
+                <div className="mt-4 text-sm text-foreground"><strong>Based on:</strong> {valuation.basis.join(", ")}.</div>
+                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{valuation.disclaimer}</p>
+              </>
+            ) : (
+              <>
+                <div className="rounded-xl border border-border bg-muted/20 p-4 font-semibold text-foreground">Pricing data pending</div>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{valuation?.reason || "The app needs verified parcel acreage and a land-value anchor before displaying a dollar range."}</p>
+              </>
             )}
           </Card>
 
@@ -274,6 +295,18 @@ export default function MineSiteDetail() {
               <p className="text-sm leading-relaxed text-muted-foreground">No mapped geology record is connected yet. Tennessee Geological Survey bedrock/lithology data will appear here rather than guessing rock type from the mine name.</p>
             )}
           </Card>
+
+          {site.site_images?.length > 0 && (
+            <Card title="Property Photos" icon={Camera}>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {site.site_images.map((src, index) => (
+                  <img key={`${src}-${index}`} src={src} alt={`${site.mine_name} property ${index + 1}`} className="aspect-[4/3] w-full rounded-xl border border-border object-cover" />
+                ))}
+              </div>
+              {site.photo_condition_score != null && <div className="mt-4 text-sm text-foreground"><strong>Reviewed photo/site-condition score:</strong> {Number(site.photo_condition_score).toFixed(0)}/100</div>}
+              {site.photo_notes && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{site.photo_notes}</p>}
+            </Card>
+          )}
 
           <Card title="TDEC / Permit Intelligence" icon={ShieldCheck}>
             {relatedPermits.length ? relatedPermits.map((p) => (
