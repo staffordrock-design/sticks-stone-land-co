@@ -1,0 +1,47 @@
+{
+  "name": "ParcelOwnerSource",
+  "type": "object",
+  "properties": {
+    "parcel_id": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "tax_year": {
+      "type": "number"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "parcel_id",
+    "owner_name"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

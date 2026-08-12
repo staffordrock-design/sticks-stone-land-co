@@ -1,6 +1,8 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 
 const PARCEL_SERVICE = "https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcels/FeatureServer/0/query";
+const ASSESSMENT_SERVICE = "https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcel_Layer_Labels/FeatureServer/1/query";
+const ASSESSMENT_SOURCE_URL = "https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcel_Layer_Labels/FeatureServer/1";
 
 function ringToLatLng(ring: number[][]) {
   return (ring || [])
@@ -89,6 +91,37 @@ Deno.serve(async (req) => {
         }
 
         const parcelId = String(props.GISLINK || props.GISLINK2 || site.parcel_id || "").trim();
+
+        // Once the mine coordinate is matched to an official Tennessee parcel GISLINK,
+        // fetch the public assessment record by GISLINK so title-owner information is
+        // sourced from assessor data rather than being inferred from the mine operator.
+        let assessment: any = null;
+        if (parcelId) {
+          try {
+            const escaped = parcelId.replace(/'/g, "''");
+            const assessmentParams = new URLSearchParams({
+              f: "json",
+              where: `GISLINK='${escaped}'`,
+              outFields: "GISLINK,PARCELID,OWNER,OWNER2,OWNJAN1,ADDRESS,MAILADDR,MAILCITY,STATE,ZIP,CALC_ACRE,LANDVAL,IMPVAL,APPRAISAL,DEEDBKPG,TAXYR,UPDATED,LASTUPD,COUNTY",
+              returnGeometry: "false",
+              resultRecordCount: "1",
+            });
+            const assessmentData = await fetchParcel(`${ASSESSMENT_SERVICE}?${assessmentParams.toString()}`);
+            assessment = assessmentData?.features?.[0]?.attributes || null;
+          } catch (error) {
+            errors.push({ site_id: site.id, error: `Assessment lookup: ${error instanceof Error ? error.message : String(error)}` });
+          }
+        }
+
+        const ownerName = String(assessment?.OWNER || assessment?.OWNJAN1 || "").trim() || undefined;
+        const mailingAddress = [assessment?.MAILADDR, assessment?.MAILCITY, assessment?.STATE, assessment?.ZIP]
+          .map((value) => String(value || "").trim())
+          .filter(Boolean)
+          .join(", ") || undefined;
+        const assessmentSourceUrl = parcelId
+          ? `${ASSESSMENT_SOURCE_URL}?parcel=${encodeURIComponent(parcelId)}`
+          : ASSESSMENT_SOURCE_URL;
+
         const existing = await base44.asServiceRole.entities.ParcelRecord.filter(
           parcelId ? { parcel_id: parcelId } : { msha_mine_id: site.msha_mine_id || "__none__" },
           "-updated_date",
@@ -99,13 +132,13 @@ Deno.serve(async (req) => {
           state: "TN",
           county: site.county || existing?.[0]?.county || "Unknown",
           parcel_id: parcelId || existing?.[0]?.parcel_id || `TN-${site.id}`,
-          owner_name: existing?.[0]?.owner_name || site.parcel_owner || undefined,
-          property_address: existing?.[0]?.property_address || undefined,
-          mailing_address: existing?.[0]?.mailing_address || undefined,
-          acreage: Number(props.CALC_ACRE) || existing?.[0]?.acreage || site.acreage || undefined,
-          assessed_value: existing?.[0]?.assessed_value || undefined,
-          land_value: existing?.[0]?.land_value || undefined,
-          improvement_value: existing?.[0]?.improvement_value || undefined,
+          owner_name: ownerName || existing?.[0]?.owner_name || site.parcel_owner || undefined,
+          property_address: String(assessment?.ADDRESS || "").trim() || existing?.[0]?.property_address || undefined,
+          mailing_address: mailingAddress || existing?.[0]?.mailing_address || undefined,
+          acreage: Number(assessment?.CALC_ACRE) || Number(props.CALC_ACRE) || existing?.[0]?.acreage || site.acreage || undefined,
+          assessed_value: Number(assessment?.APPRAISAL) || existing?.[0]?.assessed_value || undefined,
+          land_value: Number(assessment?.LANDVAL) || existing?.[0]?.land_value || undefined,
+          improvement_value: Number(assessment?.IMPVAL) || existing?.[0]?.improvement_value || undefined,
           latitude: lat,
           longitude: lng,
           boundary_polygon,
@@ -114,10 +147,10 @@ Deno.serve(async (req) => {
           boundary_last_verified: new Date().toISOString(),
           msha_mine_id: site.msha_mine_id || existing?.[0]?.msha_mine_id || undefined,
           tdec_permit_number: site.tdec_permit_number || existing?.[0]?.tdec_permit_number || undefined,
-          deed_book_page: existing?.[0]?.deed_book_page || undefined,
-          source_name: existing?.[0]?.source_name || "TN Comptroller Parcel GIS",
-          source_url: existing?.[0]?.source_url || undefined,
-          last_source_update: new Date().toISOString(),
+          deed_book_page: String(assessment?.DEEDBKPG || "").trim() || existing?.[0]?.deed_book_page || undefined,
+          source_name: assessment ? "TN Comptroller IMPACT Property Assessment GIS" : (existing?.[0]?.source_name || "TN Comptroller Parcel GIS"),
+          source_url: assessment ? assessmentSourceUrl : (existing?.[0]?.source_url || "https://maps.cot.tn.gov/server3/rest/services/IMPACT/Parcels/FeatureServer/0"),
+          last_source_update: String(assessment?.UPDATED || assessment?.LASTUPD || "").trim() || new Date().toISOString(),
         };
 
         if (existing?.[0]?.id) {
@@ -133,6 +166,11 @@ Deno.serve(async (req) => {
             parcel_id: parcelId,
             acreage: payload.acreage || site.acreage,
             parcel_owner: payload.owner_name || site.parcel_owner,
+          });
+        } else if (ownerName && ownerName !== site.parcel_owner) {
+          await base44.asServiceRole.entities.MiningSite.update(site.id, {
+            parcel_owner: ownerName,
+            acreage: payload.acreage || site.acreage,
           });
         }
       } catch (error) {
@@ -150,7 +188,7 @@ Deno.serve(async (req) => {
       no_coordinates: noCoordinates,
       no_match: noMatch,
       errors: errors.slice(0, 25),
-      note: "Boundaries are GIS reference geometry and are not legal surveys or legal boundary determinations.",
+      note: "Parcel IDs/boundaries come from Tennessee Comptroller IMPACT GIS. Owner names and assessment fields are populated from the official IMPACT Property Assessment GIS when available. Boundaries are GIS reference geometry and are not legal surveys or legal boundary determinations.",
     });
   } catch (error) {
     return Response.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });

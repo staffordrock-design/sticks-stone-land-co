@@ -1,0 +1,78 @@
+{
+  "name": "ParcelOwnershipVerification",
+  "type": "object",
+  "properties": {
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "parcel_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Verified",
+        "Parcel Matched - No Owner",
+        "No Parcel Match",
+        "No Coordinates"
+      ],
+      "default": "Verified"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "owner_name_2": {
+      "type": "string"
+    },
+    "tax_year": {
+      "type": "number"
+    },
+    "property_address": {
+      "type": "string"
+    },
+    "mailing_address": {
+      "type": "string"
+    },
+    "deed_book_page": {
+      "type": "string"
+    },
+    "source_updated": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mining_site_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
