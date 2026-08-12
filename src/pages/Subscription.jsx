@@ -15,6 +15,7 @@ export default function Subscription() {
   const { user } = useAuth();
   const [entitlements, setEntitlements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [leadSaved, setLeadSaved] = useState(false);
   const nativeLike = useMemo(() => isNativeLikeEnvironment(), []);
   const isIOS = /iPhone|iPad|iPod/i.test(typeof navigator !== "undefined" ? navigator.userAgent : "");
   const platform = isIOS ? "apple" : "google";
@@ -32,6 +33,22 @@ export default function Subscription() {
   }, [user?.id]);
 
   const active = entitlements.find((e) => ["active", "trial", "grace_period"].includes(e.status));
+
+  const requestAccess = async () => {
+    if (!user?.email || leadSaved) return;
+    await base44.entities.SalesLead.create({
+      user_id: user.id || "",
+      name: user.name || "",
+      email: user.email,
+      company: user.company || "",
+      role: user.role || "",
+      interest: "S&S Professional quarry intelligence subscription",
+      source: "Subscription page",
+      status: "New",
+      created_at: new Date().toISOString(),
+    });
+    setLeadSaved(true);
+  };
 
   return (
     <div className="min-h-screen bg-background">
