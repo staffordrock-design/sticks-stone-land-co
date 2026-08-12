@@ -57,6 +57,7 @@ export default function MineSiteDetail() {
   const [profiles, setProfiles] = useState([]);
   const [production, setProduction] = useState([]);
   const [geology, setGeology] = useState([]);
+  const [liveParcel, setLiveParcel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -150,6 +151,22 @@ export default function MineSiteDetail() {
     ) || null;
   }, [site, geology]);
 
+  useEffect(() => {
+    if (!site || parcel?.boundary_polygon?.length >= 3) return;
+    const lat = site.latitude ?? parcel?.latitude;
+    const lng = site.longitude ?? parcel?.longitude;
+    if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return;
+    (async () => {
+      try {
+        const response = await base44.functions.invoke("fetch-parcel-data", { lat: Number(lat), lng: Number(lng), state: site.state || "TN" });
+        const data = response?.data || response;
+        if (data?.boundary?.length >= 3) setLiveParcel(data);
+      } catch (_) {
+        // Stored parcel data remains authoritative when live lookup is unavailable.
+      }
+    })();
+  }, [site, parcel]);
+
   if (loading) return <div className="min-h-screen bg-background p-10 text-center text-muted-foreground">Loading site intelligence…</div>;
   if (error || !site) return <div className="min-h-screen bg-background p-10 text-center text-destructive">{error || "Site not found."}</div>;
 
@@ -186,12 +203,12 @@ export default function MineSiteDetail() {
           <ParcelMap
             lat={mapLat}
             lng={mapLng}
-            polygon={parcel?.boundary_polygon}
+            polygon={parcel?.boundary_polygon?.length >= 3 ? parcel.boundary_polygon : liveParcel?.boundary}
             ownerName={parcel?.owner_name || site.parcel_owner}
-            parcelId={parcel?.parcel_id || site.parcel_id}
-            acreage={parcel?.acreage ?? site.acreage}
+            parcelId={parcel?.parcel_id || liveParcel?.parcel_id || site.parcel_id}
+            acreage={parcel?.acreage ?? liveParcel?.acreage ?? site.acreage}
             rockType={geologyRecord?.primary_rock || geologyRecord?.lithology || site.commodity}
-            boundarySource={parcel?.boundary_source || parcel?.source_name}
+            boundarySource={parcel?.boundary_source || liveParcel?.source || parcel?.source_name}
             height={440}
           />
           <Card title="Mine Record" icon={MapPinned}>
