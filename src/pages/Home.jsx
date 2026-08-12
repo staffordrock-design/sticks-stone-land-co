@@ -30,6 +30,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [sortMode, setSortMode] = useState("Best Opportunity");
 
   useEffect(() => {
     (async () => {
@@ -63,6 +64,12 @@ export default function Home() {
       s.commodity?.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "All" || statusGroup(s.mine_status) === statusFilter;
     return matchesSource && matchesQuery && matchesStatus;
+  });
+
+  const ranked = [...filtered].sort((a, b) => {
+    if (sortMode === "Best Opportunity") return Number(b.opportunity_score || 0) - Number(a.opportunity_score || 0);
+    if (sortMode === "Largest Acreage") return Number(b.acreage || 0) - Number(a.acreage || 0);
+    return String(a.mine_name || "").localeCompare(String(b.mine_name || ""));
   });
 
   const featured = sites.filter((s) => s.latitude && s.longitude).slice(0, 1)[0];
@@ -218,6 +225,11 @@ export default function Home() {
               />
             </div>
             <div className="flex flex-col gap-2">
+              <select value={sortMode} onChange={(e) => setSortMode(e.target.value)} className="rounded-lg border border-input bg-card px-3 py-2 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-ring">
+                <option>Best Opportunity</option>
+                <option>Largest Acreage</option>
+                <option>Name A–Z</option>
+              </select>
               <div className="flex flex-wrap gap-1.5">
                 {STATUS_GROUPS.map((s) => (
                   <button key={s} onClick={() => setStatusFilter(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-amber-700 text-white" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
@@ -257,7 +269,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((s) => {
+            {ranked.map((s) => {
               const profile = profiles.find((p) => p.mining_site_id === s.id || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
               const parcel = parcels.find((p) => (s.parcel_id && p.parcel_id === s.parcel_id) || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
               const geologyRecord = geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
