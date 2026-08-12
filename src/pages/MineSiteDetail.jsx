@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
-import { ArrowLeft, BarChart3, Camera, DollarSign, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BarChart3, Camera, DollarSign, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 
 function worldImageryTile(lat, lng, zoom = 15) {
@@ -183,6 +183,17 @@ export default function MineSiteDetail() {
   const mapLng = site.longitude ?? parcel?.longitude;
   const valuation = calculateIndicativeQuarryValue({ site, parcel, profile, geology: geologyRecord });
   const aerialPreview = worldImageryTile(mapLat, mapLng);
+  const diligence = [
+    { label: "Mine / operating record", ready: Boolean(site.msha_mine_id || site.mine_status), detail: site.msha_mine_id ? `MSHA ${site.msha_mine_id}` : site.mine_status },
+    { label: "Parcel / tax record", ready: Boolean(parcel), detail: parcel?.parcel_id || "Parcel linkage pending" },
+    { label: "GIS boundary", ready: Boolean(parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3), detail: (parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3) ? "Boundary available" : "Boundary pending" },
+    { label: "Geology / rock intelligence", ready: Boolean(geologyRecord), detail: geologyRecord?.primary_rock || geologyRecord?.lithology || "Geology linkage pending" },
+    { label: "Permit / regulatory record", ready: Boolean(relatedPermits.length), detail: relatedPermits.length ? `${relatedPermits.length} connected record${relatedPermits.length === 1 ? "" : "s"}` : "Permit linkage pending" },
+    { label: "Production history", ready: Boolean(relatedProduction.length), detail: relatedProduction.length ? `${relatedProduction.length} production record${relatedProduction.length === 1 ? "" : "s"}` : "Production linkage pending" },
+    { label: "Compliance history", ready: Boolean(relatedInspections.length || relatedViolations.length || relatedEnvironmental.length), detail: `${relatedInspections.length} inspections · ${relatedViolations.length} violations · ${relatedEnvironmental.length} environmental` },
+  ];
+  const diligenceReady = diligence.filter((item) => item.ready).length;
+  const diligencePct = Math.round((diligenceReady / diligence.length) * 100);
 
   return (
     <div className="min-h-screen bg-background">
