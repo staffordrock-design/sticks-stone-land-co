@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Mountain, ArrowUpRight, BadgeCheck } from "lucide-react";
+import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, DollarSign } from "lucide-react";
+import { formatCompactMoney } from "@/utils/quarryValuation";
 
 const sourceStyles = {
   MSHA: "bg-stone-900 text-stone-50",
@@ -10,16 +11,20 @@ const sourceStyles = {
   Other: "bg-stone-100 text-stone-800 border border-stone-300",
 };
 
-export default function MiningSiteCard({ site }) {
+export default function MiningSiteCard({ site, valuation }) {
   const location = [site.county ? `${site.county}, ` : "", site.state].join("");
   const verified = site.is_verified_listing && site.listing_id;
 
   const body = (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <div className="relative h-40 overflow-hidden bg-gradient-to-br from-stone-200 to-stone-100">
-        <div className="flex h-full w-full items-center justify-center text-stone-400">
-          <Mountain className="h-10 w-10" />
-        </div>
+        {site.site_images?.[0] ? (
+          <img src={site.site_images[0]} alt={site.mine_name || "Quarry opportunity"} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-stone-400">
+            <Mountain className="h-10 w-10" />
+          </div>
+        )}
         <div className="absolute left-3 top-3">
           <span
             className={`rounded-full px-3 py-1 text-xs font-semibold tracking-wide ${
@@ -67,6 +72,22 @@ export default function MiningSiteCard({ site }) {
             </span>
           )}
         </div>
+
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-800"><DollarSign className="h-3.5 w-3.5" /> Indicative opportunity value</div>
+          {valuation?.available ? (
+            <>
+              <div className="mt-1 font-display text-lg font-bold text-amber-950">{formatCompactMoney(valuation.low)}–{formatCompactMoney(valuation.high)}</div>
+              <div className="mt-0.5 text-xs text-amber-900/80">{valuation.confidence} confidence · screening estimate</div>
+            </>
+          ) : (
+            <div className="mt-1 text-sm font-semibold text-amber-950">Pricing data pending</div>
+          )}
+        </div>
+
+        {site.site_images?.length > 0 && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><Camera className="h-3.5 w-3.5" /> {site.site_images.length} property photo{site.site_images.length === 1 ? "" : "s"}</div>
+        )}
 
         <div className="mt-4 flex items-end justify-between border-t border-border pt-4">
           <div className="min-w-0">
