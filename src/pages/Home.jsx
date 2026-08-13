@@ -7,6 +7,7 @@ import ParcelMap from "@/components/ParcelMap";
 import TennesseeMineMap from "@/components/TennesseeMineMap";
 import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
+import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { Capacitor } from "@capacitor/core";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
@@ -102,6 +103,7 @@ export default function Home() {
             {!isNative && <Link to="/subscribe" className="hover:text-foreground">Professional</Link>}
             {user?.role === "admin" && <Link to="/admin/deals" className="font-semibold text-sky-700 hover:text-sky-800">Deal Desk</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
+            {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
           <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Account"}</div>
         </div>
