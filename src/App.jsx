@@ -27,10 +27,11 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import OAuthConsent from './pages/OAuthConsent';
+import Support from './pages/Support';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
-  const publicPath = ['/privacy', '/terms', '/account/delete', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(window.location.pathname);
+  const publicPath = ['/privacy', '/terms', '/support', '/account/delete', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(window.location.pathname);
 
   // Show loading spinner while checking app public settings or auth
   if ((isLoadingPublicSettings || isLoadingAuth) && !publicPath) {
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
+      <Route path="/support" element={<Support />} />
       <Route path="/sell" element={<SellProperty />} />
       <Route path="/buyer-profile" element={<BuyerProfile />} />
       <Route path="/saved" element={<MyOpportunities />} />
