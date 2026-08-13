@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, Crown, Smartphone } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
+import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
@@ -11,6 +12,9 @@ export default function Subscription() {
   const [entitlements, setEntitlements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [leadSaved, setLeadSaved] = useState(false);
+  const [storeProducts, setStoreProducts] = useState({});
+  const [storeLoading, setStoreLoading] = useState(false);
+  const [purchaseMessage, setPurchaseMessage] = useState("");
   const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
