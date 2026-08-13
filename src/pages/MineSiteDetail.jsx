@@ -47,7 +47,7 @@ function Card({ title, icon: Icon, children }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Icon className="h-5 w-5 text-amber-700" />
+        <Icon className="h-5 w-5 text-sky-700" />
         <h2 className="font-heading text-lg font-bold text-foreground">{title}</h2>
       </div>
       {children}
@@ -268,12 +268,12 @@ export default function MineSiteDetail() {
             <p className="mt-2 text-muted-foreground">{[site.city, site.county, site.state].filter(Boolean).join(" · ")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={() => downloadIntelligenceReport("Standard")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-amber-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Standard PDF"}</button>
-            <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-amber-400 bg-stone-950 px-4 py-2 text-xs font-bold text-amber-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Enhanced PDF"}</button>
+            <button onClick={() => downloadIntelligenceReport("Standard")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-sky-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Standard PDF"}</button>
+            <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-sky-400 bg-stone-950 px-4 py-2 text-xs font-bold text-sky-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Enhanced PDF"}</button>
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
-            <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{opportunityLabel(site)}</span>
-            {site.opportunity_availability && <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-900">{site.opportunity_availability}</span>}
+            <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{opportunityLabel(site)}</span>
+            {site.opportunity_availability && <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{site.opportunity_availability}</span>}
             {site.opportunity_score != null && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>}
             {geologyRecord?.primary_rock && (
               <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800">
@@ -285,7 +285,7 @@ export default function MineSiteDetail() {
           </div>
         </div>
 
-        {reportMessage && <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-950">{reportMessage}</div>}
+        {reportMessage && <div className="mb-6 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-950">{reportMessage}</div>}
 
         {!site.is_verified_listing && (
           <div className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 p-5 text-sm leading-relaxed text-stone-700">
@@ -317,7 +317,7 @@ export default function MineSiteDetail() {
             <Row label="Parcel" value={site.parcel_id} />
             <Row label="TDEC permit" value={site.tdec_permit_number} />
             {site.source_url && (
-              <a href={site.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">
+              <a href={site.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">
                 Open source record <ExternalLink className="h-3.5 w-3.5" />
               </a>
             )}
@@ -326,10 +326,10 @@ export default function MineSiteDetail() {
 
         <div className="mb-6 rounded-2xl border border-stone-300 bg-stone-950 p-6 text-stone-50">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-amber-300"><LockKeyhole className="h-4 w-4" /> Acquisition Diligence Snapshot</div><div className="mt-2 text-2xl font-bold">{diligenceReady}/{diligence.length} intelligence layers connected</div><p className="mt-1 max-w-2xl text-sm text-stone-300">A fast completeness check for buyers, operators and advisers before deeper title, engineering, reserve, environmental and financial diligence.</p></div>
-            <div className="min-w-32 rounded-2xl border border-stone-700 bg-stone-900 px-5 py-4 text-center"><div className="text-3xl font-black text-amber-300">{diligencePct}%</div><div className="text-[11px] uppercase tracking-wider text-stone-400">data coverage</div></div>
+            <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><LockKeyhole className="h-4 w-4" /> Acquisition Diligence Snapshot</div><div className="mt-2 text-2xl font-bold">{diligenceReady}/{diligence.length} intelligence layers connected</div><p className="mt-1 max-w-2xl text-sm text-stone-300">A fast completeness check for buyers, operators and advisers before deeper title, engineering, reserve, environmental and financial diligence.</p></div>
+            <div className="min-w-32 rounded-2xl border border-stone-700 bg-stone-900 px-5 py-4 text-center"><div className="text-3xl font-black text-sky-300">{diligencePct}%</div><div className="text-[11px] uppercase tracking-wider text-stone-400">data coverage</div></div>
           </div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{diligence.map((item) => <div key={item.label} className="flex gap-2 rounded-xl border border-stone-800 bg-stone-900/70 p-3">{item.ready ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />}<div><div className="text-xs font-bold">{item.label}</div><div className="mt-0.5 text-[11px] text-stone-400">{item.detail || "Not connected"}</div></div></div>)}</div>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{diligence.map((item) => <div key={item.label} className="flex gap-2 rounded-xl border border-stone-800 bg-stone-900/70 p-3">{item.ready ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />}<div><div className="text-xs font-bold">{item.label}</div><div className="mt-0.5 text-[11px] text-stone-400">{item.detail || "Not connected"}</div></div></div>)}</div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -349,8 +349,8 @@ export default function MineSiteDetail() {
                 <Row label="Source" value={parcel?.source_name || liveParcel?.source} />
                 <Row label="Boundary" value={(parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3) ? "GIS parcel outline loaded" : "Boundary geometry not loaded yet"} />
                 <Row label="Boundary source" value={parcel?.boundary_source || liveParcel?.source} />
-                {(parcel?.boundary_source_url || liveParcel?.boundary_source_url) && <a href={parcel?.boundary_source_url || liveParcel?.boundary_source_url} target="_blank" rel="noreferrer" className="mt-4 mr-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open boundary source <ExternalLink className="h-3.5 w-3.5" /></a>}
-                {(parcel?.source_url || liveParcel?.source_url) && <a href={parcel?.source_url || liveParcel?.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                {(parcel?.boundary_source_url || liveParcel?.boundary_source_url) && <a href={parcel?.boundary_source_url || liveParcel?.boundary_source_url} target="_blank" rel="noreferrer" className="mt-4 mr-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open boundary source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                {(parcel?.source_url || liveParcel?.source_url) && <a href={parcel?.source_url || liveParcel?.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No parcel match is available yet for this site.</p>
@@ -360,10 +360,10 @@ export default function MineSiteDetail() {
           <Card title="Indicative Marketplace Value" icon={DollarSign}>
             {valuation?.available ? (
               <>
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-amber-800">Estimated opportunity range</div>
-                  <div className="mt-1 text-3xl font-bold text-amber-950">{formatCompactMoney(valuation.low)}–{formatCompactMoney(valuation.high)}</div>
-                  <div className="mt-1 text-sm text-amber-900">{valuation.confidence} confidence · {money(valuation.perAcreLow)}–{money(valuation.perAcreHigh)} per acre</div>
+                <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-sky-800">Estimated opportunity range</div>
+                  <div className="mt-1 text-3xl font-bold text-sky-950">{formatCompactMoney(valuation.low)}–{formatCompactMoney(valuation.high)}</div>
+                  <div className="mt-1 text-sm text-sky-900">{valuation.confidence} confidence · {money(valuation.perAcreLow)}–{money(valuation.perAcreHigh)} per acre</div>
                 </div>
                 <div className="mt-4 text-sm text-foreground"><strong>Based on:</strong> {valuation.basis.join(", ")}.</div>
                 <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{valuation.disclaimer}</p>
@@ -379,10 +379,10 @@ export default function MineSiteDetail() {
           <Card title="Quarry Potential" icon={Gauge}>
             {profile ? (
               <>
-                <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <div className="text-xs uppercase tracking-wider text-amber-800">Screening score</div>
-                  <div className="mt-1 text-3xl font-bold text-amber-950">{profile.screening_score ?? "Not scored"}</div>
-                  <div className="mt-1 text-sm text-amber-900">Confidence: {profile.confidence || "Low"}</div>
+                <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-4">
+                  <div className="text-xs uppercase tracking-wider text-sky-800">Screening score</div>
+                  <div className="mt-1 text-3xl font-bold text-sky-950">{profile.screening_score ?? "Not scored"}</div>
+                  <div className="mt-1 text-sm text-sky-900">Confidence: {profile.confidence || "Low"}</div>
                 </div>
                 <Row label="Geology" value={profile.geology_score} />
                 <Row label="Access" value={profile.access_score} />
@@ -418,7 +418,7 @@ export default function MineSiteDetail() {
                         <div>Avg. employees: <strong className="text-foreground">{r.average_employees ?? "—"}</strong></div>
                       </div>
                     )}
-                    {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open production source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                    {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open production source <ExternalLink className="h-3.5 w-3.5" /></a>}
                   </div>
                 ))}
               </div>
@@ -446,7 +446,7 @@ export default function MineSiteDetail() {
                 <Row label="Lithology" value={geologyRecord.lithology} />
                 <Row label="Interpretation" value={geologyRecord.commodity_interpretation} />
                 <Row label="Confidence" value={geologyRecord.confidence} />
-                {geologyRecord.source_url && <a href={geologyRecord.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open geology source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                {geologyRecord.source_url && <a href={geologyRecord.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open geology source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No mapped geology record is connected yet. Tennessee Geological Survey bedrock/lithology data will appear here rather than guessing rock type from the mine name.</p>
@@ -486,7 +486,7 @@ export default function MineSiteDetail() {
                   <div>Expires: <strong className="text-foreground">{displayDate(p.expiration_date)}</strong></div>
                   <div>Source checked: <strong className="text-foreground">{displayDate(p.last_source_update || p.updated_date)}</strong></div>
                 </div>
-                {p.source_url && <a href={p.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open TDEC source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                {p.source_url && <a href={p.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open TDEC source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </div>
             )) : <p className="text-sm text-muted-foreground">No connected TDEC permit record yet.</p>}
           </Card>
@@ -507,7 +507,7 @@ export default function MineSiteDetail() {
                       <div>Source checked: <strong className="text-foreground">{displayDate(r.last_source_update || r.updated_date)}</strong></div>
                     </div>
                     {r.agency && <div className="mt-2 text-xs text-muted-foreground">Agency: {r.agency}</div>}
-                    {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 hover:underline">Open environmental source <ExternalLink className="h-3 w-3" /></a>}
+                    {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-sky-800 hover:underline">Open environmental source <ExternalLink className="h-3 w-3" /></a>}
                   </div>
                 ))}
               </div>
@@ -515,9 +515,9 @@ export default function MineSiteDetail() {
           </Card>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-6">
-          <div className="flex items-center gap-2 font-heading text-lg font-bold text-amber-950"><FileSearch className="h-5 w-5" /> About this S&amp;S Quarry Intelligence Report</div>
-          <p className="mt-2 text-sm leading-relaxed text-amber-950/80">This report is assembled by S&amp;S Rock Holdings LLC from source-labeled public and licensed data connected to this site, including mine, parcel, permit, geology, production/activity, and compliance information when available. It is a screening and business-intelligence product—not a certified reserve estimate, engineering opinion, title opinion, appraisal, environmental assessment, or guarantee that commercially recoverable stone exists.</p>
+        <div className="mt-6 rounded-2xl border border-sky-200 bg-sky-50/60 p-6">
+          <div className="flex items-center gap-2 font-heading text-lg font-bold text-sky-950"><FileSearch className="h-5 w-5" /> About this S&amp;S Quarry Intelligence Report</div>
+          <p className="mt-2 text-sm leading-relaxed text-sky-950/80">This report is assembled by S&amp;S Rock Holdings LLC from source-labeled public and licensed data connected to this site, including mine, parcel, permit, geology, production/activity, and compliance information when available. It is a screening and business-intelligence product—not a certified reserve estimate, engineering opinion, title opinion, appraisal, environmental assessment, or guarantee that commercially recoverable stone exists.</p>
         </div>
 
         {site.notes && (
