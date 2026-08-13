@@ -287,6 +287,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
           <div>S&amp;S Rock Holdings Quarry Marketplace — Industrial land &amp; mineral marketplace</div>
           <div className="flex flex-wrap items-center justify-center gap-4">
+            <a href="/support" className="hover:text-foreground hover:underline">Support</a>
             <a href="/privacy" className="hover:text-foreground hover:underline">Privacy</a>
             <a href="/terms" className="hover:text-foreground hover:underline">Terms</a>
             <a href="/account/delete" className="hover:text-foreground hover:underline">Delete account</a>
