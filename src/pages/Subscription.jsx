@@ -63,8 +63,8 @@ export default function Subscription() {
             </div>
           ) : (
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-border p-6"><div className="text-sm font-semibold">{PLAN_DISPLAY.monthly.name}</div><div className="mt-2 text-3xl font-bold text-foreground">{PLAN_DISPLAY.monthly.price}</div><div className="mt-1 text-xs text-muted-foreground">Planned store product: {SUBSCRIPTION_PRODUCTS.apple.monthly}</div><div className="mt-5 rounded-xl bg-muted p-4 text-sm text-muted-foreground">Professional billing is being prepared for the native stores.</div></div>
-              <div className="rounded-2xl border border-sky-300 bg-sky-50/50 p-6"><div className="text-sm font-semibold text-sky-950">{PLAN_DISPLAY.annual.name}</div><div className="mt-2 text-3xl font-bold text-sky-950">{PLAN_DISPLAY.annual.price}</div><div className="mt-1 text-xs font-semibold text-sky-800">{PLAN_DISPLAY.annual.note}</div><div className="mt-1 text-xs text-sky-900/70">Planned store product: {SUBSCRIPTION_PRODUCTS.apple.annual}</div></div>
+              <div className="rounded-2xl border border-border p-6"><div className="text-sm font-semibold">{PLAN_DISPLAY.monthly.name}</div><div className="mt-2 text-3xl font-bold text-foreground">{PLAN_DISPLAY.monthly.price}</div><div className="mt-1 text-xs text-muted-foreground">Planned store product: {SUBSCRIPTION_PRODUCTS.apple.professional.monthly}</div><div className="mt-5 rounded-xl bg-muted p-4 text-sm text-muted-foreground">Professional billing is being prepared for the native stores.</div></div>
+              <div className="rounded-2xl border border-sky-300 bg-sky-50/50 p-6"><div className="text-sm font-semibold text-sky-950">{PLAN_DISPLAY.annual.name}</div><div className="mt-2 text-3xl font-bold text-sky-950">{PLAN_DISPLAY.annual.price}</div><div className="mt-1 text-xs font-semibold text-sky-800">{PLAN_DISPLAY.annual.note}</div><div className="mt-1 text-xs text-sky-900/70">Planned store product: {SUBSCRIPTION_PRODUCTS.apple.professional.annual}</div></div>
             </div>
           )}
 
