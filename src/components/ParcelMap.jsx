@@ -72,7 +72,7 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
         <Polygon
           positions={positions}
           pathOptions={{
-            color: "#b8732e",
+            color: "#1d4ed8",
             weight: 3,
             fillColor: "#2563eb",
             fillOpacity: 0.2,
