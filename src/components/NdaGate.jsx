@@ -127,7 +127,7 @@ export default function NdaGate({ listing }) {
   if (!ndaSigned) {
     return (
       <>
-        <div className="rounded-2xl border border-border bg-gradient-to-br from-stone-50 to-amber-50/40 p-8 text-center">
+        <div className="rounded-2xl border border-border bg-gradient-to-br from-stone-50 to-sky-50/40 p-8 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-stone-900 text-stone-50"><Lock className="h-6 w-6" /></div>
           <h3 className="mt-4 font-heading text-xl font-semibold text-foreground">Seller Confidential Data Room</h3>
           <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">This area is only for confidential due-diligence documents actually supplied by the seller, owner, operator, or their professionals. Sign the mutual NDA to request access when documents are available.</p>
@@ -156,8 +156,8 @@ export default function NdaGate({ listing }) {
 
   if (!paid) {
     return (
-      <div className="rounded-2xl border border-border bg-gradient-to-br from-amber-50/50 to-stone-50 p-8 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-600 text-white"><CreditCard className="h-6 w-6" /></div>
+      <div className="rounded-2xl border border-border bg-gradient-to-br from-sky-50/50 to-stone-50 p-8 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sky-600 text-white"><CreditCard className="h-6 w-6" /></div>
         <h3 className="mt-4 font-heading text-xl font-semibold text-foreground">NDA Signed</h3>
         {nativeLike ? (
           <>

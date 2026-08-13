@@ -125,7 +125,7 @@ export default function AdminDataSync() {
             <div><h2 className="font-heading text-xl font-bold text-foreground">Report Source Freshness</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">Every customer report carries the current freshness state for MSHA, TDEC, geology, parcel/tax, and environmental sources. Stale layers stay visible instead of being presented as current.</p></div>
             <button onClick={refreshFreshness} disabled={runningFreshness} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningFreshness ? "animate-spin" : ""}`} />{runningFreshness ? "Checking…" : "Recheck freshness"}</button>
           </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{freshness.map((f) => <div key={f.source} className="rounded-xl border border-border bg-muted/20 p-4"><div className="flex items-center justify-between gap-3"><div className="font-semibold text-foreground">{f.source}</div><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${f.status === "Current" ? "bg-emerald-100 text-emerald-800" : f.status === "Stale" || f.status === "Error" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-900"}`}>{f.status}</span></div><div className="mt-2 text-xs text-muted-foreground">Last sync: {f.last_sync_at ? new Date(f.last_sync_at).toLocaleString() : "Not recorded"}</div></div>)}</div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{freshness.map((f) => <div key={f.source} className="rounded-xl border border-border bg-muted/20 p-4"><div className="flex items-center justify-between gap-3"><div className="font-semibold text-foreground">{f.source}</div><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${f.status === "Current" ? "bg-emerald-100 text-emerald-800" : f.status === "Stale" || f.status === "Error" ? "bg-red-100 text-red-800" : "bg-sky-100 text-sky-900"}`}>{f.status}</span></div><div className="mt-2 text-xs text-muted-foreground">Last sync: {f.last_sync_at ? new Date(f.last_sync_at).toLocaleString() : "Not recorded"}</div></div>)}</div>
         </section>
 
         <section className="mb-6 rounded-2xl border border-border bg-card p-6">
@@ -143,7 +143,7 @@ export default function AdminDataSync() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <DatabaseZap className="h-5 w-5 text-amber-700" />
+                <DatabaseZap className="h-5 w-5 text-sky-700" />
                 <h2 className="font-heading text-xl font-bold text-foreground">MSHA Part 50 Employment</h2>
               </div>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -184,7 +184,7 @@ export default function AdminDataSync() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <Gem className="h-5 w-5 text-amber-700" />
+                <Gem className="h-5 w-5 text-sky-700" />
                 <h2 className="font-heading text-xl font-bold text-foreground">Tennessee Rock Identification</h2>
               </div>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -194,14 +194,14 @@ export default function AdminDataSync() {
             <button
               onClick={syncGeology}
               disabled={runningGeology}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             >
               <RefreshCw className={`h-4 w-4 ${runningGeology ? "animate-spin" : ""}`} />
               {runningGeology ? "Matching geology…" : "Sync rock types"}
             </button>
           </div>
 
-          <div className="mt-5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
             <span>Rock types come from the mapped polygon at the mine coordinates. The profile keeps the source link and confidence label so users can tell mapped geology from confirmed reserve data.</span>
           </div>
@@ -234,7 +234,7 @@ export default function AdminDataSync() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <MapPinned className="h-5 w-5 text-amber-700" />
+                <MapPinned className="h-5 w-5 text-sky-700" />
                 <h2 className="font-heading text-xl font-bold text-foreground">Tennessee Parcel Boundaries</h2>
               </div>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -251,7 +251,7 @@ export default function AdminDataSync() {
             </button>
           </div>
 
-          <div className="mt-5 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
             <span>Parcel polygons are graphical GIS reference geometry from the Tennessee Comptroller and are not legal surveys or legal boundary determinations.</span>
           </div>

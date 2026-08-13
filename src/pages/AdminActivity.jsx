@@ -44,7 +44,7 @@ export default function AdminActivity() {
           <ShieldAlert className="mx-auto h-8 w-8 text-muted-foreground" />
           <h1 className="mt-4 text-xl font-bold">Admin only</h1>
           <p className="mt-2 text-sm text-muted-foreground">Viewer activity is restricted to administrators.</p>
-          <Link to="/" className="mt-5 inline-block font-semibold text-amber-800 hover:underline">Back to marketplace</Link>
+          <Link to="/" className="mt-5 inline-block font-semibold text-sky-800 hover:underline">Back to marketplace</Link>
         </div>
       </div>
     );

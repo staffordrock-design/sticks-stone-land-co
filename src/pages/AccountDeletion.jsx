@@ -66,7 +66,7 @@ export default function AccountDeletion() {
           <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-700"><Trash2 className="h-5 w-5" /></div><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-2xl font-bold">Delete my account</h1></div></div>
 
           {existing ? (
-            <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950">
+            <div className="mt-6 rounded-xl border border-sky-200 bg-sky-50 p-5 text-sm text-sky-950">
               <div className="font-semibold">Deletion request on file</div>
               <div className="mt-1">Status: {existing.status || "requested"}</div>
               <div className="mt-1 text-xs">Requested: {existing.requested_at ? new Date(existing.requested_at).toLocaleString() : "—"}</div>

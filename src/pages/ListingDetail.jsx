@@ -9,7 +9,7 @@ import { Mountain, MapPin, ArrowLeft, Layers, Ruler, FileBadge, Coins } from "lu
 
 const tierStyles = {
   Quarry: "bg-stone-900 text-stone-50",
-  Aggregate: "bg-amber-100 text-amber-900 border border-amber-300",
+  Aggregate: "bg-sky-100 text-sky-900 border border-sky-300",
   "Mineral Rights": "bg-emerald-100 text-emerald-900 border border-emerald-300",
   Royalty: "bg-indigo-100 text-indigo-900 border border-indigo-300",
 };
@@ -68,7 +68,7 @@ export default function ListingDetail() {
     return (
       <div className="mx-auto max-w-3xl px-6 py-32 text-center">
         <h1 className="font-heading text-2xl font-bold text-foreground">Parcel not found</h1>
-        <Link to="/" className="mt-4 inline-block text-sm text-amber-700 underline">
+        <Link to="/" className="mt-4 inline-block text-sm text-sky-700 underline">
           Back to marketplace
         </Link>
       </div>

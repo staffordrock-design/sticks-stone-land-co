@@ -51,11 +51,11 @@ export default function ParcelRecords({ data, loading }) {
   return (
     <div className="rounded-2xl border border-border bg-card">
       <div className="flex items-center gap-2 border-b border-border px-5 py-3">
-        <Database className="h-4 w-4 text-amber-700" />
+        <Database className="h-4 w-4 text-sky-700" />
         <h3 className="font-heading text-sm font-semibold text-foreground">
           Register of Deeds &amp; Tax Map
         </h3>
-        <span className="ml-auto rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-900">
+        <span className="ml-auto rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-900">
           {data.source}
         </span>
       </div>

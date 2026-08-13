@@ -4,7 +4,7 @@ import { MapPin, Layers, ArrowUpRight } from "lucide-react";
 
 const tierStyles = {
   Quarry: "bg-stone-900 text-stone-50",
-  Aggregate: "bg-amber-100 text-amber-900 border border-amber-300",
+  Aggregate: "bg-sky-100 text-sky-900 border border-sky-300",
   "Mineral Rights": "bg-emerald-100 text-emerald-900 border border-emerald-300",
   Royalty: "bg-indigo-100 text-indigo-900 border border-indigo-300",
 };

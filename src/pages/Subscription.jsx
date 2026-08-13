@@ -53,9 +53,9 @@ export default function Subscription() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-4xl px-6 py-12">
-        <Link to="/" className="text-sm font-semibold text-amber-800 hover:underline">← Back to marketplace</Link>
+        <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to marketplace</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
-          <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-amber-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Professional</p><h1 className="font-heading text-3xl font-bold">Quarry intelligence subscription</h1></div></div>
+          <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Professional</p><h1 className="font-heading text-3xl font-bold">Quarry intelligence subscription</h1></div></div>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted-foreground">Professional access is designed for quarry buyers, sellers, operators, brokers, landowners and industry professionals who need more than a directory.</p>
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking subscription…</p> : active ? (
@@ -63,7 +63,7 @@ export default function Subscription() {
           ) : (
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
               <div className="rounded-2xl border border-border p-6"><div className="text-sm font-semibold">{PLAN_DISPLAY.monthly.name}</div><div className="mt-2 text-3xl font-bold text-foreground">{PLAN_DISPLAY.monthly.price}</div><div className="mt-1 text-xs text-muted-foreground">Store product: {SUBSCRIPTION_PRODUCTS[platform].monthly}</div><div className="mt-5 rounded-xl bg-muted p-4 text-sm text-muted-foreground">{nativeLike ? "Purchase activates when the Apple/Google store product is connected to the native build." : "Professional subscriptions are purchased through Apple or Google in the native app."}</div></div>
-              <div className="rounded-2xl border border-amber-300 bg-amber-50/50 p-6"><div className="text-sm font-semibold text-amber-950">{PLAN_DISPLAY.annual.name}</div><div className="mt-2 text-3xl font-bold text-amber-950">{PLAN_DISPLAY.annual.price}</div><div className="mt-1 text-xs font-semibold text-amber-800">{PLAN_DISPLAY.annual.note}</div><div className="mt-1 text-xs text-amber-900/70">Store product: {SUBSCRIPTION_PRODUCTS[platform].annual}</div><div className="mt-5 rounded-xl bg-white/70 p-4 text-sm text-amber-950/70">Built for active buyers, operators, brokers and land professionals using S&S intelligence throughout the year.</div></div>
+              <div className="rounded-2xl border border-sky-300 bg-sky-50/50 p-6"><div className="text-sm font-semibold text-sky-950">{PLAN_DISPLAY.annual.name}</div><div className="mt-2 text-3xl font-bold text-sky-950">{PLAN_DISPLAY.annual.price}</div><div className="mt-1 text-xs font-semibold text-sky-800">{PLAN_DISPLAY.annual.note}</div><div className="mt-1 text-xs text-sky-900/70">Store product: {SUBSCRIPTION_PRODUCTS[platform].annual}</div><div className="mt-5 rounded-xl bg-white/70 p-4 text-sm text-sky-950/70">Built for active buyers, operators, brokers and land professionals using S&S intelligence throughout the year.</div></div>
             </div>
           )}
 

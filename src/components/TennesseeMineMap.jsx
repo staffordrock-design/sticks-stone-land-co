@@ -78,7 +78,7 @@ export default function TennesseeMineMap({ sites = [], height = 520 }) {
                 {site.msha_mine_id && <div>MSHA ID: {site.msha_mine_id}</div>}
                 <Link
                   to={`/mines/${site.id}`}
-                  className="mt-2 inline-block font-semibold text-amber-800 hover:underline"
+                  className="mt-2 inline-block font-semibold text-sky-800 hover:underline"
                 >
                   View site intelligence →
                 </Link>
