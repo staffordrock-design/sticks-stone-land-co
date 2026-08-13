@@ -17,7 +17,7 @@ function worldImageryTile(lat, lng, zoom = 14) {
 const sourceStyles = {
   MSHA: "bg-stone-900 text-stone-50",
   TDEC: "bg-emerald-100 text-emerald-900 border border-emerald-300",
-  "County GIS": "bg-amber-100 text-amber-900 border border-amber-300",
+  "County GIS": "bg-sky-100 text-sky-900 border border-sky-300",
   "Register of Deeds": "bg-indigo-100 text-indigo-900 border border-indigo-300",
   Other: "bg-stone-100 text-stone-800 border border-stone-300",
 };
