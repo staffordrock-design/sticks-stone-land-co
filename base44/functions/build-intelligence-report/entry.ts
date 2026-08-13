@@ -219,6 +219,28 @@ export default async function(req: Request) {
       download_count: 1,
     });
 
+    if (user.email) {
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: user.email,
+          subject: `Your S&S ${reportType} Quarry Intelligence Report is ready`,
+          body: `Your ${reportType} S&S Quarry Intelligence Report for ${site.mine_name || "this site"} is ready. Sign in to S&S Rock Holdings and open the mine record to download the PDF. Report ID: ${order.id}.`,
+          from_name: "S&S Rock Holdings"
+        });
+        await base44.asServiceRole.entities.ReportDelivery.create({
+          report_order_id: order.id,
+          user_id: user.id,
+          customer_email: user.email,
+          delivered_at: now,
+          delivery_method: "Email",
+          access_url: `/mines/${site.id}`,
+          download_count: 0,
+        });
+      } catch (emailError) {
+        console.error("Report email notification failed", emailError);
+      }
+    }
+
     await base44.asServiceRole.entities.ReportReview.create({
       report_order_id: order.id,
       review_status: "Ready",
