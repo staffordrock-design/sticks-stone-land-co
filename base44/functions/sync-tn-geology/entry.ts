@@ -94,7 +94,7 @@ export default async function(req: Request) {
           primary_rock: primaryRock,
           secondary_rock: secondaryRock,
           geologic_unit: unitLabel,
-          formation_name: attrs.UNIT_LINK || null,
+          formation_name: null,
           geologic_age: attrs.UNIT_AGE || null,
           lithology: [primaryRock, secondaryRock].filter(Boolean).join(" / ") || null,
           commodity_interpretation: commodityInterpretation,
@@ -103,7 +103,7 @@ export default async function(req: Request) {
           source_url: url,
           source_map_layer: GEOLOGY_LAYER,
           last_source_update: new Date().toISOString(),
-          notes: `Spatial point-in-polygon match at ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}. Original label: ${attrs.ORIG_LABEL || "—"}; SGMC label: ${attrs.SGMC_LABEL || "—"}; source code: ${attrs.SOURCE || "—"}. Derived quarry category: ${commodityInterpretation || "Unclassified"}; aggregate-quality tier: ${qualityTier || "Unknown"}. This is mapped surface/bedrock geology context, not drilling, reserve estimation, lab testing, or proof of economic recoverability.`,
+          notes: `Spatial point-in-polygon match at ${Number(site.latitude).toFixed(6)}, ${Number(site.longitude).toFixed(6)}. Original label: ${attrs.ORIG_LABEL || "—"}; SGMC label: ${attrs.SGMC_LABEL || "—"}; unit reference: ${attrs.UNIT_LINK || "—"}; source code: ${attrs.SOURCE || "—"}. Derived quarry-use screening category: ${commodityInterpretation || "Unclassified"}; lithology screening tier: ${qualityTier || "Unknown"}. This is mapped surface/bedrock geology context, not drilling, reserve estimation, aggregate-quality certification, lab testing, or proof of economic recoverability.`,
         };
 
         const existing = await base44.asServiceRole.entities.GeologyRecord.filter(
@@ -146,7 +146,7 @@ export default async function(req: Request) {
       noCoordinates,
       sample,
       source: GEOLOGY_QUERY,
-      note: "Rock type is assigned by a geographic point-in-polygon match against the Tennessee geology layer. It is screening intelligence, not a reserve estimate or laboratory identification.",
+      note: "Mapped rock type is assigned by a geographic point-in-polygon match against the Tennessee geology layer. Quarry-use classifications are screening labels only, not aggregate-quality ratings, reserve estimates, or laboratory identifications.",
     });
   } catch (error: any) {
     console.error("sync-tn-geology error", error);
