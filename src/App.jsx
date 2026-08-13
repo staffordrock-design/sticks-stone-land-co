@@ -28,6 +28,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import OAuthConsent from './pages/OAuthConsent';
 import Support from './pages/Support';
+import MineralValueGuide from './pages/MineralValueGuide';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
       <Route path="/support" element={<Support />} />
+      <Route path="/mineral-value-guide" element={<MineralValueGuide />} />
       <Route path="/sell" element={<SellProperty />} />
       <Route path="/buyer-profile" element={<BuyerProfile />} />
       <Route path="/saved" element={<MyOpportunities />} />
