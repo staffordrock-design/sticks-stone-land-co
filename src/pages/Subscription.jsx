@@ -4,7 +4,7 @@ import { Check, Crown, Smartphone } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { PLAN_DISPLAY, PROFESSIONAL_FEATURES, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
+import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
 
 export default function Subscription() {
   const { user } = useAuth();
