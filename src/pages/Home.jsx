@@ -79,10 +79,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-slate-300/80 bg-slate-50/95 shadow-sm backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-900 text-stone-50">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-slate-50 shadow-sm">
               <Mountain className="h-5 w-5" />
             </div>
             <div className="leading-none">
@@ -108,10 +108,10 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-slate-50">
+      <section className="quarry-hero relative overflow-hidden border-b border-slate-700 text-slate-50">
         <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-sky-300">
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
               <Layers className="h-3.5 w-3.5" />
               Industrial Land &amp; Mineral Marketplace
             </span>
@@ -124,20 +124,20 @@ export default function Home() {
               due diligence, all in one place.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/sell" className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white hover:bg-sky-500">Sell / Market a Property</Link>
+              <Link to="/sell" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Sell / Market a Property</Link>
               <Link to="/buyer-profile" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Join Buyer Network</Link>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-sky-400" />
+                <ShieldCheck className="h-4 w-4 text-slate-200" />
                 Seller confidential data rooms
               </div>
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-sky-400" />
+                <TrendingUp className="h-4 w-4 text-slate-200" />
                 Royalty &amp; mineral rights
               </div>
               <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-sky-400" />
+                <Layers className="h-4 w-4 text-slate-200" />
                 GIS boundary tracking
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function Home() {
               height={420}
             />
             <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8">
-              <span className="inline-flex w-fit items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-900">
+              <span className="inline-flex w-fit items-center rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-900">
                 {featured.source}
               </span>
               <h3 className="mt-4 font-heading text-2xl font-bold text-foreground">
@@ -235,7 +235,7 @@ export default function Home() {
               </select>
               <div className="flex flex-wrap gap-1.5">
                 {STATUS_GROUPS.map((s) => (
-                  <button key={s} onClick={() => setStatusFilter(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-sky-700 text-white" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
+                  <button key={s} onClick={() => setStatusFilter(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-slate-800 text-white shadow-sm" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
                 ))}
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -245,7 +245,7 @@ export default function Home() {
                     onClick={() => setSource(s)}
                     className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
                       source === s
-                        ? "bg-stone-900 text-stone-50"
+                        ? "bg-slate-900 text-slate-50 shadow-sm"
                         : "border border-border bg-card text-muted-foreground hover:bg-muted"
                     }`}
                   >
@@ -283,7 +283,7 @@ export default function Home() {
         )}
       </section>
 
-      <footer className="border-t border-border bg-stone-50">
+      <footer className="border-t border-slate-300 bg-slate-100">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
           <div>S&amp;S Rock Holdings Quarry Marketplace — Industrial land &amp; mineral marketplace</div>
           <div className="flex flex-wrap items-center justify-center gap-4">
