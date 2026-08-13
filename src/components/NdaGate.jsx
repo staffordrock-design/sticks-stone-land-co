@@ -103,7 +103,7 @@ export default function NdaGate({ listing }) {
       });
       if (res?.data?.url) window.location.href = res.data.url;
       else alert("Could not start checkout. Please try again.");
-    } catch (e) {
+    } catch {
       alert("Could not start checkout. Please try again.");
     } finally {
       setPaying(false);
