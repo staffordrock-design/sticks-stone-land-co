@@ -1,11 +1,31 @@
 export const SUBSCRIPTION_PRODUCTS = {
   apple: {
-    monthly: "com.sticksandstone.pro.monthly",
-    annual: "com.sticksandstone.pro.annual",
+    marketplace: {
+      monthly: "com.ssrockholdings.marketplace.monthly",
+      annual: "com.ssrockholdings.marketplace.annual",
+    },
+    professional: {
+      monthly: "com.ssrockholdings.professional.monthly",
+      annual: "com.ssrockholdings.professional.annual",
+    },
+    deal_investor: {
+      monthly: "com.ssrockholdings.deal.monthly",
+      annual: "com.ssrockholdings.deal.annual",
+    },
   },
   google: {
-    monthly: "sticks_stone_pro_monthly",
-    annual: "sticks_stone_pro_annual",
+    marketplace: {
+      monthly: "ssrockholdings_marketplace_monthly",
+      annual: "ssrockholdings_marketplace_annual",
+    },
+    professional: {
+      monthly: "ssrockholdings_professional_monthly",
+      annual: "ssrockholdings_professional_annual",
+    },
+    deal_investor: {
+      monthly: "ssrockholdings_deal_monthly",
+      annual: "ssrockholdings_deal_annual",
+    },
   },
 };
 
