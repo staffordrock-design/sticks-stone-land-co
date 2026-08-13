@@ -11,11 +11,12 @@ export default function SellProperty() {
   const [form, setForm] = useState({ property_name:"", state:"TN", county:"", acreage:"", asset_type:"Operating Quarry", asking_price:"", commodity:"", company:"", ownership_summary:"", description:"", confidential_notes:"" });
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [feeAcknowledged, setFeeAcknowledged] = useState(false);
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
   const submit = async (e) => {
     e.preventDefault();
-    if (!user?.id) return;
+    if (!user?.id || !feeAcknowledged) return;
     setSaving(true);
     try {
       await base44.entities.SellerSubmission.create({
@@ -61,7 +62,8 @@ export default function SellProperty() {
         <Field label="Ownership / Mineral Rights Summary"><textarea className="input min-h-24" value={form.ownership_summary} onChange={e=>set("ownership_summary",e.target.value)} /></Field>
         <Field label="Public Description"><textarea className="input min-h-28" value={form.description} onChange={e=>set("description",e.target.value)} /></Field>
         <Field label="Confidential Notes for S&S"><textarea className="input min-h-28" value={form.confidential_notes} onChange={e=>set("confidential_notes",e.target.value)} placeholder="Production, equipment, lease, reserve study, seller timing, etc." /></Field>
-        <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-3 font-semibold text-white disabled:opacity-50"><Building2 className="h-4 w-4"/>{saving?"Submitting…":"Submit to S&S"}</button>
+        <label className="flex items-start gap-3 rounded-xl border border-border bg-muted/20 p-4 text-sm leading-6"><input type="checkbox" className="mt-1" checked={feeAcknowledged} onChange={e=>setFeeAcknowledged(e.target.checked)} required/><span>I understand that S&S may charge a separate transaction or success fee, generally targeted at 3–4% of the purchase price or other agreed transaction value, only if stated in a separate written agreement for the specific transaction. This submission by itself does not create that fee obligation.</span></label>
+        <button disabled={saving || !feeAcknowledged} className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-3 font-semibold text-white disabled:opacity-50"><Building2 className="h-4 w-4"/>{saving?"Submitting…":"Submit to S&S"}</button>
       </form>}
     </main>
   </div>;

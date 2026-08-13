@@ -20,5 +20,6 @@ export const PROFESSIONAL_FEATURES = [
   "Advanced quarry opportunity screening",
   "Saved opportunities and buyer watchlist",
   "Buyer profile and marketplace deal tools",
-  "Ongoing MSHA/Tennessee geology data refreshes",
+  "Seller listing and marketing tools",
+  "Ongoing MSHA/Tennessee geology data refreshes and updates",
 ];
