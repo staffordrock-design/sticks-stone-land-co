@@ -37,6 +37,12 @@ function money(value) {
   return Number(value).toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
+function displayDate(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
 function Card({ title, icon: Icon, children }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
@@ -475,6 +481,11 @@ export default function MineSiteDetail() {
                 <div className="font-semibold text-foreground">{p.permit_number} · {p.permit_type}</div>
                 <div className="mt-1 text-sm text-muted-foreground">{p.status || "Status not loaded"}</div>
                 {p.operator_name && <div className="mt-2 text-sm text-foreground">Operator: {p.operator_name}</div>}
+                <div className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                  <div>Effective: <strong className="text-foreground">{displayDate(p.effective_date)}</strong></div>
+                  <div>Expires: <strong className="text-foreground">{displayDate(p.expiration_date)}</strong></div>
+                  <div>Source checked: <strong className="text-foreground">{displayDate(p.last_source_update || p.updated_date)}</strong></div>
+                </div>
                 {p.source_url && <a href={p.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-800 hover:underline">Open TDEC source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </div>
             )) : <p className="text-sm text-muted-foreground">No connected TDEC permit record yet.</p>}
@@ -486,7 +497,19 @@ export default function MineSiteDetail() {
                 <div>Environmental records: <strong>{relatedEnvironmental.length}</strong></div>
                 <div>MSHA inspections: <strong>{relatedInspections.length}</strong></div>
                 <div>MSHA violations: <strong>{relatedViolations.length}</strong></div>
-                {relatedEnvironmental.slice(0, 4).map((r) => <div key={r.id} className="rounded-lg border border-border p-3">{r.program} · {r.status || r.record_type || "Record"}</div>)}
+                {relatedEnvironmental.slice(0, 8).map((r) => (
+                  <div key={r.id} className="rounded-lg border border-border p-3">
+                    <div className="font-semibold">{r.program} · {r.status || r.record_type || "Record"}</div>
+                    <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                      <div>Issued: <strong className="text-foreground">{displayDate(r.issue_date)}</strong></div>
+                      <div>Effective: <strong className="text-foreground">{displayDate(r.effective_date)}</strong></div>
+                      <div>Expires: <strong className="text-foreground">{displayDate(r.expiration_date)}</strong></div>
+                      <div>Source checked: <strong className="text-foreground">{displayDate(r.last_source_update || r.updated_date)}</strong></div>
+                    </div>
+                    {r.agency && <div className="mt-2 text-xs text-muted-foreground">Agency: {r.agency}</div>}
+                    {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-amber-800 hover:underline">Open environmental source <ExternalLink className="h-3 w-3" /></a>}
+                  </div>
+                ))}
               </div>
             ) : <p className="text-sm text-muted-foreground">No connected environmental, inspection or violation records are loaded for this site yet.</p>}
           </Card>
