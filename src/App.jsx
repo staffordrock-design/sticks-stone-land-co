@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ActivityTracker from './components/ActivityTracker';
+import PaidAccessGate from './components/PaidAccessGate';
 // Add page imports here
 import Home from './pages/Home';
 import ListingDetail from './pages/ListingDetail';
@@ -58,9 +59,9 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       {/* Add your page Route elements here */}
-      <Route path="/" element={<Home />} />
-      <Route path="/listings/:id" element={<ListingDetail />} />
-      <Route path="/mines/:id" element={<MineSiteDetail />} />
+      <Route path="/" element={<PaidAccessGate><Home /></PaidAccessGate>} />
+      <Route path="/listings/:id" element={<PaidAccessGate><ListingDetail /></PaidAccessGate>} />
+      <Route path="/mines/:id" element={<PaidAccessGate><MineSiteDetail /></PaidAccessGate>} />
       <Route path="/admin/activity" element={<AdminActivity />} />
       <Route path="/admin/data-sync" element={<AdminDataSync />} />
       <Route path="/admin/reports" element={<AdminReports />} />
@@ -68,10 +69,10 @@ const AuthenticatedApp = () => {
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
       <Route path="/support" element={<Support />} />
-      <Route path="/mineral-value-guide" element={<MineralValueGuide />} />
-      <Route path="/sell" element={<SellProperty />} />
-      <Route path="/buyer-profile" element={<BuyerProfile />} />
-      <Route path="/saved" element={<MyOpportunities />} />
+      <Route path="/mineral-value-guide" element={<PaidAccessGate><MineralValueGuide /></PaidAccessGate>} />
+      <Route path="/sell" element={<PaidAccessGate><SellProperty /></PaidAccessGate>} />
+      <Route path="/buyer-profile" element={<PaidAccessGate><BuyerProfile /></PaidAccessGate>} />
+      <Route path="/saved" element={<PaidAccessGate><MyOpportunities /></PaidAccessGate>} />
       <Route path="/admin/deals" element={<DealDesk />} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/login" element={<Login />} />
