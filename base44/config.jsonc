@@ -1,5 +1,5 @@
 {
-  "name": "S&S Rock Holdings Quarry Marketplace",
+  "name": "S&S Holdings",
   "site": {
     "installCommand": "npm install",
     "buildCommand": "npm run build",
