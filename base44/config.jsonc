@@ -1,5 +1,5 @@
 {
-  "name": "S&S Holdings",
+  "name": "S&S Rock Holdings",
   "site": {
     "installCommand": "npm install",
     "buildCommand": "npm run build",
