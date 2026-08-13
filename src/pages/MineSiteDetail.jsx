@@ -440,18 +440,20 @@ export default function MineSiteDetail() {
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-700">Derived quarry classification</div>
                   <div className="mt-1 font-display text-lg font-bold text-slate-900">{classifyRock(geologyRecord.primary_rock || geologyRecord.lithology)?.category || geologyRecord.commodity_interpretation || "Unclassified"}</div>
                   <div className="mt-0.5 text-xs text-slate-600">
-                    Aggregate-quality tier: <strong className="text-slate-800">{rockQualityTier(geologyRecord.primary_rock, geologyRecord.secondary_rock) || "Unknown"}</strong>
+                    Lithology screening tier: <strong className="text-slate-800">{rockQualityTier(geologyRecord.primary_rock, geologyRecord.secondary_rock) || "Unknown"}</strong>
                     {geologyRecord.geologic_age ? ` · ${geologyRecord.geologic_age}` : ""}
                   </div>
                 </div>
                 <Row label="Primary rock" value={geologyRecord.primary_rock} />
                 <Row label="Secondary" value={geologyRecord.secondary_rock} />
-                <Row label="Formation" value={geologyRecord.formation_name} />
+                <Row label="Formation" value={geologyRecord.formation_name || "Not separately identified in mapped source"} />
                 <Row label="Geologic unit" value={geologyRecord.geologic_unit} />
                 <Row label="Age" value={geologyRecord.geologic_age} />
                 <Row label="Lithology" value={geologyRecord.lithology} />
                 <Row label="Interpretation" value={geologyRecord.commodity_interpretation} />
-                <Row label="Confidence" value={geologyRecord.confidence} />
+                <Row label="Map-match confidence" value={geologyRecord.confidence} />
+                <Row label="Source layer" value={geologyRecord.source_map_layer} />
+                <Row label="Source checked" value={displayDate(geologyRecord.last_source_update || geologyRecord.updated_date)} />
                 {geologyRecord.source_url && <a href={geologyRecord.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open geology source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </>
             ) : (
