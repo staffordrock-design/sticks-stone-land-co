@@ -26,7 +26,7 @@ export default function ListingDetail() {
       try {
         const data = await base44.entities.Listing.get(id);
         setListing(data);
-      } catch (e) {
+      } catch {
         /* ignore */
       } finally {
         setLoading(false);
@@ -45,7 +45,7 @@ export default function ListingDetail() {
           lng: listing.lng,
         });
         if (active) setParcelData(res.data);
-      } catch (e) {
+      } catch {
         /* ignore */
       } finally {
         if (active) setParcelLoading(false);

@@ -22,7 +22,7 @@ export default function AdminDataSync() {
     try {
       const rows = await base44.entities.DataFreshnessStatus.list("source", 20);
       setFreshness(rows || []);
-    } catch (_) {}
+    } catch {}
   };
 
   useEffect(() => { if (user?.role === "admin") loadFreshness(); }, [user?.role]);

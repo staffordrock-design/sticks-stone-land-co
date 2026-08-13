@@ -182,7 +182,7 @@ export default function MineSiteDetail() {
         const response = await base44.functions.invoke("fetch-parcel-data", { lat: Number(lat), lng: Number(lng), state: site.state || "TN" });
         const data = response?.data || response;
         if (data?.boundary?.length >= 3) setLiveParcel(data);
-      } catch (_) {
+      } catch {
         // Stored parcel data remains authoritative when live lookup is unavailable.
       }
     })();

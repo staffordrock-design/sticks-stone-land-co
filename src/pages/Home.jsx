@@ -45,7 +45,7 @@ export default function Home() {
         setProfiles(profileData || []);
         setParcels(parcelData || []);
         setGeology(geologyData || []);
-      } catch (e) {
+      } catch {
         /* ignore */
       } finally {
         setLoading(false);
