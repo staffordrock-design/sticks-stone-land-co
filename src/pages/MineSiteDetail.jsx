@@ -311,11 +311,16 @@ export default function MineSiteDetail() {
             <Row label="Mine type" value={site.mine_type} />
             <Row label="Operator" value={site.operator_name} />
             <Row label="Controller" value={site.controller_name} />
+            <Row label="Address" value={[site.address, site.city, site.state, site.zip].filter(Boolean).join(", ")} />
             <Row label="Acreage" value={site.acreage != null ? Number(site.acreage).toLocaleString() : null} />
             <Row label="Availability" value={site.opportunity_availability} />
             <Row label="Opportunity" value={site.opportunity_score != null ? `${Number(site.opportunity_score).toFixed(0)}/100 · ${site.opportunity_band || "Screening"}` : null} />
+            <Row label="Category" value={site.category} />
             <Row label="Parcel" value={site.parcel_id} />
+            <Row label="Parcel owner" value={site.parcel_owner} />
             <Row label="TDEC permit" value={site.tdec_permit_number} />
+            <Row label="NPDES permit" value={site.npdes_permit_number} />
+            <Row label="Source checked" value={displayDate(site.last_source_update || site.updated_date)} />
             {site.source_url && (
               <a href={site.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">
                 Open source record <ExternalLink className="h-3.5 w-3.5" />
@@ -334,23 +339,24 @@ export default function MineSiteDetail() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card title="Parcel & Tax Intelligence" icon={Landmark}>
-            {(parcel || liveParcel) ? (
+            {(parcel || liveParcel || site.parcel_id || site.parcel_owner) ? (
               <>
                 <Row label="Parcel" value={parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
                 <Row label="Owner" value={parcel?.owner_name || liveParcel?.owner || site.parcel_owner} />
                 <Row label="Acreage" value={(parcel?.acreage ?? liveParcel?.acreage ?? site.acreage) != null ? Number(parcel?.acreage ?? liveParcel?.acreage ?? site.acreage).toLocaleString() : null} />
-                <Row label="Property address" value={parcel?.property_address || liveParcel?.situs_address} />
+                <Row label="Property address" value={parcel?.property_address || liveParcel?.situs_address || site.address} />
                 <Row label="Mailing address" value={parcel?.mailing_address || liveParcel?.mailing_address} />
                 <Row label="Assessed" value={money(parcel?.assessed_value ?? liveParcel?.assessed_value)} />
                 <Row label="Land value" value={money(parcel?.land_value ?? liveParcel?.land_value)} />
                 <Row label="Improvement value" value={money(parcel?.improvement_value ?? liveParcel?.improvement_value)} />
                 <Row label="Deed" value={parcel?.deed_book_page || liveParcel?.deed_book_page} />
-                <Row label="Tax year" value={liveParcel?.tax_year} />
-                <Row label="Source" value={parcel?.source_name || liveParcel?.source} />
+                <Row label="Tax year" value={parcel?.tax_year ?? liveParcel?.tax_year} />
+                <Row label="Source" value={parcel?.source_name || liveParcel?.source || (site.parcel_id || site.parcel_owner ? "Mining-site record; county verification pending" : null)} />
+                <Row label="Source checked" value={displayDate(parcel?.last_source_update || site.last_source_update)} />
                 <Row label="Boundary" value={(parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3) ? "GIS parcel outline loaded" : "Boundary geometry not loaded yet"} />
                 <Row label="Boundary source" value={parcel?.boundary_source || liveParcel?.source} />
                 {(parcel?.boundary_source_url || liveParcel?.boundary_source_url) && <a href={parcel?.boundary_source_url || liveParcel?.boundary_source_url} target="_blank" rel="noreferrer" className="mt-4 mr-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open boundary source <ExternalLink className="h-3.5 w-3.5" /></a>}
-                {(parcel?.source_url || liveParcel?.source_url) && <a href={parcel?.source_url || liveParcel?.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                {(parcel?.source_url || liveParcel?.source_url || site.tax_map_url) && <a href={parcel?.source_url || liveParcel?.source_url || site.tax_map_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No parcel match is available yet for this site.</p>
