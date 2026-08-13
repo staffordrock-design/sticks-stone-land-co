@@ -77,10 +77,10 @@ export default function TennesseeMineMap({ sites = [], height = 520 }) {
                 {site.commodity && <div>Commodity: {site.commodity}</div>}
                 {site.msha_mine_id && <div>MSHA ID: {site.msha_mine_id}</div>}
                 <Link
-                  to={`/mines/${site.id}`}
+                  to={site.is_verified_listing && site.listing_id ? `/listings/${site.listing_id}` : `/mines/${site.id}`}
                   className="mt-2 inline-block font-semibold text-sky-800 hover:underline"
                 >
-                  View site intelligence →
+                  {site.is_verified_listing && site.listing_id ? "View verified listing →" : "View site intelligence →"}
                 </Link>
               </div>
             </Popup>
