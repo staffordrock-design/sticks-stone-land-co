@@ -18,12 +18,11 @@ export default function Support() {
     setSending(true);
     setError("");
     try {
-      await base44.entities.SalesLead.create({
+      await base44.entities.PublicSupportRequest.create({
         name: name.trim(),
         email: email.trim().toLowerCase(),
-        interest: subject.trim() || "Customer support request",
-        notes: message.trim(),
-        source: "Public Support page",
+        subject: subject.trim() || "Customer support request",
+        message: message.trim(),
         status: "New",
         created_at: new Date().toISOString(),
       });
