@@ -6,17 +6,18 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CreditCard, Download, FileText, FlaskConical, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 
 const ACCESS_FEE = 250;
 
 function isNativeLikeEnvironment() {
+  if (Capacitor.isNativePlatform()) return true;
   if (typeof window === "undefined" || typeof navigator === "undefined") return false;
   const ua = navigator.userAgent || "";
   const iosWebView = /iPhone|iPad|iPod/i.test(ua) && !/Safari/i.test(ua);
   const androidWebView = /; wv\)/i.test(ua) || (/Android/i.test(ua) && /Version\/\d/i.test(ua));
-  const capacitor = /Capacitor/i.test(ua);
   const standalone = Boolean(window.matchMedia?.("(display-mode: standalone)")?.matches || navigator.standalone === true);
-  return iosWebView || androidWebView || capacitor || standalone;
+  return iosWebView || androidWebView || standalone;
 }
 
 export default function NdaGate({ listing }) {
