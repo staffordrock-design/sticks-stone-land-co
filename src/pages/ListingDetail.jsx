@@ -70,7 +70,7 @@ export default function ListingDetail() {
       <div className="mx-auto max-w-3xl px-6 py-32 text-center">
         <h1 className="font-heading text-2xl font-bold text-foreground">Parcel not found</h1>
         <Link to="/" className="mt-4 inline-block text-sm text-sky-700 underline">
-          Back to marketplace
+          Back to quarry intelligence
         </Link>
       </div>
     );
@@ -100,7 +100,7 @@ export default function ListingDetail() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4" /> Marketplace
+            <ArrowLeft className="h-4 w-4" /> Quarry Intelligence
           </button>
         </div>
       </header>
