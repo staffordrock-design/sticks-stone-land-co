@@ -121,3 +121,30 @@
     z-index: 1;
   }
 }
+
+@layer base {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
+  body {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  button,
+  a,
+  [role="tab"],
+  [role="button"] {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  @media (max-width: 1023px) {
+    body {
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+    }
+  }
+}

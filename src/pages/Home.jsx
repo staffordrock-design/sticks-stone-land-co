@@ -80,8 +80,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-slate-300/80 bg-slate-50/95 shadow-sm backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <header className="sticky top-0 z-40 border-b border-slate-300/80 bg-slate-50/95 shadow-sm backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 16px)" }}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 pb-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-slate-50 shadow-sm">
               <Mountain className="h-5 w-5" />
@@ -231,14 +231,14 @@ export default function Home() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <select value={sortMode} onChange={(e) => setSortMode(e.target.value)} className="rounded-lg border border-input bg-card px-3 py-2 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-ring">
+              <select value={sortMode} onChange={(e) => setSortMode(e.target.value)} className="min-h-[44px] rounded-lg border border-input bg-card px-3 py-2 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-ring">
                 <option>Best Opportunity</option>
                 <option>Largest Acreage</option>
                 <option>Name A–Z</option>
               </select>
               <div className="flex flex-wrap gap-1.5">
                 {STATUS_GROUPS.map((s) => (
-                  <button key={s} onClick={() => setStatusFilter(s)} className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-slate-800 text-white shadow-sm" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
+                  <button key={s} onClick={() => setStatusFilter(s)} className={`inline-flex min-h-[44px] items-center rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-slate-800 text-white shadow-sm" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
                 ))}
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -246,7 +246,7 @@ export default function Home() {
                   <button
                     key={s}
                     onClick={() => setSource(s)}
-                    className={`rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
+                    className={`inline-flex min-h-[44px] items-center rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
                       source === s
                         ? "bg-slate-900 text-slate-50 shadow-sm"
                         : "border border-border bg-card text-muted-foreground hover:bg-muted"
