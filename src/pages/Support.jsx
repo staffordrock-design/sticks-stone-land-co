@@ -44,7 +44,7 @@ export default function Support() {
       <main className="mx-auto max-w-3xl px-6 py-12">
         <div className="rounded-2xl border border-border bg-card p-7">
           <div className="flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-700 text-white"><LifeBuoy className="h-5 w-5" /></div><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&amp;S Rock Holdings</p><h1 className="font-heading text-2xl font-bold">Support</h1></div></div>
-          <p className="mt-5 text-sm leading-6 text-muted-foreground">Questions about your account, a quarry record, marketplace activity, reports, privacy, or access? Send S&amp;S Rock Holdings a support request here.</p>
+          <p className="mt-5 text-sm leading-6 text-muted-foreground">Questions about your account, a quarry record, reports, data accuracy, privacy, or access? Send S&amp;S Rock Holdings a support request here.</p>
           {sent ? (
             <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-950"><div className="font-semibold">Support request received</div><p className="mt-1">Thank you. Your request is now in the S&amp;S support queue.</p></div>
           ) : (
