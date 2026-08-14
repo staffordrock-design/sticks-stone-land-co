@@ -6,15 +6,9 @@ import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
+import { appleAccountTokenForUser, appleProductIds, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
 
 const ACTIVE = new Set(["active", "trial", "grace_period"]);
-
-function appleProductIds() {
-  return ACCESS_TIERS.flatMap((tier) => [
-    SUBSCRIPTION_PRODUCTS.apple[tier.code]?.monthly,
-    SUBSCRIPTION_PRODUCTS.apple[tier.code]?.annual,
-  ]).filter(Boolean);
-}
 
 export default function Subscription() {
   const { user } = useAuth();
@@ -37,8 +31,19 @@ export default function Subscription() {
 
   useEffect(() => {
     if (!user?.id) { setLoading(false); return; }
-    refreshEntitlements().finally(() => setLoading(false));
-  }, [user?.id]);
+    let cancelled = false;
+    (async () => {
+      try {
+        if (isNative && isIOS) await syncCurrentAppleSubscriptions();
+      } catch (error) {
+        console.error("Apple entitlement sync failed", error);
+      } finally {
+        if (!cancelled) await refreshEntitlements();
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, isNative, isIOS]);
 
   useEffect(() => {
     if (!isNative || !isIOS) return;
@@ -85,13 +90,16 @@ export default function Subscription() {
     setPurchaseMessage("");
     setBuyingId(productId);
     try {
-      await NativePurchases.purchaseProduct({
+      const appAccountToken = await appleAccountTokenForUser(user.id);
+      const transaction = await NativePurchases.purchaseProduct({
         productIdentifier: productId,
         productType: PURCHASE_TYPE.SUBS,
         quantity: 1,
+        appAccountToken,
       });
-      setPurchaseMessage("Apple confirmed the purchase. Your access will appear after receipt verification completes.");
+      await verifyAppleTransactions([transaction]);
       await refreshEntitlements();
+      setPurchaseMessage("Purchase verified with Apple. Your S&S access is active.");
     } catch (error) {
       const message = String(error?.message || error || "Purchase was not completed.");
       if (!/cancel/i.test(message)) setPurchaseMessage(message);
@@ -105,9 +113,9 @@ export default function Subscription() {
     setPurchaseMessage("");
     setStoreLoading(true);
     try {
-      await NativePurchases.restorePurchases();
+      await syncCurrentAppleSubscriptions({ restore: true });
       await refreshEntitlements();
-      setPurchaseMessage("Apple purchases restored. Access will update after receipt verification completes.");
+      setPurchaseMessage("Apple purchases restored and verified. Your S&S access is up to date.");
     } catch (error) {
       setPurchaseMessage(error?.message || "Could not restore purchases.");
     } finally {
