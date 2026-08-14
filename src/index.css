@@ -133,6 +133,10 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  .app-secondary-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
   button,
   a,
   [role="tab"],
