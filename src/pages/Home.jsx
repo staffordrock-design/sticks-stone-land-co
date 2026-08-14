@@ -6,6 +6,7 @@ import MiningSiteCard from "@/components/MiningSiteCard";
 import ParcelMap from "@/components/ParcelMap";
 import TennesseeMineMap from "@/components/TennesseeMineMap";
 import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
+import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import PullToRefresh from "@/components/PullToRefresh";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
@@ -120,8 +121,17 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="quarry-hero relative overflow-hidden border-b border-slate-700 text-slate-50">
-        <div className="mx-auto max-w-7xl px-6 py-20 sm:py-28">
+      <section className="relative overflow-hidden border-b border-slate-700 text-slate-50">
+        <div className="absolute inset-0">
+          <Image
+            src="https://media.base44.com/images/public/6a78376a454093ba2f431acd/4d73516b6_generated_image.png"
+            alt="Aerial view of an active industrial quarry at golden hour"
+            fittingType="fill"
+            className="h-full w-full"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/92 via-slate-950/72 to-slate-900/40" />
+        <div className="relative mx-auto max-w-7xl px-6 py-20 sm:py-28">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
               <Layers className="h-3.5 w-3.5" />
