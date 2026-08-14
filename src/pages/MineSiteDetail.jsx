@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
 import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2 } from "lucide-react";
@@ -66,6 +66,7 @@ function Row({ label, value }) {
 
 export default function MineSiteDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [site, setSite] = useState(null);
   const [parcels, setParcels] = useState([]);
@@ -266,11 +267,11 @@ export default function MineSiteDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-background/90 backdrop-blur">
-        <div className="mx-auto max-w-7xl px-6 py-4">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+      <header className="border-b border-border bg-background/90 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <div className="mx-auto max-w-7xl px-6 pb-4">
+          <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Back to Tennessee map
-          </Link>
+          </button>
         </div>
       </header>
 

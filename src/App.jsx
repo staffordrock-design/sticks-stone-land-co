@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import BottomNav from "./components/BottomNav";
+import PageTransition from "./components/PageTransition";
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -66,8 +67,8 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Add your page Route elements here */}
       <Route path="/" element={<PaidAccessGate><Home /></PaidAccessGate>} />
-      <Route path="/listings/:id" element={<PaidAccessGate><ListingDetail /></PaidAccessGate>} />
-      <Route path="/mines/:id" element={<PaidAccessGate><MineSiteDetail /></PaidAccessGate>} />
+      <Route path="/listings/:id" element={<PageTransition><PaidAccessGate><ListingDetail /></PaidAccessGate></PageTransition>} />
+      <Route path="/mines/:id" element={<PageTransition><PaidAccessGate><MineSiteDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/admin/activity" element={<AdminActivity />} />
       <Route path="/admin/data-sync" element={<AdminDataSync />} />
       <Route path="/admin/reports" element={<AdminReports />} />

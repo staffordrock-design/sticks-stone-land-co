@@ -6,6 +6,7 @@ import MiningSiteCard from "@/components/MiningSiteCard";
 import ParcelMap from "@/components/ParcelMap";
 import TennesseeMineMap from "@/components/TennesseeMineMap";
 import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
+import BottomSheetSelect from "@/components/BottomSheetSelect";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { Capacitor } from "@capacitor/core";
@@ -80,7 +81,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-slate-300/80 bg-slate-50/95 shadow-sm backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 16px)" }}>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-sm backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 16px)" }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 pb-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-slate-50 shadow-sm">
@@ -231,11 +232,12 @@ export default function Home() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <select value={sortMode} onChange={(e) => setSortMode(e.target.value)} className="min-h-[44px] rounded-lg border border-input bg-card px-3 py-2 text-xs font-semibold text-foreground outline-none focus:ring-2 focus:ring-ring">
-                <option>Best Opportunity</option>
-                <option>Largest Acreage</option>
-                <option>Name A–Z</option>
-              </select>
+              <BottomSheetSelect
+                value={sortMode}
+                onChange={setSortMode}
+                options={["Best Opportunity", "Largest Acreage", "Name A–Z"]}
+                label="Sort opportunities"
+              />
               <div className="flex flex-wrap gap-1.5">
                 {STATUS_GROUPS.map((s) => (
                   <button key={s} onClick={() => setStatusFilter(s)} className={`inline-flex min-h-[44px] items-center rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-slate-800 text-white shadow-sm" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
@@ -286,7 +288,7 @@ export default function Home() {
         )}
       </section>
 
-      <footer className="border-t border-slate-300 bg-slate-100">
+      <footer className="border-t border-border bg-muted">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
           <div>S&amp;S Rock Holdings Quarry Marketplace — Industrial land &amp; mineral marketplace</div>
           <div className="flex flex-wrap items-center justify-center gap-4">

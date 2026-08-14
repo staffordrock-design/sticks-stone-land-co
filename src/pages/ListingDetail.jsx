@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
 import NdaGate from "@/components/NdaGate";
@@ -16,6 +16,7 @@ const tierStyles = {
 
 export default function ListingDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [parcelData, setParcelData] = useState(null);
@@ -85,8 +86,8 @@ export default function ListingDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 pb-4">
           <Link to="/" className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-stone-900 text-stone-50">
               <Mountain className="h-5 w-5" />
@@ -95,12 +96,12 @@ export default function ListingDetail() {
               S&amp;S Rock Holdings
             </span>
           </Link>
-          <Link
-            to="/"
+          <button
+            onClick={() => navigate(-1)}
             className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" /> Marketplace
-          </Link>
+          </button>
         </div>
       </header>
 
