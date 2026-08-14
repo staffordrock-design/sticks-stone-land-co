@@ -103,7 +103,7 @@ export default function Home() {
                 S&amp;S Rock Holdings
               </p>
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Quarry Intelligence
+                Industrial Quarry Intelligence
               </p>
             </div>
           </div>
@@ -125,13 +125,13 @@ export default function Home() {
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
               <Layers className="h-3.5 w-3.5" />
-              Quarry Intelligence Platform
+              Industrial Quarry Intelligence
             </span>
             <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-              Find the quarry. Understand the asset.
+              Find the asset. Know the ground.
             </h1>
             <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
-              Source-backed quarry intelligence for the extraction industry — mine records, mapped locations,
+              Source-backed industrial quarry intelligence for the extraction industry — mine records, mapped locations,
               geology, permits, production context, ownership signals and downloadable S&S intelligence reports.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -149,7 +149,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-slate-200" />
-                Maps &amp; parcel intelligence
+                Hold the line on the data
               </div>
             </div>
           </div>
@@ -225,8 +225,8 @@ export default function Home() {
       <section id="quarry-intelligence" className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-heading text-2xl font-bold text-foreground">Quarry Intelligence</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Search active, inactive/idled, historical and potential quarry records. Site records are intelligence profiles and are not represented as being for sale unless specifically verified.</p>
+            <h2 className="font-heading text-2xl font-bold text-foreground">Tennessee Quarry Intelligence</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Search source-labeled active, inactive/idled, historical and new mine records. Official-source facts are separated from S&S-derived analysis, and missing data stays missing rather than being guessed.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
@@ -297,7 +297,7 @@ export default function Home() {
 
       <footer className="border-t border-border bg-muted">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
-          <div>S&amp;S Rock Holdings — Quarry intelligence for the extraction industry</div>
+          <div>S&amp;S Rock Holdings — Industrial quarry intelligence · Hold the line on the data.</div>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a href="/support" className="hover:text-foreground hover:underline">Support</a>
             <a href="/privacy" className="hover:text-foreground hover:underline">Privacy</a>
