@@ -118,17 +118,17 @@ export default function Subscription() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-12">
-        <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to marketplace</Link>
+        <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Quarry intelligence access</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Choose the level of marketplace and quarry intelligence that fits your work. Downloadable reports are separate products so you only purchase the depth of diligence you need.</p>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Choose the level of quarry intelligence that fits your work. Downloadable reports are separate products so you only purchase the depth of diligence you need.</p>
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950"><div className="font-bold">S&S access active</div><div className="mt-1 text-sm">Plan: {active.plan_code} · Platform: {active.platform}{active.expires_at ? ` · Renews/expires ${new Date(active.expires_at).toLocaleDateString()}` : ""}</div></div>
           ) : null}
 
           <h2 className="mt-9 font-heading text-xl font-bold">Membership plans</h2>
-          <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {ACCESS_TIERS.map((tier) => {
               const monthlyId = SUBSCRIPTION_PRODUCTS.apple[tier.code]?.monthly;
               const annualId = SUBSCRIPTION_PRODUCTS.apple[tier.code]?.annual;
