@@ -18,6 +18,9 @@ export default async function(req: Request) {
   const date = now.getUTCDate();
   const results: any[] = [];
 
+  // MSHA Mines is the authoritative mine identity/status/operator backbone. Refresh weekly by Mine ID.
+  if (day === 6) results.push(await run(base44, "sync-msha-mines", {}));
+
   // MSHA employment is quarterly; weekly checking catches a newly posted quarter without hammering the source.
   if (day === 6) results.push(await run(base44, "sync-msha-employment", {}));
 
