@@ -51,7 +51,7 @@ export default function MineralValueGuide() {
     (async () => {
       try {
         const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 10);
-        setAllowed((rows || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code)));
+        setAllowed((rows || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())));
       } catch {
         setAllowed(false);
       } finally {
