@@ -7,10 +7,32 @@ function n(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+export function calculateScenarioTonnage({ acres, depthFt = 200, densityLbFt3 = 165, recoveryPct = 75 } = {}) {
+  const a = n(acres);
+  const d = n(depthFt);
+  const density = n(densityLbFt3);
+  const recovery = n(recoveryPct);
+  if (!a || a <= 0 || !d || d <= 0 || !density || density <= 0 || recovery == null) return null;
+  const grossTonsPerAcre = (43560 * d * density) / 2000;
+  const saleableTonsPerAcre = grossTonsPerAcre * clamp(recovery, 0, 100) / 100;
+  return {
+    acres: a,
+    depthFt: d,
+    densityLbFt3: density,
+    recoveryPct: clamp(recovery, 0, 100),
+    grossTonsPerAcre: Math.round(grossTonsPerAcre),
+    saleableTonsPerAcre: Math.round(saleableTonsPerAcre),
+    totalGrossTons: Math.round(grossTonsPerAcre * a),
+    totalSaleableTons: Math.round(saleableTonsPerAcre * a),
+    basis: "Screening geometry only: surface acres × assumed depth × bulk density × recovery. Not a reserve estimate.",
+  };
+}
+
 export function calculateIndicativeQuarryValue({ site, parcel, profile, geology } = {}) {
   if (!site) return null;
 
   const acres = n(site.acreage) ?? n(parcel?.acreage);
+  const tonnageScenario = calculateScenarioTonnage({ acres });
   const landValue = n(parcel?.land_value);
   const assessedValue = n(parcel?.assessed_value);
   const anchorValue = landValue && landValue > 0 ? landValue : assessedValue && assessedValue > 0 ? assessedValue : null;
@@ -66,7 +88,8 @@ export function calculateIndicativeQuarryValue({ site, parcel, profile, geology 
       site.tdec_permit_number || site.npdes_permit_number ? "permit evidence" : null,
       site.photo_condition_score != null ? "reviewed property photos" : null,
     ].filter(Boolean),
-    disclaimer: "Indicative marketplace screening range only. Not an appraisal, reserve estimate, engineering opinion, or guarantee of recoverable minerals.",
+    tonnageScenario,
+    disclaimer: "Indicative marketplace screening range only. The 200-foot tonnage model is a geometry scenario, not a reserve estimate, engineering opinion, or guarantee of recoverable minerals.",
   };
 }
 
