@@ -59,6 +59,18 @@ async function sha256Hex(value: string) {
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+async function accountTokenForUser(userId: string) {
+  const hex = await sha256Hex(`ssrockholdings:${userId}`);
+  const bytes = hex.slice(0, 32).split('').reduce((acc: string[], char, index) => {
+    if (index % 2 === 0) acc.push(hex.slice(index, index + 2));
+    return acc;
+  }, []);
+  bytes[6] = ((parseInt(bytes[6], 16) & 0x0f) | 0x50).toString(16).padStart(2, '0');
+  bytes[8] = ((parseInt(bytes[8], 16) & 0x3f) | 0x80).toString(16).padStart(2, '0');
+  const joined = bytes.join('');
+  return `${joined.slice(0, 8)}-${joined.slice(8, 12)}-${joined.slice(12, 16)}-${joined.slice(16, 20)}-${joined.slice(20, 32)}`;
+} 
+
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -123,6 +135,13 @@ export default async function(req) {
       const productId = String(transaction.productId || '');
       const planCode = PRODUCT_TO_PLAN[productId];
       if (!planCode) throw new Error(`Unrecognized Apple product: ${productId || 'missing'}`);
+
+      if (transaction.appAccountToken) {
+        const expectedAccountToken = await accountTokenForUser(user.id);
+        if (String(transaction.appAccountToken).toLowerCase() !== expectedAccountToken.toLowerCase()) {
+          throw new Error('Apple subscription belongs to a different S&S account');
+        }
+      }
 
       const transactionId = String(transaction.transactionId || '');
       const originalTransactionId = String(transaction.originalTransactionId || transactionId);
