@@ -289,8 +289,6 @@ export default function MineSiteDetail() {
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
             <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{recordStatusLabel(site)}</span>
-            {site.opportunity_availability && <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{site.opportunity_availability}</span>}
-            {site.opportunity_score != null && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>}
             {geologyRecord?.primary_rock && (
               <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800">
                 <Gem className="h-3.5 w-3.5" />
@@ -329,8 +327,6 @@ export default function MineSiteDetail() {
             <Row label="Controller" value={site.controller_name} />
             <Row label="Address" value={[site.address, site.city, site.state, site.zip].filter(Boolean).join(", ")} />
             <Row label="Acreage" value={site.acreage != null ? Number(site.acreage).toLocaleString() : null} />
-            <Row label="Availability" value={site.opportunity_availability} />
-            <Row label="Opportunity" value={site.opportunity_score != null ? `${Number(site.opportunity_score).toFixed(0)}/100 · ${site.opportunity_band || "Screening"}` : null} />
             <Row label="Category" value={site.category} />
             <Row label="Parcel" value={site.parcel_id} />
             <Row label="Parcel owner" value={site.parcel_owner} />
