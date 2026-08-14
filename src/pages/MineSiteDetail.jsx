@@ -230,7 +230,7 @@ export default function MineSiteDetail() {
       let allowed = user?.role === "admin";
       if (!allowed && user?.id) {
         const entitlements = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 10);
-        allowed = (entitlements || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code));
+        allowed = (entitlements || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now()));
       }
       if (!allowed) {
         setReportMessage(user?.id ? "Professional access is required to download the full PDF report." : "Sign in with a Professional account to download the full PDF report.");
