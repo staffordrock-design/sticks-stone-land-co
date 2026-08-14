@@ -386,18 +386,29 @@ export default function MineSiteDetail() {
                   <div className="mt-1 text-sm text-sky-900">{valuation.confidence} confidence · {money(valuation.perAcreLow)}–{money(valuation.perAcreHigh)} per acre</div>
                 </div>
                 <div className="mt-4 text-sm text-foreground"><strong>Based on:</strong> {valuation.basis.join(", ")}.</div>
-                {valuation.tonnageScenario && (
+                {valuation.tonnageScenarios?.length > 0 && (
                   <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-4">
-                    <div className="text-xs font-bold uppercase tracking-wider text-stone-700">200-ft quarry-depth screening scenario</div>
-                    <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                      <Row label="Surface acres" value={Number(valuation.tonnageScenario.acres).toLocaleString()} />
-                      <Row label="Assumed depth" value={`${Number(valuation.tonnageScenario.depthFt).toLocaleString()} ft`} />
-                      <Row label="Gross tons / acre" value={Number(valuation.tonnageScenario.grossTonsPerAcre).toLocaleString()} />
-                      <Row label="Saleable tons / acre" value={Number(valuation.tonnageScenario.saleableTonsPerAcre).toLocaleString()} />
-                      <Row label="Recovery assumption" value={`${valuation.tonnageScenario.recoveryPct}%`} />
-                      <Row label="Total scenario tons" value={Number(valuation.tonnageScenario.totalSaleableTons).toLocaleString()} />
+                    <div className="text-xs font-bold uppercase tracking-wider text-stone-700">Quarry-depth screening scenarios</div>
+                    <div className="mt-3 overflow-x-auto">
+                      <table className="w-full min-w-[620px] text-left text-xs">
+                        <thead className="border-b border-stone-200 text-stone-600">
+                          <tr><th className="py-2 pr-3">Depth</th><th className="py-2 pr-3">Gross tons/acre</th><th className="py-2 pr-3">Saleable tons/acre</th><th className="py-2 pr-3">Total saleable tons</th><th className="py-2">Recovery</th></tr>
+                        </thead>
+                        <tbody>
+                          {valuation.tonnageScenarios.map((scenario) => (
+                            <tr key={scenario.depthFt} className="border-b border-stone-100 last:border-0">
+                              <td className="py-2 pr-3 font-semibold text-stone-900">{Number(scenario.depthFt).toLocaleString()} ft</td>
+                              <td className="py-2 pr-3">{Number(scenario.grossTonsPerAcre).toLocaleString()}</td>
+                              <td className="py-2 pr-3">{Number(scenario.saleableTonsPerAcre).toLocaleString()}</td>
+                              <td className="py-2 pr-3">{Number(scenario.totalSaleableTons).toLocaleString()}</td>
+                              <td className="py-2">{scenario.recoveryPct}%</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                    <p className="mt-3 text-xs leading-relaxed text-stone-600">{valuation.tonnageScenario.basis}</p>
+                    <div className="mt-3 text-xs text-stone-700"><strong>Surface acres:</strong> {Number(valuation.tonnageScenarios[0].acres).toLocaleString()} · <strong>Screening density:</strong> {Number(valuation.tonnageScenarios[0].densityLbFt3).toLocaleString()} lb/ft³</div>
+                    <p className="mt-2 text-xs leading-relaxed text-stone-600">{valuation.tonnageScenarios[0].basis}</p>
                   </div>
                 )}
                 <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{valuation.disclaimer}</p>
