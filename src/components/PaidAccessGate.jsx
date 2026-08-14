@@ -3,8 +3,10 @@ import { Link } from "react-router-dom";
 import { Crown, Loader2, LockKeyhole } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 
 const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
+const isCurrentlyActive = (row) => ACTIVE_STATUSES.has(row.status) && (!row.expires_at || new Date(row.expires_at).getTime() > Date.now());
 
 export default function PaidAccessGate({ children }) {
   const { user } = useAuth();
@@ -19,6 +21,13 @@ export default function PaidAccessGate({ children }) {
     }
     (async () => {
       try {
+        if (isNativeIOS()) {
+          try {
+            await syncCurrentAppleSubscriptions();
+          } catch (error) {
+            console.error("Apple subscription sync failed", error);
+          }
+        }
         const data = await base44.entities.SubscriptionEntitlement.filter(
           { user_id: user.id },
           "-updated_date",
@@ -34,7 +43,7 @@ export default function PaidAccessGate({ children }) {
     return () => { cancelled = true; };
   }, [user?.id]);
 
-  const active = useMemo(() => rows.find((r) => ACTIVE_STATUSES.has(r.status)), [rows]);
+  const active = useMemo(() => rows.find(isCurrentlyActive), [rows]);
 
   if (user?.role === "admin") return children;
 
