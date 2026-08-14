@@ -7,6 +7,7 @@ import ParcelMap from "@/components/ParcelMap";
 import TennesseeMineMap from "@/components/TennesseeMineMap";
 import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
+import PullToRefresh from "@/components/PullToRefresh";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { Capacitor } from "@capacitor/core";
@@ -36,26 +37,25 @@ export default function Home() {
   const [sortMode, setSortMode] = useState("Best Opportunity");
   const isNative = Capacitor.isNativePlatform();
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [data, profileData, parcelData, geologyData] = await Promise.all([
-          base44.entities.MiningSite.list("-created_date", 500),
-          base44.entities.QuarryPotentialProfile.list("-updated_date", 500),
-          base44.entities.ParcelRecord.list("-updated_date", 500),
-          base44.entities.GeologyRecord.list("-updated_date", 500),
-        ]);
-        setSites(data || []);
-        setProfiles(profileData || []);
-        setParcels(parcelData || []);
-        setGeology(geologyData || []);
-      } catch {
-        /* ignore */
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+  const loadData = async () => {
+    try {
+      const [data, profileData, parcelData, geologyData] = await Promise.all([
+        base44.entities.MiningSite.list("-created_date", 500),
+        base44.entities.QuarryPotentialProfile.list("-updated_date", 500),
+        base44.entities.ParcelRecord.list("-updated_date", 500),
+        base44.entities.GeologyRecord.list("-updated_date", 500),
+      ]);
+      setSites(data || []);
+      setProfiles(profileData || []);
+      setParcels(parcelData || []);
+      setGeology(geologyData || []);
+    } catch {
+      /* ignore */
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { loadData(); }, []);
 
   const filtered = sites.filter((s) => {
     const matchesSource = source === "All" || s.source === source;
@@ -79,6 +79,7 @@ export default function Home() {
   const featured = sites.filter((s) => s.latitude && s.longitude).slice(0, 1)[0];
 
   return (
+    <PullToRefresh onRefresh={loadData}>
     <div className="min-h-screen bg-background">
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-sm backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 16px)" }}>
@@ -302,5 +303,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
+    </PullToRefresh>
   );
 }

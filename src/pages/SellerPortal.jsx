@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ArrowLeft, Building2, Plus, Loader2, MapPin, Layers, Ruler } from "lucide-react";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const STATUS_STYLES = {
   Submitted: "bg-slate-100 text-slate-800 border border-slate-300",
@@ -21,11 +22,18 @@ export default function SellerPortal() {
   const [subs, setSubs] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const loadData = async () => {
+    if (!user?.id) return;
+    try {
+      const rows = await base44.entities.SellerSubmission.filter({ user_id: user.id }, "-submitted_at", 100);
+      setSubs(rows || []);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     if (!user?.id) { setLoading(false); return; }
-    base44.entities.SellerSubmission.filter({ user_id: user.id }, "-submitted_at", 100)
-      .then((d) => setSubs(d || []))
-      .finally(() => setLoading(false));
+    loadData();
   }, [user?.id]);
 
   if (!user?.id) {
@@ -35,6 +43,7 @@ export default function SellerPortal() {
   const money = (v) => (v != null ? Number(v).toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }) : "—");
 
   return (
+    <PullToRefresh onRefresh={loadData}>
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 pb-4">
@@ -104,5 +113,6 @@ export default function SellerPortal() {
         )}
       </main>
     </div>
+    </PullToRefresh>
   );
 }
