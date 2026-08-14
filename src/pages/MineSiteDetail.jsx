@@ -332,7 +332,7 @@ export default function MineSiteDetail() {
             <Row label="Parcel owner" value={site.parcel_owner} />
             <Row label="TDEC permit" value={site.tdec_permit_number} />
             <Row label="NPDES permit" value={site.npdes_permit_number} />
-            <Row label="Source checked" value={displayDate(site.last_source_update || site.updated_date)} />
+            <Row label="Source checked" value={displayDate(site.last_source_update)} />
             {site.source_url && (
               <a href={site.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">
                 Open source record <ExternalLink className="h-3.5 w-3.5" />
@@ -502,7 +502,7 @@ export default function MineSiteDetail() {
                 <Row label="Interpretation" value={geologyRecord.commodity_interpretation} />
                 <Row label="Map-match confidence" value={geologyRecord.confidence} />
                 <Row label="Source layer" value={geologyRecord.source_map_layer} />
-                <Row label="Source checked" value={displayDate(geologyRecord.last_source_update || geologyRecord.updated_date)} />
+                <Row label="Source checked" value={displayDate(geologyRecord.last_source_update)} />
                 {geologyRecord.source_url && <a href={geologyRecord.source_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open geology source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </>
             ) : (
@@ -541,7 +541,7 @@ export default function MineSiteDetail() {
                 <div className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
                   <div>Effective: <strong className="text-foreground">{displayDate(p.effective_date)}</strong></div>
                   <div>Expires: <strong className="text-foreground">{displayDate(p.expiration_date)}</strong></div>
-                  <div>Source checked: <strong className="text-foreground">{displayDate(p.last_source_update || p.updated_date)}</strong></div>
+                  <div>Source checked: <strong className="text-foreground">{displayDate(p.last_source_update)}</strong></div>
                 </div>
                 {p.source_url && <a href={p.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open TDEC source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </div>
@@ -561,7 +561,7 @@ export default function MineSiteDetail() {
                       <div>Issued: <strong className="text-foreground">{displayDate(r.issue_date)}</strong></div>
                       <div>Effective: <strong className="text-foreground">{displayDate(r.effective_date)}</strong></div>
                       <div>Expires: <strong className="text-foreground">{displayDate(r.expiration_date)}</strong></div>
-                      <div>Source checked: <strong className="text-foreground">{displayDate(r.last_source_update || r.updated_date)}</strong></div>
+                      <div>Source checked: <strong className="text-foreground">{displayDate(r.last_source_update)}</strong></div>
                     </div>
                     {r.agency && <div className="mt-2 text-xs text-muted-foreground">Agency: {r.agency}</div>}
                     {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-sky-800 hover:underline">Open environmental source <ExternalLink className="h-3 w-3" /></a>}
