@@ -23,13 +23,14 @@ function sameValue(a, b) {
   return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 }
 
-function opportunityLabel(site) {
+function recordStatusLabel(site) {
   if (site?.is_verified_listing && site?.listing_id) return "Verified Listing";
   const s = String(site?.mine_status || "").toLowerCase();
-  if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Off-Market Acquisition Opportunity · Inactive / Idled";
-  if (s.includes("historical") || s.includes("abandon")) return "Off-Market Acquisition Opportunity · Historical / Abandoned";
-  if (s.includes("new mine") || !s.trim()) return "Potential Quarry / Mineral Opportunity";
-  return "Operating Site Intelligence";
+  if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Inactive / Idled Mine Record";
+  if (s.includes("historical") || s.includes("abandon")) return "Historical Mine Record";
+  if (s.includes("new mine")) return "New Mine Record";
+  if (s.includes("active")) return "Active Mine Record";
+  return "Public Mine Record";
 }
 
 function money(value) {
@@ -287,7 +288,7 @@ export default function MineSiteDetail() {
             <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-sky-400 bg-stone-950 px-4 py-2 text-xs font-bold text-sky-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Enhanced PDF"}</button>
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
-            <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{opportunityLabel(site)}</span>
+            <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{recordStatusLabel(site)}</span>
             {site.opportunity_availability && <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{site.opportunity_availability}</span>}
             {site.opportunity_score != null && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">Opportunity {Number(site.opportunity_score).toFixed(0)}/100 · {site.opportunity_band || "Screening"}</span>}
             {geologyRecord?.primary_rock && (
@@ -304,7 +305,7 @@ export default function MineSiteDetail() {
 
         {!site.is_verified_listing && (
           <div className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 p-5 text-sm leading-relaxed text-stone-700">
-            <strong>Off-market / public-source intelligence:</strong> this record is shown for acquisition and research screening. S&S Rock Holdings LLC is not representing that the property is currently offered for sale, lease, or mineral-rights transfer. Ownership, availability, title, permits, and operating status require verification.
+            <strong>Public-source mine record:</strong> this page compiles source-labeled intelligence for research and screening. S&S Rock Holdings LLC is not representing that the property is for sale, available, or controlled by S&S. Ownership, title, parcel boundaries, permits, and current operating status should be confirmed from the cited controlling source before a transaction decision.
           </div>
         )}
 
@@ -378,46 +379,22 @@ export default function MineSiteDetail() {
             )}
           </Card>
 
-          <Card title="Indicative Marketplace Value" icon={DollarSign}>
-            {valuation?.available ? (
+          <Card title="Indicative Land-Value Screening" icon={DollarSign}>
+            {valuation?.available && valuation.confidence !== "Low" ? (
               <>
                 <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-sky-800">Estimated opportunity range</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-sky-800">Source-supported screening range</div>
                   <div className="mt-1 text-3xl font-bold text-sky-950">{formatCompactMoney(valuation.low)}–{formatCompactMoney(valuation.high)}</div>
                   <div className="mt-1 text-sm text-sky-900">{valuation.confidence} confidence · {money(valuation.perAcreLow)}–{money(valuation.perAcreHigh)} per acre</div>
                 </div>
                 <div className="mt-4 text-sm text-foreground"><strong>Based on:</strong> {valuation.basis.join(", ")}.</div>
-                {valuation.tonnageScenarios?.length > 0 && (
-                  <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-4">
-                    <div className="text-xs font-bold uppercase tracking-wider text-stone-700">Quarry-depth screening scenarios</div>
-                    <div className="mt-3 overflow-x-auto">
-                      <table className="w-full min-w-[620px] text-left text-xs">
-                        <thead className="border-b border-stone-200 text-stone-600">
-                          <tr><th className="py-2 pr-3">Depth</th><th className="py-2 pr-3">Gross tons/acre</th><th className="py-2 pr-3">Saleable tons/acre</th><th className="py-2 pr-3">Total saleable tons</th><th className="py-2">Recovery</th></tr>
-                        </thead>
-                        <tbody>
-                          {valuation.tonnageScenarios.map((scenario) => (
-                            <tr key={scenario.depthFt} className="border-b border-stone-100 last:border-0">
-                              <td className="py-2 pr-3 font-semibold text-stone-900">{Number(scenario.depthFt).toLocaleString()} ft</td>
-                              <td className="py-2 pr-3">{Number(scenario.grossTonsPerAcre).toLocaleString()}</td>
-                              <td className="py-2 pr-3">{Number(scenario.saleableTonsPerAcre).toLocaleString()}</td>
-                              <td className="py-2 pr-3">{Number(scenario.totalSaleableTons).toLocaleString()}</td>
-                              <td className="py-2">{scenario.recoveryPct}%</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="mt-3 text-xs text-stone-700"><strong>Surface acres:</strong> {Number(valuation.tonnageScenarios[0].acres).toLocaleString()} · <strong>Screening density:</strong> {Number(valuation.tonnageScenarios[0].densityLbFt3).toLocaleString()} lb/ft³</div>
-                    <p className="mt-2 text-xs leading-relaxed text-stone-600">{valuation.tonnageScenarios[0].basis}</p>
-                  </div>
-                )}
+                <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-4 text-xs leading-relaxed text-stone-700"><strong>Reserve discipline:</strong> S&S does not display assumed quarry-depth tonnage as a reserve estimate. Tonnage, recovery, overburden, quality and mineable depth require site-specific geological and engineering work.</div>
                 <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{valuation.disclaimer}</p>
               </>
             ) : (
               <>
-                <div className="rounded-xl border border-border bg-muted/20 p-4 font-semibold text-foreground">Pricing data pending</div>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{valuation?.reason || "The app needs verified parcel acreage and a land-value anchor before displaying a dollar range."}</p>
+                <div className="rounded-xl border border-border bg-muted/20 p-4 font-semibold text-foreground">Value estimate withheld</div>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{valuation?.reason || "S&S withholds a dollar range until enough source-backed parcel, acreage and land-value evidence is connected."}{valuation?.available && valuation?.confidence === "Low" ? " The current inputs only support low confidence, so no range is displayed." : ""}</p>
               </>
             )}
           </Card>
