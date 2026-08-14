@@ -1,12 +1,12 @@
 import React, { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Store, Bookmark, Tag, User } from "lucide-react";
+import { Mountain, Gem, Crown, LifeBuoy } from "lucide-react";
 
 const TABS = [
-  { to: "/", label: "Marketplace", icon: Store, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
-  { to: "/saved", label: "Saved", icon: Bookmark, match: (p) => p.startsWith("/saved") },
-  { to: "/sell", label: "Sell", icon: Tag, match: (p) => p.startsWith("/sell") || p.startsWith("/seller-portal") },
-  { to: "/buyer-profile", label: "Profile", icon: User, match: (p) => p.startsWith("/buyer-profile") },
+  { to: "/", label: "Quarries", icon: Mountain, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
+  { to: "/mineral-value-guide", label: "Minerals", icon: Gem, match: (p) => p.startsWith("/mineral-value-guide") },
+  { to: "/subscribe", label: "Access", icon: Crown, match: (p) => p.startsWith("/subscribe") },
+  { to: "/support", label: "Support", icon: LifeBuoy, match: (p) => p.startsWith("/support") },
 ];
 
 // Per-tab scroll positions, preserved across tab switches.
