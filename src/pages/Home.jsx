@@ -10,7 +10,6 @@ import BottomSheetSelect from "@/components/BottomSheetSelect";
 import PullToRefresh from "@/components/PullToRefresh";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
-import { Capacitor } from "@capacitor/core";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -35,7 +34,6 @@ export default function Home() {
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortMode, setSortMode] = useState("Best Opportunity");
-  const isNative = Capacitor.isNativePlatform();
 
   const loadData = async () => {
     try {
@@ -93,21 +91,16 @@ export default function Home() {
                 S&amp;S Rock Holdings
               </p>
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Quarry Marketplace
+                Quarry Intelligence
               </p>
             </div>
           </div>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
-            <span className="font-medium text-foreground">Marketplace</span>
-            <Link to="/sell" className="hover:text-foreground">Sell / List</Link>
-            <Link to="/seller-portal" className="hover:text-foreground">My Submissions</Link>
-            <Link to="/buyer-profile" className="hover:text-foreground">Buyer Profile</Link>
-            <Link to="/saved" className="hover:text-foreground">Saved</Link>
-            <Link to="/ownership-intelligence" className="hover:text-foreground">Ownership Intel</Link>
-            {!isNative && <Link to="/subscribe" className="hover:text-foreground">Professional</Link>}
-            {user?.role === "admin" && <Link to="/admin/deals" className="font-semibold text-sky-700 hover:text-sky-800">Deal Desk</Link>}
+            <span className="font-medium text-foreground">Quarry Intelligence</span>
+            <Link to="/mineral-value-guide" className="hover:text-foreground">Mineral Guide</Link>
+            <Link to="/subscribe" className="hover:text-foreground">Access</Link>
+            <Link to="/support" className="hover:text-foreground">Support</Link>
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
-            {user?.role === "admin" && <Link to="/admin/seller-review" className="font-semibold text-sky-700 hover:text-sky-800">Seller Review</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
           <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Account"}</div>
@@ -120,32 +113,31 @@ export default function Home() {
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
               <Layers className="h-3.5 w-3.5" />
-              Industrial Land &amp; Mineral Marketplace
+              Quarry Intelligence Platform
             </span>
             <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-              Where quarry, aggregate &amp; mineral land changes hands.
+              Find the quarry. Understand the asset.
             </h1>
             <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
-              A GIS-mapped marketplace and quarry-intelligence platform built for the extraction industry —
-              source-backed S&S Quarry Intelligence Reports, mapped parcels, and seller-provided confidential
-              due diligence, all in one place.
+              Source-backed quarry intelligence for the extraction industry — mine records, mapped locations,
+              geology, permits, production context, ownership signals and downloadable S&S intelligence reports.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/sell" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Sell / Market a Property</Link>
-              <Link to="/buyer-profile" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Join Buyer Network</Link>
+              <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Browse Quarry Intelligence</a>
+              <Link to="/mineral-value-guide" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Explore Mineral Guide</Link>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
-                Seller confidential data rooms
+                Source-backed records
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-slate-200" />
-                Royalty &amp; mineral rights
+                Geology &amp; mineral context
               </div>
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-slate-200" />
-                GIS boundary tracking
+                Maps &amp; parcel intelligence
               </div>
             </div>
           </div>
@@ -218,11 +210,11 @@ export default function Home() {
       </section>
 
       {/* Marketplace */}
-      <section className="mx-auto max-w-7xl px-6 pb-24">
+      <section id="quarry-intelligence" className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-heading text-2xl font-bold text-foreground">Quarry & Mineral Opportunities</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Active operations, inactive/idled sites, historical/abandoned records, and new/potential opportunities. Unverified sites are not represented as being for sale.</p>
+            <h2 className="font-heading text-2xl font-bold text-foreground">Quarry Intelligence</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Search active, inactive/idled, historical and potential quarry records. Site records are intelligence profiles and are not represented as being for sale unless specifically verified.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
@@ -293,7 +285,7 @@ export default function Home() {
 
       <footer className="border-t border-border bg-muted">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
-          <div>S&amp;S Rock Holdings Quarry Marketplace — Industrial land &amp; mineral marketplace</div>
+          <div>S&amp;S Rock Holdings — Quarry intelligence for the extraction industry</div>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a href="/support" className="hover:text-foreground hover:underline">Support</a>
             <a href="/privacy" className="hover:text-foreground hover:underline">Privacy</a>
