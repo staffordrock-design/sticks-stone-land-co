@@ -50,25 +50,12 @@ export const ACCESS_TIERS = [
     annual: "$1,390/yr",
     featured: true,
     features: [
-
+      "Everything in Quarry Access",
       "Parcel/tax and mapped ownership intelligence",
       "Mapped geology, rock type and mineral value guide",
       "MSHA, TDEC, environmental and production intelligence",
       "Advanced quarry opportunity screening",
       "Preferred pricing on downloadable intelligence reports",
-    ],
-  },
-  {
-    code: "deal_investor",
-    name: "Deal / Investor",
-    monthly: "$289/mo",
-    annual: "$2,890/yr",
-    features: [
-      "Everything in Professional Intelligence",
-      "Confidential data-room and NDA workflows",
-      "Advanced deal desk and acquisition tools",
-      "Expanded valuation and transaction screening",
-      "Priority report handling and preferred report pricing",
     ],
   },
 ];
