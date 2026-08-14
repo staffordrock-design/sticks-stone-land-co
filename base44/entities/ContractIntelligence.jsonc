@@ -1,0 +1,180 @@
+{
+  "name": "ContractIntelligence",
+  "type": "object",
+  "properties": {
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "parcel_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "default": "TN"
+    },
+    "county": {
+      "type": "string"
+    },
+    "agreement_type": {
+      "type": "string",
+      "enum": [
+        "Mineral Lease",
+        "Quarry Lease",
+        "Royalty Agreement",
+        "Operating Agreement",
+        "Purchase Option",
+        "Purchase Agreement",
+        "Easement",
+        "Haul Road Agreement",
+        "Assignment",
+        "Amendment",
+        "Other"
+      ]
+    },
+    "landowner_name": {
+      "type": "string"
+    },
+    "mineral_owner_name": {
+      "type": "string"
+    },
+    "operator_name": {
+      "type": "string"
+    },
+    "lessee_name": {
+      "type": "string"
+    },
+    "controller_name": {
+      "type": "string"
+    },
+    "effective_date": {
+      "type": "string"
+    },
+    "expiration_date": {
+      "type": "string"
+    },
+    "initial_term_years": {
+      "type": "number"
+    },
+    "renewal_options": {
+      "type": "string"
+    },
+    "royalty_rate_per_ton": {
+      "type": "number"
+    },
+    "minimum_annual_royalty": {
+      "type": "number"
+    },
+    "advance_royalty": {
+      "type": "number"
+    },
+    "acreage_covered": {
+      "type": "number"
+    },
+    "production_commitment": {
+      "type": "string"
+    },
+    "purchase_option": {
+      "type": "boolean",
+      "default": false
+    },
+    "purchase_option_terms": {
+      "type": "string"
+    },
+    "assignment_allowed": {
+      "type": "boolean"
+    },
+    "change_of_control_clause": {
+      "type": "string"
+    },
+    "termination_rights": {
+      "type": "string"
+    },
+    "reclamation_responsibility": {
+      "type": "string"
+    },
+    "tax_responsibility": {
+      "type": "string"
+    },
+    "insurance_bond_requirements": {
+      "type": "string"
+    },
+    "access_easement_terms": {
+      "type": "string"
+    },
+    "exclusivity": {
+      "type": "string"
+    },
+    "recording_reference": {
+      "type": "string"
+    },
+    "confidential": {
+      "type": "boolean",
+      "default": false
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "Unverified",
+        "Public Record",
+        "Seller Provided",
+        "Buyer Provided",
+        "Verified"
+      ],
+      "default": "Unverified"
+    },
+    "deal_signal": {
+      "type": "string",
+      "enum": [
+        "None",
+        "Watch",
+        "Strong",
+        "Priority"
+      ],
+      "default": "None"
+    },
+    "deal_signal_reason": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mine_name",
+    "state",
+    "agreement_type"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

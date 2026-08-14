@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import ParcelMap from "@/components/ParcelMap";
-import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2 } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
@@ -76,6 +76,7 @@ export default function MineSiteDetail() {
   const [profiles, setProfiles] = useState([]);
   const [production, setProduction] = useState([]);
   const [geology, setGeology] = useState([]);
+  const [contracts, setContracts] = useState([]);
   const [liveParcel, setLiveParcel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -85,7 +86,7 @@ export default function MineSiteDetail() {
   useEffect(() => {
     (async () => {
       try {
-        const [mine, parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData] = await Promise.all([
+        const [mine, parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData, contractData] = await Promise.all([
           base44.entities.MiningSite.get(id),
           base44.entities.ParcelRecord.list("-updated_date", 500),
           base44.entities.TDECPermit.list("-updated_date", 500),
@@ -95,6 +96,7 @@ export default function MineSiteDetail() {
           base44.entities.QuarryPotentialProfile.list("-updated_date", 500),
           base44.entities.ProductionRecord.list("-year", 500),
           base44.entities.GeologyRecord.list("-updated_date", 500),
+          base44.entities.ContractIntelligence.list("-updated_date", 500),
         ]);
         setSite(mine);
         setParcels(parcelData || []);
@@ -105,6 +107,7 @@ export default function MineSiteDetail() {
         setProfiles(profileData || []);
         setProduction(productionData || []);
         setGeology(geologyData || []);
+        setContracts(contractData || []);
       } catch (e) {
         setError(e?.message || "Unable to load site intelligence.");
       } finally {
@@ -172,6 +175,16 @@ export default function MineSiteDetail() {
     ) || null;
   }, [site, geology]);
 
+  const relatedContracts = useMemo(() => {
+    if (!site) return [];
+    return contracts.filter((r) =>
+      sameValue(r.mining_site_id, site.id) ||
+      sameValue(r.msha_mine_id, site.msha_mine_id) ||
+      sameValue(r.parcel_id, site.parcel_id) ||
+      (sameValue(r.county, site.county) && sameValue(r.mine_name, site.mine_name))
+    );
+  }, [site, contracts]);
+
   useEffect(() => {
     if (!site || parcel?.boundary_polygon?.length >= 3) return;
     const lat = site.latitude ?? parcel?.latitude;
@@ -203,6 +216,7 @@ export default function MineSiteDetail() {
     { label: "Permit / regulatory record", ready: Boolean(relatedPermits.length), detail: relatedPermits.length ? `${relatedPermits.length} connected record${relatedPermits.length === 1 ? "" : "s"}` : "Permit linkage pending" },
     { label: "Production history", ready: Boolean(relatedProduction.length), detail: relatedProduction.length ? `${relatedProduction.length} production record${relatedProduction.length === 1 ? "" : "s"}` : "Production linkage pending" },
     { label: "Compliance history", ready: Boolean(relatedInspections.length || relatedViolations.length || relatedEnvironmental.length), detail: `${relatedInspections.length} inspections · ${relatedViolations.length} violations · ${relatedEnvironmental.length} environmental` },
+    { label: "Contract / royalty intelligence", ready: Boolean(relatedContracts.length), detail: relatedContracts.length ? `${relatedContracts.length} agreement record${relatedContracts.length === 1 ? "" : "s"}` : "Lease / royalty terms not connected" },
   ];
   const diligenceReady = diligence.filter((item) => item.ready).length;
   const diligencePct = Math.round((diligenceReady / diligence.length) * 100);
@@ -379,6 +393,42 @@ export default function MineSiteDetail() {
                 <div className="rounded-xl border border-border bg-muted/20 p-4 font-semibold text-foreground">Pricing data pending</div>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{valuation?.reason || "The app needs verified parcel acreage and a land-value anchor before displaying a dollar range."}</p>
               </>
+            )}
+          </Card>
+
+          <Card title="Contract & Royalty Intelligence" icon={FileKey2}>
+            {relatedContracts.length ? (
+              <div className="space-y-4">
+                {relatedContracts.map((c) => (
+                  <div key={c.id} className="rounded-xl border border-border p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <div className="font-semibold text-foreground">{c.agreement_type}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">{c.verification_status || "Unverified"}{c.deal_signal && c.deal_signal !== "None" ? ` · ${c.deal_signal} deal signal` : ""}</div>
+                      </div>
+                      {c.expiration_date && <span className="rounded-full border border-border bg-muted/30 px-2.5 py-1 text-xs font-medium text-foreground">Expires {displayDate(c.expiration_date)}</span>}
+                    </div>
+                    <div className="mt-3">
+                      <Row label="Landowner" value={c.landowner_name} />
+                      <Row label="Mineral owner" value={c.mineral_owner_name} />
+                      <Row label="Operator / lessee" value={c.lessee_name || c.operator_name} />
+                      <Row label="Royalty / ton" value={c.royalty_rate_per_ton != null ? money(c.royalty_rate_per_ton) : null} />
+                      <Row label="Min annual royalty" value={c.minimum_annual_royalty != null ? money(c.minimum_annual_royalty) : null} />
+                      <Row label="Term" value={c.initial_term_years != null ? `${c.initial_term_years} years` : null} />
+                      <Row label="Renewals" value={c.renewal_options} />
+                      <Row label="Purchase option" value={c.purchase_option ? (c.purchase_option_terms || "Yes") : null} />
+                      <Row label="Assignment" value={c.assignment_allowed == null ? null : (c.assignment_allowed ? "Allowed" : "Restricted / not allowed")} />
+                      <Row label="Termination" value={c.termination_rights} />
+                      <Row label="Recording ref." value={c.recording_reference} />
+                    </div>
+                    {c.deal_signal_reason && <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-950"><strong>Deal signal:</strong> {c.deal_signal_reason}</div>}
+                    {c.source_url && <a href={c.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open contract source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                  </div>
+                ))}
+                <p className="text-xs leading-relaxed text-muted-foreground">Contract terms are shown only when supported by a public record or a document supplied to S&amp;S. Confidential agreements are not represented as public records.</p>
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground">No lease, royalty, option, assignment, easement, or operating agreement has been connected to this site yet. This is a high-priority diligence layer when the landowner and operator are different.</p>
             )}
           </Card>
 
