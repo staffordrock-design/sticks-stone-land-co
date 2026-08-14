@@ -47,7 +47,7 @@ export default function AdminReports() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border"><div className="mx-auto max-w-7xl px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Back to marketplace</Link></div></header>
+      <header className="border-b border-border"><div className="mx-auto max-w-7xl px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Back to quarry intelligence</Link></div></header>
       <main className="mx-auto max-w-7xl px-6 py-10">
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Operations</p>
         <h1 className="mt-2 font-heading text-3xl font-bold">Report Queue</h1>
