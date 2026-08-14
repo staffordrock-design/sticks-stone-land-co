@@ -67,7 +67,7 @@ export default function Subscription() {
     return () => { cancelled = true; };
   }, [isNative, isIOS]);
 
-  const active = useMemo(() => entitlements.find((e) => ACTIVE.has(e.status)), [entitlements]);
+  const active = useMemo(() => entitlements.find((e) => ACTIVE.has(e.status) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())), [entitlements]);
 
   const requestAccess = async () => {
     if (isNative || !user?.email || leadSaved) return;
