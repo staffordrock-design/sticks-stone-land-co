@@ -97,7 +97,8 @@ export default async function(req: Request) {
       const entitlements = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 10, 0);
       allowed = (entitlements || []).some((e: any) =>
         ["active", "trial", "grace_period"].includes(e.status) &&
-        ["professional_monthly", "professional_annual"].includes(e.plan_code)
+        ["professional_monthly", "professional_annual"].includes(e.plan_code) &&
+        (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())
       );
     }
     if (!allowed) return Response.json({ error: "Professional access required" }, { status: 403 });
