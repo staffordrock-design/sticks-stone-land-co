@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ArrowLeft, Building2, CheckCircle2 } from "lucide-react";
+import BottomSheetSelect from "@/components/BottomSheetSelect";
 
 const ASSET_TYPES = ["Operating Quarry","Potential Quarry Land","Aggregate Operation","Mineral Rights","Royalty Interest","Other"];
 
@@ -56,7 +57,7 @@ export default function SellProperty() {
           <Field label="County"><input className="input" value={form.county} onChange={e=>set("county",e.target.value)} /></Field>
           <Field label="Acreage"><input className="input" inputMode="decimal" value={form.acreage} onChange={e=>set("acreage",e.target.value)} /></Field>
           <Field label="Asking Price"><input className="input" inputMode="decimal" value={form.asking_price} onChange={e=>set("asking_price",e.target.value)} /></Field>
-          <Field label="Asset Type"><select className="input" value={form.asset_type} onChange={e=>set("asset_type",e.target.value)}>{ASSET_TYPES.map(x=><option key={x}>{x}</option>)}</select></Field>
+          <Field label="Asset Type"><BottomSheetSelect value={form.asset_type} onChange={(value)=>set("asset_type",value)} options={ASSET_TYPES} label="Asset Type" /></Field>
           <Field label="Commodity / Rock"><input className="input" value={form.commodity} onChange={e=>set("commodity",e.target.value)} placeholder="Limestone, sand & gravel, chert..." /></Field>
         </div>
         <Field label="Ownership / Mineral Rights Summary"><textarea className="input min-h-24" value={form.ownership_summary} onChange={e=>set("ownership_summary",e.target.value)} /></Field>
