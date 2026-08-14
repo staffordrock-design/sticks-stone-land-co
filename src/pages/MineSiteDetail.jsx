@@ -386,6 +386,20 @@ export default function MineSiteDetail() {
                   <div className="mt-1 text-sm text-sky-900">{valuation.confidence} confidence · {money(valuation.perAcreLow)}–{money(valuation.perAcreHigh)} per acre</div>
                 </div>
                 <div className="mt-4 text-sm text-foreground"><strong>Based on:</strong> {valuation.basis.join(", ")}.</div>
+                {valuation.tonnageScenario && (
+                  <div className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-4">
+                    <div className="text-xs font-bold uppercase tracking-wider text-stone-700">200-ft quarry-depth screening scenario</div>
+                    <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                      <Row label="Surface acres" value={Number(valuation.tonnageScenario.acres).toLocaleString()} />
+                      <Row label="Assumed depth" value={`${Number(valuation.tonnageScenario.depthFt).toLocaleString()} ft`} />
+                      <Row label="Gross tons / acre" value={Number(valuation.tonnageScenario.grossTonsPerAcre).toLocaleString()} />
+                      <Row label="Saleable tons / acre" value={Number(valuation.tonnageScenario.saleableTonsPerAcre).toLocaleString()} />
+                      <Row label="Recovery assumption" value={`${valuation.tonnageScenario.recoveryPct}%`} />
+                      <Row label="Total scenario tons" value={Number(valuation.tonnageScenario.totalSaleableTons).toLocaleString()} />
+                    </div>
+                    <p className="mt-3 text-xs leading-relaxed text-stone-600">{valuation.tonnageScenario.basis}</p>
+                  </div>
+                )}
                 <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{valuation.disclaimer}</p>
               </>
             ) : (
