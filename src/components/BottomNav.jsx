@@ -9,8 +9,16 @@ const TABS = [
   { to: "/support", label: "Support", icon: LifeBuoy, match: (p) => p.startsWith("/support") },
 ];
 
-// Per-tab scroll positions, preserved across tab switches.
-const scrollStore = {};
+// Preserve each tab's last in-tab route and scroll position across tab switches.
+const TAB_STATE_KEY = "ss-tab-state-v1";
+
+function readTabState() {
+  try { return JSON.parse(sessionStorage.getItem(TAB_STATE_KEY) || "{}"); } catch { return {}; }
+}
+
+function writeTabState(state) {
+  try { sessionStorage.setItem(TAB_STATE_KEY, JSON.stringify(state)); } catch {}
+}
 
 export default function BottomNav() {
   const { pathname } = useLocation();
@@ -30,17 +38,26 @@ export default function BottomNav() {
   }, [pathname]);
 
   const handleTab = (tab) => {
+    const state = readTabState();
     const currentTab = TABS.find((t) => t.match(pathname));
-    if (currentTab) scrollStore[currentTab.to] = window.scrollY;
+    if (currentTab) {
+      state[currentTab.to] = { path: pathname, scroll: window.scrollY };
+      writeTabState(state);
+    }
+
     const isActive = tab.match(pathname);
     if (isActive && pathname === tab.to) {
-      // Already at the tab root — scroll to top.
+      // Second tap on the active root behaves like a native tab bar: return to top.
+      state[tab.to] = { path: tab.to, scroll: 0 };
+      writeTabState(state);
       window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
       return;
     }
-    // Switch to the tab root (or pop to root if active but deep in the stack).
-    pendingRestore.current = { path: tab.to, scroll: scrollStore[tab.to] ?? 0 };
-    navigate(tab.to);
+
+    const saved = state[tab.to];
+    const targetPath = saved?.path && tab.match(saved.path) ? saved.path : tab.to;
+    pendingRestore.current = { path: targetPath, scroll: Number(saved?.scroll || 0) };
+    navigate(targetPath);
   };
 
   return (
