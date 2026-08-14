@@ -62,6 +62,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <>
+    <div className={pathname === "/" ? "" : "app-secondary-safe"}>
     <Routes>
       {/* Add your page Route elements here */}
       <Route path="/" element={<PaidAccessGate><Home /></PaidAccessGate>} />
@@ -85,6 +86,7 @@ const AuthenticatedApp = () => {
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </div>
     {!hideBottomNav && <BottomNav />}
     </>
   );
