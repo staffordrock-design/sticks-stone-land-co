@@ -32,7 +32,11 @@ export function calculateIndicativeQuarryValue({ site, parcel, profile, geology 
   if (!site) return null;
 
   const acres = n(site.acreage) ?? n(parcel?.acreage);
-  const tonnageScenario = calculateScenarioTonnage({ acres });
+  const scenarioDepths = [50, 100, 200, 500, 1000];
+  const tonnageScenarios = scenarioDepths
+    .map((depthFt) => calculateScenarioTonnage({ acres, depthFt }))
+    .filter(Boolean);
+  const tonnageScenario = tonnageScenarios.find((scenario) => scenario.depthFt === 200) || tonnageScenarios[0] || null;
   const landValue = n(parcel?.land_value);
   const assessedValue = n(parcel?.assessed_value);
   const anchorValue = landValue && landValue > 0 ? landValue : assessedValue && assessedValue > 0 ? assessedValue : null;
@@ -89,7 +93,8 @@ export function calculateIndicativeQuarryValue({ site, parcel, profile, geology 
       site.photo_condition_score != null ? "reviewed property photos" : null,
     ].filter(Boolean),
     tonnageScenario,
-    disclaimer: "Indicative marketplace screening range only. The 200-foot tonnage model is a geometry scenario, not a reserve estimate, engineering opinion, or guarantee of recoverable minerals.",
+    tonnageScenarios,
+    disclaimer: "Indicative marketplace screening range only. Depth scenarios are geometry models, not reserve estimates, engineering opinions, or guarantees of recoverable minerals.",
   };
 }
 
