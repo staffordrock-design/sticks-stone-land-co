@@ -149,7 +149,7 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-slate-200" />
-                Hold the line on the data
+                Maps &amp; parcel intelligence
               </div>
             </div>
           </div>
