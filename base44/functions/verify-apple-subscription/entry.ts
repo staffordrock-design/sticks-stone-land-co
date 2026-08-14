@@ -69,21 +69,47 @@ export default async function(req) {
     const signedTransactions = Array.isArray(body?.signed_transactions)
       ? body.signed_transactions.filter((value) => typeof value === 'string' && value.length > 50).slice(0, 20)
       : [];
+    const signedAppTransaction = typeof body?.signed_app_transaction === 'string' ? body.signed_app_transaction : '';
+    const reconcile = body?.reconcile === true;
 
-    if (!signedTransactions.length) {
+    if (!signedTransactions.length && !reconcile) {
       return Response.json({ error: 'No Apple signed transactions supplied' }, { status: 400 });
     }
 
     const rootCertificates = await getRootCertificates();
+    let verifiedAppAppleId: number | undefined;
+    let verifiedAppEnvironment: Environment | undefined;
+
+    if (signedAppTransaction) {
+      const appHint = decodeUnverifiedPayload(signedAppTransaction);
+      verifiedAppEnvironment = environmentFor(appHint.receiptType);
+      verifiedAppAppleId = verifiedAppEnvironment === Environment.PRODUCTION ? Number(appHint.appAppleId) : undefined;
+      if (verifiedAppEnvironment === Environment.PRODUCTION && !Number.isFinite(verifiedAppAppleId)) {
+        throw new Error('Apple app transaction is missing appAppleId');
+      }
+      const appVerifier = new SignedDataVerifier(
+        rootCertificates,
+        true,
+        verifiedAppEnvironment,
+        BUNDLE_ID,
+        verifiedAppAppleId,
+      );
+      await appVerifier.verifyAndDecodeAppTransaction(signedAppTransaction);
+    }
+
     const now = Date.now();
     const results = [];
+    const verifiedOriginalIds = new Set<string>();
 
     for (const signedTransaction of signedTransactions) {
       const hint = decodeUnverifiedPayload(signedTransaction);
       const environment = environmentFor(hint.environment);
-      const appAppleId = environment === Environment.PRODUCTION ? Number(hint.appAppleId) : undefined;
+      const appAppleId = environment === Environment.PRODUCTION ? verifiedAppAppleId : undefined;
       if (environment === Environment.PRODUCTION && !Number.isFinite(appAppleId)) {
-        throw new Error('Apple production transaction is missing appAppleId');
+        throw new Error('Verified Apple app transaction is required for production purchases');
+      }
+      if (verifiedAppEnvironment && verifiedAppEnvironment !== environment) {
+        throw new Error('Apple app and purchase environments do not match');
       }
 
       const verifier = new SignedDataVerifier(
@@ -101,6 +127,7 @@ export default async function(req) {
       const transactionId = String(transaction.transactionId || '');
       const originalTransactionId = String(transaction.originalTransactionId || transactionId);
       if (!transactionId || !originalTransactionId) throw new Error('Apple transaction identifier missing');
+      verifiedOriginalIds.add(originalTransactionId);
 
       const existingReceipt = await base44.asServiceRole.entities.StoreReceipt.filter(
         { platform: 'Apple', original_transaction_id: originalTransactionId },
@@ -175,6 +202,24 @@ export default async function(req) {
         active,
         expires_at: expiresAt,
       });
+    }
+
+    if (reconcile) {
+      const appleEntitlements = await base44.asServiceRole.entities.SubscriptionEntitlement.filter(
+        { user_id: user.id, platform: 'apple' },
+        '-updated_date',
+        50,
+        0,
+      );
+      for (const entitlement of appleEntitlements || []) {
+        if (entitlement.original_transaction_id && !verifiedOriginalIds.has(entitlement.original_transaction_id) && ['active', 'trial', 'grace_period'].includes(entitlement.status)) {
+          await base44.asServiceRole.entities.SubscriptionEntitlement.update(entitlement.id, {
+            status: 'expired',
+            last_verified_at: new Date().toISOString(),
+            source: 'Apple StoreKit current-entitlement reconciliation',
+          });
+        }
+      }
     }
 
     return Response.json({ verified: true, entitlements: results });
