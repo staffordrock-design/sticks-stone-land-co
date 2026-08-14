@@ -33,7 +33,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [sortMode, setSortMode] = useState("Best Opportunity");
+  const [sortMode, setSortMode] = useState("Most Complete");
 
   const loadData = async () => {
     try {
@@ -55,7 +55,18 @@ export default function Home() {
   };
   useEffect(() => { loadData(); }, []);
 
-  const filtered = sites.filter((s) => {
+  const visibleSites = Array.from(
+    sites.reduce((map, site) => {
+      const mineId = String(site.msha_mine_id || "").trim();
+      const key = mineId ? `msha:${mineId}` : `record:${site.id}`;
+      const completeness = (row) => [row.mine_name,row.mine_status,row.commodity,row.operator_name,row.county,row.latitude,row.longitude,row.tdec_permit_number,row.npdes_permit_number,row.parcel_id,row.acreage].filter((v) => v !== null && v !== undefined && String(v).trim() !== "").length;
+      const existing = map.get(key);
+      if (!existing || completeness(site) > completeness(existing)) map.set(key, site);
+      return map;
+    }, new Map()).values()
+  );
+
+  const filtered = visibleSites.filter((s) => {
     const matchesSource = source === "All" || s.source === source;
     const q = query.toLowerCase();
     const matchesQuery =
@@ -68,8 +79,9 @@ export default function Home() {
     return matchesSource && matchesQuery && matchesStatus;
   });
 
+  const completenessScore = (s) => [s.msha_mine_id,s.mine_status,s.commodity,s.operator_name,s.county,s.latitude,s.longitude,s.tdec_permit_number,s.npdes_permit_number,s.parcel_id,s.acreage].filter((v) => v !== null && v !== undefined && String(v).trim() !== "").length;
   const ranked = [...filtered].sort((a, b) => {
-    if (sortMode === "Best Opportunity") return Number(b.opportunity_score || 0) - Number(a.opportunity_score || 0);
+    if (sortMode === "Most Complete") return completenessScore(b) - completenessScore(a) || String(a.mine_name || "").localeCompare(String(b.mine_name || ""));
     if (sortMode === "Largest Acreage") return Number(b.acreage || 0) - Number(a.acreage || 0);
     return String(a.mine_name || "").localeCompare(String(b.mine_name || ""));
   });
@@ -206,7 +218,7 @@ export default function Home() {
           sites={filtered.filter((s) => s.state?.toUpperCase() === "TN")}
           height={560}
         />
-        <p className="mt-2 text-xs text-muted-foreground">Marketplace aerial previews use Esri World Imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions.</p>
+        <p className="mt-2 text-xs text-muted-foreground">Aerial previews use Esri World Imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions. Records with the same MSHA Mine ID are consolidated in the browsing view to avoid duplicate display.</p>
       </section>
 
       {/* Marketplace */}
@@ -230,7 +242,7 @@ export default function Home() {
               <BottomSheetSelect
                 value={sortMode}
                 onChange={setSortMode}
-                options={["Best Opportunity", "Largest Acreage", "Name A–Z"]}
+                options={["Most Complete", "Largest Acreage", "Name A–Z"]}
                 label="Sort opportunities"
               />
               <div className="flex flex-wrap gap-1.5">
