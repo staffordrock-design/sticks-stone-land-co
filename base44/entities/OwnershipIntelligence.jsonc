@@ -1,0 +1,87 @@
+{
+  "name": "OwnershipIntelligence",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string"
+    },
+    "parent_company": {
+      "type": "string"
+    },
+    "relationship_type": {
+      "type": "string",
+      "enum": [
+        "Landowner",
+        "Operator",
+        "Controller",
+        "Parent Company",
+        "Mineral Owner",
+        "Lessee",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "site_count": {
+      "type": "number"
+    },
+    "linked_acreage": {
+      "type": "number"
+    },
+    "active_site_count": {
+      "type": "number"
+    },
+    "inactive_site_count": {
+      "type": "number"
+    },
+    "counties": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "Unverified",
+        "Public Record",
+        "Industry Source",
+        "Verified"
+      ],
+      "default": "Unverified"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_name",
+    "relationship_type"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

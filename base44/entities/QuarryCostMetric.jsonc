@@ -1,0 +1,94 @@
+{
+  "name": "QuarryCostMetric",
+  "type": "object",
+  "properties": {
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "parcel_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "valuation_date": {
+      "type": "string"
+    },
+    "asking_price": {
+      "type": "number"
+    },
+    "acquisition_price": {
+      "type": "number"
+    },
+    "price_per_acre": {
+      "type": "number"
+    },
+    "price_per_reserve_ton": {
+      "type": "number"
+    },
+    "royalty_rate_per_ton": {
+      "type": "number"
+    },
+    "material_sale_price_per_ton": {
+      "type": "number"
+    },
+    "operating_cost_per_ton": {
+      "type": "number"
+    },
+    "haul_cost_per_ton": {
+      "type": "number"
+    },
+    "estimated_margin_per_ton": {
+      "type": "number"
+    },
+    "annual_tonnage": {
+      "type": "number"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "default": "Low"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mine_name",
+    "valuation_date"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

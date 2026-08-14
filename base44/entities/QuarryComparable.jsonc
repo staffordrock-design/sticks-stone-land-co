@@ -1,0 +1,104 @@
+{
+  "name": "QuarryComparable",
+  "type": "object",
+  "properties": {
+    "property_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "sale_date": {
+      "type": "string"
+    },
+    "sale_price": {
+      "type": "number"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "price_per_acre": {
+      "type": "number"
+    },
+    "commodity": {
+      "type": "string"
+    },
+    "rock_type": {
+      "type": "string"
+    },
+    "operating_status": {
+      "type": "string"
+    },
+    "permitted": {
+      "type": "boolean"
+    },
+    "estimated_reserve_tons": {
+      "type": "number"
+    },
+    "price_per_reserve_ton": {
+      "type": "number"
+    },
+    "annual_tonnage": {
+      "type": "number"
+    },
+    "plant_included": {
+      "type": "boolean"
+    },
+    "equipment_included": {
+      "type": "boolean"
+    },
+    "royalty_rate_per_ton": {
+      "type": "number"
+    },
+    "source_name": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "Unverified",
+        "Public Record",
+        "Broker/Market",
+        "Verified"
+      ],
+      "default": "Unverified"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "property_name",
+    "state"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

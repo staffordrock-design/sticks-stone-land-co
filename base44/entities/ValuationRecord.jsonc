@@ -1,0 +1,138 @@
+{
+  "name": "ValuationRecord",
+  "type": "object",
+  "properties": {
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "parcel_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "default": "TN"
+    },
+    "county": {
+      "type": "string"
+    },
+    "valuation_date": {
+      "type": "string"
+    },
+    "land_assessed_value": {
+      "type": "number"
+    },
+    "improvement_assessed_value": {
+      "type": "number"
+    },
+    "total_assessed_value": {
+      "type": "number"
+    },
+    "estimated_market_value": {
+      "type": "number"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "value_per_acre": {
+      "type": "number"
+    },
+    "commodity": {
+      "type": "string"
+    },
+    "rock_type": {
+      "type": "string"
+    },
+    "aggregate_unit_value_per_ton": {
+      "type": "number"
+    },
+    "estimated_annual_tonnage": {
+      "type": "number"
+    },
+    "estimated_annual_gross_material_value": {
+      "type": "number"
+    },
+    "estimated_reserve_tons": {
+      "type": "number"
+    },
+    "in_ground_gross_material_value": {
+      "type": "number"
+    },
+    "royalty_rate_per_ton": {
+      "type": "number"
+    },
+    "estimated_annual_royalty_value": {
+      "type": "number"
+    },
+    "market_radius_miles": {
+      "type": "number"
+    },
+    "distance_to_interstate_miles": {
+      "type": "number"
+    },
+    "distance_to_rail_miles": {
+      "type": "number"
+    },
+    "permit_status": {
+      "type": "string"
+    },
+    "environmental_risk": {
+      "type": "string"
+    },
+    "valuation_confidence": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "default": "Low"
+    },
+    "valuation_method": {
+      "type": "string"
+    },
+    "source_summary": {
+      "type": "string"
+    },
+    "source_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mine_name",
+    "state",
+    "valuation_date"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
