@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, DollarSign, Gem } from "lucide-react";
-import { formatCompactMoney } from "@/utils/quarryValuation";
+import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, Gem, ShieldCheck } from "lucide-react";
 import { classifyRock } from "../../base44/shared/rockTypes.js";
 
 function worldImageryTile(lat, lng, zoom = 14) {
@@ -22,13 +21,20 @@ const sourceStyles = {
   Other: "bg-stone-100 text-stone-800 border border-stone-300",
 };
 
-function opportunityLabel(site) {
+function recordStatusLabel(site) {
   if (site.is_verified_listing && site.listing_id) return "Verified Listing";
   const s = String(site.mine_status || "").toLowerCase();
-  if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Off-Market · Inactive / Idled";
-  if (s.includes("historical") || s.includes("abandon")) return "Off-Market · Historical / Abandoned";
-  if (s.includes("new mine") || !s.trim()) return "Potential Opportunity";
-  return "Operating Site";
+  if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Inactive / Idled Record";
+  if (s.includes("historical") || s.includes("abandon")) return "Historical Record";
+  if (s.includes("new mine")) return "New Mine Record";
+  if (s.includes("active")) return "Active Mine Record";
+  return "Mine Record";
+}
+
+function displayDate(value) {
+  if (!value) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
 export default function MiningSiteCard({ site, valuation, geology }) {
@@ -63,7 +69,7 @@ export default function MiningSiteCard({ site, valuation, geology }) {
           </span>
         </div>
         <div className="absolute right-3 top-3 max-w-[70%] rounded-full bg-slate-900/85 px-3 py-1 text-right text-xs font-semibold text-white backdrop-blur">
-          {opportunityLabel(site)}
+          {recordStatusLabel(site)}
         </div>
       </div>
 
@@ -121,20 +127,14 @@ export default function MiningSiteCard({ site, valuation, geology }) {
 
         {!verified && (
           <div className="mt-3 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-[11px] leading-relaxed text-stone-600">
-            Public-source opportunity intelligence only. This property is not represented as being for sale unless the owner creates a verified listing.
+            Public-source mine intelligence. This record does not mean the property is for sale, available, or controlled by S&S.
           </div>
         )}
 
         <div className="mt-4 rounded-xl border border-slate-300 bg-slate-100/70 p-3">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-700"><DollarSign className="h-3.5 w-3.5" /> Indicative opportunity value</div>
-          {valuation?.available ? (
-            <>
-              <div className="mt-1 font-display text-lg font-bold text-slate-900">{formatCompactMoney(valuation.low)}–{formatCompactMoney(valuation.high)}</div>
-              <div className="mt-0.5 text-xs text-slate-600">{valuation.confidence} confidence · screening estimate</div>
-            </>
-          ) : (
-            <div className="mt-1 text-sm font-semibold text-slate-900">Pricing data pending</div>
-          )}
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-700"><ShieldCheck className="h-3.5 w-3.5" /> Source record</div>
+          <div className="mt-1 text-sm font-semibold text-slate-900">{site.msha_mine_id ? `MSHA Mine ID ${site.msha_mine_id}` : site.tdec_permit_number ? `TDEC ${site.tdec_permit_number}` : site.source}</div>
+          <div className="mt-0.5 text-xs text-slate-600">{displayDate(site.last_source_update || site.updated_date) ? `Checked ${displayDate(site.last_source_update || site.updated_date)}` : "Source date not yet verified"}</div>
         </div>
 
         {site.site_images?.length > 0 && (
