@@ -74,14 +74,15 @@ export function generateQuarryReportPdf({ site, parcel, geology, profile, permit
 
   heading("Executive Screening Summary");
   row("Mine status", site?.mine_status);
-  row("Opportunity classification", site?.is_verified_listing ? "Verified marketplace listing" : "Public-source / off-market screening record");
+  row("Record classification", site?.is_verified_listing ? "Verified listing" : "Public-source mine record");
   row("Commodity", site?.commodity);
   row("MSHA ID", site?.msha_mine_id);
   row("TDEC permit", site?.tdec_permit_number);
   row("Parcel", parcel?.parcel_id || site?.parcel_id);
   row("Mapped acreage", parcel?.acreage ?? site?.acreage);
   row("Data confidence", profile?.confidence || geology?.confidence || "Varies by source layer");
-  if (valuation?.available) row("Indicative marketplace range", `${money(valuation.low)} – ${money(valuation.high)} (${valuation.confidence || "screening"} confidence)`);
+  if (valuation?.available && valuation?.confidence !== "Low") row("Indicative land-value screening range", `${money(valuation.low)} – ${money(valuation.high)} (${valuation.confidence || "screening"} confidence)`);
+  else row("Value estimate", "Withheld until source-backed inputs support more than low confidence");
 
   heading("Mine / Operating Record");
   row("Mine name", site?.mine_name);
@@ -120,7 +121,7 @@ export function generateQuarryReportPdf({ site, parcel, geology, profile, permit
   row("Source updated", date(geology?.last_source_update));
   row("Source URL", geology?.source_url);
 
-  heading("Quarry Potential / Screening");
+  heading("Derived Screening Analysis");
   row("Screening score", profile?.screening_score);
   row("Screening band", profile?.screening_band);
   row("Geology score", profile?.geology_score);
@@ -178,7 +179,7 @@ export function generateQuarryReportPdf({ site, parcel, geology, profile, permit
   }
 
   heading("Source & Reliability Notes");
-  line("This report uses source-labeled public, licensed, and S&S platform data connected to the site at the time shown above. Missing fields are intentionally left unavailable rather than guessed. Public records can lag real-world changes; parcel, ownership, permitting, environmental, operating, and market conditions should be independently verified before a transaction or investment decision.");
+  line("This report separates official-source facts from S&S-derived screening analysis. Missing fields are intentionally left unavailable rather than guessed. MSHA Mine ID is treated as the unique key for mine identity; Tennessee mining permits should be confirmed against the controlling TDEC/DMGR record. Public records can lag real-world changes, so parcel, ownership, permitting, environmental, operating, and market conditions should be independently verified before a transaction or investment decision.");
   if (site?.source_url) line(`Mine source: ${site.source_url}`, { size: 8 });
   if (parcel?.source_url) line(`Parcel/tax source: ${parcel.source_url}`, { size: 8 });
   if (geology?.source_url) line(`Geology source: ${geology.source_url}`, { size: 8 });
