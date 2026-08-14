@@ -1,0 +1,185 @@
+import { createClientFromRequest } from 'npm:@base44/sdk';
+import { SignedDataVerifier, Environment } from 'npm:@apple/app-store-server-library@3.1.0';
+import { Buffer } from 'node:buffer';
+
+const BUNDLE_ID = 'com.ssrockholdings.quarrymarketplace';
+const APPLE_ROOT_CERT_URLS = [
+  'https://www.apple.com/appleca/AppleIncRootCertificate.cer',
+  'https://www.apple.com/certificateauthority/AppleRootCA-G2.cer',
+  'https://www.apple.com/certificateauthority/AppleRootCA-G3.cer',
+];
+
+const PRODUCT_TO_PLAN = {
+  'com.ssrockholdings.marketplace.monthly': 'marketplace_monthly',
+  'com.ssrockholdings.marketplace.annual': 'marketplace_annual',
+  'com.ssrockholdings.professional.monthly': 'professional_monthly',
+  'com.ssrockholdings.professional.annual': 'professional_annual',
+  'com.ssrockholdings.deal.monthly': 'deal_monthly',
+  'com.ssrockholdings.deal.annual': 'deal_annual',
+};
+
+let rootCertificatesPromise: Promise<Buffer[]> | null = null;
+
+function getRootCertificates() {
+  if (!rootCertificatesPromise) {
+    rootCertificatesPromise = Promise.all(APPLE_ROOT_CERT_URLS.map(async (url) => {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Unable to load Apple root certificate (${response.status})`);
+      return Buffer.from(await response.arrayBuffer());
+    })).catch((error) => {
+      rootCertificatesPromise = null;
+      throw error;
+    });
+  }
+  return rootCertificatesPromise;
+}
+
+function decodeUnverifiedPayload(jws: string) {
+  const parts = String(jws || '').split('.');
+  if (parts.length !== 3) throw new Error('Invalid Apple signed transaction format');
+  const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+  return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(padded), (c) => c.charCodeAt(0))));
+}
+
+function environmentFor(value: string) {
+  if (value === 'Production') return Environment.PRODUCTION;
+  if (value === 'Sandbox') return Environment.SANDBOX;
+  throw new Error(`Unsupported Apple transaction environment: ${value || 'unknown'}`);
+}
+
+function isoFromMillis(value: unknown) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? new Date(n).toISOString() : '';
+}
+
+async function sha256Hex(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+export default async function(req) {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user?.id) return Response.json({ error: 'Sign in required' }, { status: 401 });
+
+    const body = await req.json();
+    const signedTransactions = Array.isArray(body?.signed_transactions)
+      ? body.signed_transactions.filter((value) => typeof value === 'string' && value.length > 50).slice(0, 20)
+      : [];
+
+    if (!signedTransactions.length) {
+      return Response.json({ error: 'No Apple signed transactions supplied' }, { status: 400 });
+    }
+
+    const rootCertificates = await getRootCertificates();
+    const now = Date.now();
+    const results = [];
+
+    for (const signedTransaction of signedTransactions) {
+      const hint = decodeUnverifiedPayload(signedTransaction);
+      const environment = environmentFor(hint.environment);
+      const appAppleId = environment === Environment.PRODUCTION ? Number(hint.appAppleId) : undefined;
+      if (environment === Environment.PRODUCTION && !Number.isFinite(appAppleId)) {
+        throw new Error('Apple production transaction is missing appAppleId');
+      }
+
+      const verifier = new SignedDataVerifier(
+        rootCertificates,
+        true,
+        environment,
+        BUNDLE_ID,
+        appAppleId,
+      );
+      const transaction = await verifier.verifyAndDecodeTransaction(signedTransaction);
+      const productId = String(transaction.productId || '');
+      const planCode = PRODUCT_TO_PLAN[productId];
+      if (!planCode) throw new Error(`Unrecognized Apple product: ${productId || 'missing'}`);
+
+      const transactionId = String(transaction.transactionId || '');
+      const originalTransactionId = String(transaction.originalTransactionId || transactionId);
+      if (!transactionId || !originalTransactionId) throw new Error('Apple transaction identifier missing');
+
+      const existingReceipt = await base44.asServiceRole.entities.StoreReceipt.filter(
+        { platform: 'Apple', original_transaction_id: originalTransactionId },
+        '-created_date',
+        1,
+        0,
+      );
+      if (existingReceipt?.[0] && existingReceipt[0].user_id !== user.id) {
+        return Response.json({ error: 'This Apple subscription is already linked to another account' }, { status: 409 });
+      }
+
+      const revoked = Boolean(transaction.revocationDate);
+      const expiresMs = Number(transaction.expiresDate || 0);
+      const expired = expiresMs > 0 && expiresMs <= now;
+      const active = !revoked && !expired;
+      const status = revoked ? 'cancelled' : expired ? 'expired' : 'active';
+      const receiptStatus = revoked ? 'Refunded' : expired ? 'Expired' : 'Verified';
+      const verifiedAt = new Date().toISOString();
+      const purchaseDate = isoFromMillis(transaction.purchaseDate);
+      const expiresAt = isoFromMillis(transaction.expiresDate);
+      const payloadHash = await sha256Hex(signedTransaction);
+
+      const receiptData = {
+        user_id: user.id,
+        platform: 'Apple',
+        product_id: productId,
+        transaction_id: transactionId,
+        original_transaction_id: originalTransactionId,
+        purchase_date: purchaseDate,
+        expires_at: expiresAt,
+        status: receiptStatus,
+        verification_payload_hash: payloadHash,
+        last_verified_at: verifiedAt,
+      };
+
+      if (existingReceipt?.[0]) {
+        await base44.asServiceRole.entities.StoreReceipt.update(existingReceipt[0].id, receiptData);
+      } else {
+        await base44.asServiceRole.entities.StoreReceipt.create(receiptData);
+      }
+
+      const entitlements = await base44.asServiceRole.entities.SubscriptionEntitlement.filter(
+        { user_id: user.id, platform: 'apple' },
+        '-updated_date',
+        20,
+        0,
+      );
+      const sameSubscription = entitlements.find((row) => row.original_transaction_id === originalTransactionId);
+      const entitlementData = {
+        user_id: user.id,
+        plan_code: planCode,
+        status,
+        platform: 'apple',
+        product_id: productId,
+        original_transaction_id: originalTransactionId,
+        expires_at: expiresAt,
+        started_at: purchaseDate,
+        last_verified_at: verifiedAt,
+        source: 'Apple StoreKit verified JWS',
+      };
+
+      if (sameSubscription) {
+        await base44.asServiceRole.entities.SubscriptionEntitlement.update(sameSubscription.id, entitlementData);
+      } else {
+        await base44.asServiceRole.entities.SubscriptionEntitlement.create(entitlementData);
+      }
+
+      results.push({
+        product_id: productId,
+        plan_code: planCode,
+        status,
+        active,
+        expires_at: expiresAt,
+      });
+    }
+
+    return Response.json({ verified: true, entitlements: results });
+  } catch (error) {
+    console.error('verify-apple-subscription error:', error);
+    return Response.json({ error: error?.message || String(error) }, { status: 400 });
+  }
+}
