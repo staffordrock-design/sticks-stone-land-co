@@ -34,6 +34,8 @@ import OAuthConsent from './pages/OAuthConsent';
 import Support from './pages/Support';
 import MineralValueGuide from './pages/MineralValueGuide';
 import OwnershipIntelligence from './pages/OwnershipIntelligence';
+import SellerPortal from './pages/SellerPortal';
+import AdminSellerReview from './pages/AdminSellerReview';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -79,8 +81,10 @@ const AuthenticatedApp = () => {
       <Route path="/mineral-value-guide" element={<PaidAccessGate><MineralValueGuide /></PaidAccessGate>} />
       <Route path="/ownership-intelligence" element={<PaidAccessGate><OwnershipIntelligence /></PaidAccessGate>} />
       <Route path="/sell" element={<PaidAccessGate><SellProperty /></PaidAccessGate>} />
+      <Route path="/seller-portal" element={<PaidAccessGate><SellerPortal /></PaidAccessGate>} />
       <Route path="/buyer-profile" element={<PaidAccessGate><BuyerProfile /></PaidAccessGate>} />
       <Route path="/saved" element={<PaidAccessGate><MyOpportunities /></PaidAccessGate>} />
+      <Route path="/admin/seller-review" element={<AdminSellerReview />} />
       <Route path="/admin/deals" element={<DealDesk />} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/login" element={<Login />} />

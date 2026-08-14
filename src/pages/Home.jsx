@@ -99,12 +99,14 @@ export default function Home() {
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
             <span className="font-medium text-foreground">Marketplace</span>
             <Link to="/sell" className="hover:text-foreground">Sell / List</Link>
+            <Link to="/seller-portal" className="hover:text-foreground">My Submissions</Link>
             <Link to="/buyer-profile" className="hover:text-foreground">Buyer Profile</Link>
             <Link to="/saved" className="hover:text-foreground">Saved</Link>
             <Link to="/ownership-intelligence" className="hover:text-foreground">Ownership Intel</Link>
             {!isNative && <Link to="/subscribe" className="hover:text-foreground">Professional</Link>}
             {user?.role === "admin" && <Link to="/admin/deals" className="font-semibold text-sky-700 hover:text-sky-800">Deal Desk</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
+            {user?.role === "admin" && <Link to="/admin/seller-review" className="font-semibold text-sky-700 hover:text-sky-800">Seller Review</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
           <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Account"}</div>

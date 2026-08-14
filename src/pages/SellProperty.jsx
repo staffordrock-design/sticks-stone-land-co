@@ -44,10 +44,10 @@ export default function SellProperty() {
   if (!user?.id) return <div className="min-h-screen p-10 text-center text-muted-foreground">Sign in to submit a property.</div>;
 
   return <div className="min-h-screen bg-background">
-    <header className="border-b border-border"><div className="mx-auto max-w-4xl px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Back</Link></div></header>
+    <header className="border-b border-border"><div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Back</Link><Link to="/seller-portal" className="text-sm font-semibold text-sky-800 hover:underline">My submissions</Link></div></header>
     <main className="mx-auto max-w-4xl px-6 py-10">
       <div className="mb-8"><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">For Sellers</p><h1 className="mt-2 font-heading text-3xl font-bold">List or Market Your Property</h1><p className="mt-3 max-w-2xl text-sm text-muted-foreground">Submit a quarry, aggregate operation, mineral interest, royalty interest, or quarry-capable property for S&S review and marketing.</p></div>
-      {done ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center"><CheckCircle2 className="mx-auto h-10 w-10 text-emerald-700"/><h2 className="mt-4 font-heading text-2xl font-bold">Submission received</h2><p className="mt-2 text-sm text-emerald-900">It is now in the S&S seller review pipeline.</p></div> :
+      {done ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center"><CheckCircle2 className="mx-auto h-10 w-10 text-emerald-700"/><h2 className="mt-4 font-heading text-2xl font-bold">Submission received</h2><p className="mt-2 text-sm text-emerald-900">It is now in the S&S seller review pipeline.</p><Link to="/seller-portal" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white">Track in seller portal</Link></div> :
       <form onSubmit={submit} className="space-y-6 rounded-2xl border border-border bg-card p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Property / Asset Name"><input className="input" value={form.property_name} onChange={e=>set("property_name",e.target.value)} required /></Field>
