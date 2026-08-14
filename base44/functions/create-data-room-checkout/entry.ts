@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk';
 import Stripe from 'npm:stripe';
 import { secrets } from 'base44:runtime';
 
-const PRICE_ID = 'price_1U2STtGhM20yzyv2KNtLc55L';
+const PRICE_ID = 'price_1U48bwHBH3xrClLVcvrOM02j';
 
 function randomSuffix() {
   const chars = 'abcdefghijklmnopqrstuvwxyz';
@@ -47,7 +47,6 @@ export default async function(req) {
     if (!stripeSecret) return Response.json({ error: 'Stripe is not configured' }, { status: 503 });
     const stripe = new Stripe(stripeSecret, { apiVersion: '2026-06-24.dahlia' });
 
-    // Fail clearly before redirecting a customer if the configured Stripe price is missing or inactive.
     const price = await stripe.prices.retrieve(PRICE_ID);
     if (!price?.active) return Response.json({ error: 'Data-room price is not active in Stripe' }, { status: 503 });
 
