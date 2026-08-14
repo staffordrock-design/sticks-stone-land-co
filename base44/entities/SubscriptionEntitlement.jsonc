@@ -9,8 +9,12 @@
       "type": "string",
       "enum": [
         "free",
+        "marketplace_monthly",
+        "marketplace_annual",
         "professional_monthly",
-        "professional_annual"
+        "professional_annual",
+        "deal_monthly",
+        "deal_annual"
       ],
       "default": "free"
     },
