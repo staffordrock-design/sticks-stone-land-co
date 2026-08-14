@@ -22,9 +22,6 @@ import AdminReports from './pages/AdminReports';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfUse from './pages/TermsOfUse';
 import AccountDeletion from './pages/AccountDeletion';
-import SellProperty from './pages/SellProperty';
-import BuyerProfile from './pages/BuyerProfile';
-import MyOpportunities from './pages/MyOpportunities';
 import DealDesk from './pages/DealDesk';
 import Subscription from './pages/Subscription';
 import Login from './pages/Login';
@@ -34,8 +31,6 @@ import ResetPassword from './pages/ResetPassword';
 import OAuthConsent from './pages/OAuthConsent';
 import Support from './pages/Support';
 import MineralValueGuide from './pages/MineralValueGuide';
-import OwnershipIntelligence from './pages/OwnershipIntelligence';
-import SellerPortal from './pages/SellerPortal';
 import AdminSellerReview from './pages/AdminSellerReview';
 
 const AuthenticatedApp = () => {
@@ -80,11 +75,6 @@ const AuthenticatedApp = () => {
       <Route path="/account/delete" element={<AccountDeletion />} />
       <Route path="/support" element={<Support />} />
       <Route path="/mineral-value-guide" element={<PaidAccessGate><MineralValueGuide /></PaidAccessGate>} />
-      <Route path="/ownership-intelligence" element={<PaidAccessGate><OwnershipIntelligence /></PaidAccessGate>} />
-      <Route path="/sell" element={<PaidAccessGate><SellProperty /></PaidAccessGate>} />
-      <Route path="/seller-portal" element={<PaidAccessGate><SellerPortal /></PaidAccessGate>} />
-      <Route path="/buyer-profile" element={<PaidAccessGate><BuyerProfile /></PaidAccessGate>} />
-      <Route path="/saved" element={<PaidAccessGate><MyOpportunities /></PaidAccessGate>} />
       <Route path="/admin/seller-review" element={<AdminSellerReview />} />
       <Route path="/admin/deals" element={<DealDesk />} />
       <Route path="/subscribe" element={<Subscription />} />
