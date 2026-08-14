@@ -32,14 +32,14 @@ export const SUBSCRIPTION_PRODUCTS = {
 export const ACCESS_TIERS = [
   {
     code: "marketplace",
-    name: "Marketplace Access",
+    name: "Quarry Access",
     monthly: "$69/mo",
     annual: "$690/yr",
     features: [
-      "Access to the S&S quarry marketplace",
-      "Basic mine/quarry identity, location and operating status",
-      "Map browsing and saved opportunities",
-      "Buyer profile and seller listing tools",
+      "Access to S&S quarry intelligence",
+      "Mine/quarry identity, location and operating status",
+      "Interactive quarry and mine mapping",
+      "Basic site and commodity intelligence",
       "Report purchasing access",
     ],
   },
@@ -50,7 +50,7 @@ export const ACCESS_TIERS = [
     annual: "$1,390/yr",
     featured: true,
     features: [
-      "Everything in Marketplace Access",
+
       "Parcel/tax and mapped ownership intelligence",
       "Mapped geology, rock type and mineral value guide",
       "MSHA, TDEC, environmental and production intelligence",
