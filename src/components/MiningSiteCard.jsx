@@ -128,7 +128,7 @@ export default function MiningSiteCard({ site, valuation, geology }) {
         <div className="mt-4 rounded-xl border border-slate-300 bg-slate-100/70 p-3">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-700"><ShieldCheck className="h-3.5 w-3.5" /> Source record</div>
           <div className="mt-1 text-sm font-semibold text-slate-900">{site.msha_mine_id ? `MSHA Mine ID ${site.msha_mine_id}` : site.tdec_permit_number ? `TDEC ${site.tdec_permit_number}` : site.source}</div>
-          <div className="mt-0.5 text-xs text-slate-600">{displayDate(site.last_source_update || site.updated_date) ? `Checked ${displayDate(site.last_source_update || site.updated_date)}` : "Source date not yet verified"}</div>
+          <div className="mt-0.5 text-xs text-slate-600">{displayDate(site.last_source_update) ? `Source checked ${displayDate(site.last_source_update)}` : "Source date not yet verified"}</div>
         </div>
 
         {site.site_images?.length > 0 && (
