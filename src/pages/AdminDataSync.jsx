@@ -7,9 +7,11 @@ import { useAuth } from "@/lib/AuthContext";
 export default function AdminDataSync() {
   const { user } = useAuth();
   const [running, setRunning] = useState(false);
+  const [runningMshaMines, setRunningMshaMines] = useState(false);
   const [runningGeology, setRunningGeology] = useState(false);
   const [runningParcels, setRunningParcels] = useState(false);
   const [result, setResult] = useState(null);
+  const [mshaMinesResult, setMshaMinesResult] = useState(null);
   const [geologyResult, setGeologyResult] = useState(null);
   const [parcelResult, setParcelResult] = useState(null);
   const [freshness, setFreshness] = useState([]);
@@ -30,6 +32,21 @@ export default function AdminDataSync() {
   if (!user || user.role !== "admin") {
     return <div className="min-h-screen bg-background p-10 text-center text-muted-foreground">Admin access required.</div>;
   }
+
+  const syncMshaMines = async () => {
+    setRunningMshaMines(true);
+    setError("");
+    setMshaMinesResult(null);
+    try {
+      const response = await base44.functions.invoke("sync-msha-mines", {});
+      setMshaMinesResult(response?.data || response);
+      await loadFreshness();
+    } catch (e) {
+      setError(e?.message || "MSHA mine master sync failed.");
+    } finally {
+      setRunningMshaMines(false);
+    }
+  };
 
   const syncMsha = async () => {
     setRunning(true);
@@ -137,6 +154,29 @@ export default function AdminDataSync() {
             <button onClick={syncEnvironmental} disabled={runningEnvironmental} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningEnvironmental ? "animate-spin" : ""}`} />{runningEnvironmental ? "Refreshing…" : "Sync NPDES / compliance"}</button>
           </div>
           {environmentalResult && <div className="mt-5 rounded-xl border border-border bg-muted/20 p-5"><div className="grid gap-4 sm:grid-cols-4"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">EPA TN facilities</div><div className="mt-1 font-bold">{environmentalResult.epa_tn_facilities ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Mine matches</div><div className="mt-1 font-bold">{environmentalResult.matched ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Environmental</div><div className="mt-1 font-bold">{(environmentalResult.environmental_created ?? 0) + (environmentalResult.environmental_updated ?? 0)}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Permit records</div><div className="mt-1 font-bold">{(environmentalResult.permits_created ?? 0) + (environmentalResult.permits_updated ?? 0)}</div></div></div>{environmentalResult.note && <p className="mt-4 text-sm text-muted-foreground">{environmentalResult.note}</p>}</div>}
+        </section>
+
+        <section className="mb-6 rounded-2xl border border-border bg-card p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <DatabaseZap className="h-5 w-5 text-slate-800" />
+                <h2 className="font-heading text-xl font-bold text-foreground">MSHA Mine Master</h2>
+              </div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Refreshes Tennessee mine identity, current status, operator, controller, mine type, commodity, county and coordinates from MSHA's official Mines dataset. Mine ID is treated as the authoritative unique key; S&S parcel and permit links are preserved.
+              </p>
+            </div>
+            <button
+              onClick={syncMshaMines}
+              disabled={runningMshaMines}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${runningMshaMines ? "animate-spin" : ""}`} />
+              {runningMshaMines ? "Refreshing master…" : "Sync MSHA mine master"}
+            </button>
+          </div>
+          {mshaMinesResult && <div className="mt-5 rounded-xl border border-border bg-muted/20 p-5"><div className="grid gap-4 sm:grid-cols-4"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Official TN rows</div><div className="mt-1 font-bold">{mshaMinesResult.official_tennessee_records ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Created</div><div className="mt-1 font-bold">{mshaMinesResult.created ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Updated</div><div className="mt-1 font-bold">{mshaMinesResult.updated ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Duplicate IDs</div><div className="mt-1 font-bold">{mshaMinesResult.duplicate_msha_ids_found ?? 0}</div></div></div>{mshaMinesResult.note && <p className="mt-4 text-sm text-muted-foreground">{mshaMinesResult.note}</p>}</div>}
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-6">
