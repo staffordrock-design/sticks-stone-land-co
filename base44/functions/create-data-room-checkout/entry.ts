@@ -43,14 +43,20 @@ export default async function(req) {
     const originHeader = req.headers.get('origin');
     const referer = req.headers.get('referer');
     const origin = originHeader || (referer ? new URL(referer).origin : 'https://app.base44.com');
-    const stripe = new Stripe(secrets.get('STRIPE_SECRET_KEY'), { apiVersion: '2026-06-24.dahlia' });
+    const stripeSecret = secrets.get('STRIPE_SECRET_KEY');
+    if (!stripeSecret) return Response.json({ error: 'Stripe is not configured' }, { status: 503 });
+    const stripe = new Stripe(stripeSecret, { apiVersion: '2026-06-24.dahlia' });
+
+    // Fail clearly before redirecting a customer if the configured Stripe price is missing or inactive.
+    const price = await stripe.prices.retrieve(PRICE_ID);
+    if (!price?.active) return Response.json({ error: 'Data-room price is not active in Stripe' }, { status: 503 });
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: [{ price: PRICE_ID, quantity: 1 }],
       customer_email: user.email || undefined,
       client_reference_id: user.id,
-      integration_identifier: `sticksstone_${randomSuffix()}`,
+      integration_identifier: `ssrockholdings_${randomSuffix()}`,
       metadata: {
         base44_app_id: Deno.env.get('BASE44_APP_ID') || '',
         listing_id,
@@ -58,6 +64,7 @@ export default async function(req) {
         user_id: user.id,
         user_email: user.email || '',
         purchase_surface: 'website',
+        purchase_type: 'data_room_access',
       },
       success_url: `${origin}/listings/${listing_id}?checkout_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/listings/${listing_id}`,
