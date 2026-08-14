@@ -123,7 +123,7 @@ export default function AdminDataSync() {
       <header className="border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto max-w-5xl px-6 py-4">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" /> Back to marketplace
+            <ArrowLeft className="h-4 w-4" /> Back to quarry intelligence
           </Link>
         </div>
       </header>
