@@ -44,12 +44,12 @@ export default async function(req: Request) {
     ]);
 
     const definitions = [
-      { source: "MSHA", rows: [...(sites || []), ...(production || [])], fields: ["last_source_update", "updated_date"], current: 100, stale: 190 },
-      { source: "TDEC", rows: permits || [], fields: ["last_source_update", "updated_date"], current: 30, stale: 90 },
-      { source: "Geology", rows: geology || [], fields: ["last_source_update", "updated_date"], current: 120, stale: 240 },
-      { source: "Parcel", rows: parcels || [], fields: ["last_source_update", "boundary_last_verified", "updated_date"], current: 30, stale: 90 },
-      { source: "Tax", rows: parcels || [], fields: ["last_source_update", "updated_date"], current: 60, stale: 180 },
-      { source: "Environmental", rows: environmental || [], fields: ["last_source_update", "updated_date"], current: 30, stale: 90 },
+      { source: "MSHA", rows: [...(sites || []), ...(production || [])], fields: ["last_source_update"], current: 100, stale: 190 },
+      { source: "TDEC", rows: permits || [], fields: ["last_source_update"], current: 30, stale: 90 },
+      { source: "Geology", rows: geology || [], fields: ["last_source_update"], current: 120, stale: 240 },
+      { source: "Parcel", rows: parcels || [], fields: ["last_source_update", "boundary_last_verified"], current: 30, stale: 90 },
+      { source: "Tax", rows: parcels || [], fields: ["last_source_update"], current: 60, stale: 180 },
+      { source: "Environmental", rows: environmental || [], fields: ["last_source_update"], current: 30, stale: 90 },
     ];
 
     const results: any[] = [];
