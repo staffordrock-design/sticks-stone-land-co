@@ -100,6 +100,7 @@ export default function Home() {
             <Link to="/sell" className="hover:text-foreground">Sell / List</Link>
             <Link to="/buyer-profile" className="hover:text-foreground">Buyer Profile</Link>
             <Link to="/saved" className="hover:text-foreground">Saved</Link>
+            <Link to="/ownership-intelligence" className="hover:text-foreground">Ownership Intel</Link>
             {!isNative && <Link to="/subscribe" className="hover:text-foreground">Professional</Link>}
             {user?.role === "admin" && <Link to="/admin/deals" className="font-semibold text-sky-700 hover:text-sky-800">Deal Desk</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
