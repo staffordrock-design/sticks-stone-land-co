@@ -233,7 +233,33 @@ export default function MineSiteDetail() {
         allowed = (entitlements || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now()));
       }
       if (!allowed) {
-        setReportMessage(user?.id ? "Professional access is required to download the full PDF report." : "Sign in with a Professional account to download the full PDF report.");
+        if (!user?.id) {
+          navigate(`/login?returnTo=${encodeURIComponent(`/mines/${site.id}`)}`);
+          return;
+        }
+
+        const amount = reportType === "Enhanced" ? 389 : 189;
+        const existing = await base44.entities.IntelligenceReportOrder.filter({
+          user_id: user.id,
+          mining_site_id: site.id,
+          report_type: reportType,
+          status: "Pending Payment",
+        }, "-created_date", 1);
+
+        const order = existing?.[0] || await base44.entities.IntelligenceReportOrder.create({
+          user_id: user.id,
+          customer_email: user.email || "",
+          mining_site_id: site.id,
+          listing_id: site.listing_id || "",
+          site_name: site.mine_name || "",
+          report_type: reportType,
+          status: "Pending Payment",
+          amount,
+          requested_at: new Date().toISOString(),
+          notes: `${reportType} report requested from the mine detail page. S&S payment and fulfillment follow-up required.`,
+        });
+
+        setReportMessage(`${reportType} report request received for $${amount}. S&S will contact ${user.email || "your account email"} with payment and delivery details. Order ${order.id}.`);
         return;
       }
 
@@ -284,8 +310,8 @@ export default function MineSiteDetail() {
             <p className="mt-2 text-muted-foreground">{[site.city, site.county, site.state].filter(Boolean).join(" · ")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <button onClick={() => downloadIntelligenceReport("Standard")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-sky-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Standard PDF"}</button>
-            <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-sky-400 bg-stone-950 px-4 py-2 text-xs font-bold text-sky-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Building PDF…" : "Enhanced PDF"}</button>
+            <button onClick={() => downloadIntelligenceReport("Standard")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-sky-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Working…" : "Standard report · $189"}</button>
+            <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-sky-400 bg-stone-950 px-4 py-2 text-xs font-bold text-sky-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Working…" : "Enhanced report · $389"}</button>
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
             <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{recordStatusLabel(site)}</span>
