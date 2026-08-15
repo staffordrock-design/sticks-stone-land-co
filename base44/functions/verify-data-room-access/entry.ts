@@ -12,7 +12,9 @@ export default async function(req) {
     const user = await base44.auth.me();
     if (!user?.id) return Response.json({ error: 'Sign in required' }, { status: 401 });
 
-    const stripe = new Stripe(secrets.get('STRIPE_SECRET_KEY'), { apiVersion: '2026-06-24.dahlia' });
+    const stripeSecret = secrets.get('STRIPE_SECRET_KEY');
+    if (!stripeSecret) return Response.json({ error: 'Stripe is not configured' }, { status: 503 });
+    const stripe = new Stripe(stripeSecret, { apiVersion: '2026-06-24.dahlia' });
     const session = await stripe.checkout.sessions.retrieve(checkout_id);
     const sessionUserId = session.metadata?.user_id || session.client_reference_id || null;
     if (!sessionUserId || sessionUserId !== user.id) {
