@@ -5,15 +5,18 @@ import { secrets } from 'base44:runtime';
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
-    const stripe = new Stripe(secrets.get('STRIPE_SECRET_KEY'), { apiVersion: '2026-06-24.dahlia' });
+    const stripeSecret = secrets.get('STRIPE_SECRET_KEY');
+    const webhookSecret = secrets.get('STRIPE_WEBHOOK_SECRET');
     const signature = req.headers.get('stripe-signature');
-    const rawBody = await req.text();
+    if (!stripeSecret || !webhookSecret) {
+      console.error('stripe-webhook is missing required Stripe secrets');
+      return Response.json({ error: 'Stripe webhook is not configured' }, { status: 503 });
+    }
+    if (!signature) return Response.json({ error: 'Missing Stripe signature' }, { status: 400 });
 
-    const event = await stripe.webhooks.constructEventAsync(
-      rawBody,
-      signature,
-      secrets.get('STRIPE_WEBHOOK_SECRET')
-    );
+    const stripe = new Stripe(stripeSecret, { apiVersion: '2026-06-24.dahlia' });
+    const rawBody = await req.text();
+    const event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
