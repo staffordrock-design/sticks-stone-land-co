@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import ParcelMap from "@/components/ParcelMap";
+const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2 } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
@@ -84,6 +84,7 @@ export default function MineSiteDetail() {
   const [error, setError] = useState("");
   const [reportGenerating, setReportGenerating] = useState(false);
   const [reportMessage, setReportMessage] = useState("");
+  const [showAllRecords, setShowAllRecords] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -110,10 +111,10 @@ export default function MineSiteDetail() {
           base44.entities.ParcelRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null, tdecPermit ? { tdec_permit_number: tdecPermit } : null]), "-updated_date", 50),
           base44.entities.TDECPermit.filter(linkOr([tdecPermit ? { permit_number: tdecPermit } : null]), "-updated_date", 50),
           base44.entities.EnvironmentalRecord.filter(linkOr([npdesPermit ? { npdes_permit_number: npdesPermit } : null]), "-updated_date", 50),
-          base44.entities.MSHAInspection.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", 200),
-          base44.entities.MSHAViolation.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", 200),
+          base44.entities.MSHAInspection.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", showAllRecords ? 500 : 100),
+          base44.entities.MSHAViolation.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", showAllRecords ? 500 : 100),
           base44.entities.QuarryPotentialProfile.filter(linkOr(), "-updated_date", 10),
-          base44.entities.ProductionRecord.filter(linkOr(), "-year", 200),
+          base44.entities.ProductionRecord.filter(linkOr(), "-year", showAllRecords ? 500 : 100),
           base44.entities.GeologyRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
           base44.entities.ContractIntelligence.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
         ]);
@@ -133,7 +134,7 @@ export default function MineSiteDetail() {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, showAllRecords]);
 
   const parcel = useMemo(() => {
     if (!site) return null;
@@ -285,7 +286,7 @@ export default function MineSiteDetail() {
       if (!result?.success || !result?.payload?.site) throw new Error(result?.error || "Report package could not be assembled.");
       const p = result.payload;
       const packagedValuation = calculateIndicativeQuarryValue({ site: p.site, parcel: p.parcel, profile: p.profile, geology: p.geology });
-      generateQuarryReportPdf({
+      await generateQuarryReportPdf({
         site: p.site,
         parcel: p.parcel,
         geology: p.geology,
@@ -351,17 +352,19 @@ export default function MineSiteDetail() {
         )}
 
         <div className="mb-8 grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
-          <ParcelMap
-            lat={mapLat}
-            lng={mapLng}
-            polygon={parcel?.boundary_polygon?.length >= 3 ? parcel.boundary_polygon : liveParcel?.boundary}
-            ownerName={parcel?.owner_name || liveParcel?.owner || site.parcel_owner}
-            parcelId={parcel?.parcel_id || liveParcel?.parcel_id || site.parcel_id}
-            acreage={parcel?.acreage ?? liveParcel?.acreage ?? site.acreage}
-            rockType={geologyRecord?.primary_rock || geologyRecord?.lithology || site.commodity}
-            boundarySource={parcel?.boundary_source || liveParcel?.source || parcel?.source_name}
-            height={440}
-          />
+          <Suspense fallback={<div className="flex w-full items-center justify-center rounded-xl border border-border bg-muted/30 text-sm text-muted-foreground" style={{ height: 440 }}>Loading map…</div>}>
+            <ParcelMap
+              lat={mapLat}
+              lng={mapLng}
+              polygon={parcel?.boundary_polygon?.length >= 3 ? parcel.boundary_polygon : liveParcel?.boundary}
+              ownerName={parcel?.owner_name || liveParcel?.owner || site.parcel_owner}
+              parcelId={parcel?.parcel_id || liveParcel?.parcel_id || site.parcel_id}
+              acreage={parcel?.acreage ?? liveParcel?.acreage ?? site.acreage}
+              rockType={geologyRecord?.primary_rock || geologyRecord?.lithology || site.commodity}
+              boundarySource={parcel?.boundary_source || liveParcel?.source || parcel?.source_name}
+              height={440}
+            />
+          </Suspense>
           <Card title="Mine Record" icon={MapPinned}>
             <Row label="MSHA ID" value={site.msha_mine_id} />
             <Row label="Commodity" value={site.commodity} />
@@ -392,6 +395,11 @@ export default function MineSiteDetail() {
           <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{diligence.map((item) => <div key={item.label} className="flex gap-2 rounded-xl border border-stone-800 bg-stone-900/70 p-3">{item.ready ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />}<div><div className="text-xs font-bold">{item.label}</div><div className="mt-0.5 text-[11px] text-stone-400">{item.detail || "Not connected"}</div></div></div>)}</div>
         </div>
 
+        {!showAllRecords && (relatedInspections.length >= 90 || relatedViolations.length >= 90 || relatedProduction.length >= 90) && (
+          <div className="mb-6 text-center">
+            <button onClick={() => setShowAllRecords(true)} className="rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted">Show all compliance & production records</button>
+          </div>
+        )}
         <div className="grid gap-6 lg:grid-cols-2">
           <Card title="Parcel & Tax Intelligence" icon={Landmark}>
             {(parcel || liveParcel || site.parcel_id || site.parcel_owner) ? (

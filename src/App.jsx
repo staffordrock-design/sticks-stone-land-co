@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -13,25 +13,31 @@ import NativeBackHandler from './components/NativeBackHandler';
 import ActivityTracker from './components/ActivityTracker';
 import PaidAccessGate from './components/PaidAccessGate';
 // Add page imports here
-import Home from './pages/Home';
-import ListingDetail from './pages/ListingDetail';
-import MineSiteDetail from './pages/MineSiteDetail';
-import AdminActivity from './pages/AdminActivity';
-import AdminDataSync from './pages/AdminDataSync';
-import AdminReports from './pages/AdminReports';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import TermsOfUse from './pages/TermsOfUse';
-import AccountDeletion from './pages/AccountDeletion';
-import DealDesk from './pages/DealDesk';
-import Subscription from './pages/Subscription';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import OAuthConsent from './pages/OAuthConsent';
-import Support from './pages/Support';
-import MineralValueGuide from './pages/MineralValueGuide';
-import AdminSellerReview from './pages/AdminSellerReview';
+const Home = lazy(() => import('./pages/Home'));
+const ListingDetail = lazy(() => import('./pages/ListingDetail'));
+const MineSiteDetail = lazy(() => import('./pages/MineSiteDetail'));
+const AdminActivity = lazy(() => import('./pages/AdminActivity'));
+const AdminDataSync = lazy(() => import('./pages/AdminDataSync'));
+const AdminReports = lazy(() => import('./pages/AdminReports'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
+const AccountDeletion = lazy(() => import('./pages/AccountDeletion'));
+const DealDesk = lazy(() => import('./pages/DealDesk'));
+const Subscription = lazy(() => import('./pages/Subscription'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const OAuthConsent = lazy(() => import('./pages/OAuthConsent'));
+const Support = lazy(() => import('./pages/Support'));
+const MineralValueGuide = lazy(() => import('./pages/MineralValueGuide'));
+const AdminSellerReview = lazy(() => import('./pages/AdminSellerReview'));
+
+const PageLoader = () => (
+  <div className="fixed inset-0 flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+  </div>
+);
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,6 +69,7 @@ const AuthenticatedApp = () => {
   return (
     <>
     <div className={pathname === "/" ? "" : "app-secondary-safe"}>
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Add your page Route elements here */}
       <Route path="/" element={<PaidAccessGate><Home /></PaidAccessGate>} />
@@ -86,6 +93,7 @@ const AuthenticatedApp = () => {
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
     </div>
     {!hideBottomNav && <BottomNav />}
     </>

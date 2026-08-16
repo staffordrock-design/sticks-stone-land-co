@@ -1,5 +1,3 @@
-import jsPDF from "jspdf";
-
 function text(value, fallback = "Not available from connected source") {
   if (value === null || value === undefined || value === "") return fallback;
   return String(value);
@@ -16,7 +14,8 @@ function date(value) {
   return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-export function generateQuarryReportPdf({ site, parcel, geology, profile, permits = [], production = [], environmental = [], inspections = [], violations = [], valuation, sourceSnapshotDate = new Date().toISOString(), reportType = "Standard", freshness = {}, nearbySites = [] }) {
+export async function generateQuarryReportPdf({ site, parcel, geology, profile, permits = [], production = [], environmental = [], inspections = [], violations = [], valuation, sourceSnapshotDate = new Date().toISOString(), reportType = "Standard", freshness = {}, nearbySites = [] }) {
+  const { default: jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "pt", format: "letter" });
   const width = doc.internal.pageSize.getWidth();
   const height = doc.internal.pageSize.getHeight();

@@ -12,6 +12,7 @@ export default function BottomSheetSelect({ value, onChange, options, label = "S
           <DrawerTrigger asChild>
             <button
               type="button"
+              aria-label={label}
               className={`inline-flex min-h-[44px] w-full items-center justify-between rounded-lg border border-input bg-card px-3 py-2 text-xs font-semibold text-foreground ${className}`}
             >
               <span>{value}</span>

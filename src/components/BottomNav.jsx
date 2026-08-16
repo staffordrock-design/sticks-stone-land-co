@@ -70,12 +70,15 @@ export default function BottomNav() {
         return (
           <button
             key={to}
+            role="tab"
+            aria-label={label}
+            aria-selected={active}
             onClick={() => handleTab({ to, label, match })}
-            className="relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-1 py-2"
+            className="relative flex min-h-[44px] flex-1 flex-col items-center justify-center gap-1 py-2"
           >
             {active && <span className="absolute top-0 h-1 w-10 rounded-b-full bg-slate-900" />}
             <Icon className={`h-5 w-5 transition-colors ${active ? "text-slate-900" : "text-muted-foreground"}`} />
-            <span className={`text-[11px] font-semibold transition-colors ${active ? "text-slate-900" : "text-muted-foreground"}`}>{label}</span>
+            <span className={`text-xs font-semibold transition-colors ${active ? "text-slate-900" : "text-muted-foreground"}`}>{label}</span>
           </button>
         );
       })}

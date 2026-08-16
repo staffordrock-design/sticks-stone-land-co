@@ -19,9 +19,13 @@ export default function AdminSellerReview() {
 
   const setStatus = async (id, status) => {
     setUpdating(id);
+    const prevSub = subs.find((s) => s.id === id);
+    if (!prevSub) return;
+    setSubs((curr) => curr.map((s) => (s.id === id ? { ...s, status } : s)));
     try {
       await base44.entities.SellerSubmission.update(id, { status });
-      setSubs((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
+    } catch {
+      setSubs((curr) => curr.map((s) => (s.id === id ? { ...s, status: prevSub.status } : s)));
     } finally {
       setUpdating("");
     }

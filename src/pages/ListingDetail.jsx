@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
-import ParcelMap from "@/components/ParcelMap";
+const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 import NdaGate from "@/components/NdaGate";
 import ParcelRecords from "@/components/ParcelRecords";
 import DealActions from "@/components/DealActions";
@@ -150,12 +150,14 @@ export default function ListingDetail() {
             <h2 className="mb-3 font-heading text-xl font-bold text-foreground">
               Parcel Boundary (GIS)
             </h2>
-            <ParcelMap
-              lat={listing.lat}
-              lng={listing.lng}
-              polygon={parcelData?.boundary?.length ? parcelData.boundary : listing.polygon_boundary}
-              height={400}
-            />
+            <Suspense fallback={<div className="h-[400px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
+              <ParcelMap
+                lat={listing.lat}
+                lng={listing.lng}
+                polygon={parcelData?.boundary?.length ? parcelData.boundary : listing.polygon_boundary}
+                height={400}
+              />
+            </Suspense>
             <p className="mt-2 text-xs text-muted-foreground">
               {parcelData?.boundary?.length
                 ? "Official parcel boundary from Regrid (register of deeds / tax map). Centroid marker shown for reference."

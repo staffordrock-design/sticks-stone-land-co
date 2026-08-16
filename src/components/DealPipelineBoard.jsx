@@ -1,13 +1,16 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { GripVertical } from "lucide-react";
 
 export default function DealPipelineBoard({ stages, items, onMove }) {
   const [busy, setBusy] = useState(null);
+  const [localItems, setLocalItems] = useState(items);
+
+  useEffect(() => { setLocalItems(items); }, [items]);
 
   const grouped = useMemo(
-    () => Object.fromEntries(stages.map((s) => [s, items.filter((i) => i.stage === s)])),
-    [stages, items]
+    () => Object.fromEntries(stages.map((s) => [s, localItems.filter((i) => i.stage === s)])),
+    [stages, localItems]
   );
 
   const onDragEnd = async (result) => {
@@ -19,9 +22,13 @@ export default function DealPipelineBoard({ stages, items, onMove }) {
     if (fromStage === toStage) return;
     const item = grouped[fromStage]?.[source.index];
     if (!item) return;
+    const prevStage = item.stage;
+    setLocalItems((curr) => curr.map((i) => (i.id === item.id ? { ...i, stage: toStage } : i)));
     setBusy(item.id);
     try {
       await onMove(item, toStage);
+    } catch {
+      setLocalItems((curr) => curr.map((i) => (i.id === item.id ? { ...i, stage: prevStage } : i)));
     } finally {
       setBusy(null);
     }

@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
-import ParcelMap from "@/components/ParcelMap";
-import TennesseeMineMap from "@/components/TennesseeMineMap";
+const ParcelMap = lazy(() => import("@/components/ParcelMap"));
+const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
 import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
@@ -38,14 +38,16 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [stateFilter, setStateFilter] = useState("All Southeast");
   const [sortMode, setSortMode] = useState("Most Complete");
+  const [showAll, setShowAll] = useState(false);
 
   const loadData = async () => {
     try {
+      const limit = showAll ? 500 : 200;
       const [data, profileData, parcelData, geologyData] = await Promise.all([
-        base44.entities.MiningSite.list("-created_date", 500),
-        base44.entities.QuarryPotentialProfile.list("-updated_date", 500),
-        base44.entities.ParcelRecord.list("-updated_date", 500),
-        base44.entities.GeologyRecord.list("-updated_date", 500),
+        base44.entities.MiningSite.list("-created_date", limit),
+        base44.entities.QuarryPotentialProfile.list("-updated_date", limit),
+        base44.entities.ParcelRecord.list("-updated_date", limit),
+        base44.entities.GeologyRecord.list("-updated_date", limit),
       ]);
 
       const siteList = data || [];
@@ -70,7 +72,7 @@ export default function Home() {
       setLoading(false);
     }
   };
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(); }, [showAll]);
 
   const visibleSites = Array.from(
     sites.reduce((map, site) => {
@@ -200,11 +202,13 @@ export default function Home() {
             </div>
           </div>
           <div className="grid gap-6 lg:grid-cols-2">
-            <ParcelMap
-              lat={featured.latitude}
-              lng={featured.longitude}
-              height={420}
-            />
+            <Suspense fallback={<div className="h-[420px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
+              <ParcelMap
+                lat={featured.latitude}
+                lng={featured.longitude}
+                height={420}
+              />
+            </Suspense>
             <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8">
               <span className="inline-flex w-fit items-center rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-900">
                 {featured.source}
@@ -244,10 +248,12 @@ export default function Home() {
 
       {/* Southeast intelligence map */}
       <section className="mx-auto max-w-7xl px-6 pb-14">
-        <TennesseeMineMap
-          sites={filtered}
-          height={560}
-        />
+        <Suspense fallback={<div className="h-[560px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
+          <TennesseeMineMap
+            sites={filtered}
+            height={560}
+          />
+        </Suspense>
         <p className="mt-2 text-xs text-muted-foreground">Aerial previews use Esri World Imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions. Records with the same MSHA Mine ID are consolidated in the browsing view to avoid duplicate display.</p>
       </section>
 
@@ -319,15 +325,22 @@ export default function Home() {
             No mine sites match your search.
           </div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {ranked.map((s) => {
-              const profile = profiles.find((p) => p.mining_site_id === s.id || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
-              const parcel = parcels.find((p) => (s.parcel_id && p.parcel_id === s.parcel_id) || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
-              const geologyRecord = geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
-              const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
-              return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} />;
-            })}
-          </div>
+          <>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {ranked.map((s) => {
+                const profile = profiles.find((p) => p.mining_site_id === s.id || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
+                const parcel = parcels.find((p) => (s.parcel_id && p.parcel_id === s.parcel_id) || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
+                const geologyRecord = geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
+                const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
+                return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} />;
+              })}
+            </div>
+            {!showAll && sites.length >= 190 && (
+              <div className="mt-8 text-center">
+                <button onClick={() => setShowAll(true)} className="rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted">Show all records (load full dataset)</button>
+              </div>
+            )}
+          </>
         )}
       </section>
 
