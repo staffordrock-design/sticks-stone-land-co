@@ -3,6 +3,7 @@ import { unzipSync, strFromU8 } from "npm:fflate";
 
 const DATA_URL = "https://arlweb.msha.gov/OpenGovernmentData/DataSets/Mines.zip";
 const SOURCE_PAGE = "https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp";
+const SOUTHEAST_STATES = new Set(["TN", "GA", "AL", "KY", "NC", "SC", "VA", "WV", "FL", "MS", "AR", "LA"]);
 
 function clean(v: unknown) {
   const s = String(v ?? "").replace(/\s+/g, " ").trim();
@@ -47,9 +48,14 @@ export default async function(req: Request) {
     const fileName = Object.keys(archive).find((n) => /mine/i.test(n) && /\.txt$|\.csv$|\.dat$/i.test(n)) || Object.keys(archive)[0];
     if (!fileName) throw new Error("MSHA Mines archive contained no data file");
     const rows = rowsFromPipeText(strFromU8(archive[fileName]));
-    const tn = rows.filter((r: any) => String(r.STATE || "").trim().toUpperCase() === "TN");
+    const southeast = rows.filter((r: any) => SOUTHEAST_STATES.has(String(r.STATE || "").trim().toUpperCase()));
 
-    const existing = await base44.asServiceRole.entities.MiningSite.list("-updated_date", 500);
+    const existing: any[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const page = await base44.asServiceRole.entities.MiningSite.list("-updated_date", 500, offset);
+      existing.push(...(page || []));
+      if (!page || page.length < 500) break;
+    }
     const byMineId = new Map<string, any[]>();
     for (const site of existing || []) {
       const id = clean(site.msha_mine_id);
@@ -63,7 +69,7 @@ export default async function(req: Request) {
     let duplicateIds = 0;
     const sample: any[] = [];
 
-    for (const r of tn) {
+    for (const r of southeast) {
       const mineId = clean(r.MINE_ID);
       if (!mineId) continue;
       const official = {
@@ -77,7 +83,7 @@ export default async function(req: Request) {
         operator_name: clean(r.CURRENT_OPERATOR_NAME),
         controller_name: clean(r.CURRENT_CONTROLLER_NAME),
         county: clean(r.FIPS_CNTY_NM)?.replace(/\s+County$/i, ""),
-        state: "TN",
+        state: clean(r.STATE)?.toUpperCase(),
         city: clean(r.NEAREST_TOWN),
         latitude: num(r.LATITUDE),
         longitude: num(r.LONGITUDE),
@@ -127,12 +133,13 @@ export default async function(req: Request) {
     return Response.json({
       success: true,
       source: DATA_URL,
-      official_tennessee_records: tn.length,
+      official_southeast_records: southeast.length,
       created,
       updated,
       duplicate_msha_ids_found: duplicateIds,
       sample,
-      note: "MSHA Mine ID is treated as the authoritative unique key. Official MSHA fields are refreshed; S&S parcel, permit, imagery and listing fields are preserved.",
+      states: Array.from(SOUTHEAST_STATES),
+      note: "MSHA Mine ID is treated as the authoritative unique key across the Southeast. Official MSHA fields are refreshed; S&S parcel, permit, imagery and listing fields are preserved.",
     });
   } catch (error: any) {
     const message = error?.message || String(error);
