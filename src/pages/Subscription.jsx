@@ -174,7 +174,7 @@ export default function Subscription() {
                 <Link to="/login" className="text-sm font-semibold text-sky-800 hover:underline">Sign in</Link>
               </div>
             )}
-          </div>
+          </div>}
         </div>
       </div>
     </div>
