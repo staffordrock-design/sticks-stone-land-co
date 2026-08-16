@@ -3,7 +3,7 @@ import { unzipSync, strFromU8 } from "npm:fflate";
 
 const DATA_URL = "https://arlweb.msha.gov/OpenGovernmentData/DataSets/Mines.zip";
 const SOURCE_PAGE = "https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp";
-const SOUTHEAST_STATES = new Set(["TN", "GA", "AL", "KY", "NC", "SC", "VA", "WV", "FL", "MS", "AR", "LA"]);
+const SOUTHEAST_STATES = new Set(["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"]);
 
 function clean(v: unknown) {
   const s = String(v ?? "").replace(/\s+/g, " ").trim();
