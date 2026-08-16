@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Crown, Loader2, LockKeyhole } from "lucide-react";
+import { Crown, Eye, Loader2, LockKeyhole, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
+import { disableReviewDemoMode, enableReviewDemoMode, isReviewDemoMode } from "@/lib/reviewDemo";
 
 const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
 const isCurrentlyActive = (row) => ACTIVE_STATUSES.has(row.status) && (!row.expires_at || new Date(row.expires_at).getTime() > Date.now());
@@ -12,6 +13,7 @@ export default function PaidAccessGate({ children }) {
   const { user } = useAuth();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reviewDemo, setReviewDemo] = useState(isReviewDemoMode);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +47,22 @@ export default function PaidAccessGate({ children }) {
 
   const active = useMemo(() => rows.find(isCurrentlyActive), [rows]);
 
+  if (reviewDemo) {
+    return (
+      <div className="min-h-screen">
+        <div className="sticky top-0 z-[60] flex items-center justify-between gap-3 border-b border-sky-200 bg-sky-50 px-4 py-2 text-xs font-semibold text-sky-950">
+          <span className="inline-flex items-center gap-2"><Eye className="h-4 w-4" />Apple Review Demo · read-only access</span>
+          <button
+            type="button"
+            onClick={() => { disableReviewDemoMode(); setReviewDemo(false); }}
+            className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-sky-300 bg-white px-3 py-1.5"
+          ><X className="h-3.5 w-3.5" />Exit demo</button>
+        </div>
+        {children}
+      </div>
+    );
+  }
+
   if (user?.role === "admin") return children;
 
   if (loading) {
@@ -61,6 +79,7 @@ export default function PaidAccessGate({ children }) {
           <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-muted-foreground">S&S Quarry Intelligence gives subscribers access to quarry records, maps, geology, regulatory context, mineral intelligence and deeper site analysis.</p>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link to="/subscribe" className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />View subscription</Link>
+            {!user?.id && isNativeIOS() && <button type="button" onClick={() => { enableReviewDemoMode(); setReviewDemo(true); }} className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-5 py-3 text-sm font-bold text-sky-950"><Eye className="h-4 w-4" />Explore review demo</button>}
             {!user?.id && <Link to="/register" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Create account</Link>}
             {!user?.id && <Link to="/login" className="text-sm font-semibold text-sky-800 hover:underline">Sign in</Link>}
           </div>
