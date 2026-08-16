@@ -59,7 +59,11 @@ export default function PaidAccessGate({ children }) {
           <p className="mt-6 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">S&S Rock Holdings</p>
           <h1 className="mt-2 font-heading text-3xl font-bold">Subscription required</h1>
           <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-muted-foreground">S&S Quarry Intelligence gives subscribers access to quarry records, maps, geology, regulatory context, mineral intelligence and deeper site analysis.</p>
-          <Link to="/subscribe" className="mt-7 inline-flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />View subscription</Link>
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link to="/subscribe" className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />View subscription</Link>
+            {!user?.id && <Link to="/register" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Create account</Link>}
+            {!user?.id && <Link to="/login" className="text-sm font-semibold text-sky-800 hover:underline">Sign in</Link>}
+          </div>
           <p className="mt-5 text-xs leading-5 text-muted-foreground">Downloadable intelligence reports and custom diligence may be priced separately from subscription access.</p>
         </div>
       </div>
