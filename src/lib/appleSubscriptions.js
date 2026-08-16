@@ -66,3 +66,16 @@ export async function syncCurrentAppleSubscriptions({ restore = false } = {}) {
 
   return verifyAppleTransactions(purchases || [], { reconcile: true });
 }
+
+export async function verifyAppleDataRoom(transaction, listingId) {
+  const signedTransaction = transaction?.jwsRepresentation;
+  if (!signedTransaction) throw new Error("Apple transaction is missing a signed payload.");
+  const appTransaction = await signedAppTransaction();
+  const response = await base44.functions.invoke("verify-apple-data-room", {
+    signed_transaction: signedTransaction,
+    signed_app_transaction: appTransaction,
+    listing_id: listingId,
+  });
+  if (response?.data?.error) throw new Error(response.data.error);
+  return response?.data || {};
+}

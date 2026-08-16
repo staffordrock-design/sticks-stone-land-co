@@ -8,10 +8,16 @@
     "listing_title": {
       "type": "string"
     },
+    "user_id": {
+      "type": "string"
+    },
     "customer_email": {
       "type": "string"
     },
     "stripe_session_id": {
+      "type": "string"
+    },
+    "apple_transaction_id": {
       "type": "string"
     },
     "paid": {

@@ -29,6 +29,8 @@ export const SUBSCRIPTION_PRODUCTS = {
   },
 };
 
+export const DATA_ROOM_APPLE_PRODUCT_ID = "com.ssrockholdings.dataroom.access";
+
 export const ACCESS_TIERS = [
   {
     code: "marketplace",

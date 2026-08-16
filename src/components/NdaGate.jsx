@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Download, FileText, FlaskConical, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { CreditCard, Download, FileText, FlaskConical, Loader2, Lock, ShieldCheck, Apple } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
+import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
+import { appleAccountTokenForUser, verifyAppleDataRoom } from "@/lib/appleSubscriptions";
+import { DATA_ROOM_APPLE_PRODUCT_ID } from "@/lib/subscriptionPlans";
 
 const ACCESS_FEE = 250;
 
@@ -31,7 +34,9 @@ export default function NdaGate({ listing }) {
   const [submitting, setSubmitting] = useState(false);
   const [paying, setPaying] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const nativeLike = useMemo(() => isNativeLikeEnvironment(), []);
+  const [appleProduct, setAppleProduct] = useState(null);
+  const [applePurchasing, setApplePurchasing] = useState(false);
+  const isIOSNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
 
   useEffect(() => {
     if (!user?.id) {
@@ -52,7 +57,7 @@ export default function NdaGate({ listing }) {
 
         const params = new URLSearchParams(window.location.search);
         const checkoutId = params.get("checkout_id");
-        if (checkoutId && !nativeLike) {
+        if (checkoutId && !isIOSNative) {
           setVerifying(true);
           try {
             const res = await base44.functions.invoke("verify-data-room-access", { checkout_id: checkoutId });
@@ -72,7 +77,24 @@ export default function NdaGate({ listing }) {
     })();
 
     return () => { active = false; };
-  }, [listing.id, nativeLike, user?.id]);
+  }, [listing.id, isIOSNative, user?.id]);
+
+  useEffect(() => {
+    if (!isIOSNative) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { products } = await NativePurchases.getProducts({
+          productIdentifiers: [DATA_ROOM_APPLE_PRODUCT_ID],
+          productType: PURCHASE_TYPE.INAPP,
+        });
+        if (!cancelled) setAppleProduct((products || [])[0] || null);
+      } catch (error) {
+        console.error("Apple data-room product fetch failed", error);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isIOSNative]);
 
   const signNda = async () => {
     if (!user?.id) return;
@@ -95,7 +117,7 @@ export default function NdaGate({ listing }) {
   };
 
   const startCheckout = async () => {
-    if (nativeLike || !user?.id) return;
+    if (isIOSNative || !user?.id) return;
     setPaying(true);
     try {
       const res = await base44.functions.invoke("create-data-room-checkout", {
@@ -108,6 +130,28 @@ export default function NdaGate({ listing }) {
       alert("Could not start checkout. Please try again.");
     } finally {
       setPaying(false);
+    }
+  };
+
+  const startApplePurchase = async () => {
+    if (!isIOSNative || !user?.id) return;
+    setApplePurchasing(true);
+    try {
+      const appAccountToken = await appleAccountTokenForUser(user.id);
+      const transaction = await NativePurchases.purchaseProduct({
+        productIdentifier: DATA_ROOM_APPLE_PRODUCT_ID,
+        productType: PURCHASE_TYPE.INAPP,
+        quantity: 1,
+        appAccountToken,
+        isConsumable: true,
+      });
+      const result = await verifyAppleDataRoom(transaction, listing.id);
+      if (result?.paid) setPaid(true);
+    } catch (error) {
+      const message = String(error?.message || error || "Purchase was not completed.");
+      if (!/cancel/i.test(message)) alert(message);
+    } finally {
+      setApplePurchasing(false);
     }
   };
 
@@ -160,10 +204,12 @@ export default function NdaGate({ listing }) {
       <div className="rounded-2xl border border-border bg-gradient-to-br from-sky-50/50 to-stone-50 p-8 text-center">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-sky-600 text-white"><CreditCard className="h-6 w-6" /></div>
         <h3 className="mt-4 font-heading text-xl font-semibold text-foreground">NDA Signed</h3>
-        {nativeLike ? (
+        {isIOSNative ? (
           <>
-            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Purchase of confidential data-room access is not offered inside this mobile app. If your account already has authorized access, it will appear here automatically.</p>
-            <div className="mx-auto mt-5 max-w-md rounded-xl border border-border bg-card p-4 text-left text-xs leading-relaxed text-muted-foreground">This screen does not contain a payment link, external checkout button, price, or call to purchase outside the app.</div>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Your NDA is on file. Unlock this listing's confidential data room with a one-time Apple in-app purchase.</p>
+            <div className="mt-5 flex items-center justify-center gap-2"><span className="font-display text-4xl font-bold text-foreground">{appleProduct?.priceString || `$${ACCESS_FEE}`}</span><span className="text-sm text-muted-foreground">one-time access</span></div>
+            <Button className="mt-5" onClick={startApplePurchase} disabled={applePurchasing || verifying || !appleProduct}>{applePurchasing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Connecting to Apple…</> : <><Apple className="mr-2 h-4 w-4" />Unlock with Apple</>}</Button>
+            {!appleProduct && <p className="mt-3 text-xs text-muted-foreground">Loading Apple purchase…</p>}
           </>
         ) : (
           <>

@@ -1,13 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk';
-import { SignedDataVerifier, Environment } from 'npm:@apple/app-store-server-library@3.1.0';
-import { Buffer } from 'node:buffer';
-
-const BUNDLE_ID = 'com.ssrockholdings.quarrymarketplace';
-const APPLE_ROOT_CERT_URLS = [
-  'https://www.apple.com/appleca/AppleIncRootCertificate.cer',
-  'https://www.apple.com/certificateauthority/AppleRootCA-G2.cer',
-  'https://www.apple.com/certificateauthority/AppleRootCA-G3.cer',
-];
+import { verifyApplePurchases, sha256Hex, isoFromMillis } from '../../shared/appleVerify.ts';
 
 const PRODUCT_TO_PLAN = {
   'com.ssrockholdings.marketplace.monthly': 'marketplace_monthly',
@@ -17,59 +9,6 @@ const PRODUCT_TO_PLAN = {
   'com.ssrockholdings.deal.monthly': 'deal_monthly',
   'com.ssrockholdings.deal.annual': 'deal_annual',
 };
-
-let rootCertificatesPromise: Promise<Buffer[]> | null = null;
-
-function getRootCertificates() {
-  if (!rootCertificatesPromise) {
-    rootCertificatesPromise = Promise.all(APPLE_ROOT_CERT_URLS.map(async (url) => {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Unable to load Apple root certificate (${response.status})`);
-      return Buffer.from(await response.arrayBuffer());
-    })).catch((error) => {
-      rootCertificatesPromise = null;
-      throw error;
-    });
-  }
-  return rootCertificatesPromise;
-}
-
-function decodeUnverifiedPayload(jws: string) {
-  const parts = String(jws || '').split('.');
-  if (parts.length !== 3) throw new Error('Invalid Apple signed transaction format');
-  const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-  return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(padded), (c) => c.charCodeAt(0))));
-}
-
-function environmentFor(value: string) {
-  if (value === 'Production') return Environment.PRODUCTION;
-  if (value === 'Sandbox') return Environment.SANDBOX;
-  throw new Error(`Unsupported Apple transaction environment: ${value || 'unknown'}`);
-}
-
-function isoFromMillis(value: unknown) {
-  const n = Number(value);
-  return Number.isFinite(n) && n > 0 ? new Date(n).toISOString() : '';
-}
-
-async function sha256Hex(value: string) {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function accountTokenForUser(userId: string) {
-  const hex = await sha256Hex(`ssrockholdings:${userId}`);
-  const bytes = hex.slice(0, 32).split('').reduce((acc: string[], char, index) => {
-    if (index % 2 === 0) acc.push(hex.slice(index, index + 2));
-    return acc;
-  }, []);
-  bytes[6] = ((parseInt(bytes[6], 16) & 0x0f) | 0x50).toString(16).padStart(2, '0');
-  bytes[8] = ((parseInt(bytes[8], 16) & 0x3f) | 0x80).toString(16).padStart(2, '0');
-  const joined = bytes.join('');
-  return `${joined.slice(0, 8)}-${joined.slice(8, 12)}-${joined.slice(12, 16)}-${joined.slice(16, 20)}-${joined.slice(20, 32)}`;
-} 
 
 export default async function(req) {
   try {
@@ -88,64 +27,20 @@ export default async function(req) {
       return Response.json({ error: 'No Apple signed transactions supplied' }, { status: 400 });
     }
 
-    const rootCertificates = await getRootCertificates();
-    let verifiedAppAppleId: number | undefined;
-    let verifiedAppEnvironment: Environment | undefined;
-
-    if (signedAppTransaction) {
-      const appHint = decodeUnverifiedPayload(signedAppTransaction);
-      verifiedAppEnvironment = environmentFor(appHint.receiptType);
-      verifiedAppAppleId = verifiedAppEnvironment === Environment.PRODUCTION ? Number(appHint.appAppleId) : undefined;
-      if (verifiedAppEnvironment === Environment.PRODUCTION && !Number.isFinite(verifiedAppAppleId)) {
-        throw new Error('Apple app transaction is missing appAppleId');
-      }
-      const appVerifier = new SignedDataVerifier(
-        rootCertificates,
-        true,
-        verifiedAppEnvironment,
-        BUNDLE_ID,
-        verifiedAppAppleId,
-      );
-      await appVerifier.verifyAndDecodeAppTransaction(signedAppTransaction);
-    }
+    const { verified } = await verifyApplePurchases({
+      signedTransactions,
+      signedAppTransaction,
+      expectedUserId: user.id,
+    });
 
     const now = Date.now();
     const results = [];
-    const verifiedOriginalIds = new Set<string>();
+    const verifiedOriginalIds = new Set();
 
-    for (const signedTransaction of signedTransactions) {
-      const hint = decodeUnverifiedPayload(signedTransaction);
-      const environment = environmentFor(hint.environment);
-      const appAppleId = environment === Environment.PRODUCTION ? verifiedAppAppleId : undefined;
-      if (environment === Environment.PRODUCTION && !Number.isFinite(appAppleId)) {
-        throw new Error('Verified Apple app transaction is required for production purchases');
-      }
-      if (verifiedAppEnvironment && verifiedAppEnvironment !== environment) {
-        throw new Error('Apple app and purchase environments do not match');
-      }
-
-      const verifier = new SignedDataVerifier(
-        rootCertificates,
-        true,
-        environment,
-        BUNDLE_ID,
-        appAppleId,
-      );
-      const transaction = await verifier.verifyAndDecodeTransaction(signedTransaction);
-      const productId = String(transaction.productId || '');
+    for (const purchase of verified) {
+      const { transaction, productId, transactionId, originalTransactionId, signedTransaction } = purchase;
       const planCode = PRODUCT_TO_PLAN[productId];
       if (!planCode) throw new Error(`Unrecognized Apple product: ${productId || 'missing'}`);
-
-      if (transaction.appAccountToken) {
-        const expectedAccountToken = await accountTokenForUser(user.id);
-        if (String(transaction.appAccountToken).toLowerCase() !== expectedAccountToken.toLowerCase()) {
-          throw new Error('Apple subscription belongs to a different S&S account');
-        }
-      }
-
-      const transactionId = String(transaction.transactionId || '');
-      const originalTransactionId = String(transaction.originalTransactionId || transactionId);
-      if (!transactionId || !originalTransactionId) throw new Error('Apple transaction identifier missing');
       verifiedOriginalIds.add(originalTransactionId);
 
       const existingReceipt = await base44.asServiceRole.entities.StoreReceipt.filter(

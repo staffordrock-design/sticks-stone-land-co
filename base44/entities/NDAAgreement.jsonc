@@ -8,6 +8,12 @@
     "listing_title": {
       "type": "string"
     },
+    "user_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    },
     "company": {
       "type": "string"
     },
