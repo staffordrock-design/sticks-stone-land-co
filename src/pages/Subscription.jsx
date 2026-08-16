@@ -175,7 +175,7 @@ export default function Subscription() {
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
                 <div className="mt-3 flex items-end gap-2"><div className="text-3xl font-bold">{isNative && monthlyStore?.priceString ? monthlyStore.priceString : tier.monthly}</div><span className="pb-1 text-xs text-muted-foreground">monthly</span></div>
-                <div className="mt-1 text-sm text-muted-foreground">{isNative && annualStore?.priceString ? `${annualStore.priceString} annual` : tier.annual}</div>
+                <div className="mt-1 text-sm text-muted-foreground">{isNative && annualStore?.priceString ? `${annualStore.priceString} annual` : isIOS && tier.code === "professional" ? "$1,000/yr" : tier.annual}</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
                   <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Choose monthly"}</button>
