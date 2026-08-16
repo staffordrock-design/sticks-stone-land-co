@@ -22,7 +22,29 @@ export default async function(req) {
       const session = event.data.object;
       const listing_id = session.metadata?.listing_id;
       const user_id = session.metadata?.user_id || session.client_reference_id || '';
-      if (listing_id && user_id && session.payment_status === 'paid') {
+      if (session.metadata?.purchase_type === 'subscription' && user_id && session.subscription) {
+        const subscription = await stripe.subscriptions.retrieve(String(session.subscription));
+        const plan_code = session.metadata?.plan_code || subscription.metadata?.plan_code;
+        const priceId = subscription.items.data[0]?.price?.id || '';
+        const expiresAt = subscription.items.data[0]?.current_period_end;
+        const existing = await base44.asServiceRole.entities.SubscriptionEntitlement.filter(
+          { user_id, platform: 'web' }, '-updated_date', 1, 0
+        );
+        const entitlement = {
+          user_id,
+          plan_code,
+          status: subscription.status === 'active' || subscription.status === 'trialing' ? 'active' : 'inactive',
+          platform: 'web',
+          product_id: priceId,
+          original_transaction_id: subscription.id,
+          started_at: new Date(subscription.created * 1000).toISOString(),
+          expires_at: expiresAt ? new Date(expiresAt * 1000).toISOString() : '',
+          last_verified_at: new Date().toISOString(),
+          source: 'stripe_checkout',
+        };
+        if (existing?.[0]) await base44.asServiceRole.entities.SubscriptionEntitlement.update(existing[0].id, entitlement);
+        else await base44.asServiceRole.entities.SubscriptionEntitlement.create(entitlement);
+      } else if (listing_id && user_id && session.payment_status === 'paid') {
         const existing = await base44.asServiceRole.entities.DataRoomAccess.filter(
           { listing_id, user_id, paid: true }, '-created_date', 1, 0
         );
