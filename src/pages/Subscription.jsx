@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Crown, Loader2, RotateCcw, Smartphone } from "lucide-react";
+import { Check, Crown, Loader2, RotateCcw } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
 import { appleAccountTokenForUser, appleProductIds, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
+import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
 
 const ACTIVE = new Set(["active", "trial", "grace_period"]);
 
@@ -21,6 +22,7 @@ export default function Subscription() {
   const [buyingId, setBuyingId] = useState("");
   const isNative = Capacitor.isNativePlatform();
   const isIOS = Capacitor.getPlatform() === "ios";
+  const isAndroid = isNativeAndroid();
 
   const refreshEntitlements = async () => {
     if (!user?.id) return [];
@@ -35,37 +37,39 @@ export default function Subscription() {
     (async () => {
       try {
         if (isNative && isIOS) await syncCurrentAppleSubscriptions();
+        if (isAndroid) await syncCurrentGoogleSubscriptions();
       } catch (error) {
-        console.error("Apple entitlement sync failed", error);
+        console.error("Entitlement sync failed", error);
       } finally {
         if (!cancelled) await refreshEntitlements();
         if (!cancelled) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [user?.id, isNative, isIOS]);
+  }, [user?.id, isNative, isIOS, isAndroid]);
 
   useEffect(() => {
-    if (!isNative || !isIOS) return;
+    if (!isNative || (!isIOS && !isAndroid)) return;
     let cancelled = false;
     (async () => {
       setStoreLoading(true);
       try {
         const { isBillingSupported } = await NativePurchases.isBillingSupported();
-        if (!isBillingSupported) throw new Error("Apple purchases are not available on this device.");
+        if (!isBillingSupported) throw new Error("Store purchases are not available on this device.");
+        const ids = isIOS ? appleProductIds() : googleProductIds();
         const { products } = await NativePurchases.getProducts({
-          productIdentifiers: appleProductIds(),
+          productIdentifiers: ids,
           productType: PURCHASE_TYPE.SUBS,
         });
         if (!cancelled) setStoreProducts(Object.fromEntries((products || []).map((p) => [p.identifier, p])));
       } catch (error) {
-        if (!cancelled) setPurchaseMessage(error?.message || "Apple subscription products are not available yet.");
+        if (!cancelled) setPurchaseMessage(error?.message || "Subscription products are not available yet.");
       } finally {
         if (!cancelled) setStoreLoading(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [isNative, isIOS]);
+  }, [isNative, isIOS, isAndroid]);
 
   const active = useMemo(() => entitlements.find((e) => ACTIVE.has(e.status) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())), [entitlements]);
 
@@ -86,20 +90,29 @@ export default function Subscription() {
   };
 
   const purchase = async (productId) => {
-    if (!productId || !isIOS) return;
+    if (!productId || (!isIOS && !isAndroid)) return;
     setPurchaseMessage("");
     setBuyingId(productId);
     try {
-      const appAccountToken = await appleAccountTokenForUser(user.id);
-      const transaction = await NativePurchases.purchaseProduct({
-        productIdentifier: productId,
-        productType: PURCHASE_TYPE.SUBS,
-        quantity: 1,
-        appAccountToken,
-      });
-      await verifyAppleTransactions([transaction]);
+      if (isIOS) {
+        const appAccountToken = await appleAccountTokenForUser(user.id);
+        const transaction = await NativePurchases.purchaseProduct({
+          productIdentifier: productId,
+          productType: PURCHASE_TYPE.SUBS,
+          quantity: 1,
+          appAccountToken,
+        });
+        await verifyAppleTransactions([transaction]);
+      } else {
+        const transaction = await NativePurchases.purchaseProduct({
+          productIdentifier: productId,
+          productType: PURCHASE_TYPE.SUBS,
+          quantity: 1,
+        });
+        await verifyGoogleTransactions([transaction]);
+      }
       await refreshEntitlements();
-      setPurchaseMessage("Purchase verified with Apple. Your S&S access is active.");
+      setPurchaseMessage(`Purchase verified with ${isIOS ? "Apple" : "Google Play"}. Your S&S access is active.`);
     } catch (error) {
       const message = String(error?.message || error || "Purchase was not completed.");
       if (!/cancel/i.test(message)) setPurchaseMessage(message);
@@ -123,13 +136,14 @@ export default function Subscription() {
   };
 
   const restore = async () => {
-    if (!isIOS) return;
+    if (!isIOS && !isAndroid) return;
     setPurchaseMessage("");
     setStoreLoading(true);
     try {
-      await syncCurrentAppleSubscriptions({ restore: true });
+      if (isIOS) await syncCurrentAppleSubscriptions({ restore: true });
+      if (isAndroid) await syncCurrentGoogleSubscriptions({ restore: true });
       await refreshEntitlements();
-      setPurchaseMessage("Apple purchases restored and verified. Your S&S access is up to date.");
+      setPurchaseMessage(`${isIOS ? "Apple" : "Google Play"} purchases restored and verified. Your S&S access is up to date.`);
     } catch (error) {
       setPurchaseMessage(error?.message || "Could not restore purchases.");
     } finally {
@@ -152,10 +166,12 @@ export default function Subscription() {
           <h2 className="mt-9 font-heading text-xl font-bold">Membership plans</h2>
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {ACCESS_TIERS.map((tier) => {
-              const monthlyId = SUBSCRIPTION_PRODUCTS.apple[tier.code]?.monthly;
-              const annualId = SUBSCRIPTION_PRODUCTS.apple[tier.code]?.annual;
+              const storeKey = isIOS ? "apple" : "google";
+              const monthlyId = SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.monthly;
+              const annualId = SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.annual;
               const monthlyStore = storeProducts[monthlyId];
               const annualStore = storeProducts[annualId];
+              const storeLabel = isIOS ? "Apple" : "Google Play";
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
                 <div className="mt-3 flex items-end gap-2"><div className="text-3xl font-bold">{isNative && monthlyStore?.priceString ? monthlyStore.priceString : tier.monthly}</div><span className="pb-1 text-xs text-muted-foreground">monthly</span></div>
@@ -169,13 +185,16 @@ export default function Subscription() {
                   <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
                   <button onClick={() => purchase(annualId)} disabled={!annualStore || !!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Apple…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ""}`}</button>
                 </div>}
+                {isNative && isAndroid && <div className="mt-6 grid gap-2">
+                  <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
+                  <button onClick={() => purchase(annualId)} disabled={!annualStore || !!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Google Play…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ""}`}</button>
+                </div>}
               </div>;
             })}
           </div>
 
-          {isNative && isIOS && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading Apple products…</span>}</div>}
+          {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
           {purchaseMessage && <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">{purchaseMessage}</div>}
-          {isNative && !isIOS && <div className="mt-5 rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground"><Smartphone className="mr-2 inline h-4 w-4"/>Google Play purchasing will be enabled with the Android store release.</div>}
 
           <h2 className="mt-10 font-heading text-xl font-bold">Intelligence reports</h2>
           <p className="mt-2 text-sm text-muted-foreground">Report purchases are separate from membership access. Transaction-grade professional services such as legal opinions, surveys, reserve studies and environmental assessments remain separate.</p>
