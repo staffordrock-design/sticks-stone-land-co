@@ -14,6 +14,8 @@ import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
+const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "VA", "WV", "FL", "MS", "AR", "LA"];
+const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
 
 function statusGroup(status = "") {
   const s = String(status).toLowerCase();
@@ -34,6 +36,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [stateFilter, setStateFilter] = useState("All Southeast");
   const [sortMode, setSortMode] = useState("Most Complete");
 
   const loadData = async () => {
@@ -76,8 +79,12 @@ export default function Home() {
       s.state?.toLowerCase().includes(q) ||
       s.county?.toLowerCase().includes(q) ||
       s.commodity?.toLowerCase().includes(q);
+    const stateCode = String(s.state || "").trim().toUpperCase();
+    const matchesState = stateFilter === "All Southeast"
+      ? SOUTHEAST_STATES.includes(stateCode)
+      : stateCode === stateFilter;
     const matchesStatus = statusFilter === "All" || statusGroup(s.mine_status) === statusFilter;
-    return matchesSource && matchesQuery && matchesStatus;
+    return matchesSource && matchesQuery && matchesStatus && matchesState;
   });
 
   const completenessScore = (s) => [s.msha_mine_id,s.mine_status,s.commodity,s.operator_name,s.county,s.latitude,s.longitude,s.tdec_permit_number,s.npdes_permit_number,s.parcel_id,s.acreage].filter((v) => v !== null && v !== undefined && String(v).trim() !== "").length;
@@ -141,7 +148,7 @@ export default function Home() {
               Find the asset. Know the ground.
             </h1>
             <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
-              Source-backed industrial quarry intelligence for the extraction industry — mine records, mapped locations,
+              Source-backed quarry intelligence across Tennessee and the Southeast — mine records, mapped locations,
               geology, permits, production context, ownership signals and downloadable S&S intelligence reports.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -222,10 +229,10 @@ export default function Home() {
         </section>
       )}
 
-      {/* Tennessee intelligence map */}
+      {/* Southeast intelligence map */}
       <section className="mx-auto max-w-7xl px-6 pb-14">
         <TennesseeMineMap
-          sites={filtered.filter((s) => s.state?.toUpperCase() === "TN")}
+          sites={filtered}
           height={560}
         />
         <p className="mt-2 text-xs text-muted-foreground">Aerial previews use Esri World Imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions. Records with the same MSHA Mine ID are consolidated in the browsing view to avoid duplicate display.</p>
@@ -235,8 +242,8 @@ export default function Home() {
       <section id="quarry-intelligence" className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-heading text-2xl font-bold text-foreground">Tennessee Quarry Intelligence</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Search source-labeled active, inactive/idled, historical and new mine records. Official-source facts are separated from S&S-derived analysis, and missing data stays missing rather than being guessed.</p>
+            <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Intelligence</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Tennessee is the verified core, with phased expansion across the Southeast. Search source-labeled active, inactive/idled, historical and new mine records. Official-source facts are separated from S&S-derived analysis, and missing data stays missing rather than being guessed.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
@@ -249,6 +256,12 @@ export default function Home() {
               />
             </div>
             <div className="flex flex-col gap-2">
+              <BottomSheetSelect
+                value={stateFilter}
+                onChange={setStateFilter}
+                options={STATE_OPTIONS}
+                label="Filter by state"
+              />
               <BottomSheetSelect
                 value={sortMode}
                 onChange={setSortMode}
