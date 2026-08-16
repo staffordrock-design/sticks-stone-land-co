@@ -47,10 +47,23 @@ export default function Home() {
         base44.entities.ParcelRecord.list("-updated_date", 500),
         base44.entities.GeologyRecord.list("-updated_date", 500),
       ]);
-      setSites(data || []);
+
+      const siteList = data || [];
+      const geoRecords = geologyData || [];
+
+      // Pull in sites that have connected geology data but sit beyond the 500-record
+      // display limit, so data-rich quarries appear on the Home page.
+      const loadedSiteIds = new Set(siteList.map((s) => s.id));
+      const geoSiteIds = [...new Set(geoRecords.map((g) => g.mining_site_id).filter(Boolean))];
+      const missingIds = geoSiteIds.filter((sid) => !loadedSiteIds.has(sid));
+      const missingSites = (
+        await Promise.all(missingIds.map((sid) => base44.entities.MiningSite.get(sid).catch(() => null)))
+      ).filter(Boolean);
+
+      setSites([...siteList, ...missingSites]);
       setProfiles(profileData || []);
       setParcels(parcelData || []);
-      setGeology(geologyData || []);
+      setGeology(geoRecords);
     } catch {
       /* ignore */
     } finally {

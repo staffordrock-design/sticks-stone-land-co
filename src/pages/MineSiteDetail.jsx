@@ -88,19 +88,36 @@ export default function MineSiteDetail() {
   useEffect(() => {
     (async () => {
       try {
-        const [mine, parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData, contractData] = await Promise.all([
-          base44.entities.MiningSite.get(id),
-          base44.entities.ParcelRecord.list("-updated_date", 500),
-          base44.entities.TDECPermit.list("-updated_date", 500),
-          base44.entities.EnvironmentalRecord.list("-updated_date", 500),
-          base44.entities.MSHAInspection.list("-updated_date", 500),
-          base44.entities.MSHAViolation.list("-updated_date", 500),
-          base44.entities.QuarryPotentialProfile.list("-updated_date", 500),
-          base44.entities.ProductionRecord.list("-year", 500),
-          base44.entities.GeologyRecord.list("-updated_date", 500),
-          base44.entities.ContractIntelligence.list("-updated_date", 500),
-        ]);
+        const mine = await base44.entities.MiningSite.get(id);
         setSite(mine);
+
+        const siteId = mine.id;
+        const mshaId = mine.msha_mine_id;
+        const parcelId = mine.parcel_id;
+        const tdecPermit = mine.tdec_permit_number;
+        const npdesPermit = mine.npdes_permit_number;
+
+        // Targeted queries by link fields instead of bulk-loading 500 of every entity.
+        // This finds connected data regardless of total record count.
+        const linkOr = (extra = []) => {
+          const conditions = [{ mining_site_id: siteId }];
+          if (mshaId) conditions.push({ msha_mine_id: mshaId });
+          conditions.push(...extra.filter(Boolean));
+          return { $or: conditions };
+        };
+
+        const [parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData, contractData] = await Promise.all([
+          base44.entities.ParcelRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null, tdecPermit ? { tdec_permit_number: tdecPermit } : null]), "-updated_date", 50),
+          base44.entities.TDECPermit.filter(linkOr([tdecPermit ? { permit_number: tdecPermit } : null]), "-updated_date", 50),
+          base44.entities.EnvironmentalRecord.filter(linkOr([npdesPermit ? { npdes_permit_number: npdesPermit } : null]), "-updated_date", 50),
+          base44.entities.MSHAInspection.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", 200),
+          base44.entities.MSHAViolation.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", 200),
+          base44.entities.QuarryPotentialProfile.filter(linkOr(), "-updated_date", 10),
+          base44.entities.ProductionRecord.filter(linkOr(), "-year", 200),
+          base44.entities.GeologyRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
+          base44.entities.ContractIntelligence.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
+        ]);
+
         setParcels(parcelData || []);
         setPermits(permitData || []);
         setEnvironmental(envData || []);
