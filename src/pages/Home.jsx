@@ -14,7 +14,7 @@ import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
-const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "VA", "WV", "FL", "MS", "AR", "LA"];
+const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
 
 function statusGroup(status = "") {
