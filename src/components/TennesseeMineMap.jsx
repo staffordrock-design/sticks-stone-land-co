@@ -11,7 +11,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const TN_CENTER = [35.85, -86.35];
+const SOUTHEAST_CENTER = [34.6, -85.4];
 
 function isValidCoordinate(lat, lng) {
   const nLat = Number(lat);
@@ -36,7 +36,7 @@ export default function TennesseeMineMap({ sites = [], height = 520 }) {
       <div className="flex items-center justify-between border-b border-border px-5 py-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Tennessee Quarry Intelligence Map
+            Southeast Quarry Intelligence Map
           </p>
           <p className="mt-1 text-sm text-foreground">
             {mappedSites.length.toLocaleString()} mapped mine and quarry records
@@ -44,9 +44,9 @@ export default function TennesseeMineMap({ sites = [], height = 520 }) {
         </div>
       </div>
       <MapContainer
-        center={TN_CENTER}
-        zoom={7}
-        minZoom={6}
+        center={SOUTHEAST_CENTER}
+        zoom={5}
+        minZoom={4}
         style={{ height, width: "100%" }}
         scrollWheelZoom
       >
