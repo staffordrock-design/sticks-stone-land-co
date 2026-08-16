@@ -164,7 +164,7 @@ export default function AdminDataSync() {
                 <h2 className="font-heading text-xl font-bold text-foreground">MSHA Mine Master</h2>
               </div>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                Refreshes Tennessee mine identity, current status, operator, controller, mine type, commodity, county and coordinates from MSHA's official Mines dataset. Mine ID is treated as the authoritative unique key; S&S parcel and permit links are preserved.
+                Refreshes Southeast mine identity, current status, operator, controller, mine type, commodity, county and coordinates from MSHA's official Mines dataset. Mine ID is treated as the authoritative unique key; S&S parcel and permit links are preserved.
               </p>
             </div>
             <button
@@ -176,7 +176,7 @@ export default function AdminDataSync() {
               {runningMshaMines ? "Refreshing master…" : "Sync MSHA mine master"}
             </button>
           </div>
-          {mshaMinesResult && <div className="mt-5 rounded-xl border border-border bg-muted/20 p-5"><div className="grid gap-4 sm:grid-cols-4"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Official TN rows</div><div className="mt-1 font-bold">{mshaMinesResult.official_tennessee_records ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Created</div><div className="mt-1 font-bold">{mshaMinesResult.created ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Updated</div><div className="mt-1 font-bold">{mshaMinesResult.updated ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Duplicate IDs</div><div className="mt-1 font-bold">{mshaMinesResult.duplicate_msha_ids_found ?? 0}</div></div></div>{mshaMinesResult.note && <p className="mt-4 text-sm text-muted-foreground">{mshaMinesResult.note}</p>}</div>}
+          {mshaMinesResult && <div className="mt-5 rounded-xl border border-border bg-muted/20 p-5"><div className="grid gap-4 sm:grid-cols-4"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Official Southeast rows</div><div className="mt-1 font-bold">{mshaMinesResult.official_southeast_records ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Created</div><div className="mt-1 font-bold">{mshaMinesResult.created ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Updated</div><div className="mt-1 font-bold">{mshaMinesResult.updated ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Duplicate IDs</div><div className="mt-1 font-bold">{mshaMinesResult.duplicate_msha_ids_found ?? 0}</div></div></div>{mshaMinesResult.note && <p className="mt-4 text-sm text-muted-foreground">{mshaMinesResult.note}</p>}</div>}
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-6">
