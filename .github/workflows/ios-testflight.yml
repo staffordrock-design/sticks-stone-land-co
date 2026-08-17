@@ -2,6 +2,8 @@ name: iOS TestFlight Upload
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 
 permissions:
   contents: read
@@ -24,27 +26,41 @@ jobs:
 
       - name: Select Xcode 26.6
         run: |
+          set -Eeuo pipefail
+          trap 'echo "::error title=Select Xcode failed::Could not select or run Xcode 26.6"' ERR
           sudo xcode-select -s /Applications/Xcode_26.6.app/Contents/Developer
           xcodebuild -version
 
       - name: Install JavaScript dependencies
-        run: npm ci
+        run: |
+          set -Eeuo pipefail
+          trap 'echo "::error title=npm install failed::npm ci could not install the app dependencies"' ERR
+          npm ci
 
       - name: Build web application
-        run: npm run build
+        run: |
+          set -Eeuo pipefail
+          trap 'echo "::error title=Web build failed::npm run build failed"' ERR
+          npm run build
 
       - name: Sync Capacitor iOS project
-        run: npx cap sync ios
+        run: |
+          set -Eeuo pipefail
+          trap 'echo "::error title=Capacitor sync failed::npx cap sync ios failed"' ERR
+          npx cap sync ios
 
       - name: Install CocoaPods
         working-directory: ios/App
-        run: pod install
+        run: |
+          set -Eeuo pipefail
+          trap 'echo "::error title=CocoaPods failed::pod install failed"' ERR
+          pod install
 
       - name: Prepare App Store Connect API key
         env:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
         run: |
-          test -n "$ASC_PRIVATE_KEY" || { echo "Missing GitHub secret ASC_PRIVATE_KEY"; exit 1; }
+          test -n "$ASC_PRIVATE_KEY" || { echo "::error title=Missing App Store key::GitHub secret ASC_PRIVATE_KEY is not configured"; exit 1; }
           KEY_PATH="$RUNNER_TEMP/AuthKey_Q4783H7CJ6.p8"
           printf '%s' "$ASC_PRIVATE_KEY" > "$KEY_PATH"
           chmod 600 "$KEY_PATH"
@@ -52,6 +68,8 @@ jobs:
 
       - name: Archive iOS app with automatic signing
         run: |
+          set -Eeuo pipefail
+          trap 'echo "::error title=iOS archive failed::Xcode could not archive/sign the iOS app"' ERR
           xcodebuild \
             -workspace ios/App/App.xcworkspace \
             -scheme App \
@@ -89,6 +107,8 @@ jobs:
 
       - name: Cloud sign and upload to App Store Connect
         run: |
+          set -Eeuo pipefail
+          trap 'echo "::error title=TestFlight upload failed::Xcode could not export/upload the archive to App Store Connect"' ERR
           mkdir -p "$RUNNER_TEMP/export"
           xcodebuild \
             -exportArchive \
