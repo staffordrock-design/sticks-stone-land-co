@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Clock3, Crown, LockKeyhole } from "lucide-react";
+import { Clock3, Crown, Eye, LockKeyhole, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
@@ -8,18 +8,29 @@ import { isReviewDemoMode } from "@/lib/reviewDemo";
 
 const PREVIEW_MS = 60 * 1000;
 const PREVIEW_START_KEY = "ss-quarry-preview-start-v1";
+const ADMIN_TEST_START_KEY = "ss-admin-customer-preview-start-v1";
+const ADMIN_TEST_MODE_KEY = "ss-admin-customer-preview-mode-v1";
 const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
 
 function entitlementIsActive(row) {
   return ACTIVE_STATUSES.has(row?.status) && (!row?.expires_at || new Date(row.expires_at).getTime() > Date.now());
 }
 
-function getOrCreatePreviewStart() {
+function getStoredFlag(key) {
+  try {
+    return window.sessionStorage.getItem(key) === "active";
+  } catch {
+    return false;
+  }
+}
+
+function getOrCreatePreviewStart(key) {
   const now = Date.now();
   try {
-    const existing = Number(window.localStorage.getItem(PREVIEW_START_KEY));
+    const storage = key === ADMIN_TEST_START_KEY ? window.sessionStorage : window.localStorage;
+    const existing = Number(storage.getItem(key));
     if (Number.isFinite(existing) && existing > 0) return existing;
-    window.localStorage.setItem(PREVIEW_START_KEY, String(now));
+    storage.setItem(key, String(now));
   } catch {}
   return now;
 }
@@ -28,6 +39,7 @@ export default function TimedPreviewGate({ children }) {
   const { user } = useAuth();
   const [checkingAccess, setCheckingAccess] = useState(Boolean(user?.id));
   const [hasPaidAccess, setHasPaidAccess] = useState(user?.role === "admin" || isReviewDemoMode());
+  const [adminTestMode, setAdminTestMode] = useState(() => getStoredFlag(ADMIN_TEST_MODE_KEY));
   const [secondsRemaining, setSecondsRemaining] = useState(60);
   const [previewExpired, setPreviewExpired] = useState(false);
 
@@ -74,10 +86,13 @@ export default function TimedPreviewGate({ children }) {
     return () => { cancelled = true; };
   }, [user?.id, user?.role]);
 
-  useEffect(() => {
-    if (checkingAccess || hasPaidAccess) return;
+  const effectivePaidAccess = hasPaidAccess && !adminTestMode;
 
-    const startedAt = getOrCreatePreviewStart();
+  useEffect(() => {
+    if (checkingAccess || effectivePaidAccess) return;
+
+    const previewKey = adminTestMode ? ADMIN_TEST_START_KEY : PREVIEW_START_KEY;
+    const startedAt = getOrCreatePreviewStart(previewKey);
     const updateTimer = () => {
       const remaining = Math.max(0, PREVIEW_MS - (Date.now() - startedAt));
       setSecondsRemaining(Math.ceil(remaining / 1000));
@@ -87,9 +102,44 @@ export default function TimedPreviewGate({ children }) {
     updateTimer();
     const timer = window.setInterval(updateTimer, 250);
     return () => window.clearInterval(timer);
-  }, [checkingAccess, hasPaidAccess]);
+  }, [checkingAccess, effectivePaidAccess, adminTestMode]);
 
-  if (hasPaidAccess) return children;
+  const startAdminCustomerPreview = () => {
+    try {
+      window.sessionStorage.setItem(ADMIN_TEST_MODE_KEY, "active");
+      window.sessionStorage.setItem(ADMIN_TEST_START_KEY, String(Date.now()));
+    } catch {}
+    setAdminTestMode(true);
+    setSecondsRemaining(60);
+    setPreviewExpired(false);
+  };
+
+  const exitAdminCustomerPreview = () => {
+    try {
+      window.sessionStorage.removeItem(ADMIN_TEST_MODE_KEY);
+      window.sessionStorage.removeItem(ADMIN_TEST_START_KEY);
+    } catch {}
+    setAdminTestMode(false);
+    setPreviewExpired(false);
+    setSecondsRemaining(60);
+  };
+
+  if (effectivePaidAccess) {
+    return (
+      <>
+        {children}
+        {user?.role === "admin" && (
+          <button
+            type="button"
+            onClick={startAdminCustomerPreview}
+            className="fixed bottom-24 right-4 z-[80] inline-flex min-h-11 items-center gap-2 rounded-full border border-sky-200 bg-white/95 px-4 py-2 text-xs font-bold text-sky-950 shadow-lg backdrop-blur sm:bottom-6 sm:right-6"
+          >
+            <Eye className="h-4 w-4" /> Test 60s customer preview
+          </button>
+        )}
+      </>
+    );
+  }
 
   return (
     <>
@@ -100,7 +150,12 @@ export default function TimedPreviewGate({ children }) {
       {!checkingAccess && !previewExpired && (
         <div className="fixed bottom-24 right-4 z-[75] flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-xs font-bold text-slate-900 shadow-lg backdrop-blur sm:bottom-6 sm:right-6">
           <Clock3 className="h-4 w-4" />
-          Free preview · {secondsRemaining}s
+          {adminTestMode ? "Customer test" : "Free preview"} · {secondsRemaining}s
+          {adminTestMode && (
+            <button type="button" onClick={exitAdminCustomerPreview} className="ml-1 inline-flex items-center gap-1 rounded-full border border-slate-300 px-2 py-1" aria-label="Exit customer preview test">
+              <X className="h-3 w-3" /> Exit
+            </button>
+          )}
         </div>
       )}
 
@@ -116,6 +171,11 @@ export default function TimedPreviewGate({ children }) {
               Unlock full quarry intelligence, detailed mine pages, geology, parcel intelligence, regulatory context and premium analysis with an S&amp;S membership.
             </p>
             <div className="mt-7 grid gap-3">
+              {adminTestMode && (
+                <button type="button" onClick={exitAdminCustomerPreview} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-5 py-3 text-sm font-bold text-sky-950">
+                  <Eye className="h-4 w-4" /> Return to Admin
+                </button>
+              )}
               <Link to="/subscribe" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">
                 <Crown className="h-4 w-4" /> View membership plans
               </Link>
