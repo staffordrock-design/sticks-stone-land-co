@@ -167,9 +167,10 @@ export default function Home() {
               geology, permits, production context, ownership signals and downloadable S&S intelligence reports.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Browse Quarry Intelligence</a>
-              <Link to="/mineral-value-guide" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Explore Mineral Guide</Link>
+              <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Browse Free Preview</a>
+              <Link to="/subscribe" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">View Membership Plans</Link>
             </div>
+            <p className="mt-4 max-w-xl text-sm text-slate-300">Browse the quarry marketplace and public-source records before subscribing. Detailed mine pages, deeper geology, parcel intelligence and premium analysis unlock with membership.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
@@ -262,7 +263,7 @@ export default function Home() {
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Intelligence</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Tennessee is the verified core, with phased expansion across the Southeast. Search source-labeled active, inactive/idled, historical and new mine records. Official-source facts are separated from S&S-derived analysis, and missing data stays missing rather than being guessed.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Preview the marketplace before you subscribe. Tennessee is the verified core, with phased expansion across the Southeast. Search source-labeled active, inactive/idled, historical and new mine records. Open a mine record to see the membership options for detailed intelligence.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
