@@ -101,7 +101,11 @@ export default function Home() {
       s.mine_name?.toLowerCase().includes(q) ||
       s.state?.toLowerCase().includes(q) ||
       s.county?.toLowerCase().includes(q) ||
-      s.commodity?.toLowerCase().includes(q);
+      s.commodity?.toLowerCase().includes(q) ||
+      s.operator_name?.toLowerCase().includes(q) ||
+      String(s.msha_mine_id || "").toLowerCase().includes(q) ||
+      String(s.tdec_permit_number || "").toLowerCase().includes(q) ||
+      String(s.parcel_id || "").toLowerCase().includes(q);
     const stateCode = String(s.state || "").trim().toUpperCase();
     const matchesState = stateFilter === "All Southeast"
       ? SOUTHEAST_STATES.includes(stateCode)
@@ -134,6 +138,18 @@ export default function Home() {
 
   const priorityOpportunities = ranked.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).slice(0, 3);
   const featured = ranked.find((s) => s.latitude && s.longitude) || sites.find((s) => s.latitude && s.longitude);
+  const activeCount = visibleSites.filter((s) => statusGroup(s.mine_status) === "Active").length;
+  const opportunityCount = visibleSites.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).length;
+  const statesCovered = new Set(visibleSites.map((s) => String(s.state || "").trim().toUpperCase()).filter(Boolean)).size;
+  const geologyLinked = new Set(geology.map((g) => g.mining_site_id || g.msha_mine_id).filter(Boolean)).size;
+  const filtersActive = Boolean(query || source !== "All" || statusFilter !== "All" || stateFilter !== "All Southeast" || sortMode !== "Opportunity Priority");
+  const clearFilters = () => {
+    setQuery("");
+    setSource("All");
+    setStatusFilter("All");
+    setStateFilter("All Southeast");
+    setSortMode("Opportunity Priority");
+  };
 
   return (
     <PullToRefresh onRefresh={loadData}>
@@ -211,6 +227,24 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Fast market snapshot */}
+      <section className="border-b border-border bg-slate-50/80">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
+          {[
+            [visibleSites.length.toLocaleString(), "Source-backed records"],
+            [opportunityCount.toLocaleString(), "Potential / idled opportunities"],
+            [activeCount.toLocaleString(), "Active mine records"],
+            [Math.max(statesCovered, SOUTHEAST_STATES.length).toLocaleString(), "Southeast states in scope"],
+          ].map(([value, label]) => (
+            <div key={label} className="bg-background px-5 py-5 sm:px-6">
+              <div className="font-heading text-2xl font-bold text-slate-950">{value}</div>
+              <div className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">{label}</div>
+            </div>
+          ))}
+        </div>
+        {geologyLinked > 0 && <div className="mx-auto max-w-7xl px-6 py-3 text-xs text-slate-500">{geologyLinked.toLocaleString()} geology-linked records currently loaded for screening. Coverage continues to expand as public-source records are connected and verified.</div>}
       </section>
 
       {/* Priority quarry opportunities */}
@@ -312,8 +346,12 @@ export default function Home() {
       <section id="quarry-intelligence" className="mx-auto max-w-7xl px-6 pb-24">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Intelligence</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Preview the marketplace before you subscribe. Tennessee is the verified core, with phased expansion across the Southeast. Search source-labeled active, inactive/idled, historical and new mine records. Open a mine record to see the membership options for detailed intelligence.</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Intelligence</h2>
+              <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{ranked.length.toLocaleString()} results</span>
+              {filtersActive && <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>}
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">Preview the marketplace before you subscribe. Tennessee is the verified core, with phased expansion across the Southeast. Search by mine name, operator, MSHA Mine ID, TDEC permit, parcel, state, county or commodity. Open a mine record to see the membership options for detailed intelligence.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
@@ -321,7 +359,7 @@ export default function Home() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search by mine, state, county, or commodity…"
+                placeholder="Mine, operator, MSHA ID, permit, parcel…"
                 className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-64"
               />
             </div>
