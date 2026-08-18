@@ -31,7 +31,8 @@ async function freshness(base44:any,source:string,p:any){const r=await base44.as
 export default async function(req:Request){const base44=createClientFromRequest(req);try{
   const user=await base44.auth.me().catch(()=>null);if(user&&user.role!=="admin")return Response.json({error:"Admin access required"},{status:403});
   const body=await req.json().catch(()=>({})),limit=Math.min(Math.max(Number(body?.limit||500),1),500),now=new Date().toISOString();
-  const sites=(await base44.asServiceRole.entities.MiningSite.list("-updated_date",500)||[]).filter((s:any)=>String(s.state||"").toUpperCase()==="TN"&&Number.isFinite(Number(s.latitude))&&Number.isFinite(Number(s.longitude))).slice(0,limit);
+  const priority=(s:any)=>{const v=String(s.mine_status||"").toLowerCase();return v.includes("new mine")||v.includes("potential")||v.includes("intermittent")||v.includes("temporarily idled")||v.includes("nonproducing")||v.includes("non-producing")||v.includes("inactive")||v.includes("historical")||v.includes("abandon")?1:0};
+  const sites=(await base44.asServiceRole.entities.MiningSite.list("-updated_date",500)||[]).filter((s:any)=>String(s.state||"").toUpperCase()==="TN"&&Number.isFinite(Number(s.latitude))&&Number.isFinite(Number(s.longitude))).sort((a:any,b:any)=>priority(b)-priority(a)).slice(0,limit);
   const facilities=await fetchTennesseeFacilities();
   let matched=0,noMatch=0,envCreated=0,envUpdated=0,permitCreated=0,permitUpdated=0,inspectionsCreated=0,sitesLinked=0;const errors:any[]=[],sample:any[]=[];
   for(const site of sites){try{const best:any=choose(site,facilities);if(!best){noMatch++;continue}matched++;const a=best.a,npdes=String(a.SOURCE_ID||"").trim();if(!npdes){noMatch++;continue}const status=a.CWP_PERMIT_STATUS_DESC||a.CWP_STATUS||undefined,viol=String(a.CWP_CURRENT_VIOL||"").trim(),snc=String(a.CWP_CURRENT_SNC_STATUS||"").trim(),sourceUrl=EPA_CWA_LAYER;
