@@ -47,7 +47,11 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
   const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location preview" : null;
   const showOpportunity = Boolean(opportunity) && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
   const owner = parcel?.owner_name || site.parcel_owner;
-  const acreage = parcel?.acreage ?? site.acreage;
+  const parcelAcreage = parcel?.acreage ?? site.acreage;
+  const primaryPermit = permits.find((p) => Number(p?.permitted_acres) > 0) || permits[0] || null;
+  const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
+  const operator = permitOperator || site.operator_name;
+  const permittedAcreage = primaryPermit?.permitted_acres ?? site.permitted_acres;
   const regulatoryLabel = permits.length
     ? `${permits.length} permit${permits.length === 1 ? "" : "s"}`
     : site.tdec_permit_number || site.npdes_permit_number
@@ -118,8 +122,8 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
                 <div className="mt-1 line-clamp-2 font-semibold text-slate-900">{owner && !/pending|unknown|verify/i.test(owner) ? owner : opportunity.parcelId || "Parcel pending"}</div>
               </div>
               <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Acreage</div>
-                <div className="mt-1 font-semibold text-slate-900">{Number(acreage) > 0 ? Number(acreage).toLocaleString() : "Pending"}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Permitted acres</div>
+                <div className="mt-1 font-semibold text-slate-900">{Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Permit record pending"}</div>
               </div>
               <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
                 <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Leaf className="h-3 w-3" /> Regulatory</div>
@@ -176,25 +180,21 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
           <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><Camera className="h-3.5 w-3.5" /> {site.site_images.length} property photo{site.site_images.length === 1 ? "" : "s"}</div>
         )}
 
-        <div className="mt-4 flex items-end justify-between border-t border-border pt-4">
+        <div className="mt-4 grid grid-cols-3 gap-3 border-t border-border pt-4">
           <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">
-              Operator
-            </p>
-            <p className="truncate font-display text-sm font-semibold text-foreground">
-              {site.operator_name || "—"}
-            </p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Land owner</p>
+            <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{owner || "Owner pending"}</p>
+            {Number(parcelAcreage) > 0 && <p className="mt-1 text-[10px] text-muted-foreground">Parcel: {Number(parcelAcreage).toLocaleString()} ac</p>}
           </div>
-          {site.acreage != null && (
-            <div className="text-right">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                Acreage
-              </p>
-              <p className="font-display text-base font-bold text-foreground">
-                {Number(site.acreage).toLocaleString()}
-              </p>
-            </div>
-          )}
+          <div className="min-w-0 border-l border-border pl-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Operator</p>
+            <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{operator || "Operator pending"}</p>
+          </div>
+          <div className="min-w-0 border-l border-border pl-3 text-right">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Permitted acres</p>
+            <p className="mt-1 font-display text-base font-bold text-foreground">{Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "—"}</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">{primaryPermit?.acreage_basis || site.permitted_acres_basis || "TDEC acreage pending"}</p>
+          </div>
         </div>
       </div>
     </div>
