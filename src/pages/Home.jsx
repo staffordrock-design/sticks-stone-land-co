@@ -37,20 +37,21 @@ export default function Home() {
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [stateFilter, setStateFilter] = useState("All Southeast");
-  const [sortMode, setSortMode] = useState("Most Complete");
+  const [sortMode, setSortMode] = useState("Opportunity Priority");
   const [showAll, setShowAll] = useState(false);
 
   const loadData = async () => {
     try {
       const limit = showAll ? 500 : 200;
-      const [data, profileData, parcelData, geologyData] = await Promise.all([
+      const [data, potentialData, profileData, parcelData, geologyData] = await Promise.all([
         base44.entities.MiningSite.list("-created_date", limit),
+        base44.entities.MiningSite.filter({ mine_status: "New Mine" }, "-created_date", 100),
         base44.entities.QuarryPotentialProfile.list("-updated_date", limit),
         base44.entities.ParcelRecord.list("-updated_date", limit),
         base44.entities.GeologyRecord.list("-updated_date", limit),
       ]);
 
-      const siteList = data || [];
+      const siteList = Array.from(new Map([...(potentialData || []), ...(data || [])].map((site) => [site.id, site])).values());
       const geoRecords = geologyData || [];
 
       // Pull in sites that have connected geology data but sit beyond the 500-record
@@ -103,13 +104,30 @@ export default function Home() {
   });
 
   const completenessScore = (s) => [s.msha_mine_id,s.mine_status,s.commodity,s.operator_name,s.county,s.latitude,s.longitude,s.tdec_permit_number,s.npdes_permit_number,s.parcel_id,s.acreage].filter((v) => v !== null && v !== undefined && String(v).trim() !== "").length;
+  const profileForSite = (s) => profiles.find((p) => p.mining_site_id === s.id || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
+  const parcelForSite = (s) => parcels.find((p) => (s.parcel_id && p.parcel_id === s.parcel_id) || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
+  const geologyForSite = (s) => geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
+  const opportunityPriorityScore = (s) => {
+    const statusBonus = { "New / Potential": 70, "Inactive / Idled": 45, "Historical / Abandoned": 30, Active: 15 }[statusGroup(s.mine_status)] || 20;
+    const profile = profileForSite(s);
+    const verifiedScreening = Number(profile?.screening_score);
+    const screeningBonus = Number.isFinite(verifiedScreening) && verifiedScreening > 0 ? Math.min(50, verifiedScreening * 0.5) : 0;
+    const geologyBonus = geologyForSite(s) ? 10 : 0;
+    const parcelBonus = parcelForSite(s) ? 8 : 0;
+    const permitBonus = s.tdec_permit_number || s.npdes_permit_number ? 6 : 0;
+    const locationBonus = s.latitude && s.longitude ? 5 : 0;
+    const acreageBonus = Number(s.acreage) > 0 ? Math.min(10, Math.log10(Number(s.acreage) + 1) * 4) : 0;
+    return statusBonus + screeningBonus + geologyBonus + parcelBonus + permitBonus + locationBonus + acreageBonus + completenessScore(s);
+  };
   const ranked = [...filtered].sort((a, b) => {
+    if (sortMode === "Opportunity Priority") return opportunityPriorityScore(b) - opportunityPriorityScore(a) || completenessScore(b) - completenessScore(a) || String(a.mine_name || "").localeCompare(String(b.mine_name || ""));
     if (sortMode === "Most Complete") return completenessScore(b) - completenessScore(a) || String(a.mine_name || "").localeCompare(String(b.mine_name || ""));
     if (sortMode === "Largest Acreage") return Number(b.acreage || 0) - Number(a.acreage || 0);
     return String(a.mine_name || "").localeCompare(String(b.mine_name || ""));
   });
 
-  const featured = sites.filter((s) => s.latitude && s.longitude).slice(0, 1)[0];
+  const priorityOpportunities = ranked.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).slice(0, 3);
+  const featured = ranked.find((s) => s.latitude && s.longitude) || sites.find((s) => s.latitude && s.longitude);
 
   return (
     <PullToRefresh onRefresh={loadData}>
@@ -188,6 +206,29 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Priority quarry opportunities */}
+      {priorityOpportunities.length > 0 && (
+        <section className="mx-auto max-w-7xl px-6 py-14">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-700">Opportunity first</p>
+              <h2 className="mt-1 font-heading text-2xl font-bold text-foreground">Priority Quarry Opportunities</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">New and idled mine records are surfaced first, then ranked using available source coverage such as geology, parcel links, permits, location, acreage and verified screening data when present.</p>
+            </div>
+            <span className="text-xs text-muted-foreground">Screening priority only · not an appraisal or sale listing</span>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {priorityOpportunities.map((s) => {
+              const parcel = parcelForSite(s);
+              const geologyRecord = geologyForSite(s);
+              const profile = profileForSite(s);
+              const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
+              return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} />;
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Featured parcel with map */}
       {featured && (
@@ -285,7 +326,7 @@ export default function Home() {
               <BottomSheetSelect
                 value={sortMode}
                 onChange={setSortMode}
-                options={["Most Complete", "Largest Acreage", "Name A–Z"]}
+                options={["Opportunity Priority", "Most Complete", "Largest Acreage", "Name A–Z"]}
                 label="Sort opportunities"
               />
               <div className="flex flex-wrap gap-1.5">
@@ -329,9 +370,9 @@ export default function Home() {
           <>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {ranked.map((s) => {
-                const profile = profiles.find((p) => p.mining_site_id === s.id || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
-                const parcel = parcels.find((p) => (s.parcel_id && p.parcel_id === s.parcel_id) || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
-                const geologyRecord = geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
+                const profile = profileForSite(s);
+                const parcel = parcelForSite(s);
+                const geologyRecord = geologyForSite(s);
                 const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
                 return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} />;
               })}
