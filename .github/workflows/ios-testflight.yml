@@ -2,6 +2,10 @@ name: iOS TestFlight Upload
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ios-testflight.yml"
 
 permissions:
   contents: read
@@ -64,22 +68,45 @@ jobs:
           chmod 600 "$KEY_PATH"
           echo "ASC_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
 
-      - name: Archive iOS app with automatic signing
+      - name: Archive iOS app
         run: |
           set -Eeuo pipefail
-          trap 'echo "::error title=iOS archive failed::Xcode could not archive/sign the iOS app"' ERR
+          ARCHIVE_PATH="$RUNNER_TEMP/SSRockHoldings.xcarchive"
+          rm -rf "$ARCHIVE_PATH"
+
+          echo "Attempting normal automatic-signing archive first..."
+          set +e
           xcodebuild \
             -workspace ios/App/App.xcworkspace \
             -scheme App \
             -configuration Release \
             -destination 'generic/platform=iOS' \
-            -archivePath "$RUNNER_TEMP/SSRockHoldings.xcarchive" \
+            -archivePath "$ARCHIVE_PATH" \
             CODE_SIGN_STYLE=Automatic \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$ASC_KEY_PATH" \
             -authenticationKeyID 2A3958GU5F \
             -authenticationKeyIssuerID 7097918c-2758-4720-b0fa-938914c24b36 \
             clean archive
+          NORMAL_STATUS=$?
+          set -e
+
+          if [ "$NORMAL_STATUS" -ne 0 ]; then
+            echo "::warning title=Automatic archive signing failed::Retrying with an unsigned archive so App Store Connect cloud signing can sign during export."
+            rm -rf "$ARCHIVE_PATH"
+            xcodebuild \
+              -workspace ios/App/App.xcworkspace \
+              -scheme App \
+              -configuration Release \
+              -destination 'generic/platform=iOS' \
+              -archivePath "$ARCHIVE_PATH" \
+              CODE_SIGN_IDENTITY="" \
+              CODE_SIGNING_REQUIRED=NO \
+              CODE_SIGNING_ALLOWED=NO \
+              clean archive
+          fi
+
+          test -d "$ARCHIVE_PATH" || { echo "::error title=iOS archive failed::No archive was produced"; exit 1; }
 
       - name: Create App Store Connect export options
         run: |
