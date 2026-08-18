@@ -8,6 +8,15 @@
       "one_time_date": "2026-08-18T12:46:30.000Z",
       "function_args": { "limit": 500 },
       "is_active": true
+    },
+    {
+      "name": "Priority quarry enrichment trigger",
+      "description": "Run the priority quarry enrichment pipeline whenever an admin creates an EnrichmentTrigger record.",
+      "type": "entity",
+      "entity_name": "EnrichmentTrigger",
+      "event_types": ["create"],
+      "function_args": { "limit": 500 },
+      "is_active": true
     }
   ]
 }

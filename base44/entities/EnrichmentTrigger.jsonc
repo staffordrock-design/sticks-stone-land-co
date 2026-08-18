@@ -1,0 +1,54 @@
+{
+  "name": "EnrichmentTrigger",
+  "type": "object",
+  "properties": {
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "Priority Quarry Enrichment"
+      ]
+    },
+    "requested_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Requested",
+        "Completed",
+        "Failed"
+      ],
+      "default": "Requested"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "trigger_type",
+    "requested_at",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
