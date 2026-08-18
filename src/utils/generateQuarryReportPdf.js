@@ -60,6 +60,15 @@ export async function generateQuarryReportPdf({ site, parcel, geology, profile, 
     y += Math.max(16, parts.length * 12 + 3);
   };
 
+  const primaryPermit = permits.find((p) => Number(p?.permitted_acres) > 0) || permits[0] || null;
+  const landOwner = parcel?.owner_name || site?.parcel_owner || primaryPermit?.landowner_name;
+  const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
+  const operator = permitOperator || site?.operator_name;
+  const permittee = primaryPermit?.permittee_name || site?.permittee_name;
+  const permittedAcreage = primaryPermit?.permitted_acres ?? site?.permitted_acres;
+  const permitAcreageBasis = primaryPermit?.acreage_basis || site?.permitted_acres_basis;
+  const parcelAcreage = parcel?.acreage ?? site?.acreage;
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);
   doc.text("S&S ROCK HOLDINGS LLC", margin, y);
@@ -77,8 +86,13 @@ export async function generateQuarryReportPdf({ site, parcel, geology, profile, 
   row("Commodity", site?.commodity);
   row("MSHA ID", site?.msha_mine_id);
   row("TDEC permit", site?.tdec_permit_number);
+  row("Land owner", landOwner);
+  row("Operator", operator);
+  row("Permittee", permittee);
+  row("Permitted acres", Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit");
+  row("Permit acreage basis", permitAcreageBasis);
   row("Parcel", parcel?.parcel_id || site?.parcel_id);
-  row("Mapped acreage", parcel?.acreage ?? site?.acreage);
+  row("Parcel acreage", parcelAcreage);
   row("Data confidence", profile?.confidence || geology?.confidence || "Varies by source layer");
   if (valuation?.available && valuation?.confidence !== "Low") row("Indicative land-value screening range", `${money(valuation.low)} – ${money(valuation.high)} (${valuation.confidence || "screening"} confidence)`);
   else row("Value estimate", "Withheld until source-backed inputs support more than low confidence");
@@ -86,7 +100,8 @@ export async function generateQuarryReportPdf({ site, parcel, geology, profile, 
   heading("Mine / Operating Record");
   row("Mine name", site?.mine_name);
   row("Mine type", site?.mine_type);
-  row("Operator", site?.operator_name);
+  row("Operator", operator);
+  row("Permittee", permittee);
   row("Controller", site?.controller_name);
   row("Address", [site?.address, site?.city, site?.state, site?.zip].filter(Boolean).join(", "));
   row("Source", site?.source);
@@ -95,10 +110,11 @@ export async function generateQuarryReportPdf({ site, parcel, geology, profile, 
 
   heading("Parcel & Tax Intelligence");
   row("Parcel ID", parcel?.parcel_id || site?.parcel_id);
-  row("Owner", parcel?.owner_name || site?.parcel_owner);
+  row("Owner", landOwner);
   row("Property address", parcel?.property_address);
   row("Mailing address", parcel?.mailing_address);
-  row("Acreage", parcel?.acreage ?? site?.acreage);
+  row("Parcel acreage", parcelAcreage);
+  row("Permitted acreage", Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit");
   row("Assessed value", money(parcel?.assessed_value));
   row("Land value", money(parcel?.land_value));
   row("Improvement value", money(parcel?.improvement_value));
@@ -136,7 +152,8 @@ export async function generateQuarryReportPdf({ site, parcel, geology, profile, 
   if (!permits.length) line("No connected TDEC permit records were available for this site at generation time.");
   permits.forEach((p, i) => {
     line(`${i + 1}. ${text(p.permit_number, "Permit")}${p.permit_type ? ` · ${p.permit_type}` : ""}`, { bold: true });
-    line(`Status: ${text(p.status)} · Operator: ${text(p.operator_name)} · Effective: ${date(p.effective_date)} · Expires: ${date(p.expiration_date)}`);
+    line(`Status: ${text(p.status)} · Permittee: ${text(p.permittee_name)} · Operator: ${text(p.operator_name || operator)} · Effective: ${date(p.effective_date)} · Expires: ${date(p.expiration_date)}`);
+    line(`Land owner: ${text(p.landowner_name || landOwner)} · Permitted acres: ${Number(p.permitted_acres ?? site?.permitted_acres) > 0 ? Number(p.permitted_acres ?? site?.permitted_acres).toLocaleString() : "not loaded"} · Basis: ${text(p.acreage_basis || site?.permitted_acres_basis)}`);
     if (p.source_url) line(`Source: ${p.source_url}`, { size: 8 });
   });
 
@@ -164,9 +181,11 @@ export async function generateQuarryReportPdf({ site, parcel, geology, profile, 
   if (reportType === "Enhanced") {
     heading("Enhanced Property Context");
     row("Coordinates", site?.latitude != null && site?.longitude != null ? `${site.latitude}, ${site.longitude}` : null);
-    row("Mapped acreage", parcel?.acreage ?? site?.acreage);
+    row("Parcel acreage", parcelAcreage);
+    row("Permitted acreage", Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit");
     row("Ownership source", parcel?.source_name);
-    row("Current owner field", parcel?.owner_name || site?.parcel_owner);
+    row("Current owner field", landOwner);
+    row("Current operator field", operator);
     line("This section summarizes connected desktop property context. It does not replace a survey, title examination, access agreement review, or field inspection.", { size: 9 });
 
     heading("Nearby / County Market Context");
