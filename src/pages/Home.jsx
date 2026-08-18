@@ -10,6 +10,7 @@ import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import PullToRefresh from "@/components/PullToRefresh";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
+import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
@@ -33,6 +34,8 @@ export default function Home() {
   const [profiles, setProfiles] = useState([]);
   const [parcels, setParcels] = useState([]);
   const [geology, setGeology] = useState([]);
+  const [permits, setPermits] = useState([]);
+  const [environmental, setEnvironmental] = useState([]);
   const [query, setQuery] = useState("");
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -43,12 +46,14 @@ export default function Home() {
   const loadData = async () => {
     try {
       const limit = showAll ? 500 : 200;
-      const [data, potentialData, profileData, parcelData, geologyData] = await Promise.all([
+      const [data, potentialData, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
         base44.entities.MiningSite.list("-created_date", limit),
         base44.entities.MiningSite.filter({ mine_status: "New Mine" }, "-created_date", 100),
         base44.entities.QuarryPotentialProfile.list("-updated_date", limit),
         base44.entities.ParcelRecord.list("-updated_date", limit),
         base44.entities.GeologyRecord.list("-updated_date", limit),
+        base44.entities.TDECPermit.list("-last_source_update", limit),
+        base44.entities.EnvironmentalRecord.list("-last_source_update", limit),
       ]);
 
       const siteList = Array.from(new Map([...(potentialData || []), ...(data || [])].map((site) => [site.id, site])).values());
@@ -67,6 +72,8 @@ export default function Home() {
       setProfiles(profileData || []);
       setParcels(parcelData || []);
       setGeology(geoRecords);
+      setPermits(permitData || []);
+      setEnvironmental(environmentalData || []);
     } catch {
       /* ignore */
     } finally {
@@ -107,18 +114,17 @@ export default function Home() {
   const profileForSite = (s) => profiles.find((p) => p.mining_site_id === s.id || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
   const parcelForSite = (s) => parcels.find((p) => (s.parcel_id && p.parcel_id === s.parcel_id) || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
   const geologyForSite = (s) => geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
-  const opportunityPriorityScore = (s) => {
-    const statusBonus = { "New / Potential": 70, "Inactive / Idled": 45, "Historical / Abandoned": 30, Active: 15 }[statusGroup(s.mine_status)] || 20;
-    const profile = profileForSite(s);
-    const verifiedScreening = Number(profile?.screening_score);
-    const screeningBonus = Number.isFinite(verifiedScreening) && verifiedScreening > 0 ? Math.min(50, verifiedScreening * 0.5) : 0;
-    const geologyBonus = geologyForSite(s) ? 10 : 0;
-    const parcelBonus = parcelForSite(s) ? 8 : 0;
-    const permitBonus = s.tdec_permit_number || s.npdes_permit_number ? 6 : 0;
-    const locationBonus = s.latitude && s.longitude ? 5 : 0;
-    const acreageBonus = Number(s.acreage) > 0 ? Math.min(10, Math.log10(Number(s.acreage) + 1) * 4) : 0;
-    return statusBonus + screeningBonus + geologyBonus + parcelBonus + permitBonus + locationBonus + acreageBonus + completenessScore(s);
-  };
+  const permitsForSite = (s) => permits.filter((p) => (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id) || (s.tdec_permit_number && p.permit_number === s.tdec_permit_number));
+  const environmentalForSite = (s) => environmental.filter((r) => (s.msha_mine_id && r.msha_mine_id === s.msha_mine_id) || (s.npdes_permit_number && r.npdes_permit_number === s.npdes_permit_number));
+  const opportunityForSite = (s) => calculateOpportunityScore({
+    site: s,
+    parcel: parcelForSite(s),
+    geology: geologyForSite(s),
+    permits: permitsForSite(s),
+    environmental: environmentalForSite(s),
+    profile: profileForSite(s),
+  });
+  const opportunityPriorityScore = (s) => (opportunityForSite(s)?.score || 0) * 10 + completenessScore(s);
   const ranked = [...filtered].sort((a, b) => {
     if (sortMode === "Opportunity Priority") return opportunityPriorityScore(b) - opportunityPriorityScore(a) || completenessScore(b) - completenessScore(a) || String(a.mine_name || "").localeCompare(String(b.mine_name || ""));
     if (sortMode === "Most Complete") return completenessScore(b) - completenessScore(a) || String(a.mine_name || "").localeCompare(String(b.mine_name || ""));
