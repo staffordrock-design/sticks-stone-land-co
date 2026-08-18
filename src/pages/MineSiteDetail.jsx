@@ -227,6 +227,14 @@ export default function MineSiteDetail() {
 
   const mapLat = site.latitude ?? parcel?.latitude;
   const mapLng = site.longitude ?? parcel?.longitude;
+  const primaryPermit = relatedPermits.find((p) => Number(p?.permitted_acres) > 0) || relatedPermits[0] || null;
+  const landOwner = parcel?.owner_name || site.parcel_owner || primaryPermit?.landowner_name || null;
+  const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
+  const operator = permitOperator || site.operator_name || null;
+  const permittee = primaryPermit?.permittee_name || site.permittee_name || null;
+  const permittedAcreage = primaryPermit?.permitted_acres ?? site.permitted_acres;
+  const permitAcreageBasis = primaryPermit?.acreage_basis || site.permitted_acres_basis || null;
+  const parcelAcreage = parcel?.acreage ?? liveParcel?.acreage ?? site.acreage;
   const valuation = calculateIndicativeQuarryValue({ site, parcel, profile, geology: geologyRecord });
   const opportunity = calculateOpportunityScore({ site, parcel, geology: geologyRecord, permits: relatedPermits, environmental: relatedEnvironmental, profile });
   const aerialPreview = worldImageryTile(mapLat, mapLng);
@@ -236,6 +244,7 @@ export default function MineSiteDetail() {
     { label: "GIS boundary", ready: Boolean(parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3), detail: (parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3) ? "Boundary available" : "Boundary pending" },
     { label: "Geology / rock intelligence", ready: Boolean(geologyRecord), detail: geologyRecord?.primary_rock || geologyRecord?.lithology || "Geology linkage pending" },
     { label: "Permit / regulatory record", ready: Boolean(relatedPermits.length), detail: relatedPermits.length ? `${relatedPermits.length} connected record${relatedPermits.length === 1 ? "" : "s"}` : "Permit linkage pending" },
+    { label: "Owner / operator / permitted footprint", ready: Boolean(landOwner && operator && Number(permittedAcreage) > 0), detail: `${landOwner || "owner pending"} · ${operator || "operator pending"} · ${Number(permittedAcreage) > 0 ? `${Number(permittedAcreage).toLocaleString()} permitted ac` : "permit acreage pending"}` },
     { label: "Production history", ready: Boolean(relatedProduction.length), detail: relatedProduction.length ? `${relatedProduction.length} production record${relatedProduction.length === 1 ? "" : "s"}` : "Production linkage pending" },
     { label: "Compliance history", ready: Boolean(relatedInspections.length || relatedViolations.length || relatedEnvironmental.length), detail: `${relatedInspections.length} inspections · ${relatedViolations.length} violations · ${relatedEnvironmental.length} environmental` },
     { label: "Contract / royalty intelligence", ready: Boolean(relatedContracts.length), detail: relatedContracts.length ? `${relatedContracts.length} agreement record${relatedContracts.length === 1 ? "" : "s"}` : "Lease / royalty terms not connected" },
@@ -359,9 +368,9 @@ export default function MineSiteDetail() {
               lat={mapLat}
               lng={mapLng}
               polygon={parcel?.boundary_polygon?.length >= 3 ? parcel.boundary_polygon : liveParcel?.boundary}
-              ownerName={parcel?.owner_name || liveParcel?.owner || site.parcel_owner}
+              ownerName={landOwner || liveParcel?.owner}
               parcelId={parcel?.parcel_id || liveParcel?.parcel_id || site.parcel_id}
-              acreage={parcel?.acreage ?? liveParcel?.acreage ?? site.acreage}
+              acreage={parcelAcreage}
               rockType={geologyRecord?.primary_rock || geologyRecord?.lithology || site.commodity}
               boundarySource={parcel?.boundary_source || liveParcel?.source || parcel?.source_name}
               height={440}
@@ -371,13 +380,16 @@ export default function MineSiteDetail() {
             <Row label="MSHA ID" value={site.msha_mine_id} />
             <Row label="Commodity" value={site.commodity} />
             <Row label="Mine type" value={site.mine_type} />
-            <Row label="Operator" value={site.operator_name} />
+            <Row label="Land owner" value={landOwner} />
+            <Row label="Operator" value={operator} />
+            <Row label="Permittee" value={permittee} />
             <Row label="Controller" value={site.controller_name} />
             <Row label="Address" value={[site.address, site.city, site.state, site.zip].filter(Boolean).join(", ")} />
-            <Row label="Acreage" value={site.acreage != null ? Number(site.acreage).toLocaleString() : null} />
+            <Row label="Permitted acres" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />
+            <Row label="Permit acreage basis" value={permitAcreageBasis} />
+            <Row label="Parcel acres" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />
             <Row label="Category" value={site.category} />
             <Row label="Parcel" value={site.parcel_id} />
-            <Row label="Parcel owner" value={site.parcel_owner} />
             <Row label="TDEC permit" value={site.tdec_permit_number} />
             <Row label="NPDES permit" value={site.npdes_permit_number} />
             <Row label="Source checked" value={displayDate(site.last_source_update)} />
@@ -407,8 +419,9 @@ export default function MineSiteDetail() {
             {(parcel || liveParcel || site.parcel_id || site.parcel_owner) ? (
               <>
                 <Row label="Parcel" value={parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
-                <Row label="Owner" value={parcel?.owner_name || liveParcel?.owner || site.parcel_owner} />
-                <Row label="Acreage" value={(parcel?.acreage ?? liveParcel?.acreage ?? site.acreage) != null ? Number(parcel?.acreage ?? liveParcel?.acreage ?? site.acreage).toLocaleString() : null} />
+                <Row label="Owner" value={landOwner || liveParcel?.owner} />
+                <Row label="Parcel acreage" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />
+                <Row label="Permitted acreage" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />
                 <Row label="Property address" value={parcel?.property_address || liveParcel?.situs_address || site.address} />
                 <Row label="Mailing address" value={parcel?.mailing_address || liveParcel?.mailing_address} />
                 <Row label="Assessed" value={money(parcel?.assessed_value ?? liveParcel?.assessed_value)} />
@@ -500,8 +513,10 @@ export default function MineSiteDetail() {
               <p className="mt-3 text-xs leading-5 text-sky-900/75">{opportunity?.note}</p>
             </div>
             <Row label="Rock / geology" value={opportunity?.rock || "Pending"} />
-            <Row label="Owner / parcel" value={opportunity?.owner || opportunity?.parcelId || "Pending"} />
-            <Row label="Acreage" value={opportunity?.acreage != null ? Number(opportunity.acreage).toLocaleString() : "Pending"} />
+            <Row label="Land owner" value={landOwner || opportunity?.owner || "Pending"} />
+            <Row label="Operator" value={operator || "Pending"} />
+            <Row label="Permitted acres" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Permit acreage pending"} />
+            <Row label="Parcel acres" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : "Pending"} />
             <Row label="Permit records" value={relatedPermits.length ? `${relatedPermits.length} connected` : (site.tdec_permit_number || site.npdes_permit_number ? "Permit identifier linked" : "Pending")} />
             <Row label="Environmental" value={relatedEnvironmental.length ? `${relatedEnvironmental.length} connected` : "No connected record yet"} />
             {profile && (
@@ -606,11 +621,17 @@ export default function MineSiteDetail() {
               <div key={p.id} className="mb-4 rounded-xl border border-border p-4 last:mb-0">
                 <div className="font-semibold text-foreground">{p.permit_number} · {p.permit_type}</div>
                 <div className="mt-1 text-sm text-muted-foreground">{p.status || "Status not loaded"}</div>
-                {p.operator_name && <div className="mt-2 text-sm text-foreground">Operator: {p.operator_name}</div>}
+                <div className="mt-3">
+                  <Row label="Permittee" value={p.permittee_name} />
+                  <Row label="Land owner" value={p.landowner_name || landOwner} />
+                  <Row label="Operator" value={p.operator_name || operator} />
+                  <Row label="Permitted acres" value={Number(p.permitted_acres ?? site.permitted_acres) > 0 ? Number(p.permitted_acres ?? site.permitted_acres).toLocaleString() : "Not loaded"} />
+                  <Row label="Acreage basis" value={p.acreage_basis || site.permitted_acres_basis} />
+                </div>
                 <div className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
                   <div>Effective: <strong className="text-foreground">{displayDate(p.effective_date)}</strong></div>
                   <div>Expires: <strong className="text-foreground">{displayDate(p.expiration_date)}</strong></div>
-                  <div>Source checked: <strong className="text-foreground">{displayDate(p.last_source_update)}</strong></div>
+                  <div>Source checked: <strong className="text-foreground">{displayDate(p.acreage_last_verified || p.last_source_update)}</strong></div>
                 </div>
                 {p.source_url && <a href={p.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open TDEC source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </div>
