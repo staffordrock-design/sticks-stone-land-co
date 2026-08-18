@@ -12,7 +12,7 @@ function ringToLatLng(ring: number[][]) {
 
 function isPriorityStatus(status: unknown) {
   const value = String(status || "").toLowerCase();
-  return value.includes("intermittent") || value.includes("temporarily idled") || value.includes("nonproducing") || value.includes("non-producing") || value.includes("inactive") || value.includes("historical") || value.includes("abandon");
+  return value.includes("new mine") || value.includes("potential") || value.includes("intermittent") || value.includes("temporarily idled") || value.includes("nonproducing") || value.includes("non-producing") || value.includes("inactive") || value.includes("historical") || value.includes("abandon");
 }
 
 async function fetchParcel(url: string) {
