@@ -18,6 +18,8 @@ export default function AdminDataSync() {
   const [runningFreshness, setRunningFreshness] = useState(false);
   const [runningEnvironmental, setRunningEnvironmental] = useState(false);
   const [environmentalResult, setEnvironmentalResult] = useState(null);
+  const [runningOwnershipFootprint, setRunningOwnershipFootprint] = useState(false);
+  const [ownershipFootprintResult, setOwnershipFootprintResult] = useState(null);
   const [error, setError] = useState("");
 
   const loadFreshness = async () => {
@@ -91,6 +93,20 @@ export default function AdminDataSync() {
     }
   };
 
+  const syncOwnershipFootprint = async () => {
+    setRunningOwnershipFootprint(true);
+    setOwnershipFootprintResult(null);
+    setError("");
+    try {
+      const response = await base44.functions.invoke("sync-owner-operator-permit-acreage", { limit: 500 });
+      setOwnershipFootprintResult(response?.data || response);
+    } catch (e) {
+      setError(e?.message || "Owner/operator/permitted-acre integration failed.");
+    } finally {
+      setRunningOwnershipFootprint(false);
+    }
+  };
+
   const refreshFreshness = async () => {
     setRunningFreshness(true);
     setError("");
@@ -143,6 +159,18 @@ export default function AdminDataSync() {
             <button onClick={refreshFreshness} disabled={runningFreshness} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningFreshness ? "animate-spin" : ""}`} />{runningFreshness ? "Checking…" : "Recheck freshness"}</button>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{freshness.map((f) => <div key={f.source} className="rounded-xl border border-border bg-muted/20 p-4"><div className="flex items-center justify-between gap-3"><div className="font-semibold text-foreground">{f.source}</div><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${f.status === "Current" ? "bg-emerald-100 text-emerald-800" : f.status === "Stale" || f.status === "Error" ? "bg-red-100 text-red-800" : "bg-sky-100 text-sky-900"}`}>{f.status}</span></div><div className="mt-2 text-xs text-muted-foreground">Last sync: {f.last_sync_at ? new Date(f.last_sync_at).toLocaleString() : "Not recorded"}</div></div>)}</div>
+        </section>
+
+        <section className="mb-6 rounded-2xl border border-border bg-card p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2"><MapPinned className="h-5 w-5 text-indigo-700" /><h2 className="font-heading text-xl font-bold text-foreground">Owner · Operator · Permitted Footprint</h2></div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">Connects assessor parcel ownership, MSHA current operator, TDEC permittee, and permit-specific acreage into one quarry record. Parcel acreage and permitted mining acreage remain separate so the app never implies that the full tax parcel is authorized for mining.</p>
+            </div>
+            <button onClick={syncOwnershipFootprint} disabled={runningOwnershipFootprint} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-800 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningOwnershipFootprint ? "animate-spin" : ""}`} />{runningOwnershipFootprint ? "Connecting…" : "Sync owner/operator/acres"}</button>
+          </div>
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-indigo-200 bg-indigo-50 p-4 text-sm text-indigo-950"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" /><span>Owner comes from parcel/assessment data. Operator comes from MSHA when available. Permitted acres are accepted only from a connected permit record; parcel acreage is never used as a substitute.</span></div>
+          {ownershipFootprintResult && <div className="mt-5 rounded-xl border border-border bg-muted/20 p-5"><div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Quarries</div><div className="mt-1 font-bold">{ownershipFootprintResult.queried ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Owners linked</div><div className="mt-1 font-bold">{ownershipFootprintResult.owner_linked ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Operators linked</div><div className="mt-1 font-bold">{ownershipFootprintResult.operator_linked ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Permittees</div><div className="mt-1 font-bold">{ownershipFootprintResult.permittee_linked ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Permit acres</div><div className="mt-1 font-bold">{ownershipFootprintResult.permitted_acres_linked ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Acreage pending</div><div className="mt-1 font-bold">{ownershipFootprintResult.permitted_acres_pending ?? 0}</div></div></div>{ownershipFootprintResult.note && <p className="mt-4 text-sm text-muted-foreground">{ownershipFootprintResult.note}</p>}</div>}
         </section>
 
         <section className="mb-6 rounded-2xl border border-border bg-card p-6">
