@@ -11,6 +11,14 @@
     "facility_name": {
       "type": "string"
     },
+    "permittee_name": {
+      "type": "string",
+      "description": "Legal permit holder/permittee shown by the controlling permit source."
+    },
+    "landowner_name": {
+      "type": "string",
+      "description": "Land/surface owner when the permit record expressly identifies one; assessor parcel ownership remains a separate source."
+    },
     "operator_name": {
       "type": "string"
     },
@@ -40,6 +48,20 @@
       "type": "string"
     },
     "arap_permit_number": {
+      "type": "string"
+    },
+    "permitted_acres": {
+      "type": "number",
+      "description": "Acreage stated by the controlling permit record. Do not substitute parcel acreage."
+    },
+    "acreage_basis": {
+      "type": "string",
+      "description": "Meaning of permitted_acres, such as NPDES permitted acreage or surface-mining disturbed acreage."
+    },
+    "acreage_source_url": {
+      "type": "string"
+    },
+    "acreage_last_verified": {
       "type": "string"
     },
     "effective_date": {
