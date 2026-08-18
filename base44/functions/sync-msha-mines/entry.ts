@@ -108,6 +108,11 @@ export default async function(req: Request) {
             parcel_id: site.parcel_id || undefined,
             parcel_owner: site.parcel_owner || undefined,
             acreage: site.acreage ?? undefined,
+            permittee_name: site.permittee_name || undefined,
+            permitted_acres: site.permitted_acres ?? undefined,
+            permitted_acres_basis: site.permitted_acres_basis || undefined,
+            permitted_acres_source_url: site.permitted_acres_source_url || undefined,
+            permitted_acres_last_verified: site.permitted_acres_last_verified || undefined,
             site_images: site.site_images || undefined,
             photo_condition_score: site.photo_condition_score ?? undefined,
             photo_notes: site.photo_notes || undefined,
@@ -139,7 +144,7 @@ export default async function(req: Request) {
       duplicate_msha_ids_found: duplicateIds,
       sample,
       states: Array.from(SOUTHEAST_STATES),
-      note: "MSHA Mine ID is treated as the authoritative unique key across the Southeast. Official MSHA fields are refreshed; S&S parcel, permit, imagery and listing fields are preserved.",
+      note: "MSHA Mine ID is treated as the authoritative unique key across the Southeast. Official MSHA fields are refreshed; S&S parcel, permit, permit-acreage, imagery and listing fields are preserved.",
     });
   } catch (error: any) {
     const message = error?.message || String(error);
