@@ -82,15 +82,20 @@ export default function PaidAccessGate({ children }) {
         <div className="mx-auto max-w-xl rounded-3xl border border-border bg-card p-8 text-center shadow-sm sm:p-10">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-900 text-white"><LockKeyhole className="h-7 w-7" /></div>
           <p className="mt-6 text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">S&S Rock Holdings</p>
-          <h1 className="mt-2 font-heading text-3xl font-bold">Subscription required</h1>
-          <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-muted-foreground">S&S Quarry Intelligence gives subscribers access to quarry records, maps, geology, regulatory context, mineral intelligence and deeper site analysis.</p>
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to="/subscribe" className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />View subscription</Link>
+          <h1 className="mt-2 font-heading text-3xl font-bold">Detailed mine intelligence is locked</h1>
+          <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-muted-foreground">The marketplace preview shows enough to find and screen quarry records. Membership opens the deeper record behind each site: mapped parcel and ownership intelligence, geology and rock type, permits and compliance history, production context, opportunity screening and premium analysis.</p>
+          <div className="mx-auto mt-6 grid max-w-md grid-cols-2 gap-3 text-left">
+            <div className="rounded-2xl border border-border bg-muted/30 p-4"><div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quarry Access</div><div className="mt-1 text-xl font-bold">$69<span className="text-xs font-semibold text-muted-foreground">/mo</span></div><div className="mt-1 text-xs leading-5 text-muted-foreground">Marketplace, mine identity, mapping and basic intelligence.</div></div>
+            <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4"><div className="text-xs font-bold uppercase tracking-wider text-sky-700">Professional</div><div className="mt-1 text-xl font-bold">$139<span className="text-xs font-semibold text-muted-foreground">/mo</span></div><div className="mt-1 text-xs leading-5 text-muted-foreground">Parcel, geology, regulatory, production and advanced screening.</div></div>
+          </div>
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
+            <Link to="/subscribe" className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />Unlock full intelligence</Link>
+            <Link to="/" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Keep browsing preview</Link>
             {!user?.id && isNativeIOS() && <button type="button" onClick={() => { enableReviewDemoMode(); setReviewDemo(true); }} className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-5 py-3 text-sm font-bold text-sky-950"><Eye className="h-4 w-4" />Explore review demo</button>}
             {!user?.id && <Link to="/register" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Create account</Link>}
             {!user?.id && <Link to="/login" className="text-sm font-semibold text-sky-800 hover:underline">Sign in</Link>}
           </div>
-          <p className="mt-5 text-xs leading-5 text-muted-foreground">Downloadable intelligence reports and custom diligence may be priced separately from subscription access.</p>
+          <p className="mt-5 text-xs leading-5 text-muted-foreground">Downloadable intelligence reports and custom diligence remain separate products, including the $1,500 Deal Due-Diligence Report.</p>
         </div>
       </div>
     );
