@@ -30,6 +30,7 @@ export default function TimedPreviewGate({ children }) {
   const [hasPaidAccess, setHasPaidAccess] = useState(user?.role === "admin" || isReviewDemoMode());
   const [secondsRemaining, setSecondsRemaining] = useState(60);
   const [previewExpired, setPreviewExpired] = useState(false);
+  const previewProgress = Math.max(0, Math.min(100, (secondsRemaining / 60) * 100));
 
   useEffect(() => {
     let cancelled = false;
@@ -107,9 +108,12 @@ export default function TimedPreviewGate({ children }) {
       </div>
 
       {!checkingAccess && !previewExpired && (
-        <div className="fixed bottom-24 right-4 z-[75] flex items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2 text-xs font-bold text-slate-900 shadow-lg backdrop-blur sm:bottom-6 sm:right-6">
-          <Clock3 className="h-4 w-4" />
-          Free preview · {secondsRemaining}s
+        <div className="fixed bottom-24 right-4 z-[75] w-[210px] overflow-hidden rounded-2xl border border-slate-200 bg-white/95 text-slate-900 shadow-lg backdrop-blur sm:bottom-6 sm:right-6">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 text-xs font-bold">
+            <span className="inline-flex items-center gap-2"><Clock3 className="h-4 w-4" />Free preview</span>
+            <span>{secondsRemaining}s</span>
+          </div>
+          <div className="h-1 bg-slate-100"><div className="h-full bg-slate-800 transition-[width] duration-300" style={{ width: `${previewProgress}%` }} /></div>
         </div>
       )}
 
@@ -122,11 +126,23 @@ export default function TimedPreviewGate({ children }) {
             <p className="mt-5 text-xs font-bold uppercase tracking-[0.22em] text-slate-500">S&amp;S Rock Holdings</p>
             <h1 className="mt-2 font-heading text-3xl font-bold text-slate-950">Your 60-second preview is complete</h1>
             <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-slate-600">
-              Unlock full quarry intelligence, detailed mine pages, geology, parcel intelligence, regulatory context and premium analysis with an S&amp;S membership.
+              You’ve seen the marketplace, source-backed quarry records and opportunity screening. Membership unlocks the detailed mine pages, mapped geology, parcel/ownership intelligence, regulatory history and deeper analysis behind each record.
             </p>
-            <div className="mt-7 grid gap-3">
+            <div className="mt-6 grid grid-cols-2 gap-3 text-left">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Quarry Access</div>
+                <div className="mt-1 text-xl font-bold text-slate-950">$69<span className="text-xs font-semibold text-slate-500">/mo</span></div>
+                <div className="mt-1 text-xs leading-5 text-slate-600">Marketplace, mine identity, maps and basic site intelligence.</div>
+              </div>
+              <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-sky-700">Professional</div>
+                <div className="mt-1 text-xl font-bold text-slate-950">$139<span className="text-xs font-semibold text-slate-500">/mo</span></div>
+                <div className="mt-1 text-xs leading-5 text-slate-600">Parcel, geology, permits, production and advanced screening.</div>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-3">
               <Link to="/subscribe" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">
-                <Crown className="h-4 w-4" /> View membership plans
+                <Crown className="h-4 w-4" /> Unlock full quarry intelligence
               </Link>
               {!user?.id && (
                 <Link to="/login?returnTo=/subscribe" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-900">
@@ -134,7 +150,7 @@ export default function TimedPreviewGate({ children }) {
                 </Link>
               )}
             </div>
-            <p className="mt-5 text-xs leading-5 text-slate-500">The preview shows limited marketplace information only. Subscriber-only intelligence remains protected.</p>
+            <p className="mt-5 text-xs leading-5 text-slate-500">The preview remains limited to marketplace-level information. Subscriber-only intelligence and downloadable reports stay protected.</p>
           </div>
         </div>
       )}
