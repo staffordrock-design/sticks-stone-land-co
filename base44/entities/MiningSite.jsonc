@@ -34,6 +34,10 @@
     "operator_name": {
       "type": "string"
     },
+    "permittee_name": {
+      "type": "string",
+      "description": "Named permit holder/permittee when verified from a regulatory permit record; kept separate from the MSHA operator."
+    },
     "controller_name": {
       "type": "string"
     },
@@ -71,7 +75,22 @@
       "type": "string"
     },
     "acreage": {
-      "type": "number"
+      "type": "number",
+      "description": "Parcel/tax-map acreage when available. This is not the same as permitted mining acreage."
+    },
+    "permitted_acres": {
+      "type": "number",
+      "description": "Acreage authorized or identified by the controlling mining/NPDES permit record. Never inferred from parcel acreage."
+    },
+    "permitted_acres_basis": {
+      "type": "string",
+      "description": "What the acreage represents, e.g. NPDES permitted acreage, surface-mining disturbed acreage, or permit-document acreage."
+    },
+    "permitted_acres_source_url": {
+      "type": "string"
+    },
+    "permitted_acres_last_verified": {
+      "type": "string"
     },
     "site_images": {
       "type": "array",
