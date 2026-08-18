@@ -31,6 +31,7 @@ export default async function(req: Request) {
   const results = [];
   results.push(await run(base44, "sync-parcel-boundaries", { limit }));
   results.push(await run(base44, "sync-tn-npdes-environmental", { limit }));
+  results.push(await run(base44, "sync-owner-operator-permit-acreage", { limit }));
   results.push(await run(base44, "report-data-freshness", {}));
 
   for (const item of results) {
