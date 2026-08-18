@@ -1,0 +1,13 @@
+{
+  "automations": [
+    {
+      "name": "Immediate priority quarry enrichment",
+      "description": "Run parcel ownership/acreage and NPDES/environmental enrichment immediately for the Tennessee quarry working set, then recalculate freshness.",
+      "type": "scheduled",
+      "schedule_mode": "one-time",
+      "one_time_date": "2026-08-18T12:44:00.000Z",
+      "function_args": { "limit": 500 },
+      "is_active": true
+    }
+  ]
+}
