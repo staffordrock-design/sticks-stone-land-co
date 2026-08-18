@@ -35,9 +35,13 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
     const limit = Math.min(Math.max(Number(body?.limit || 100), 1), 500);
-    const allSites = await base44.asServiceRole.entities.MiningSite.list("-updated_date", 500);
-    const sites = (allSites || [])
-      .filter((site: any) => String(site.state || "").toUpperCase() === "TN")
+    const allSites: any[] = [];
+    for (let skip = 0; skip < 5000; skip += 500) {
+      const batch = await base44.asServiceRole.entities.MiningSite.filter({ state: "TN" }, "-updated_date", 500, skip);
+      allSites.push(...(batch || []));
+      if (!batch || batch.length < 500) break;
+    }
+    const sites = allSites
       .sort((a: any, b: any) => Number(isPriorityStatus(b.mine_status)) - Number(isPriorityStatus(a.mine_status)))
       .slice(0, limit);
 
