@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2 } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
+import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
@@ -227,6 +228,7 @@ export default function MineSiteDetail() {
   const mapLat = site.latitude ?? parcel?.latitude;
   const mapLng = site.longitude ?? parcel?.longitude;
   const valuation = calculateIndicativeQuarryValue({ site, parcel, profile, geology: geologyRecord });
+  const opportunity = calculateOpportunityScore({ site, parcel, geology: geologyRecord, permits: relatedPermits, environmental: relatedEnvironmental, profile });
   const aerialPreview = worldImageryTile(mapLat, mapLng);
   const diligence = [
     { label: "Mine / operating record", ready: Boolean(site.msha_mine_id || site.mine_status), detail: site.msha_mine_id ? `MSHA ${site.msha_mine_id}` : site.mine_status },
@@ -483,23 +485,39 @@ export default function MineSiteDetail() {
           </Card>
 
           <Card title="Quarry Potential" icon={Gauge}>
-            {profile ? (
-              <>
-                <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-4">
-                  <div className="text-xs uppercase tracking-wider text-sky-800">Screening score</div>
-                  <div className="mt-1 text-3xl font-bold text-sky-950">{profile.screening_score ?? "Not scored"}</div>
-                  <div className="mt-1 text-sm text-sky-900">Confidence: {profile.confidence || "Low"}</div>
+            <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-sky-800">S&amp;S Opportunity Score</div>
+                  <div className="mt-1 text-3xl font-bold text-sky-950">{opportunity?.score ?? "—"}<span className="text-sm font-semibold text-sky-700">/100</span></div>
+                  <div className="mt-1 text-sm font-semibold text-sky-900">{opportunity?.band || "Early"} screening signal</div>
                 </div>
-                <Row label="Geology" value={profile.geology_score} />
-                <Row label="Access" value={profile.access_score} />
-                <Row label="Regulatory" value={profile.regulatory_score} />
-                <Row label="Market" value={profile.market_score} />
-                <Row label="Parcel" value={profile.parcel_score} />
-                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{profile.basis_summary}</p>
-                <p className="mt-3 text-xs leading-relaxed text-muted-foreground"><strong>Limitations:</strong> {profile.limitations}</p>
-              </>
-            ) : (
-              <p className="text-sm leading-relaxed text-muted-foreground">Potential profile not generated yet. The app will only show a score after enough source-backed geology, parcel, access, regulatory and market inputs are connected.</p>
+                <div className="text-right text-xs leading-5 text-sky-900/80">
+                  <div>{opportunity?.connected?.length || 0} source layers connected</div>
+                  <div>{opportunity?.violations ? `${opportunity.violations} environmental violation flags` : "No connected environmental violation flags"}</div>
+                </div>
+              </div>
+              <p className="mt-3 text-xs leading-5 text-sky-900/75">{opportunity?.note}</p>
+            </div>
+            <Row label="Rock / geology" value={opportunity?.rock || "Pending"} />
+            <Row label="Owner / parcel" value={opportunity?.owner || opportunity?.parcelId || "Pending"} />
+            <Row label="Acreage" value={opportunity?.acreage != null ? Number(opportunity.acreage).toLocaleString() : "Pending"} />
+            <Row label="Permit records" value={relatedPermits.length ? `${relatedPermits.length} connected` : (site.tdec_permit_number || site.npdes_permit_number ? "Permit identifier linked" : "Pending")} />
+            <Row label="Environmental" value={relatedEnvironmental.length ? `${relatedEnvironmental.length} connected` : "No connected record yet"} />
+            {profile && (
+              <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Stored potential profile</div>
+                <div className="mt-3 grid gap-x-6 sm:grid-cols-2">
+                  <Row label="Geology" value={profile.geology_score} />
+                  <Row label="Access" value={profile.access_score} />
+                  <Row label="Regulatory" value={profile.regulatory_score} />
+                  <Row label="Market" value={profile.market_score} />
+                  <Row label="Parcel" value={profile.parcel_score} />
+                  <Row label="Confidence" value={profile.confidence} />
+                </div>
+                {profile.basis_summary && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{profile.basis_summary}</p>}
+                {profile.limitations && <p className="mt-3 text-xs leading-relaxed text-muted-foreground"><strong>Limitations:</strong> {profile.limitations}</p>}
+              </div>
             )}
           </Card>
 
