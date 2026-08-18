@@ -7,7 +7,7 @@ import { isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscript
 import { isReviewDemoMode, isReviewDemoAccount } from "@/lib/reviewDemo";
 
 const PREVIEW_MS = 60 * 1000;
-const PREVIEW_START_KEY = "ss-quarry-preview-start-v1";
+const PREVIEW_START_KEY = "ss-quarry-preview-start-v2";
 const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
 
 function entitlementIsActive(row) {
