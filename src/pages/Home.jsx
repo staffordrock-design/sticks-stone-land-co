@@ -229,8 +229,11 @@ export default function Home() {
               const parcel = parcelForSite(s);
               const geologyRecord = geologyForSite(s);
               const profile = profileForSite(s);
+              const sitePermits = permitsForSite(s);
+              const siteEnvironmental = environmentalForSite(s);
+              const opportunity = opportunityForSite(s);
               const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
-              return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} />;
+              return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} emphasizeOpportunity />;
             })}
           </div>
         </section>
@@ -379,8 +382,11 @@ export default function Home() {
                 const profile = profileForSite(s);
                 const parcel = parcelForSite(s);
                 const geologyRecord = geologyForSite(s);
+                const sitePermits = permitsForSite(s);
+                const siteEnvironmental = environmentalForSite(s);
+                const opportunity = opportunityForSite(s);
                 const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
-                return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} />;
+                return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} />;
               })}
             </div>
             {!showAll && sites.length >= 190 && (
