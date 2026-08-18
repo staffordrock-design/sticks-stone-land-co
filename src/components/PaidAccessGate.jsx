@@ -4,7 +4,7 @@ import { Crown, Eye, Loader2, LockKeyhole, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
-import { disableReviewDemoMode, enableReviewDemoMode, isReviewDemoMode } from "@/lib/reviewDemo";
+import { disableReviewDemoMode, enableReviewDemoMode, isReviewDemoMode, isReviewDemoAccount } from "@/lib/reviewDemo";
 
 const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
 const isCurrentlyActive = (row) => ACTIVE_STATUSES.has(row.status) && (!row.expires_at || new Date(row.expires_at).getTime() > Date.now());
@@ -23,6 +23,13 @@ export default function PaidAccessGate({ children }) {
     }
     (async () => {
       try {
+        if (isReviewDemoAccount(user?.email)) {
+          try {
+            await base44.functions.invoke("ensure-review-demo-entitlement", {});
+          } catch (error) {
+            console.error("Review demo entitlement ensure failed", error);
+          }
+        }
         if (isNativeIOS()) {
           try {
             await syncCurrentAppleSubscriptions();

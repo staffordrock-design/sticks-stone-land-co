@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
 import { appleAccountTokenForUser, appleProductIds, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
 import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
+import { isReviewDemoAccount } from "@/lib/reviewDemo";
 
 const ACTIVE = new Set(["active", "trial", "grace_period"]);
 
@@ -26,6 +27,13 @@ export default function Subscription() {
 
   const refreshEntitlements = async () => {
     if (!user?.id) return [];
+    if (isReviewDemoAccount(user?.email)) {
+      try {
+        await base44.functions.invoke("ensure-review-demo-entitlement", {});
+      } catch (error) {
+        console.error("Review demo entitlement ensure failed", error);
+      }
+    }
     const data = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 20);
     setEntitlements(data || []);
     return data || [];

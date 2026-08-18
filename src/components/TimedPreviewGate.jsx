@@ -4,7 +4,7 @@ import { Clock3, Crown, Eye, LockKeyhole, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
-import { isReviewDemoMode } from "@/lib/reviewDemo";
+import { isReviewDemoMode, isReviewDemoAccount } from "@/lib/reviewDemo";
 
 const PREVIEW_MS = 60 * 1000;
 const PREVIEW_START_KEY = "ss-quarry-preview-start-v1";
@@ -61,6 +61,13 @@ export default function TimedPreviewGate({ children }) {
     setCheckingAccess(true);
     (async () => {
       try {
+        if (isReviewDemoAccount(user?.email)) {
+          try {
+            await base44.functions.invoke("ensure-review-demo-entitlement", {});
+          } catch (error) {
+            console.error("Review demo entitlement ensure failed", error);
+          }
+        }
         if (isNativeIOS()) {
           try {
             await syncCurrentAppleSubscriptions();
