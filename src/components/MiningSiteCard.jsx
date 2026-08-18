@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, Gem, ShieldCheck } from "lucide-react";
+import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, Gem, ShieldCheck, Gauge, Landmark, Leaf } from "lucide-react";
 import { classifyRock } from "../../base44/shared/rockTypes.js";
 
 function worldImageryTile(lat, lng, zoom = 14) {
@@ -37,7 +37,7 @@ function displayDate(value) {
   return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-export default function MiningSiteCard({ site, valuation, geology }) {
+export default function MiningSiteCard({ site, valuation, geology, parcel, permits = [], environmental = [], opportunity, emphasizeOpportunity = false }) {
   const rockClass = geology ? classifyRock(geology.primary_rock || geology.lithology) : null;
   const rockChip = geology?.primary_rock || geology?.lithology || site.commodity;
   const location = [site.county ? `${site.county}, ` : "", site.state].join("");
@@ -45,6 +45,14 @@ export default function MiningSiteCard({ site, valuation, geology }) {
   const aerialPreview = worldImageryTile(site.latitude, site.longitude);
   const heroImage = site.site_images?.[0] || aerialPreview;
   const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location preview" : null;
+  const showOpportunity = Boolean(opportunity) && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
+  const owner = parcel?.owner_name || site.parcel_owner;
+  const acreage = parcel?.acreage ?? site.acreage;
+  const regulatoryLabel = permits.length
+    ? `${permits.length} permit${permits.length === 1 ? "" : "s"}`
+    : site.tdec_permit_number || site.npdes_permit_number
+      ? "Permit linked"
+      : "Permit pending";
 
   const body = (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -88,6 +96,39 @@ export default function MiningSiteCard({ site, valuation, geology }) {
           <MapPin className="h-3.5 w-3.5" />
           <span>{location || "—"}</span>
         </div>
+
+        {showOpportunity && (
+          <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/70 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-sky-800">
+                <Gauge className="h-4 w-4" /> S&amp;S Opportunity Score
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-sky-950">{opportunity.score}<span className="text-xs font-semibold text-sky-700">/100</span></div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-sky-700">{opportunity.band}</div>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
+                <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Gem className="h-3 w-3" /> Rock</div>
+                <div className="mt-1 line-clamp-2 font-semibold text-slate-900">{opportunity.rock || "Geology pending"}</div>
+              </div>
+              <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
+                <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Landmark className="h-3 w-3" /> Owner / Parcel</div>
+                <div className="mt-1 line-clamp-2 font-semibold text-slate-900">{owner && !/pending|unknown|verify/i.test(owner) ? owner : opportunity.parcelId || "Parcel pending"}</div>
+              </div>
+              <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Acreage</div>
+                <div className="mt-1 font-semibold text-slate-900">{Number(acreage) > 0 ? Number(acreage).toLocaleString() : "Pending"}</div>
+              </div>
+              <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
+                <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Leaf className="h-3 w-3" /> Regulatory</div>
+                <div className="mt-1 font-semibold text-slate-900">{regulatoryLabel}{environmental.length ? ` · ${environmental.length} env.` : ""}</div>
+              </div>
+            </div>
+            <p className="mt-3 text-[10px] leading-4 text-sky-900/70">Source-linked screening signal only. Not an appraisal, reserve estimate, title opinion or sale recommendation.</p>
+          </div>
+        )}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {rockChip && (
