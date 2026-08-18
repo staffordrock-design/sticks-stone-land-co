@@ -1,6 +1,6 @@
 const REVIEW_DEMO_KEY = "ss-apple-review-demo";
 
-export const REVIEW_DEMO_EMAIL = "appreview@ssrockholdings.com";
+export const REVIEW_DEMO_EMAIL = "contact+appreview@ssrockholdings.com";
 
 export function isReviewDemoAccount(email) {
   return Boolean(email) && email.toLowerCase() === REVIEW_DEMO_EMAIL;
