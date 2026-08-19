@@ -1,0 +1,190 @@
+{
+  "active_review_apps": [
+    {
+      "app_id": "6802014287",
+      "bundle_id": "com.base6a78376a454093ba2f431acd.app",
+      "id": "dea0049c-0adb-4b39-828f-38563051e5e2",
+      "name": "S&S Rock Holdings Mobile",
+      "platform": "IOS",
+      "state": "WAITING_FOR_REVIEW",
+      "submitted_date": "2026-08-18T08:15:58.145Z"
+    },
+    {
+      "app_id": "6801486748",
+      "bundle_id": "com.ssrockholdings.app",
+      "id": "8d6ebc18-2909-4fe3-86aa-52a209a8d564",
+      "name": "S&S Rock Holdings",
+      "platform": null,
+      "state": "READY_FOR_REVIEW",
+      "submitted_date": null
+    }
+  ],
+  "apps": [
+    {
+      "active_reviews": [
+        {
+          "id": "dea0049c-0adb-4b39-828f-38563051e5e2",
+          "platform": "IOS",
+          "state": "WAITING_FOR_REVIEW",
+          "submitted_date": "2026-08-18T08:15:58.145Z"
+        }
+      ],
+      "bundle_id": "com.base6a78376a454093ba2f431acd.app",
+      "id": "6802014287",
+      "ios_versions": [
+        {
+          "app_store_state": "WAITING_FOR_REVIEW",
+          "app_version_state": "WAITING_FOR_REVIEW",
+          "created_date": "2026-08-16T03:26:11-07:00",
+          "id": "094ac4b1-2b6f-4858-a46a-4871a3bc69d2",
+          "version_string": "2.130297.1"
+        }
+      ],
+      "name": "S&S Rock Holdings Mobile",
+      "sku": "SSROCK-BASE44-IOS-2026",
+      "subscription_groups": [
+        {
+          "id": "22312976",
+          "reference_name": "S&S Quarry Intelligence Membership",
+          "subscriptions": [
+            {
+              "id": "6802019468",
+              "name": "Professional Intelligence Annual",
+              "period": "ONE_YEAR",
+              "product_id": "com.ssrockholdings.professional.annual",
+              "state": "IN_REVIEW"
+            },
+            {
+              "id": "6802019370",
+              "name": "Professional Intelligence Monthly",
+              "period": "ONE_MONTH",
+              "product_id": "com.ssrockholdings.professional.monthly",
+              "state": "IN_REVIEW"
+            },
+            {
+              "id": "6802019423",
+              "name": "Quarry Access Annual",
+              "period": "ONE_YEAR",
+              "product_id": "com.ssrockholdings.marketplace.annual",
+              "state": "IN_REVIEW"
+            },
+            {
+              "id": "6802019025",
+              "name": "Quarry Access Monthly",
+              "period": "ONE_MONTH",
+              "product_id": "com.ssrockholdings.marketplace.monthly",
+              "state": "IN_REVIEW"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "active_reviews": [],
+      "bundle_id": "com.ssrockholdings.quarrymarketplace",
+      "id": "6801479135",
+      "ios_versions": [
+        {
+          "app_store_state": "PREPARE_FOR_SUBMISSION",
+          "app_version_state": "PREPARE_FOR_SUBMISSION",
+          "created_date": "2026-08-14T02:28:29-07:00",
+          "id": "2529d759-049e-4622-87cb-8c63460f20ef",
+          "version_string": "1.0"
+        }
+      ],
+      "name": "S&S Quarry Intelligence",
+      "sku": "SSQI-IOS-001",
+      "subscription_groups": [
+        {
+          "id": "22320430",
+          "reference_name": "S&S Rock Holdings Access",
+          "subscriptions": []
+        }
+      ]
+    },
+    {
+      "active_reviews": [
+        {
+          "id": "8d6ebc18-2909-4fe3-86aa-52a209a8d564",
+          "platform": null,
+          "state": "READY_FOR_REVIEW",
+          "submitted_date": null
+        }
+      ],
+      "bundle_id": "com.ssrockholdings.app",
+      "id": "6801486748",
+      "ios_versions": [
+        {
+          "app_store_state": "PREPARE_FOR_SUBMISSION",
+          "app_version_state": "PREPARE_FOR_SUBMISSION",
+          "created_date": "2026-08-14T02:59:10-07:00",
+          "id": "c8c8221f-0503-4e7a-87f4-0c238a20c329",
+          "version_string": "1.0"
+        }
+      ],
+      "name": "S&S Rock Holdings",
+      "sku": "SSROCKHOLDINGS2026",
+      "subscription_groups": [
+        {
+          "id": "22310013",
+          "reference_name": "S&S Rock Holdings Memberships",
+          "subscriptions": [
+            {
+              "id": "6801575204",
+              "name": "S&S Rock Holdings Basic Membership",
+              "period": "ONE_MONTH",
+              "product_id": "com.ssrockholdings.membership.basic",
+              "state": "MISSING_METADATA"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "authenticated": true,
+  "errors": [],
+  "generated_at": "2026-08-19T17:05:33.766834+00:00",
+  "key_id_used": "2A3958GU5F",
+  "target_product_locations": {
+    "com.ssrockholdings.marketplace.annual": {
+      "app_id": "6802014287",
+      "app_name": "S&S Rock Holdings Mobile",
+      "bundle_id": "com.base6a78376a454093ba2f431acd.app",
+      "group_id": "22312976",
+      "group_reference_name": "S&S Quarry Intelligence Membership",
+      "subscription_id": "6802019423",
+      "subscription_name": "Quarry Access Annual",
+      "subscription_state": "IN_REVIEW"
+    },
+    "com.ssrockholdings.marketplace.monthly": {
+      "app_id": "6802014287",
+      "app_name": "S&S Rock Holdings Mobile",
+      "bundle_id": "com.base6a78376a454093ba2f431acd.app",
+      "group_id": "22312976",
+      "group_reference_name": "S&S Quarry Intelligence Membership",
+      "subscription_id": "6802019025",
+      "subscription_name": "Quarry Access Monthly",
+      "subscription_state": "IN_REVIEW"
+    },
+    "com.ssrockholdings.professional.annual": {
+      "app_id": "6802014287",
+      "app_name": "S&S Rock Holdings Mobile",
+      "bundle_id": "com.base6a78376a454093ba2f431acd.app",
+      "group_id": "22312976",
+      "group_reference_name": "S&S Quarry Intelligence Membership",
+      "subscription_id": "6802019468",
+      "subscription_name": "Professional Intelligence Annual",
+      "subscription_state": "IN_REVIEW"
+    },
+    "com.ssrockholdings.professional.monthly": {
+      "app_id": "6802014287",
+      "app_name": "S&S Rock Holdings Mobile",
+      "bundle_id": "com.base6a78376a454093ba2f431acd.app",
+      "group_id": "22312976",
+      "group_reference_name": "S&S Quarry Intelligence Membership",
+      "subscription_id": "6802019370",
+      "subscription_name": "Professional Intelligence Monthly",
+      "subscription_state": "IN_REVIEW"
+    }
+  }
+}
