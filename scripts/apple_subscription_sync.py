@@ -220,7 +220,30 @@ def ensure_group(client: ASC, app_id: str) -> str:
 def list_group_subscriptions(client: ASC, group_id: str) -> dict[str, dict[str, Any]]:
     body = client.request("GET", f"/v1/subscriptionGroups/{group_id}", params={"include": "subscriptions", "limit[subscriptions]": 50})
     items = [x for x in body.get("included", []) if x.get("type") == "subscriptions"]
-    return {(x.get("attributes") or {}).get("productId"): x for x in items}
+    result = {}
+    for item in items:
+        product_id = (item.get("attributes") or {}).get("productId")
+        if product_id:
+            item = dict(item)
+            item["_group_id"] = group_id
+            result[product_id] = item
+    return result
+
+
+def list_all_app_subscriptions(client: ASC, app_id: str) -> dict[str, dict[str, Any]]:
+    """Find subscriptions across every group for this app.
+
+    Product IDs are unique in App Store Connect, but they may already live in a
+    different group than the one our local tracker expects. Reuse those exact
+    Apple records rather than attempting to recreate duplicate product IDs.
+    """
+    groups = client.all(f"/v1/apps/{app_id}/subscriptionGroups", params={"limit": 200})
+    result: dict[str, dict[str, Any]] = {}
+    for group in groups:
+        group_id = group["id"]
+        for product_id, item in list_group_subscriptions(client, group_id).items():
+            result[product_id] = item
+    return result
 
 
 def create_subscription(client: ASC, group_id: str, product: dict[str, Any]) -> dict[str, Any]:
@@ -361,7 +384,7 @@ def main() -> None:
     client = authenticate()
     app_id = str(report["app_id"])
     group_id = ensure_group(client, app_id)
-    existing = list_group_subscriptions(client, group_id)
+    existing = list_all_app_subscriptions(client, app_id)
 
     for product in PRODUCTS:
         pid = product["product_id"]
@@ -376,6 +399,7 @@ def main() -> None:
                 print(f"Created {pid}")
             sid = sub["id"]
             entry["id"] = sid
+            entry["group_id"] = sub.get("_group_id") or group_id
             ensure_localization(client, sid, product)
             entry["localized"] = True
             entry["pricing"] = ensure_prices(client, sid, product["usa_price"])
