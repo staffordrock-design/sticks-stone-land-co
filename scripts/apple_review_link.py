@@ -232,7 +232,7 @@ def ensure_usa_price(c: ASC, sid: str, desired: Decimal, audit: dict[str, Any]) 
 
 
 def subscription_versions(c: ASC, sid: str) -> list[dict[str, Any]]:
-    return c.all(f"/v1/subscriptions/{sid}/subscriptionVersions", params={"limit": 200})
+    return c.all(f"/v1/subscriptions/{sid}/versions", params={"limit": 200})
 
 
 def choose_or_create_subscription_version(c: ASC, sid: str, versions: list[dict[str, Any]]) -> tuple[dict[str, Any], bool]:
@@ -254,8 +254,8 @@ def choose_or_create_subscription_version(c: ASC, sid: str, versions: list[dict[
 
 
 def version_assets(c: ASC, version_id: str) -> tuple[int, int]:
-    locs = c.all(f"/v1/subscriptionVersions/{version_id}/subscriptionLocalizations", params={"limit": 50})
-    images = c.all(f"/v1/subscriptionVersions/{version_id}/subscriptionImages", params={"limit": 50})
+    locs = c.all(f"/v1/subscriptionVersions/{version_id}/localizations", params={"limit": 50})
+    images = c.all(f"/v1/subscriptionVersions/{version_id}/images", params={"limit": 50})
     return len(locs), len(images)
 
 
