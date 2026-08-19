@@ -1,0 +1,54 @@
+name: Sync Apple Subscriptions
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apple-subscriptions-sync.yml"
+      - "scripts/apple_subscription_sync.py"
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install App Store Connect client dependencies
+        run: python -m pip install --quiet PyJWT cryptography requests
+
+      - name: Audit and create missing Apple subscriptions
+        continue-on-error: true
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
+          ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
+          ASC_REPORT_PATH: "reports/apple_subscription_sync.json"
+        run: python scripts/apple_subscription_sync.py
+
+      - name: Save sanitized Apple sync report
+        if: always()
+        run: |
+          if [ ! -f reports/apple_subscription_sync.json ]; then
+            mkdir -p reports
+            printf '%s\n' '{"errors":["Apple sync did not produce a report"],"authenticated":false}' > reports/apple_subscription_sync.json
+          fi
+          git config user.name "S&S Apple Sync"
+          git config user.email "actions@users.noreply.github.com"
+          git add reports/apple_subscription_sync.json
+          if git diff --cached --quiet; then
+            echo "No report changes to commit."
+          else
+            git commit -m "Update Apple subscription sync report"
+            git push
+          fi
