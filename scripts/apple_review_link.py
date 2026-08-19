@@ -193,28 +193,28 @@ def usa_price(c: ASC, subscription_id: str) -> dict[str, Any]:
     return {"current": current, "schedule": rows[:20]}
 
 
-def find_price_point(c: ASC, subscription_id: str, desired: Decimal) -> dict[str, Any] | None:
-    points = c.all(
+def usa_price_points(c: ASC, subscription_id: str) -> list[dict[str, Any]]:
+    return c.all(
         f"/v1/subscriptions/{subscription_id}/pricePoints",
         params={"filter[territory]": "USA", "fields[subscriptionPricePoints]": "customerPrice", "limit": 8000},
     )
+
+
+def ranked_price_points(points: list[dict[str, Any]], desired: Decimal) -> list[tuple[Decimal, dict[str, Any]]]:
+    ranked: list[tuple[Decimal, dict[str, Any]]] = []
     for point in points:
         value = (point.get("attributes") or {}).get("customerPrice")
-        if value is not None and Decimal(str(value)).quantize(Decimal("0.01")) == desired:
-            return point
-    return None
+        if value is None:
+            continue
+        price = Decimal(str(value)).quantize(Decimal("0.01"))
+        ranked.append((price, point))
+    # Closest first. On an exact-distance tie, prefer the higher price so we do
+    # not accidentally underprice a professional annual subscription.
+    ranked.sort(key=lambda pair: (abs(pair[0] - desired), -pair[0]))
+    return ranked
 
 
-def ensure_usa_price(c: ASC, sid: str, desired: Decimal, audit: dict[str, Any]) -> None:
-    current = ((audit.get("usa_pricing") or {}).get("current") or {}).get("customer_price")
-    if current is not None and Decimal(str(current)).quantize(Decimal("0.01")) == desired:
-        audit["price_status"] = "MATCHES_EXPECTED"
-        return
-    point = find_price_point(c, sid, desired)
-    if not point:
-        audit["price_status"] = "EXPECTED_PRICE_POINT_NOT_FOUND"
-        report["warnings"].append(f"{audit['product_id']}: Apple has no exact USA price point for ${desired}")
-        return
+def create_usa_price(c: ASC, sid: str, point: dict[str, Any]) -> None:
     payload = {
         "data": {
             "type": "subscriptionPrices",
@@ -226,9 +226,56 @@ def ensure_usa_price(c: ASC, sid: str, desired: Decimal, audit: dict[str, Any]) 
         }
     }
     c.request("POST", "/v1/subscriptionPrices", payload=payload)
-    audit["price_status"] = "UPDATED_TO_EXPECTED"
-    report["actions"].append(f"Set {audit['product_id']} USA price to ${desired}")
-    audit["usa_pricing"] = usa_price(c, sid)
+
+
+def ensure_usa_price(c: ASC, sid: str, desired: Decimal, audit: dict[str, Any]) -> None:
+    current = ((audit.get("usa_pricing") or {}).get("current") or {}).get("customer_price")
+    current_decimal = Decimal(str(current)).quantize(Decimal("0.01")) if current is not None else None
+    if current_decimal == desired:
+        audit["price_status"] = "MATCHES_EXPECTED"
+        return
+
+    points = usa_price_points(c, sid)
+    ranked = ranked_price_points(points, desired)
+    audit["nearest_valid_usa_price_points"] = [str(price) for price, _ in ranked[:8]]
+    if not ranked:
+        audit["price_status"] = "NO_USA_PRICE_POINTS_AVAILABLE"
+        report["warnings"].append(f"{audit['product_id']}: Apple returned no USA subscription price points")
+        return
+
+    exact = next(((price, point) for price, point in ranked if price == desired), None)
+    if exact:
+        chosen_price, point = exact
+        create_usa_price(c, sid, point)
+        audit["price_status"] = "UPDATED_TO_EXPECTED"
+        audit["selected_apple_price"] = str(chosen_price)
+        report["actions"].append(f"Set {audit['product_id']} USA price to ${chosen_price}")
+        audit["usa_pricing"] = usa_price(c, sid)
+        return
+
+    best_price, best_point = ranked[0]
+    audit["closest_apple_price"] = str(best_price)
+    difference_ratio = abs(best_price - desired) / desired if desired else Decimal("1")
+
+    # If Apple's nearest valid tier is within 2% of the intended price, use it.
+    # That covers normal Apple tier rounding (for example $1,399.99 for a
+    # $1,390 business target) while refusing a materially lower fallback like
+    # $1,000. Pricing is editable while an IAP/subscription is in review, so
+    # this does not withdraw the review submission.
+    if difference_ratio <= Decimal("0.02") and current_decimal != best_price:
+        create_usa_price(c, sid, best_point)
+        audit["price_status"] = "UPDATED_TO_NEAREST_VALID_APPLE_PRICE"
+        audit["selected_apple_price"] = str(best_price)
+        report["actions"].append(
+            f"Set {audit['product_id']} USA price to nearest Apple tier ${best_price} (target ${desired})"
+        )
+        audit["usa_pricing"] = usa_price(c, sid)
+        return
+
+    audit["price_status"] = "EXPECTED_PRICE_POINT_NOT_FOUND"
+    report["warnings"].append(
+        f"{audit['product_id']}: Apple has no close USA price point for ${desired}; nearest available is ${best_price}"
+    )
 
 
 def subscription_versions(c: ASC, sid: str) -> list[dict[str, Any]]:
