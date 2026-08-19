@@ -1,12 +1,10 @@
 name: iOS TestFlight Upload
 
 on:
+  # Keep App Store uploads deliberate while the current version is in review.
+  # Re-enable a push trigger only after the reviewed version is released and a
+  # new App Store Connect API private-key secret is configured.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/ios-testflight.yml"
-      - "scripts/apple_subscription_sync.py"
 
 permissions:
   contents: write
