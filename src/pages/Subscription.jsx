@@ -220,6 +220,14 @@ export default function Subscription() {
           <p className="mt-2 text-sm text-muted-foreground">Report purchases are separate from membership access. Transaction-grade professional services such as legal opinions, surveys, reserve studies and environmental assessments remain separate.</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">{REPORT_PRODUCTS.map((report) => <div key={report.code} className="rounded-2xl border border-border p-5"><div className="flex items-start justify-between gap-4"><div className="font-bold">{report.name}</div><div className="shrink-0 text-lg font-bold">{report.price}</div></div><p className="mt-2 text-sm leading-6 text-muted-foreground">{report.description}</p></div>)}</div>
 
+          {user?.id && <div className="mt-8 border-t border-border pt-6">
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Account</div>
+            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
+              <span className="text-muted-foreground">{user.email}</span>
+              <Link to="/account/delete" className="font-semibold text-red-700 hover:underline">Delete account</Link>
+            </div>
+          </div>}
+
           {!isNative && !active && <div className="mt-8 rounded-2xl border border-stone-300 bg-stone-50 p-5">
             <div className="font-semibold text-foreground">Want S&S access?</div>
             <p className="mt-1 text-sm text-muted-foreground">{user?.email ? "Join the launch list and S&S Rock Holdings can follow up when web subscriptions are activated." : "Create an account or sign in to join the launch list. S&S Rock Holdings will follow up when web subscriptions are activated."}</p>
