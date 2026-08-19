@@ -9,7 +9,7 @@ on:
       - "scripts/apple_subscription_sync.py"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   upload-testflight:
@@ -98,6 +98,23 @@ jobs:
               f.write(f"ASC_KEY_ID={key_id}\n")
           print("Apple subscription sync confirmed all four required products.")
           PY
+
+      - name: Save Apple subscription sync result
+        if: always()
+        run: |
+          if [ ! -f reports/apple_subscription_sync.json ]; then
+            mkdir -p reports
+            printf '%s\n' '{"authenticated":false,"errors":["Apple subscription sync did not produce a report"]}' > reports/apple_subscription_sync.json
+          fi
+          git config user.name "S&S Apple Sync"
+          git config user.email "actions@users.noreply.github.com"
+          git add reports/apple_subscription_sync.json
+          if git diff --cached --quiet; then
+            echo "Apple subscription report is unchanged."
+          else
+            git commit -m "Update Apple subscription sync result"
+            git push
+          fi
 
       - name: Prepare App Store Connect API key
         env:
