@@ -1,0 +1,54 @@
+name: Discover Apple App Records
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apple-account-discovery.yml"
+      - "scripts/apple_account_discovery.py"
+
+permissions:
+  contents: write
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install --quiet PyJWT cryptography requests
+
+      - name: Discover Apple app records, products, and active review submissions
+        continue-on-error: true
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
+          ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
+          ASC_DISCOVERY_REPORT_PATH: "reports/apple_account_discovery.json"
+        run: python scripts/apple_account_discovery.py
+
+      - name: Save sanitized discovery report
+        if: always()
+        run: |
+          if [ ! -f reports/apple_account_discovery.json ]; then
+            mkdir -p reports
+            printf '%s\n' '{"authenticated":false,"errors":["Apple discovery did not produce a report"]}' > reports/apple_account_discovery.json
+          fi
+          git config user.name "S&S Apple Discovery"
+          git config user.email "actions@users.noreply.github.com"
+          git add reports/apple_account_discovery.json
+          if git diff --cached --quiet; then
+            echo "Discovery report unchanged."
+          else
+            git commit -m "Update Apple account discovery report"
+            git push
+          fi
