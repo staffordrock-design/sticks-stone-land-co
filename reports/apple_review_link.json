@@ -1,0 +1,81 @@
+{
+  "actions": [],
+  "app_id": "6801479135",
+  "app_store_version": null,
+  "authenticated": true,
+  "bundle_id": "com.ssrockholdings.quarrymarketplace",
+  "errors": [
+    "com.ssrockholdings.marketplace.monthly: product not found",
+    "com.ssrockholdings.marketplace.annual: product not found",
+    "com.ssrockholdings.professional.monthly: product not found",
+    "com.ssrockholdings.professional.annual: product not found"
+  ],
+  "generated_at": "2026-08-19T17:02:57.005519+00:00",
+  "key_id_used": "2A3958GU5F",
+  "products": {
+    "com.ssrockholdings.marketplace.annual": {
+      "error": "Product ID not found under this app's subscription groups",
+      "expected_usa_price": "690.00",
+      "group_id": null,
+      "linked_to_current_review": false,
+      "price_status": null,
+      "product_id": "com.ssrockholdings.marketplace.annual",
+      "subscription_id": null,
+      "subscription_state": null,
+      "subscription_version_id": null,
+      "subscription_version_state": null,
+      "usa_pricing": null,
+      "version_images": null,
+      "version_localizations": null
+    },
+    "com.ssrockholdings.marketplace.monthly": {
+      "error": "Product ID not found under this app's subscription groups",
+      "expected_usa_price": "69.00",
+      "group_id": null,
+      "linked_to_current_review": false,
+      "price_status": null,
+      "product_id": "com.ssrockholdings.marketplace.monthly",
+      "subscription_id": null,
+      "subscription_state": null,
+      "subscription_version_id": null,
+      "subscription_version_state": null,
+      "usa_pricing": null,
+      "version_images": null,
+      "version_localizations": null
+    },
+    "com.ssrockholdings.professional.annual": {
+      "error": "Product ID not found under this app's subscription groups",
+      "expected_usa_price": "1390.00",
+      "group_id": null,
+      "linked_to_current_review": false,
+      "price_status": null,
+      "product_id": "com.ssrockholdings.professional.annual",
+      "subscription_id": null,
+      "subscription_state": null,
+      "subscription_version_id": null,
+      "subscription_version_state": null,
+      "usa_pricing": null,
+      "version_images": null,
+      "version_localizations": null
+    },
+    "com.ssrockholdings.professional.monthly": {
+      "error": "Product ID not found under this app's subscription groups",
+      "expected_usa_price": "139.00",
+      "group_id": null,
+      "linked_to_current_review": false,
+      "price_status": null,
+      "product_id": "com.ssrockholdings.professional.monthly",
+      "subscription_id": null,
+      "subscription_state": null,
+      "subscription_version_id": null,
+      "subscription_version_state": null,
+      "usa_pricing": null,
+      "version_images": null,
+      "version_localizations": null
+    }
+  },
+  "review_submission": null,
+  "warnings": [
+    "No active iOS review submission was found for this app."
+  ]
+}
