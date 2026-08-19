@@ -7,6 +7,7 @@ Writes a sanitized JSON report to reports/apple_subscription_sync.json.
 
 from __future__ import annotations
 
+import base64
 import datetime as dt
 import json
 import os
@@ -296,9 +297,12 @@ def decimal_price(value: Any) -> Decimal:
 
 
 def find_usa_price_point(client: ASC, subscription_id: str, desired: Decimal) -> dict[str, Any]:
+    # Apple documents include=territory for this endpoint, but the live API for
+    # this app currently rejects that relationship. The price-point id itself
+    # encodes the territory, so requesting the filtered data alone is enough.
     points = client.all(
         f"/v1/subscriptions/{subscription_id}/pricePoints",
-        params={"filter[territory]": "USA", "include": "territory", "limit": 200},
+        params={"filter[territory]": "USA", "limit": 8000},
     )
     for point in points:
         price = (point.get("attributes") or {}).get("customerPrice")
@@ -310,7 +314,24 @@ def find_usa_price_point(client: ASC, subscription_id: str, desired: Decimal) ->
 
 def territory_id_from_point(point: dict[str, Any]) -> str | None:
     rel = ((point.get("relationships") or {}).get("territory") or {}).get("data") or {}
-    return rel.get("id")
+    if rel.get("id"):
+        return rel["id"]
+
+    # Subscription price-point IDs are URL-safe base64 JSON and contain a
+    # territory key ("t"), for example {"s":"…","t":"USA","p":"…"}.
+    # This fallback keeps the sync compatible with Apple responses that omit
+    # relationship data even when territory-filtered.
+    raw_id = str(point.get("id") or "")
+    if raw_id:
+        try:
+            padded = raw_id + "=" * ((4 - len(raw_id) % 4) % 4)
+            decoded = json.loads(base64.urlsafe_b64decode(padded).decode("utf-8"))
+            territory = decoded.get("t") or decoded.get("territory")
+            if territory:
+                return str(territory)
+        except Exception:
+            pass
+    return None
 
 
 def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[str, Any]:
@@ -326,15 +347,13 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
 
     usa_point = find_usa_price_point(client, subscription_id, desired)
     points = [usa_point]
+    # Standard equalizations are sufficient for configuring the matching Apple
+    # price tier in each territory. Decode territory from the opaque IDs rather
+    # than relying on included relationship objects.
     equalized = client.all(
-        f"/v1/subscriptionPricePoints/{quote(usa_point['id'], safe='')}/adjustedEqualizations",
-        params={"include": "territory", "limit": 200},
+        f"/v1/subscriptionPricePoints/{quote(usa_point['id'], safe='')}/equalizations",
+        params={"limit": 8000},
     )
-    if not equalized:
-        equalized = client.all(
-            f"/v1/subscriptionPricePoints/{quote(usa_point['id'], safe='')}/equalizations",
-            params={"include": "territory", "limit": 200},
-        )
     points.extend(equalized)
 
     by_territory: dict[str, dict[str, Any]] = {}
