@@ -43,7 +43,7 @@ const PageLoader = () => (
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = ['/privacy', '/terms', '/support', '/account/delete', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
+  const publicPath = ['/privacy', '/terms', '/support', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   // Show loading spinner while checking app public settings or auth
@@ -82,6 +82,7 @@ const AuthenticatedApp = () => {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
+      <Route path="/account-deletion" element={<AccountDeletion />} />
       <Route path="/support" element={<Support />} />
       <Route path="/mineral-value-guide" element={<PaidAccessGate><MineralValueGuide /></PaidAccessGate>} />
       <Route path="/admin/seller-review" element={<AdminSellerReview />} />
