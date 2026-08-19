@@ -421,7 +421,23 @@ def main() -> None:
             entry["group_id"] = sub.get("_group_id") or group_id
             ensure_localization(client, sid, product)
             entry["localized"] = True
-            entry["pricing"] = ensure_prices(client, sid, product["usa_price"])
+            try:
+                entry["pricing"] = ensure_prices(client, sid, product["usa_price"])
+            except RuntimeError as price_exc:
+                if "No USA Apple price point exactly matches" not in str(price_exc):
+                    raise
+                # Product existence/linkage must not be treated as broken just
+                # because Apple's subscription price grid cannot represent the
+                # business target exactly. The storefront uses StoreKit's live
+                # priceString, so it will display the amount Apple actually
+                # charges rather than a hard-coded web price.
+                entry["pricing"] = {
+                    "status": "NO_EXACT_USA_PRICE_POINT",
+                    "target_usa_price": str(product["usa_price"]),
+                    "warning": str(price_exc)[:700],
+                }
+                entry["pricing_warning"] = str(price_exc)[:700]
+                print(f"WARNING {pid}: {price_exc}")
             entry["state"] = read_subscription_state(client, sid)
         except Exception as exc:
             message = f"{pid}: {type(exc).__name__}: {str(exc)[:700]}"
