@@ -1,52 +1,68 @@
 {
-  "app_id": "6801479135",
+  "app_id": "6802014287",
   "authenticated": true,
-  "bundle_id": "com.ssrockholdings.quarrymarketplace",
+  "bundle_id": "com.base6a78376a454093ba2f431acd.app",
   "errors": [
-    "com.ssrockholdings.marketplace.monthly: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptions -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"dc2a723d-dee2-4bd5-9f9f-00952e78decb\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used\",\n    \"detail\" : \"This product ID has already been used\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/productId\"\n    }\n  } ]\n}",
-    "com.ssrockholdings.marketplace.annual: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptions -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"59e2e2f4-086c-4355-b478-2e6ddeef3a0f\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used\",\n    \"detail\" : \"This product ID has already been used\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/productId\"\n    }\n  } ]\n}",
-    "com.ssrockholdings.professional.monthly: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptions -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"0abd4c4c-6d4a-42bb-80e1-81cd110778e0\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used\",\n    \"detail\" : \"This product ID has already been used\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/productId\"\n    }\n  } ]\n}",
-    "com.ssrockholdings.professional.annual: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptions -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"ffb7d35a-76e0-4a28-a079-20a0b9d30742\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used\",\n    \"detail\" : \"This product ID has already been used\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/productId\"\n    }\n  } ]\n}"
+    "com.ssrockholdings.professional.annual: RuntimeError: No USA Apple price point exactly matches $1390.00; 800 price points checked."
   ],
-  "generated_at": "2026-08-19T16:47:19.491144+00:00",
+  "generated_at": "2026-08-19T17:10:18.835325+00:00",
   "group": {
     "created": false,
-    "id": "22320430",
-    "reference_name": "S&S Rock Holdings Access"
+    "id": "22312976",
+    "reference_name": "S&S Quarry Intelligence Membership"
   },
   "key_id_used": "2A3958GU5F",
   "products": {
     "com.ssrockholdings.marketplace.annual": {
       "created": false,
-      "error": "com.ssrockholdings.marketplace.annual: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptions -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"59e2e2f4-086c-4355-b478-2e6ddeef3a0f\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used\",\n    \"detail\" : \"This product ID has already been used\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/productId\"\n    }\n  } ]\n}",
-      "id": null,
-      "localized": false,
-      "pricing": null,
-      "state": null
+      "group_id": "22312976",
+      "id": "6802019423",
+      "localized": true,
+      "pricing": {
+        "existing_price_territories": 175,
+        "price_failures": [],
+        "prices_created": 0,
+        "territories_available_from_equalization": 175,
+        "usa_price": "690.00"
+      },
+      "state": "IN_REVIEW"
     },
     "com.ssrockholdings.marketplace.monthly": {
       "created": false,
-      "error": "com.ssrockholdings.marketplace.monthly: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptions -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"dc2a723d-dee2-4bd5-9f9f-00952e78decb\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used\",\n    \"detail\" : \"This product ID has already been used\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/productId\"\n    }\n  } ]\n}",
-      "id": null,
-      "localized": false,
-      "pricing": null,
-      "state": null
+      "group_id": "22312976",
+      "id": "6802019025",
+      "localized": true,
+      "pricing": {
+        "existing_price_territories": 175,
+        "price_failures": [],
+        "prices_created": 0,
+        "territories_available_from_equalization": 175,
+        "usa_price": "69.00"
+      },
+      "state": "IN_REVIEW"
     },
     "com.ssrockholdings.professional.annual": {
       "created": false,
-      "error": "com.ssrockholdings.professional.annual: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptions -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"ffb7d35a-76e0-4a28-a079-20a0b9d30742\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used\",\n    \"detail\" : \"This product ID has already been used\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/productId\"\n    }\n  } ]\n}",
-      "id": null,
-      "localized": false,
+      "error": "com.ssrockholdings.professional.annual: RuntimeError: No USA Apple price point exactly matches $1390.00; 800 price points checked.",
+      "group_id": "22312976",
+      "id": "6802019468",
+      "localized": true,
       "pricing": null,
-      "state": null
+      "state": "IN_REVIEW"
     },
     "com.ssrockholdings.professional.monthly": {
       "created": false,
-      "error": "com.ssrockholdings.professional.monthly: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptions -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"0abd4c4c-6d4a-42bb-80e1-81cd110778e0\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used\",\n    \"detail\" : \"This product ID has already been used\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/productId\"\n    }\n  } ]\n}",
-      "id": null,
-      "localized": false,
-      "pricing": null,
-      "state": null
+      "group_id": "22312976",
+      "id": "6802019370",
+      "localized": true,
+      "pricing": {
+        "existing_price_territories": 175,
+        "price_failures": [],
+        "prices_created": 0,
+        "territories_available_from_equalization": 175,
+        "usa_price": "139.00"
+      },
+      "state": "IN_REVIEW"
     }
   }
 }
