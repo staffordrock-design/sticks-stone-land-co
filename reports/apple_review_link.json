@@ -10,7 +10,7 @@
   "authenticated": true,
   "bundle_id": "com.base6a78376a454093ba2f431acd.app",
   "errors": [],
-  "generated_at": "2026-08-19T17:07:51.135992+00:00",
+  "generated_at": "2026-08-19T17:13:16.800563+00:00",
   "key_id_used": "2A3958GU5F",
   "products": {
     "com.ssrockholdings.marketplace.annual": {
@@ -72,9 +72,20 @@
       "version_localizations": 1
     },
     "com.ssrockholdings.professional.annual": {
+      "closest_apple_price": "1000.00",
       "expected_usa_price": "1390.00",
       "group_id": "22312976",
       "linked_to_current_review": true,
+      "nearest_valid_usa_price_points": [
+        "1000.00",
+        "999.99",
+        "999.00",
+        "990.00",
+        "989.99",
+        "989.00",
+        "979.99",
+        "979.00"
+      ],
       "price_status": "EXPECTED_PRICE_POINT_NOT_FOUND",
       "product_id": "com.ssrockholdings.professional.annual",
       "subscription_id": "6802019468",
@@ -138,6 +149,6 @@
     "subscription_version_item_count": 4
   },
   "warnings": [
-    "com.ssrockholdings.professional.annual: Apple has no exact USA price point for $1390.00"
+    "com.ssrockholdings.professional.annual: Apple has no close USA price point for $1390.00; nearest available is $1000.00"
   ]
 }
