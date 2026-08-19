@@ -57,6 +57,23 @@ jobs:
           trap 'echo "::error title=Capacitor sync failed::npx cap sync ios failed"' ERR
           npx cap sync ios
 
+      - name: Pin iOS bundle to the App Store app under review
+        run: |
+          set -Eeuo pipefail
+          IOS_BUNDLE_ID="com.base6a78376a454093ba2f431acd.app"
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('ios/App/App.xcodeproj/project.pbxproj')
+          s = p.read_text()
+          old = 'PRODUCT_BUNDLE_IDENTIFIER = com.ssrockholdings.quarrymarketplace;'
+          new = 'PRODUCT_BUNDLE_IDENTIFIER = com.base6a78376a454093ba2f431acd.app;'
+          s = s.replace(old, new)
+          p.write_text(s)
+          if new not in s:
+              raise SystemExit('Expected App Store bundle identifier was not present after Capacitor sync')
+          print('Pinned iOS bundle identifier to com.base6a78376a454093ba2f431acd.app')
+          PY
+
       - name: Install CocoaPods
         working-directory: ios/App
         run: |
