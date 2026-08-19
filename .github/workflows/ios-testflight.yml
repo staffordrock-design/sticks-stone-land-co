@@ -185,5 +185,5 @@ jobs:
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -allowProvisioningUpdates \
             -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID 2A3958GU5F \
+            -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID 7097918c-2758-4720-b0fa-938914c24b36
