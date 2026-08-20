@@ -46,6 +46,20 @@ function displayDate(value) {
   return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
+function compactNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+}
+
+function productionCommodityGroup(site) {
+  const text = `${site?.commodity || ""} ${site?.mine_name || ""}`.toLowerCase();
+  if (text.includes("dimension stone") || text.includes("dimension sandstone") || text.includes("dimension limestone") || text.includes("fieldstone")) return null;
+  if (/construction sand.{0,8}gravel|sand\s*(and|&)\s*gravel/.test(text)) return "Construction Sand and Gravel";
+  if (/crushed|broken|aggregate|limestone|dolomite|granite|traprock|quartzite|chert|shale|marble/.test(text)) return "Crushed Stone";
+  return null;
+}
+
 function Card({ title, icon: Icon, children }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
