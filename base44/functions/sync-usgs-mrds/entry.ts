@@ -36,11 +36,13 @@ function parseGmlFeatures(xml: string) {
     for (const pm of propMatches) {
       props[pm[1]] = pm[2].trim();
     }
-    // Extract point coordinates (lon,lat).
-    const coordMatch = block.match(/<gml:coordinates>([^<]+)<\/gml:coordinates>/);
+    // Extract point coordinates from <gml:Point> specifically (not the <gml:Box> bounding box).
+    const pointMatch = block.match(/<gml:Point[^>]*>\s*<gml:coordinates>([^<]+)<\/gml:coordinates>\s*<\/gml:Point>/);
     let coordinates: [number, number] | null = null;
-    if (coordMatch) {
-      const [lon, lat] = coordMatch[1].split(",").map(Number);
+    if (pointMatch) {
+      const parts = pointMatch[1].trim().split(/[,\s]+/);
+      const lon = Number(parts[0]);
+      const lat = Number(parts[1]);
       if (Number.isFinite(lon) && Number.isFinite(lat)) coordinates = [lon, lat];
     }
     return { properties: props, coordinates };
@@ -122,7 +124,7 @@ export default async function (req: Request) {
           .sort((a: any, b: any) => a.dist - b.dist);
 
         const closest = withDistance[0];
-        if (!closest || closest.dist > 5000) {
+        if (!closest || closest.dist > 10000) {
           noMatch++;
           continue;
         }
@@ -194,7 +196,7 @@ export default async function (req: Request) {
       noMatch,
       errors,
       sample,
-      note: "USGS MRDS occurrences are matched by proximity to each mine's coordinates (within 5 km). MRDS is the USGS Mineral Resources Data System — a global database of mineral deposits and mines.",
+      note: "USGS MRDS occurrences are matched by proximity to each mine's coordinates (within 10 km). MRDS is the USGS Mineral Resources Data System — a global database of mineral deposits and mines.",
     });
   } catch (error: any) {
     console.error("sync-usgs-mrds error", error);
