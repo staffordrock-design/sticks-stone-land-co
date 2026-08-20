@@ -235,6 +235,26 @@ export default function MineSiteDetail() {
     );
   }, [site, production]);
 
+  const meaningfulProduction = useMemo(
+    () => relatedProduction.filter((r) => r.record_type || r.production_amount != null || r.employee_hours != null || r.average_employees != null),
+    [relatedProduction]
+  );
+  const latestEstimate = useMemo(
+    () => meaningfulProduction.find((r) => r.record_type === "S&S Estimate" || r.is_estimate) || null,
+    [meaningfulProduction]
+  );
+  const latestActivity = useMemo(
+    () => meaningfulProduction.find((r) => r.record_type === "MSHA Activity") || null,
+    [meaningfulProduction]
+  );
+  const siteProductionGroup = productionCommodityGroup(site);
+  const relevantMarketProduction = useMemo(() => {
+    const targetGroup = siteProductionGroup || "Construction Aggregates";
+    return [...usgsMarketProduction]
+      .filter((r) => r.commodity_group === targetGroup)
+      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0) || Number(String(b.period || "").replace(/\D/g, "") || 0) - Number(String(a.period || "").replace(/\D/g, "") || 0))[0] || null;
+  }, [usgsMarketProduction, siteProductionGroup]);
+
   const geologyRecord = useMemo(() => {
     if (!site) return null;
     return geology.find((r) =>
