@@ -20,6 +20,8 @@ export default function AdminDataSync() {
   const [environmentalResult, setEnvironmentalResult] = useState(null);
   const [runningOwnershipFootprint, setRunningOwnershipFootprint] = useState(false);
   const [ownershipFootprintResult, setOwnershipFootprintResult] = useState(null);
+  const [runningProductionIntel, setRunningProductionIntel] = useState(false);
+  const [productionIntelResult, setProductionIntelResult] = useState(null);
   const [error, setError] = useState("");
 
   const loadFreshness = async () => {
@@ -34,6 +36,31 @@ export default function AdminDataSync() {
   if (!user || user.role !== "admin") {
     return <div className="min-h-screen bg-background p-10 text-center text-muted-foreground">Admin access required.</div>;
   }
+
+  const syncProductionIntel = async () => {
+    setRunningProductionIntel(true);
+    setProductionIntelResult(null);
+    setError("");
+    try {
+      const mshaResponse = await base44.functions.invoke("sync-msha-employment", {});
+      const msha = mshaResponse?.data || mshaResponse;
+      if (msha?.success === false) throw new Error(msha?.error || "MSHA activity refresh failed.");
+
+      const usgsResponse = await base44.functions.invoke("sync-usgs-aggregate-production", {});
+      const usgs = usgsResponse?.data || usgsResponse;
+      if (usgs?.success === false) throw new Error(usgs?.error || "USGS production refresh failed.");
+
+      const estimateResponse = await base44.functions.invoke("build-production-estimates", { state: "TN" });
+      const estimates = estimateResponse?.data || estimateResponse;
+      if (estimates?.success === false) throw new Error(estimates?.error || "S&S production estimate refresh failed.");
+
+      setProductionIntelResult({ msha, usgs, estimates });
+    } catch (e) {
+      setError(e?.message || "Production intelligence refresh failed.");
+    } finally {
+      setRunningProductionIntel(false);
+    }
+  };
 
   const syncMshaMines = async () => {
     setRunningMshaMines(true);
@@ -159,6 +186,18 @@ export default function AdminDataSync() {
             <button onClick={refreshFreshness} disabled={runningFreshness} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-semibold text-foreground disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningFreshness ? "animate-spin" : ""}`} />{runningFreshness ? "Checking…" : "Recheck freshness"}</button>
           </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{freshness.map((f) => <div key={f.source} className="rounded-xl border border-border bg-muted/20 p-4"><div className="flex items-center justify-between gap-3"><div className="font-semibold text-foreground">{f.source}</div><span className={`rounded-full px-2.5 py-1 text-xs font-bold ${f.status === "Current" ? "bg-emerald-100 text-emerald-800" : f.status === "Stale" || f.status === "Error" ? "bg-red-100 text-red-800" : "bg-sky-100 text-sky-900"}`}>{f.status}</span></div><div className="mt-2 text-xs text-muted-foreground">Last sync: {f.last_sync_at ? new Date(f.last_sync_at).toLocaleString() : "Not recorded"}</div></div>)}</div>
+        </section>
+
+        <section className="mb-6 rounded-2xl border border-sky-300 bg-sky-50/50 p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2"><DatabaseZap className="h-5 w-5 text-sky-800" /><h2 className="font-heading text-xl font-bold text-foreground">Production Intelligence</h2></div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">Runs the full production pipeline in order: official MSHA quarterly employee hours by Mine ID, official USGS Tennessee aggregate production totals, then S&amp;S modeled mine-level production ranges. MSHA hours and S&amp;S estimates are kept separate so modeled tonnage can never be mistaken for operator-reported production.</p>
+            </div>
+            <button onClick={syncProductionIntel} disabled={runningProductionIntel} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-sky-800 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningProductionIntel ? "animate-spin" : ""}`} />{runningProductionIntel ? "Refreshing production…" : "Refresh production intelligence"}</button>
+          </div>
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-sky-200 bg-white p-4 text-sm text-slate-800"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sky-800" /><span>USGS numbers are statewide market estimates. MSHA contributes mine-level employee hours. S&amp;S estimates are clearly labeled modeled ranges with confidence and methodology — never reported tonnage.</span></div>
+          {productionIntelResult && <div className="mt-5 rounded-xl border border-border bg-background p-5"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Period</div><div className="mt-1 font-bold">{productionIntelResult.msha?.year ? `${productionIntelResult.msha.year} Q${productionIntelResult.msha.quarter}` : "—"}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">MSHA matches</div><div className="mt-1 font-bold">{productionIntelResult.msha?.matched ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">USGS groups</div><div className="mt-1 font-bold">{productionIntelResult.usgs?.records?.length ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Estimates created</div><div className="mt-1 font-bold">{productionIntelResult.estimates?.created ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Estimates updated</div><div className="mt-1 font-bold">{productionIntelResult.estimates?.updated ?? 0}</div></div></div>{productionIntelResult.estimates?.note && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{productionIntelResult.estimates.note}</p>}</div>}
         </section>
 
         <section className="mb-6 rounded-2xl border border-border bg-card p-6">
