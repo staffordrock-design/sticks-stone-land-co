@@ -111,7 +111,7 @@ export default async function (req: Request) {
         // Sort by distance to the mine site and take the closest.
         const withDistance = features
           .map((f: any) => {
-            const coords = f?.geometry?.coordinates || [];
+            const coords = f?.coordinates || [];
             const lon = Number(coords[0]);
             const lat = Number(coords[1]);
             const dist = Number.isFinite(lat) && Number.isFinite(lon)
@@ -129,35 +129,36 @@ export default async function (req: Request) {
 
         matched++;
         const props = closest.feature?.properties || {};
-        const mrdsId = clean(props.dep_id) || clean(props.MRDS_ID) || `MRDS-${site.id}`;
-        const coords = closest.feature?.geometry?.coordinates || [];
+        const mrdsId = clean(props.dep_id) || `MRDS-${site.id}`;
+        const coords = closest.feature?.coordinates || [];
         const occLon = Number(coords[0]);
         const occLat = Number(coords[1]);
+        const codeList = clean(props.code_list) || null;
 
         const record = {
           mining_site_id: site.id,
           msha_mine_id: site.msha_mine_id || null,
           mrds_id: mrdsId,
-          occurrence_name: clean(props.name) || clean(props.NAME) || site.mine_name || "USGS occurrence",
-          commodity: clean(props.commodity) || clean(props.COMMODITY) || site.commodity || null,
-          commodity_list: clean(props.commod1) || clean(props.COMMOD1) || clean(props.commodity_list) || null,
-          mineralogy: clean(props.ore_list) || clean(props.ORE_LIST) || null,
-          deposit_type: clean(props.dep_type) || clean(props.DEP_TYPE) || null,
-          development_status: clean(props.dev_stat) || clean(props.DEV_STAT) || null,
-          operation_type: clean(props.oper_type) || clean(props.OPER_TYPE) || null,
-          geologic_model: clean(props.model) || clean(props.MODEL) || null,
-          host_rock: clean(props.hrock_type) || clean(props.HROCK_TYPE) || null,
-          associated_rock: clean(props.arock_type) || clean(props.AROCK_TYPE) || null,
-          production_size: clean(props.prod_size) || clean(props.PROD_SIZE) || null,
-          discovery_year: clean(props.year) || clean(props.YEAR) || null,
-          occurrence_state: clean(props.state) || clean(props.STATE) || site.state || null,
-          occurrence_county: clean(props.county) || clean(props.COUNTY) || site.county || null,
+          occurrence_name: clean(props.site_name) || site.mine_name || "USGS occurrence",
+          commodity: codeList || site.commodity || null,
+          commodity_list: codeList,
+          mineralogy: null,
+          deposit_type: null,
+          development_status: clean(props.dev_stat) || null,
+          operation_type: null,
+          geologic_model: null,
+          host_rock: null,
+          associated_rock: null,
+          production_size: null,
+          discovery_year: null,
+          occurrence_state: site.state || null,
+          occurrence_county: site.county || null,
           latitude: Number.isFinite(occLat) ? occLat : null,
           longitude: Number.isFinite(occLon) ? occLon : null,
           distance_meters: closest.dist,
-          source_url: `https://mrdata.usgs.gov/mrds/show-${encodeURIComponent(mrdsId)}`,
+          source_url: clean(props.url) || `https://mrdata.usgs.gov/mrds/show-mrds.php?dep_id=${encodeURIComponent(mrdsId)}`,
           last_source_update: new Date().toISOString(),
-          notes: `USGS MRDS occurrence matched by proximity (${closest.dist} m from mine site). MRDS dep_id: ${mrdsId}.`,
+          notes: `USGS MRDS occurrence matched by proximity (${closest.dist} m from mine site). MRDS dep_id: ${mrdsId}. Development status: ${clean(props.dev_stat) || "Unknown"}. Commodity codes: ${codeList || "None listed"}. Full mineral details available at the USGS MRDS record URL.`,
         };
 
         await base44.asServiceRole.entities.USGSMineralOccurrence.create(record);

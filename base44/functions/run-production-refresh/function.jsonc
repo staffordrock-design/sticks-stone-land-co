@@ -1,0 +1,13 @@
+{
+  "automations": [
+    {
+      "name": "Production intelligence refresh trigger",
+      "description": "Refresh MSHA quarterly activity, USGS Tennessee aggregate production, and S&S mine-level production estimates when an admin creates a ProductionRefreshTrigger record.",
+      "type": "entity",
+      "entity_name": "ProductionRefreshTrigger",
+      "event_types": ["create"],
+      "function_args": {},
+      "is_active": true
+    }
+  ]
+}
