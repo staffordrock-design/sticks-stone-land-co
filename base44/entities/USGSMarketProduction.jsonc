@@ -1,0 +1,77 @@
+{
+  "name": "USGSMarketProduction",
+  "type": "object",
+  "properties": {
+    "state": {
+      "type": "string"
+    },
+    "commodity_group": {
+      "type": "string",
+      "enum": [
+        "Crushed Stone",
+        "Construction Sand and Gravel",
+        "Construction Aggregates"
+      ]
+    },
+    "year": {
+      "type": "integer"
+    },
+    "period": {
+      "type": "string"
+    },
+    "quantity_metric_tons": {
+      "type": "number"
+    },
+    "percent_change_yoy": {
+      "type": "number"
+    },
+    "prior_year_annual_quantity_metric_tons": {
+      "type": "number"
+    },
+    "prior_year_annual_value_usd": {
+      "type": "number"
+    },
+    "source_title": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "publication_date": {
+      "type": "string"
+    },
+    "methodology_note": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "state",
+    "commodity_group",
+    "year",
+    "period",
+    "quantity_metric_tons",
+    "source_title",
+    "source_url"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

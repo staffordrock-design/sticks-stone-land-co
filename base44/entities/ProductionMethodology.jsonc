@@ -1,0 +1,51 @@
+{
+  "name": "ProductionMethodology",
+  "type": "object",
+  "properties": {
+    "method_code": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "string"
+    },
+    "source_basis": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "effective_date": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "method_code",
+    "title",
+    "description",
+    "version"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
