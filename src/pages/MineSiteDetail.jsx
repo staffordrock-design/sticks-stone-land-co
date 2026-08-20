@@ -9,6 +9,7 @@ import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
 import { isReviewDemoMode } from "@/lib/reviewDemo";
+import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 
 function worldImageryTile(lat, lng, zoom = 15) {
   if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return null;
@@ -44,6 +45,20 @@ function displayDate(value) {
   if (!value) return "—";
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
+
+function compactNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+}
+
+function productionCommodityGroup(site) {
+  const text = `${site?.commodity || ""} ${site?.mine_name || ""}`.toLowerCase();
+  if (text.includes("dimension stone") || text.includes("dimension sandstone") || text.includes("dimension limestone") || text.includes("fieldstone")) return null;
+  if (/construction sand.{0,8}gravel|sand\s*(and|&)\s*gravel/.test(text)) return "Construction Sand and Gravel";
+  if (/crushed|broken|aggregate|limestone|dolomite|granite|traprock|quartzite|chert|shale|marble/.test(text)) return "Crushed Stone";
+  return null;
 }
 
 function Card({ title, icon: Icon, children }) {
@@ -220,6 +235,41 @@ export default function MineSiteDetail() {
       sameValue(r.msha_mine_id, site.msha_mine_id)
     );
   }, [site, production]);
+
+  const fallbackEstimate = useMemo(() => {
+    if (!site) return null;
+    return productionEstimatesQ1.find((r) =>
+      sameValue(r.mining_site_id, site.id) || sameValue(r.msha_mine_id, site.msha_mine_id)
+    ) || null;
+  }, [site]);
+
+  const meaningfulProduction = useMemo(() => {
+    const rows = relatedProduction.filter((r) =>
+      r.record_type || r.production_amount != null || r.employee_hours != null || r.average_employees != null
+    );
+    const hasStoredEstimate = rows.some((r) => r.record_type === "S&S Estimate" || r.is_estimate);
+    return !hasStoredEstimate && fallbackEstimate ? [...rows, fallbackEstimate] : rows;
+  }, [relatedProduction, fallbackEstimate]);
+
+  const latestEstimate = useMemo(() => {
+    return meaningfulProduction
+      .filter((r) => r.record_type === "S&S Estimate" || r.is_estimate)
+      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0) || Number(String(b.period || "").replace(/\D/g, "") || 0) - Number(String(a.period || "").replace(/\D/g, "") || 0))[0] || null;
+  }, [meaningfulProduction]);
+
+  const latestActivity = useMemo(() => {
+    return meaningfulProduction
+      .filter((r) => r.record_type === "MSHA Activity")
+      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0) || Number(String(b.period || "").replace(/\D/g, "") || 0) - Number(String(a.period || "").replace(/\D/g, "") || 0))[0] || null;
+  }, [meaningfulProduction]);
+
+  const siteProductionGroup = productionCommodityGroup(site);
+  const relevantMarketProduction = useMemo(() => {
+    if (!siteProductionGroup) return null;
+    return [...usgsMarketProduction]
+      .filter((r) => r.commodity_group === siteProductionGroup)
+      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0) || Number(String(b.period || "").replace(/\D/g, "") || 0) - Number(String(a.period || "").replace(/\D/g, "") || 0))[0] || null;
+  }, [usgsMarketProduction, siteProductionGroup]);
 
   const geologyRecord = useMemo(() => {
     if (!site) return null;
