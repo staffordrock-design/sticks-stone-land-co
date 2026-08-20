@@ -142,6 +142,17 @@ export default function Home() {
   const opportunityCount = visibleSites.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).length;
   const statesCovered = new Set(visibleSites.map((s) => String(s.state || "").trim().toUpperCase()).filter(Boolean)).size;
   const geologyLinked = new Set(geology.map((g) => g.mining_site_id || g.msha_mine_id).filter(Boolean)).size;
+
+  const geologyLookup = React.useMemo(() => {
+    const map = {};
+    for (const g of geology) {
+      if (g.mining_site_id) map[g.mining_site_id] = g;
+      if (g.msha_mine_id) map[`msha:${g.msha_mine_id}`] = g;
+    }
+    return map;
+  }, [geology]);
+
+  const featuredGeology = featured ? geologyLookup[featured.id] || (featured.msha_mine_id ? geologyLookup[`msha:${featured.msha_mine_id}`] : null) : null;
   const filtersActive = Boolean(query || source !== "All" || statusFilter !== "All" || stateFilter !== "All Southeast" || sortMode !== "Opportunity Priority");
   const clearFilters = () => {
     setQuery("");
@@ -291,6 +302,7 @@ export default function Home() {
               <ParcelMap
                 lat={featured.latitude}
                 lng={featured.longitude}
+                rockType={featuredGeology?.primary_rock || featuredGeology?.lithology || featured.commodity}
                 height={420}
               />
             </Suspense>
@@ -336,6 +348,7 @@ export default function Home() {
         <Suspense fallback={<div className="h-[560px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
           <TennesseeMineMap
             sites={filtered}
+            geologyMap={geologyLookup}
             height={560}
           />
         </Suspense>

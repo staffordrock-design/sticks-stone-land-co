@@ -1,7 +1,8 @@
 import React from "react";
-import { MapContainer, TileLayer, Polygon, Marker, Popup, LayersControl } from "react-leaflet";
+import { MapContainer, TileLayer, Polygon, Marker, Popup, LayersControl, WMSTileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { rockCategoryColor, rockCategoryFor } from "../../base44/shared/rockTypes";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -9,6 +10,9 @@ L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
+
+// USGS State Geologic Map Compilation WMS — colored bedrock geology tiles.
+const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
 
 export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acreage, rockType, boundarySource, height = 380 }) {
   const numericLat = Number(lat);
@@ -45,61 +49,105 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
   }
 
   const center = [numericLat, numericLng];
+  const rockColor = rockCategoryColor(rockType);
+  const rockCategory = rockCategoryFor(rockType);
 
   return (
-    <MapContainer
-      center={center}
-      zoom={13}
-      style={{ height, width: "100%" }}
-      scrollWheelZoom={false}
-      className="rounded-xl overflow-hidden border border-border"
-    >
-      <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="Street map">
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution="&copy; OpenStreetMap contributors"
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Satellite / aerial">
-          <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            attribution="Tiles &copy; Esri"
-          />
-        </LayersControl.BaseLayer>
-      </LayersControl>
-      {positions.length >= 3 && (
-        <Polygon
-          positions={positions}
-          pathOptions={{
-            color: "#1d4ed8",
-            weight: 3,
-            fillColor: "#2563eb",
-            fillOpacity: 0.2,
-          }}
-        >
+    <div className="relative">
+      <MapContainer
+        center={center}
+        zoom={13}
+        style={{ height, width: "100%" }}
+        scrollWheelZoom={false}
+        className="rounded-xl overflow-hidden border border-border"
+      >
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="Street map">
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; OpenStreetMap contributors"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Satellite / aerial">
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution="Tiles &copy; Esri"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="USGS Topographic">
+            <TileLayer
+              url="https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}"
+              attribution="&copy; USGS National Map"
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.Overlay name="Bedrock geology (USGS)">
+            <WMSTileLayer
+              url={USGS_GEOLOGY_WMS}
+              layers="SGMC"
+              format="image/png"
+              transparent
+              opacity={0.6}
+              attribution="USGS State Geologic Map Compilation"
+            />
+          </LayersControl.Overlay>
+        </LayersControl>
+        {positions.length >= 3 && (
+          <Polygon
+            positions={positions}
+            pathOptions={{
+              color: rockColor,
+              weight: 3,
+              fillColor: rockColor,
+              fillOpacity: 0.3,
+            }}
+          >
+            <Popup>
+              <div className="min-w-[220px]">
+                <strong>{parcelId ? `Parcel ${parcelId}` : "Mapped parcel"}</strong>
+                {ownerName && <div>Owner: {ownerName}</div>}
+                {acreage != null && <div>Acreage: {Number(acreage).toLocaleString()}</div>}
+                {rockType && (
+                  <div className="mt-1 flex items-center gap-1.5">
+                    <span className="inline-block h-2.5 w-2.5 rounded-full border border-white/40" style={{ backgroundColor: rockColor }} />
+                    <strong>{rockType}</strong>
+                  </div>
+                )}
+                {rockCategory && <div className="text-xs text-slate-600">{rockCategory}</div>}
+                {boundarySource && <div className="mt-1 text-xs">Boundary source: {boundarySource}</div>}
+              </div>
+            </Popup>
+          </Polygon>
+        )}
+        <Marker position={center}>
           <Popup>
             <div className="min-w-[220px]">
-              <strong>{parcelId ? `Parcel ${parcelId}` : "Mapped parcel"}</strong>
+              <strong>{parcelId ? `Parcel ${parcelId}` : "Parcel location"}</strong>
               {ownerName && <div>Owner: {ownerName}</div>}
               {acreage != null && <div>Acreage: {Number(acreage).toLocaleString()}</div>}
-              {rockType && <div>Rock: {rockType}</div>}
-              {boundarySource && <div className="mt-1 text-xs">Boundary source: {boundarySource}</div>}
+              {rockType && (
+                <div className="mt-1 flex items-center gap-1.5">
+                  <span className="inline-block h-2.5 w-2.5 rounded-full border border-white/40" style={{ backgroundColor: rockColor }} />
+                  <strong>{rockType}</strong>
+                </div>
+              )}
+              {rockCategory && <div className="text-xs text-slate-600">{rockCategory}</div>}
+              <div className="mt-1 text-xs">{positions.length >= 3 ? "Boundary loaded" : "Boundary geometry not loaded yet"}</div>
             </div>
           </Popup>
-        </Polygon>
-      )}
-      <Marker position={center}>
-        <Popup>
-          <div className="min-w-[220px]">
-            <strong>{parcelId ? `Parcel ${parcelId}` : "Parcel location"}</strong>
-            {ownerName && <div>Owner: {ownerName}</div>}
-            {acreage != null && <div>Acreage: {Number(acreage).toLocaleString()}</div>}
-            {rockType && <div>Rock: {rockType}</div>}
-            <div className="mt-1 text-xs">{positions.length >= 3 ? "Boundary loaded" : "Boundary geometry not loaded yet"}</div>
+        </Marker>
+      </MapContainer>
+      {rockType && (
+        <div className="pointer-events-none absolute bottom-3 left-3 z-[500]">
+          <div className="rounded-lg border border-border bg-card/95 px-3 py-2 shadow-sm backdrop-blur">
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Underground Rock</div>
+            <div className="mt-1 flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded-full border border-white/40" style={{ backgroundColor: rockColor }} />
+              <span className="text-sm font-bold text-foreground">{rockType}</span>
+            </div>
+            {rockCategory && <div className="text-[11px] text-muted-foreground">{rockCategory}</div>}
           </div>
-        </Popup>
-      </Marker>
-    </MapContainer>
+        </div>
+      )}
+    </div>
   );
 }

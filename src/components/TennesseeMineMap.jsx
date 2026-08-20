@@ -1,17 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { MapContainer, TileLayer, Marker, Popup, LayersControl } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, LayersControl, WMSTileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+import { rockCategoryColor, rockCategoryFor } from "../../base44/shared/rockTypes";
+import GeologyMapLegend from "./GeologyMapLegend";
 
 const SOUTHEAST_CENTER = [34.6, -85.4];
+
+// USGS State Geologic Map Compilation WMS — colored bedrock geology tiles
+// showing what rock formation is underground across the US.
+const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
 
 function isValidCoordinate(lat, lng) {
   const nLat = Number(lat);
@@ -26,67 +24,118 @@ function isValidCoordinate(lat, lng) {
   );
 }
 
-export default function TennesseeMineMap({ sites = [], height = 520 }) {
-  const mappedSites = sites.filter((site) =>
-    isValidCoordinate(site.latitude, site.longitude)
+export default function TennesseeMineMap({ sites = [], geologyMap = {}, height = 520 }) {
+  const mappedSites = useMemo(
+    () => sites.filter((site) => isValidCoordinate(site.latitude, site.longitude)),
+    [sites]
   );
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+      <div className="flex flex-col gap-1 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
             Southeast Quarry Intelligence Map
           </p>
           <p className="mt-1 text-sm text-foreground">
-            {mappedSites.length.toLocaleString()} mapped mine and quarry records
+            {mappedSites.length.toLocaleString()} mapped mine and quarry records · markers colored by rock type
           </p>
         </div>
+        <p className="text-xs text-muted-foreground">
+          Toggle the <strong>Bedrock Geology</strong> layer to see what rock is underground
+        </p>
       </div>
-      <MapContainer
-        center={SOUTHEAST_CENTER}
-        zoom={5}
-        minZoom={4}
-        style={{ height, width: "100%" }}
-        scrollWheelZoom
-      >
-        <LayersControl position="topright">
-          <LayersControl.BaseLayer checked name="Street map">
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution="&copy; OpenStreetMap contributors"
-            />
-          </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Satellite / aerial">
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution="Tiles &copy; Esri"
-            />
-          </LayersControl.BaseLayer>
-        </LayersControl>
-        {mappedSites.map((site) => (
-          <Marker
-            key={site.id}
-            position={[Number(site.latitude), Number(site.longitude)]}
-          >
-            <Popup>
-              <div className="min-w-[210px]">
-                <strong>{site.mine_name || "Mine / Quarry Site"}</strong>
-                <div>{[site.county, site.state].filter(Boolean).join(", ")}</div>
-                {site.mine_status && <div>Status: {site.mine_status}</div>}
-                {site.commodity && <div>Commodity: {site.commodity}</div>}
-                {site.msha_mine_id && <div>MSHA ID: {site.msha_mine_id}</div>}
-                <Link
-                  to={site.is_verified_listing && site.listing_id ? `/listings/${site.listing_id}` : `/mines/${site.id}`}
-                  className="mt-2 inline-block font-semibold text-sky-800 hover:underline"
-                >
-                  {site.is_verified_listing && site.listing_id ? "View verified listing →" : "View site intelligence →"}
-                </Link>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      <div className="relative">
+        <MapContainer
+          center={SOUTHEAST_CENTER}
+          zoom={5}
+          minZoom={4}
+          style={{ height, width: "100%" }}
+          scrollWheelZoom
+        >
+          <LayersControl position="topright">
+            <LayersControl.BaseLayer checked name="Street map">
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap contributors"
+              />
+            </LayersControl.BaseLayer>
+            <LayersControl.BaseLayer name="Satellite / aerial">
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution="Tiles &copy; Esri"
+              />
+            </LayersControl.BaseLayer>
+            <LayersControl.BaseLayer name="USGS Topographic">
+              <TileLayer
+                url="https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}"
+                attribution="&copy; USGS National Map"
+              />
+            </LayersControl.BaseLayer>
+            <LayersControl.Overlay name="Bedrock geology (USGS)">
+              <WMSTileLayer
+                url={USGS_GEOLOGY_WMS}
+                layers="SGMC"
+                format="image/png"
+                transparent
+                opacity={0.65}
+                attribution="USGS State Geologic Map Compilation"
+              />
+            </LayersControl.Overlay>
+          </LayersControl>
+
+          {mappedSites.map((site) => {
+            const geo = geologyMap[site.id] || (site.msha_mine_id ? geologyMap[`msha:${site.msha_mine_id}`] : null);
+            const rockName = geo?.primary_rock || geo?.lithology || site.commodity;
+            const color = rockCategoryColor(rockName);
+            const category = rockCategoryFor(rockName);
+            const isListing = site.is_verified_listing && site.listing_id;
+            return (
+              <CircleMarker
+                key={site.id}
+                center={[Number(site.latitude), Number(site.longitude)]}
+                radius={isListing ? 8 : 6}
+                pathOptions={{
+                  color: "#fff",
+                  weight: 1.5,
+                  fillColor: color,
+                  fillOpacity: 0.85,
+                }}
+              >
+                <Popup>
+                  <div className="min-w-[220px]">
+                    <strong>{site.mine_name || "Mine / Quarry Site"}</strong>
+                    <div>{[site.county, site.state].filter(Boolean).join(", ")}</div>
+                    {site.mine_status && <div>Status: {site.mine_status}</div>}
+                    {site.commodity && <div>Commodity: {site.commodity}</div>}
+                    {rockName && (
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <span className="inline-block h-2.5 w-2.5 rounded-full border border-white/40" style={{ backgroundColor: color }} />
+                        <strong>{rockName}</strong>
+                      </div>
+                    )}
+                    {category && (
+                      <div className="text-xs text-slate-600">{category}</div>
+                    )}
+                    {geo?.geologic_age && <div className="text-xs text-slate-600">Age: {geo.geologic_age}</div>}
+                    {geo?.formation_name && <div className="text-xs text-slate-600">Formation: {geo.formation_name}</div>}
+                    {site.msha_mine_id && <div>MSHA ID: {site.msha_mine_id}</div>}
+                    <Link
+                      to={isListing ? `/listings/${site.listing_id}` : `/mines/${site.id}`}
+                      className="mt-2 inline-block font-semibold text-sky-800 hover:underline"
+                    >
+                      {isListing ? "View verified listing →" : "View site intelligence →"}
+                    </Link>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            );
+          })}
+        </MapContainer>
+        <div className="pointer-events-none absolute bottom-3 left-3 z-[500]">
+          <GeologyMapLegend compact />
+        </div>
+      </div>
     </div>
   );
 }

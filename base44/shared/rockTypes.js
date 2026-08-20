@@ -92,3 +92,47 @@ export function deriveCommodityInterpretation({ primary, secondary, siteCommodit
 export function rockQualityTier(primary, secondary) {
   return classifyRock(primary)?.quality || classifyRock(secondary)?.quality || null;
 }
+
+// Color per quarry-commodity rock category, used on the intelligence maps
+// so users can see what rock is underground at a glance.
+export const ROCK_CATEGORY_COLORS = {
+  "Crushed Carbonate Stone": "#2563eb",
+  "Crushed Igneous / Granite Aggregate": "#dc2626",
+  "Crushed Quartzite / Metamorphic Aggregate": "#9333ea",
+  "Dimension / Building Stone": "#d97706",
+  "Construction Sand & Gravel": "#0d9488",
+  "Industrial / Specialty Mineral": "#db2777",
+  "Coal / Carbonaceous": "#475569",
+  "Shale / Clay (Fill & Brick)": "#92400e",
+};
+
+export const ROCK_CATEGORY_ORDER = [
+  "Crushed Carbonate Stone",
+  "Crushed Igneous / Granite Aggregate",
+  "Crushed Quartzite / Metamorphic Aggregate",
+  "Dimension / Building Stone",
+  "Construction Sand & Gravel",
+  "Industrial / Specialty Mineral",
+  "Coal / Carbonaceous",
+  "Shale / Clay (Fill & Brick)",
+];
+
+export const ROCK_CATEGORY_LABELS = {
+  "Crushed Carbonate Stone": "Limestone · Dolomite · Marble",
+  "Crushed Igneous / Granite Aggregate": "Granite · Basalt · Gabbro",
+  "Crushed Quartzite / Metamorphic Aggregate": "Quartzite · Gneiss",
+  "Dimension / Building Stone": "Sandstone · Slate · Soapstone",
+  "Construction Sand & Gravel": "Sand · Gravel · Alluvium",
+  "Industrial / Specialty Mineral": "Chert · Barite · Fluorite",
+  "Coal / Carbonaceous": "Coal · Lignite",
+  "Shale / Clay (Fill & Brick)": "Shale · Clay · Mudstone",
+};
+
+export function rockCategoryColor(rockName) {
+  const { category } = classifyRock(rockName);
+  return category ? ROCK_CATEGORY_COLORS[category] : "#64748b";
+}
+
+export function rockCategoryFor(rockName) {
+  return classifyRock(rockName)?.category || null;
+}
