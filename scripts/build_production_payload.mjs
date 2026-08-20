@@ -60,11 +60,25 @@ for (const r of rows) {
 const statuses = ['Active','Intermittent','Temporarily Idled','NonProducing','New Mine'];
 const sites = await b.entities.MiningSite.filter({state:'TN', mine_status:{$in:statuses}}, 'msha_mine_id', 500, 0);
 const byId = new Map(sites.filter(s=>s.msha_mine_id).map(s=>[clean(s.msha_mine_id),s]));
-const markets = await b.entities.USGSMarketProduction.filter({state:'TN',year:latestYear,period:`Q${latestQuarter}`}, 'commodity_group', 20, 0);
+const allMarkets = await b.entities.USGSMarketProduction.filter({state:'TN'}, '-year', 30, 0);
+const aggregateMarkets = allMarkets.filter(m => ['Crushed Stone','Construction Sand and Gravel'].includes(m.commodity_group));
+aggregateMarkets.sort((a,b)=>Number(b.year||0)-Number(a.year||0) || Number(String(b.period||'').replace(/\D/g,'')||0)-Number(String(a.period||'').replace(/\D/g,'')||0));
+const estimateMarketPeriod = aggregateMarkets[0];
+const estimateYear = Number(estimateMarketPeriod?.year || 0);
+const estimateQuarter = Number(String(estimateMarketPeriod?.period || '').replace(/\D/g,'') || 0);
+const markets = aggregateMarkets.filter(m=>Number(m.year)===estimateYear && Number(String(m.period||'').replace(/\D/g,'')||0)===estimateQuarter);
 const marketByGroup = new Map(markets.map(m=>[m.commodity_group,m]));
 
+const estimateOfficial = new Map();
+for (const r of rows) {
+  if (clean(r.STATE).toUpperCase() !== 'TN' || clean(r.COAL_METAL_IND).toUpperCase() === 'C') continue;
+  if (num(r.CAL_YR)!==estimateYear || num(r.CAL_QTR)!==estimateQuarter) continue;
+  const id=clean(r.MINE_ID); if (!id) continue;
+  const x=estimateOfficial.get(id) || {mine_id:id, mine_name:clean(r.CURR_MINE_NM), hours:0, employees:0, subunits:new Set()};
+  x.hours += num(r.HOURS_WORKED); x.employees += num(r.AVG_EMPLOYEE_CNT); if (clean(r.SUBUNIT)) x.subunits.add(clean(r.SUBUNIT)); estimateOfficial.set(id,x);
+}
+
 const activity = [];
-const eligible = [];
 for (const [id,x] of official) {
   const site=byId.get(id); if (!site) continue;
   const rec={
@@ -77,6 +91,11 @@ for (const [id,x] of official) {
     notes:`Official MSHA quarterly employment record. Mine subunits: ${[...x.subunits].join(', ') || 'not stated'}. Metal/nonmetal operators are not required to report production tonnage to MSHA; S&S uses employee hours only as an activity signal.`
   };
   activity.push(rec);
+}
+
+const eligible = [];
+for (const [id,x] of estimateOfficial) {
+  const site=byId.get(id); if (!site) continue;
   const group=groupFor(site); if (group && x.hours>0 && marketByGroup.has(group)) eligible.push({site,x,group});
 }
 
@@ -88,17 +107,17 @@ for (const e of eligible) {
   const strong=e.x.hours>=2000 && e.x.employees>=2, lowF=strong?0.65:0.5, highF=strong?1.35:1.5;
   const id=clean(e.site.msha_mine_id);
   estimates.push({
-    mining_site_id:e.site.id,msha_mine_id:id,mine_name:e.site.mine_name,year:latestYear,period:`Q${latestQuarter}`,commodity:e.site.commodity || undefined,
+    mining_site_id:e.site.id,msha_mine_id:id,mine_name:e.site.mine_name,year:estimateYear,period:`Q${estimateQuarter}`,commodity:e.site.commodity || undefined,
     production_amount:roundTons(mid),production_unit:'estimated metric tons',employee_hours:e.x.hours,average_employees:Number(e.x.employees.toFixed(2)),
-    source_agency:'S&S Production Model',source_url:market.source_url,source_record_id:`SS-EST-TN-${latestYear}-Q${latestQuarter}-${e.group.replace(/[^A-Za-z0-9]+/g,'-').toUpperCase()}-${id}`,
+    source_agency:'S&S Production Model',source_url:market.source_url,source_record_id:`SS-EST-TN-${estimateYear}-Q${estimateQuarter}-${e.group.replace(/[^A-Za-z0-9]+/g,'-').toUpperCase()}-${id}`,
     last_source_update:now,record_type:'S&S Estimate',is_estimate:true,estimate_low:roundTons(mid*lowF),estimate_high:roundTons(mid*highF),confidence:strong?'Medium':'Low',
     methodology:'SS-HOURS-SHARE-V1',calibration_source:market.source_url,calibration_state_total_metric_tons:Number(market.quantity_metric_tons),calibration_group_hours:gh,
     production_share_pct:Number((share*100).toFixed(4)),
-    notes:`S&S screening estimate only; not operator-reported tonnage. ${e.group} Tennessee ${latestYear} Q${latestQuarter} USGS state production-for-consumption was ${Number(market.quantity_metric_tons).toLocaleString()} metric tons. This mine represented ${(share*100).toFixed(2)}% of matched MSHA hours in the same S&S commodity group. Range reflects productivity uncertainty.`
+    notes:`S&S screening estimate only; not operator-reported tonnage. ${e.group} Tennessee ${estimateYear} Q${estimateQuarter} USGS state production-for-consumption was ${Number(market.quantity_metric_tons).toLocaleString()} metric tons. This mine represented ${(share*100).toFixed(2)}% of matched MSHA hours in the same S&S commodity group for the same quarter. Range reflects productivity uncertainty.`
   });
 }
 
-const payload={summary:{latestYear,latestQuarter,officialTnMnmMines:official.size,currentSites:sites.length,matchedActivity:activity.length,eligibleEstimates:estimates.length,groupHours,markets:markets.map(m=>({group:m.commodity_group,tons:m.quantity_metric_tons}))},activity,estimates};
+const payload={summary:{latestActivityYear:latestYear,latestActivityQuarter:latestQuarter,estimateYear,estimateQuarter,officialTnMnmMines:official.size,currentSites:sites.length,matchedActivity:activity.length,eligibleEstimates:estimates.length,groupHours,markets:markets.map(m=>({group:m.commodity_group,tons:m.quantity_metric_tons}))},activity,estimates};
 fs.writeFileSync('/tmp/production_payload.json', JSON.stringify(payload));
 fs.writeFileSync('/tmp/activity1.json', JSON.stringify(activity.slice(0,100)));
 fs.writeFileSync('/tmp/activity2.json', JSON.stringify(activity.slice(100,200)));
