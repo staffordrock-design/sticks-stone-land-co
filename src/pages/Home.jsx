@@ -218,10 +218,10 @@ export default function Home() {
               geology, permits, production context, ownership signals and downloadable S&S intelligence reports.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Browse Free Preview</a>
+              <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Explore the Quarry Map</a>
               <Link to="/subscribe" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">View Membership Plans</Link>
             </div>
-            <p className="mt-4 max-w-xl text-sm text-slate-300">Browse the quarry marketplace and public-source records before subscribing. Detailed mine pages, deeper geology, parcel intelligence and premium analysis unlock with membership.</p>
+            <p className="mt-4 max-w-xl text-sm text-slate-300">Browse mine locations, status, commodity and source records without a countdown. Owner/operator intelligence, permitted acreage, detailed geology, production context, compliance history and opportunity analysis unlock with membership.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
@@ -278,7 +278,7 @@ export default function Home() {
               const siteEnvironmental = environmentalForSite(s);
               const opportunity = opportunityForSite(s);
               const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
-              return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} emphasizeOpportunity />;
+              return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} emphasizeOpportunity previewMode />;
             })}
           </div>
         </section>
@@ -304,6 +304,7 @@ export default function Home() {
                 lng={featured.longitude}
                 rockType={featuredGeology?.primary_rock || featuredGeology?.lithology || featured.commodity}
                 height={420}
+                previewMode
               />
             </Suspense>
             <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8">
@@ -316,14 +317,12 @@ export default function Home() {
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {featured.commodity ? `Commodity: ${featured.commodity}. ` : ""}
-                {featured.operator_name ? `Operator: ${featured.operator_name}.` : ""}
+                This preview shows the site and public mine identity. Open the full intelligence record to see owner/operator, permitted footprint, geology, regulatory and production context.
               </p>
               <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-6">
                 <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Acreage</p>
-                  <p className="mt-1 font-display text-lg font-bold text-foreground">
-                    {featured.acreage ? Number(featured.acreage).toLocaleString() : "—"}
-                  </p>
+                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Detail level</p>
+                  <p className="mt-1 font-display text-sm font-bold text-foreground">Preview</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">Status</p>
@@ -350,6 +349,7 @@ export default function Home() {
             sites={filtered}
             geologyMap={geologyLookup}
             height={560}
+            previewMode
           />
         </Suspense>
         <p className="mt-2 text-xs text-muted-foreground">Aerial previews use Esri World Imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions. Records with the same MSHA Mine ID are consolidated in the browsing view to avoid duplicate display.</p>
@@ -364,7 +364,7 @@ export default function Home() {
               <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{ranked.length.toLocaleString()} results</span>
               {filtersActive && <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>}
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">Preview the marketplace before you subscribe. Tennessee is the verified core, with phased expansion across the Southeast. Search by mine name, operator, MSHA Mine ID, TDEC permit, parcel, state, county or commodity. Open a mine record to see the membership options for detailed intelligence.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Explore the marketplace before you subscribe. Tennessee is the verified core, with phased expansion across the Southeast. Search by mine name, MSHA Mine ID, state, county or commodity. Open a record to unlock owner/operator, permitted acreage, detailed geology, permits, compliance, production context and opportunity analysis.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative">
@@ -372,7 +372,7 @@ export default function Home() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Mine, operator, MSHA ID, permit, parcel…"
+                placeholder="Mine, county, state, MSHA ID, commodity…"
                 className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-64"
               />
             </div>
@@ -437,7 +437,7 @@ export default function Home() {
                 const siteEnvironmental = environmentalForSite(s);
                 const opportunity = opportunityForSite(s);
                 const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
-                return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} />;
+                return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} previewMode />;
               })}
             </div>
             {!showAll && sites.length >= 190 && (
