@@ -24,7 +24,7 @@ function isValidCoordinate(lat, lng) {
   );
 }
 
-export default function TennesseeMineMap({ sites = [], geologyMap = {}, height = 520 }) {
+export default function TennesseeMineMap({ sites = [], geologyMap = {}, height = 520, previewMode = false }) {
   const mappedSites = useMemo(
     () => sites.filter((site) => isValidCoordinate(site.latitude, site.longitude)),
     [sites]
@@ -38,11 +38,11 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
             Southeast Quarry Intelligence Map
           </p>
           <p className="mt-1 text-sm text-foreground">
-            {mappedSites.length.toLocaleString()} mapped mine and quarry records · markers colored by rock type
+            {mappedSites.length.toLocaleString()} mapped mine and quarry records{previewMode ? " · detailed geology available with membership" : " · markers colored by rock type"}
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          Toggle the <strong>Bedrock Geology</strong> layer to see what rock is underground
+          {previewMode ? "Free map preview · open a record to unlock deeper intelligence" : <span>Toggle the <strong>Bedrock Geology</strong> layer to see what rock is underground</span>}
         </p>
       </div>
       <div className="relative">
@@ -72,23 +72,25 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
                 attribution="&copy; USGS National Map"
               />
             </LayersControl.BaseLayer>
-            <LayersControl.Overlay name="Bedrock geology (USGS)">
-              <WMSTileLayer
-                url={USGS_GEOLOGY_WMS}
-                layers="SGMC"
-                format="image/png"
-                transparent
-                opacity={0.65}
-                attribution="USGS State Geologic Map Compilation"
-              />
-            </LayersControl.Overlay>
+            {!previewMode && (
+              <LayersControl.Overlay name="Bedrock geology (USGS)">
+                <WMSTileLayer
+                  url={USGS_GEOLOGY_WMS}
+                  layers="SGMC"
+                  format="image/png"
+                  transparent
+                  opacity={0.65}
+                  attribution="USGS State Geologic Map Compilation"
+                />
+              </LayersControl.Overlay>
+            )}
           </LayersControl>
 
           {mappedSites.map((site) => {
             const geo = geologyMap[site.id] || (site.msha_mine_id ? geologyMap[`msha:${site.msha_mine_id}`] : null);
-            const rockName = geo?.primary_rock || geo?.lithology || site.commodity;
-            const color = rockCategoryColor(rockName);
-            const category = rockCategoryFor(rockName);
+            const rockName = previewMode ? site.commodity : (geo?.primary_rock || geo?.lithology || site.commodity);
+            const color = previewMode ? "#334155" : rockCategoryColor(rockName);
+            const category = previewMode ? null : rockCategoryFor(rockName);
             const isListing = site.is_verified_listing && site.listing_id;
             return (
               <CircleMarker
@@ -108,17 +110,18 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
                     <div>{[site.county, site.state].filter(Boolean).join(", ")}</div>
                     {site.mine_status && <div>Status: {site.mine_status}</div>}
                     {site.commodity && <div>Commodity: {site.commodity}</div>}
-                    {rockName && (
+                    {!previewMode && rockName && (
                       <div className="mt-1 flex items-center gap-1.5">
                         <span className="inline-block h-2.5 w-2.5 rounded-full border border-white/40" style={{ backgroundColor: color }} />
                         <strong>{rockName}</strong>
                       </div>
                     )}
-                    {category && (
+                    {!previewMode && category && (
                       <div className="text-xs text-slate-600">{category}</div>
                     )}
-                    {geo?.geologic_age && <div className="text-xs text-slate-600">Age: {geo.geologic_age}</div>}
-                    {geo?.formation_name && <div className="text-xs text-slate-600">Formation: {geo.formation_name}</div>}
+                    {!previewMode && geo?.geologic_age && <div className="text-xs text-slate-600">Age: {geo.geologic_age}</div>}
+                    {!previewMode && geo?.formation_name && <div className="text-xs text-slate-600">Formation: {geo.formation_name}</div>}
+                    {previewMode && <div className="mt-1 text-xs font-semibold text-slate-600">Geology, owner/operator, permits and production unlock in the full record.</div>}
                     {site.msha_mine_id && <div>MSHA ID: {site.msha_mine_id}</div>}
                     <Link
                       to={isListing ? `/listings/${site.listing_id}` : `/mines/${site.id}`}
