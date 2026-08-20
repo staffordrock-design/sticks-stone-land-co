@@ -80,7 +80,7 @@ export default async function(req: Request) {
 
       const share = item.hours / groupHours;
       const midpoint = Number(market.quantity_metric_tons) * share;
-      const isStrongerSignal = item.hours >= 2000 && Number(item.activity.average_employees || 0) >= 2;
+      const isStrongerSignal = item.hours >= 2000;
       const lowFactor = isStrongerSignal ? 0.65 : 0.5;
       const highFactor = isStrongerSignal ? 1.35 : 1.5;
       const confidence = isStrongerSignal ? "Medium" : "Low";
