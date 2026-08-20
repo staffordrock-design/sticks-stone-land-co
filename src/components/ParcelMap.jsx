@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 // USGS State Geologic Map Compilation WMS — colored bedrock geology tiles.
 const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
 
-export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acreage, rockType, boundarySource, height = 380 }) {
+export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acreage, rockType, boundarySource, height = 380, previewMode = false }) {
   const numericLat = Number(lat);
   const numericLng = Number(lng);
   const hasValidCenter =
@@ -49,8 +49,9 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
   }
 
   const center = [numericLat, numericLng];
-  const rockColor = rockCategoryColor(rockType);
-  const rockCategory = rockCategoryFor(rockType);
+  const effectiveRockType = previewMode ? null : rockType;
+  const rockColor = previewMode ? "#334155" : rockCategoryColor(effectiveRockType);
+  const rockCategory = previewMode ? null : rockCategoryFor(effectiveRockType);
 
   return (
     <div className="relative">
@@ -80,16 +81,18 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
               attribution="&copy; USGS National Map"
             />
           </LayersControl.BaseLayer>
-          <LayersControl.Overlay name="Bedrock geology (USGS)">
-            <WMSTileLayer
-              url={USGS_GEOLOGY_WMS}
-              layers="SGMC"
-              format="image/png"
-              transparent
-              opacity={0.6}
-              attribution="USGS State Geologic Map Compilation"
-            />
-          </LayersControl.Overlay>
+          {!previewMode && (
+            <LayersControl.Overlay name="Bedrock geology (USGS)">
+              <WMSTileLayer
+                url={USGS_GEOLOGY_WMS}
+                layers="SGMC"
+                format="image/png"
+                transparent
+                opacity={0.6}
+                attribution="USGS State Geologic Map Compilation"
+              />
+            </LayersControl.Overlay>
+          )}
         </LayersControl>
         {positions.length >= 3 && (
           <Polygon
@@ -106,10 +109,10 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
                 <strong>{parcelId ? `Parcel ${parcelId}` : "Mapped parcel"}</strong>
                 {ownerName && <div>Owner: {ownerName}</div>}
                 {acreage != null && <div>Acreage: {Number(acreage).toLocaleString()}</div>}
-                {rockType && (
+                {effectiveRockType && (
                   <div className="mt-1 flex items-center gap-1.5">
                     <span className="inline-block h-2.5 w-2.5 rounded-full border border-white/40" style={{ backgroundColor: rockColor }} />
-                    <strong>{rockType}</strong>
+                    <strong>{effectiveRockType}</strong>
                   </div>
                 )}
                 {rockCategory && <div className="text-xs text-slate-600">{rockCategory}</div>}
@@ -124,10 +127,10 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
               <strong>{parcelId ? `Parcel ${parcelId}` : "Parcel location"}</strong>
               {ownerName && <div>Owner: {ownerName}</div>}
               {acreage != null && <div>Acreage: {Number(acreage).toLocaleString()}</div>}
-              {rockType && (
+              {effectiveRockType && (
                 <div className="mt-1 flex items-center gap-1.5">
                   <span className="inline-block h-2.5 w-2.5 rounded-full border border-white/40" style={{ backgroundColor: rockColor }} />
-                  <strong>{rockType}</strong>
+                  <strong>{effectiveRockType}</strong>
                 </div>
               )}
               {rockCategory && <div className="text-xs text-slate-600">{rockCategory}</div>}
@@ -136,13 +139,13 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
           </Popup>
         </Marker>
       </MapContainer>
-      {rockType && (
+      {effectiveRockType && (
         <div className="pointer-events-none absolute bottom-3 left-3 z-[500]">
           <div className="rounded-lg border border-border bg-card/95 px-3 py-2 shadow-sm backdrop-blur">
             <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Underground Rock</div>
             <div className="mt-1 flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-full border border-white/40" style={{ backgroundColor: rockColor }} />
-              <span className="text-sm font-bold text-foreground">{rockType}</span>
+              <span className="text-sm font-bold text-foreground">{effectiveRockType}</span>
             </div>
             {rockCategory && <div className="text-[11px] text-muted-foreground">{rockCategory}</div>}
           </div>
