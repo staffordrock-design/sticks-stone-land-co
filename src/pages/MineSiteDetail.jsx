@@ -577,34 +577,84 @@ export default function MineSiteDetail() {
             )}
           </Card>
 
-          <Card title="Production History" icon={BarChart3}>
-            {relatedProduction.length ? (
-              <div className="space-y-3">
-                {relatedProduction.slice(0, 12).map((r) => (
-                  <div key={r.id} className="rounded-xl border border-border p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-semibold text-foreground">{r.year || "Year not loaded"}{r.period ? ` · ${r.period}` : ""}</div>
-                        <div className="mt-1 text-sm text-muted-foreground">{r.commodity || site.commodity || "Commodity not loaded"}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-foreground">{r.production_amount != null ? Number(r.production_amount).toLocaleString() : "—"}</div>
-                        <div className="text-xs text-muted-foreground">{r.production_unit || "production unit"}</div>
-                      </div>
+          <Card title="Production Intelligence" icon={BarChart3}>
+            <div className="space-y-4">
+              {relevantMarketProduction && (
+                <div className="rounded-xl border border-sky-200 bg-sky-50/70 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-sky-800">USGS statewide production · {site.state}</div>
+                      <div className="mt-1 text-sm font-semibold text-slate-950">{relevantMarketProduction.commodity_group} · {relevantMarketProduction.year} {relevantMarketProduction.period}</div>
                     </div>
-                    {(r.employee_hours != null || r.average_employees != null) && (
-                      <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-muted-foreground">
-                        <div>Employee hours: <strong className="text-foreground">{r.employee_hours != null ? Number(r.employee_hours).toLocaleString() : "—"}</strong></div>
-                        <div>Avg. employees: <strong className="text-foreground">{r.average_employees ?? "—"}</strong></div>
-                      </div>
-                    )}
-                    {r.source_url && <a href={r.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open production source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                    <div className="text-right">
+                      <div className="text-2xl font-black text-slate-950">{compactNumber(relevantMarketProduction.quantity_metric_tons)}</div>
+                      <div className="text-xs text-slate-600">metric tons · statewide</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm leading-relaxed text-muted-foreground">No production history is connected yet. MSHA production/employment records will populate here when a mine-level record is available.</p>
-            )}
+                  <div className="mt-3 grid gap-2 text-xs text-slate-700 sm:grid-cols-3">
+                    <div>YoY: <strong>{relevantMarketProduction.percent_change_yoy != null ? `${Number(relevantMarketProduction.percent_change_yoy) > 0 ? "+" : ""}${Number(relevantMarketProduction.percent_change_yoy).toFixed(1)}%` : "—"}</strong></div>
+                    <div>Prior full year: <strong>{compactNumber(relevantMarketProduction.prior_year_annual_quantity_metric_tons)} t</strong></div>
+                    <div>Prior full-year value: <strong>{relevantMarketProduction.prior_year_annual_value_usd != null ? money(relevantMarketProduction.prior_year_annual_value_usd) : "—"}</strong></div>
+                  </div>
+                  <p className="mt-3 text-xs leading-5 text-slate-600">USGS publishes a state estimate from its construction-aggregate survey. It does not publish this quarry's confidential company response as a mine-level tonnage figure.</p>
+                  {relevantMarketProduction.source_url && <a href={relevantMarketProduction.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-sky-800 hover:underline">Open USGS production publication <ExternalLink className="h-3 w-3" /></a>}
+                </div>
+              )}
+
+              {latestEstimate && (
+                <div className="rounded-xl border border-slate-700 bg-slate-950 p-5 text-white">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-sky-300">S&amp;S modeled quarry production</div>
+                      <div className="mt-2 text-2xl font-black">{Number(latestEstimate.estimate_low || 0).toLocaleString()}–{Number(latestEstimate.estimate_high || 0).toLocaleString()} metric tons</div>
+                      <div className="mt-1 text-xs text-slate-300">{latestEstimate.year} {latestEstimate.period} screening range · {latestEstimate.confidence || "Low"} confidence</div>
+                    </div>
+                    <div className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-right">
+                      <div className="text-[10px] uppercase tracking-wider text-slate-400">Modeled midpoint</div>
+                      <div className="mt-1 text-xl font-bold text-sky-300">{Number(latestEstimate.production_amount || 0).toLocaleString()} t</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-2 text-xs text-slate-300 sm:grid-cols-3">
+                    <div>MSHA hours: <strong className="text-white">{Number(latestEstimate.employee_hours || 0).toLocaleString()}</strong></div>
+                    <div>Matched-hours share: <strong className="text-white">{latestEstimate.production_share_pct != null ? `${Number(latestEstimate.production_share_pct).toFixed(2)}%` : "—"}</strong></div>
+                    <div>Method: <strong className="text-white">{latestEstimate.methodology || "SS-HOURS-SHARE-V1"}</strong></div>
+                  </div>
+                  <p className="mt-4 text-xs leading-5 text-slate-300"><strong className="text-white">Not operator-reported tonnage.</strong> S&amp;S calibrates this range to the corresponding USGS state production estimate and this mine's share of matched MSHA employee hours. Equipment productivity, stripping, downtime, product mix and automation can materially change actual tons.</p>
+                </div>
+              )}
+
+              {latestActivity && (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-4">
+                  <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-800">Official MSHA activity signal</div>
+                  <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                    <div><div className="text-xs text-emerald-800">Employee hours</div><div className="text-xl font-bold text-emerald-950">{Number(latestActivity.employee_hours || 0).toLocaleString()}</div></div>
+                    <div><div className="text-xs text-emerald-800">Average employees</div><div className="text-xl font-bold text-emerald-950">{Number(latestActivity.average_employees || 0).toLocaleString()}</div></div>
+                  </div>
+                  <p className="mt-3 text-xs leading-5 text-emerald-900">MSHA requires metal/nonmetal employment reporting, but not quarry production tonnage. These hours are an activity signal, not a production report.</p>
+                  {latestActivity.source_url && <a href={latestActivity.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-900 hover:underline">Open MSHA data source <ExternalLink className="h-3 w-3" /></a>}
+                </div>
+              )}
+
+              {!latestEstimate && !latestActivity && (
+                <div className="rounded-xl border border-border bg-muted/20 p-4">
+                  <p className="text-sm leading-relaxed text-muted-foreground">No current mine-level activity record is connected yet. S&amp;S will not show a quarry tonnage estimate until current MSHA hours are available for calibration.</p>
+                </div>
+              )}
+
+              {meaningfulProduction.length > 0 && (
+                <div className="border-t border-border pt-4">
+                  <div className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Source record history</div>
+                  <div className="space-y-2">
+                    {meaningfulProduction.slice(0, 12).map((r) => (
+                      <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-xs">
+                        <div><strong className="text-foreground">{r.year || "—"}{r.period ? ` · ${r.period}` : ""}</strong><span className="ml-2 text-muted-foreground">{r.record_type || r.source_agency}</span></div>
+                        <div className="text-right text-muted-foreground">{r.is_estimate ? `${Number(r.estimate_low || 0).toLocaleString()}–${Number(r.estimate_high || 0).toLocaleString()} t` : r.employee_hours != null ? `${Number(r.employee_hours).toLocaleString()} hours` : r.production_amount != null ? `${Number(r.production_amount).toLocaleString()} ${r.production_unit || ""}` : "source note"}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </Card>
 
           <Card title="Geology / Rock Identification" icon={Gem}>
