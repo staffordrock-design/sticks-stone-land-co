@@ -21,8 +21,13 @@ export default async function(req: Request) {
   // MSHA Mines is the authoritative mine identity/status/operator backbone. Refresh weekly by Mine ID.
   if (day === 6) results.push(await run(base44, "sync-msha-mines", {}));
 
-  // MSHA employment is quarterly; weekly checking catches a newly posted quarter without hammering the source.
-  if (day === 6) results.push(await run(base44, "sync-msha-employment", {}));
+  // Production intelligence: refresh official MSHA mine-level activity, USGS state aggregate totals,
+  // then rebuild S&S modeled mine-level ranges from the same quarter.
+  if (day === 6) {
+    results.push(await run(base44, "sync-msha-employment", {}));
+    results.push(await run(base44, "sync-usgs-aggregate-production", {}));
+    results.push(await run(base44, "build-production-estimates", { state: "TN" }));
+  }
 
   // Parcel GIS can change more often, so refresh the Tennessee working set weekly.
   if (day === 0) results.push(await run(base44, "sync-parcel-boundaries", { limit: 500 }));
