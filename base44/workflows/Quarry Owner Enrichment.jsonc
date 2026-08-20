@@ -1,0 +1,48 @@
+{
+  "name": "Quarry Owner Enrichment",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "quarry_owner_enrichment",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sync_owners": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-parcel-boundaries",
+            "args": {
+              "limit": 40,
+              "concurrency": 3
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Look up quarry parcel owners",
+            "description": "Fetch owners from TN Comptroller IMPACT GIS for sites missing ownership"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 2,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-08-20T03:30:00Z",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "Automatically looks up parcel owners for TN quarry sites missing ownership data using the TN Comptroller IMPACT assessment GIS. Runs every 2 hours, processing 40 sites per batch, skipping sites that already have owners."
+}
