@@ -240,6 +240,14 @@ export default function MineSiteDetail() {
     );
   }, [site, contracts]);
 
+  const relatedUsgsOccurrences = useMemo(() => {
+    if (!site) return [];
+    return usgsOccurrences.filter((r) =>
+      sameValue(r.mining_site_id, site.id) ||
+      sameValue(r.msha_mine_id, site.msha_mine_id)
+    );
+  }, [site, usgsOccurrences]);
+
   useEffect(() => {
     if (!site || parcel?.boundary_polygon?.length >= 3) return;
     const lat = site.latitude ?? parcel?.latitude;
@@ -282,6 +290,7 @@ export default function MineSiteDetail() {
     { label: "Production history", ready: Boolean(relatedProduction.length), detail: relatedProduction.length ? `${relatedProduction.length} production record${relatedProduction.length === 1 ? "" : "s"}` : "Production linkage pending" },
     { label: "Compliance history", ready: Boolean(relatedInspections.length || relatedViolations.length || relatedEnvironmental.length), detail: `${relatedInspections.length} inspections · ${relatedViolations.length} violations · ${relatedEnvironmental.length} environmental` },
     { label: "Contract / royalty intelligence", ready: Boolean(relatedContracts.length), detail: relatedContracts.length ? `${relatedContracts.length} agreement record${relatedContracts.length === 1 ? "" : "s"}` : "Lease / royalty terms not connected" },
+    { label: "USGS mineral intelligence", ready: Boolean(relatedUsgsOccurrences.length), detail: relatedUsgsOccurrences.length ? `${relatedUsgsOccurrences.length} MRDS occurrence${relatedUsgsOccurrences.length === 1 ? "" : "s"}` : "USGS MRDS linkage pending" },
   ];
   const diligenceReady = diligence.filter((item) => item.ready).length;
   const diligencePct = Math.round((diligenceReady / diligence.length) * 100);
@@ -623,6 +632,62 @@ export default function MineSiteDetail() {
               </>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No mapped geology record is connected yet. Tennessee Geological Survey bedrock/lithology data will appear here rather than guessing rock type from the mine name.</p>
+            )}
+          </Card>
+
+          <Card title="USGS Mineral Intelligence" icon={Mountain}>
+            {relatedUsgsOccurrences.length ? (
+              <div className="space-y-4">
+                {relatedUsgsOccurrences.map((occ) => (
+                  <div key={occ.id} className="rounded-xl border border-border p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <div className="font-semibold text-foreground">{occ.occurrence_name}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">USGS MRDS · {occ.mrds_id}{occ.distance_meters != null ? ` · ${Number(occ.distance_meters).toLocaleString()} m from mine` : ""}</div>
+                      </div>
+                      {occ.development_status && <span className="rounded-full border border-border bg-muted/30 px-2.5 py-1 text-xs font-medium text-foreground">{occ.development_status}</span>}
+                    </div>
+                    <div className="mt-3">
+                      <Row label="Commodity" value={occ.commodity || site.commodity} />
+                      <Row label="Commodity list" value={occ.commodity_list} />
+                      <Row label="Mineralogy" value={occ.mineralogy} />
+                      <Row label="Deposit type" value={occ.deposit_type} />
+                      <Row label="Operation type" value={occ.operation_type} />
+                      <Row label="Geologic model" value={occ.geologic_model} />
+                      <Row label="Host rock" value={occ.host_rock} />
+                      <Row label="Associated rock" value={occ.associated_rock} />
+                      <Row label="Production size" value={occ.production_size} />
+                      <Row label="Discovery year" value={occ.discovery_year} />
+                      <Row label="County" value={occ.occurrence_county} />
+                      <Row label="Source checked" value={displayDate(occ.last_source_update)} />
+                    </div>
+                    {occ.source_url && <a href={occ.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open USGS MRDS record <ExternalLink className="h-3.5 w-3.5" /></a>}
+                  </div>
+                ))}
+                <p className="text-xs leading-relaxed text-muted-foreground">USGS MRDS (Mineral Resources Data System) occurrences are matched by proximity to this mine's coordinates. MRDS is a global USGS database of mineral deposits — commodity, deposit type, development status and mineralogy are sourced directly from USGS records.</p>
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground">No USGS MRDS occurrence is linked to this mine yet. USGS Mineral Resources Data System records are matched by proximity and will appear here when the sync runs.</p>
+            )}
+            {usgsMarketProduction.length > 0 && (
+              <div className="mt-5 rounded-xl border border-sky-200 bg-sky-50/50 p-4">
+                <div className="text-xs font-bold uppercase tracking-wider text-sky-800">USGS State Mineral Production · {site.state}</div>
+                <div className="mt-3 space-y-2">
+                  {usgsMarketProduction.map((r) => (
+                    <div key={r.id} className="flex items-center justify-between gap-3 text-sm">
+                      <div>
+                        <div className="font-semibold text-foreground">{r.commodity_group}</div>
+                        <div className="text-xs text-muted-foreground">{r.year}{r.period ? ` · ${r.period}` : ""}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-foreground">{Number(r.quantity_metric_tons).toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">metric tons{r.percent_change_yoy != null ? ` · ${r.percent_change_yoy > 0 ? "+" : ""}${r.percent_change_yoy.toFixed(1)}% YoY` : ""}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {usgsMarketProduction[0]?.source_url && <a href={usgsMarketProduction[0].source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-sky-800 hover:underline">Open USGS Minerals data <ExternalLink className="h-3 w-3" /></a>}
+              </div>
             )}
           </Card>
 

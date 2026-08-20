@@ -1,120 +1,116 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 import { unzipSync, strFromU8 } from "npm:fflate";
 
-const AETABLE = "https://arlweb.msha.gov/STATS/PART50/P50Y2K/AETABLE.HTM";
-const BASE = "https://arlweb.msha.gov/STATS/PART50/P50Y2K/";
+const DATA_URL = "https://arlweb.msha.gov/OpenGovernmentData/DataSets/MinesProdQuarterly.zip";
+const SOURCE_PAGE = "https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp";
 
-function field(line: string, start: number, end: number) {
-  return line.slice(start - 1, end).trim();
+function clean(value: unknown) {
+  return String(value ?? "").trim();
 }
 
-function numField(line: string, start: number, end: number) {
-  const raw = field(line, start, end);
-  if (!raw || !/^\d+$/.test(raw)) return 0;
-  return Number(raw);
+function num(value: unknown) {
+  const n = Number(String(value ?? "").replace(/,/g, "").trim());
+  return Number.isFinite(n) ? n : 0;
 }
 
-function quarterTotals(line: string, quarter: number) {
-  const layouts: Record<number, Array<[number, number, number, number]>> = {
-    1: [[298,302,303,310],[440,444,445,452],[582,586,587,594],[724,728,729,736]],
-    2: [[333,337,338,345],[475,479,480,487],[617,621,622,629],[759,763,764,771]],
-    3: [[368,372,373,380],[510,514,515,522],[652,656,657,664],[794,798,799,806]],
-    4: [[403,407,408,415],[545,549,550,557],[687,691,692,699],[829,833,834,841]],
-  };
-  let employees = 0;
-  let hours = 0;
-  for (const [es, ee, hs, he] of layouts[quarter] || []) {
-    employees += numField(line, es, ee);
-    hours += numField(line, hs, he);
-  }
-  return { employees, hours };
-}
-
-function latestMetalNonmetalZip(html: string) {
-  const matches = [...html.matchAll(/href=["']([^"']*made(\d{4})_(\d+)\.zip)["']/gi)];
-  if (!matches.length) throw new Error("Could not locate latest MSHA Metal/Nonmetal employment file");
-  matches.sort((a, b) => Number(b[2]) - Number(a[2]) || Number(b[3]) - Number(a[3]));
-  const href = matches[0][1].replace(/&amp;/g, "&");
-  const year = Number(matches[0][2]);
-  const quarter = Number(matches[0][3]);
-  const url = new URL(href, BASE).toString();
-  return { url, year, quarter };
+function parseDelimited(text: string) {
+  const lines = text.split(/\r?\n/).filter((line) => line.trim());
+  if (!lines.length) return [] as Record<string, string>[];
+  const headers = lines[0].split("|").map((h) => h.trim().replace(/^\uFEFF/, ""));
+  return lines.slice(1).map((line) => {
+    const cells = line.split("|");
+    const row: Record<string, string> = {};
+    headers.forEach((header, index) => { row[header] = cells[index] ?? ""; });
+    return row;
+  });
 }
 
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user || user.role !== "admin") {
-      return Response.json({ error: "Admin access required" }, { status: 403 });
+    const response = await fetch(DATA_URL, { headers: { "User-Agent": "SSRockHoldings/1.0" } });
+    if (!response.ok) throw new Error(`MSHA quarterly employment download failed: ${response.status}`);
+
+    const archive = unzipSync(new Uint8Array(await response.arrayBuffer()));
+    const fileName = Object.keys(archive).find((name) => /\.(txt|csv|dat)$/i.test(name)) || Object.keys(archive)[0];
+    if (!fileName) throw new Error("MSHA quarterly employment archive contained no data file");
+    const rows = parseDelimited(strFromU8(archive[fileName]));
+
+    let latestYear = 0;
+    let latestQuarter = 0;
+    for (const row of rows) {
+      if (clean(row.STATE).toUpperCase() !== "TN") continue;
+      if (/^C/i.test(clean(row.COAL_METAL_IND))) continue;
+      const year = num(row.CAL_YR);
+      const quarter = num(row.CAL_QTR);
+      if (year > latestYear || (year === latestYear && quarter > latestQuarter)) {
+        latestYear = year;
+        latestQuarter = quarter;
+      }
+    }
+    if (!latestYear || !latestQuarter) throw new Error("No current Tennessee metal/nonmetal employment period found");
+
+    const grouped = new Map<string, any>();
+    for (const row of rows) {
+      if (clean(row.STATE).toUpperCase() !== "TN") continue;
+      if (/^C/i.test(clean(row.COAL_METAL_IND))) continue;
+      if (num(row.CAL_YR) !== latestYear || num(row.CAL_QTR) !== latestQuarter) continue;
+      const mineId = clean(row.MINE_ID);
+      if (!mineId) continue;
+      const current = grouped.get(mineId) || {
+        mineId,
+        mineName: clean(row.MINE_NAME),
+        hours: 0,
+        employees: 0,
+        subunits: new Set<string>(),
+      };
+      current.hours += num(row.HOURS_WORKED);
+      current.employees += num(row.AVG_EMPLOYEE_CNT);
+      if (clean(row.SUBUNIT)) current.subunits.add(clean(row.SUBUNIT));
+      if (!current.mineName) current.mineName = clean(row.MINE_NAME);
+      grouped.set(mineId, current);
     }
 
-    const page = await fetch(AETABLE, { headers: { "User-Agent": "SticksAndStoneLandCo/1.0" } });
-    if (!page.ok) throw new Error(`MSHA index request failed: ${page.status}`);
-    const html = await page.text();
-    const latest = latestMetalNonmetalZip(html);
+    const sites = await base44.asServiceRole.entities.MiningSite.filter({ state: "TN" }, "-updated_date", 500, 0);
+    const siteByMineId = new Map<string, any>();
+    for (const site of sites || []) {
+      const key = clean(site.msha_mine_id);
+      if (key && !siteByMineId.has(key)) siteByMineId.set(key, site);
+    }
 
-    const zipResp = await fetch(latest.url, { headers: { "User-Agent": "SticksAndStoneLandCo/1.0" } });
-    if (!zipResp.ok) throw new Error(`MSHA data request failed: ${zipResp.status}`);
-    const bytes = new Uint8Array(await zipResp.arrayBuffer());
-    const files = unzipSync(bytes);
-    const firstName = Object.keys(files)[0];
-    if (!firstName) throw new Error("MSHA zip contained no data file");
-    const text = strFromU8(files[firstName]);
-
-    const sites = await base44.asServiceRole.entities.MiningSite.list("-created_date", 500);
-    const siteByMineId = new Map(
-      (sites || []).filter((s: any) => s.msha_mine_id).map((s: any) => [String(s.msha_mine_id).trim(), s])
-    );
-
-    let matched = 0;
     let created = 0;
     let updated = 0;
-    let skipped = 0;
+    let matched = 0;
+    let zeroHours = 0;
     const sample: any[] = [];
+    const now = new Date().toISOString();
 
-    for (const rawLine of text.split(/\r?\n/)) {
-      if (rawLine.length < 250) continue;
-      const mineId = field(rawLine, 1, 7);
-      const site: any = siteByMineId.get(mineId);
+    for (const item of grouped.values()) {
+      const site = siteByMineId.get(item.mineId);
       if (!site) continue;
       matched++;
-
-      const stateFips = field(rawLine, 22, 23);
-      if (stateFips !== "47") {
-        skipped++;
-        continue;
-      }
-
-      const mineName = field(rawLine, 104, 133) || site.mine_name || `MSHA ${mineId}`;
-      const companyName = field(rawLine, 56, 85);
-      const county = field(rawLine, 227, 250);
-      const sic = field(rawLine, 27, 31);
-      const totals = quarterTotals(rawLine, latest.quarter);
-      const sourceKey = `MSHA-MADE-${latest.year}-Q${latest.quarter}-${mineId}`;
-      const directSource = latest.url;
-
+      if (!(item.hours > 0)) zeroHours++;
+      const sourceKey = `MSHA-OG-QTR-${latestYear}-Q${latestQuarter}-${item.mineId}`;
       const record = {
         mining_site_id: site.id,
-        msha_mine_id: mineId,
-        mine_name: mineName,
-        year: latest.year,
-        period: `Q${latest.quarter}`,
-        commodity: site.commodity || null,
+        msha_mine_id: item.mineId,
+        mine_name: item.mineName || site.mine_name || `MSHA ${item.mineId}`,
+        year: latestYear,
+        period: `Q${latestQuarter}`,
+        commodity: site.commodity || undefined,
         production_amount: null,
-        production_unit: "MNM tonnage not reported in Part 50 employment file",
-        employee_hours: totals.hours,
-        average_employees: totals.employees,
+        production_unit: "Metal/nonmetal tonnage is not reported to MSHA",
+        employee_hours: item.hours,
+        average_employees: Number(item.employees.toFixed(2)),
         source_agency: "MSHA Part 50",
-        source_url: directSource,
+        source_url: SOURCE_PAGE,
         source_record_id: sourceKey,
-        last_source_update: new Date().toISOString(),
-        notes: `Company: ${companyName || "—"}; County: ${county || site.county || "—"}; SIC: ${sic || "—"}. Employee figures are summed across reported mine subunits for the quarter. Metal/Nonmetal production tonnage is intentionally left blank because MSHA Part 50 production tonnage fields are coal-only.`,
+        last_source_update: now,
+        record_type: "MSHA Activity",
+        is_estimate: false,
+        notes: `Official MSHA quarterly employment record. Mine subunits included: ${[...item.subunits].join(", ") || "not stated"}. Metal/nonmetal operators are not required to report production tonnage to MSHA; S&S uses employee hours only as an activity signal.`,
       };
-
-      const existing = await base44.asServiceRole.entities.ProductionRecord.filter(
-        { source_record_id: sourceKey }, "-updated_date", 1, 0
-      );
+      const existing = await base44.asServiceRole.entities.ProductionRecord.filter({ source_record_id: sourceKey }, "-updated_date", 1, 0);
       if (existing?.[0]) {
         await base44.asServiceRole.entities.ProductionRecord.update(existing[0].id, record);
         updated++;
@@ -122,24 +118,35 @@ export default async function(req: Request) {
         await base44.asServiceRole.entities.ProductionRecord.create(record);
         created++;
       }
-
-      if (sample.length < 10) sample.push({ mineId, mineName, hours: totals.hours, employees: totals.employees });
+      if (sample.length < 12) sample.push({ mine_id: item.mineId, mine: record.mine_name, hours: item.hours, employees: record.average_employees });
     }
+
+    try {
+      await base44.asServiceRole.entities.OperationsEvent.create({
+        event_type: "Report",
+        related_entity_id: "sync-msha-employment",
+        status: "Completed",
+        summary: `MSHA Part 50 ${latestYear} Q${latestQuarter}: ${matched} Tennessee metal/nonmetal mines matched; ${created} created, ${updated} updated.`,
+        occurred_at: now,
+      });
+    } catch (_) {}
 
     return Response.json({
       success: true,
-      source: latest.url,
-      year: latest.year,
-      quarter: latest.quarter,
+      source: DATA_URL,
+      source_page: SOURCE_PAGE,
+      year: latestYear,
+      quarter: latestQuarter,
+      official_tn_mnm_rows: grouped.size,
       matched,
       created,
       updated,
-      skipped,
+      zero_hours: zeroHours,
       sample,
-      note: "MNM production tonnage is not populated from Part 50 because those production fields are coal-only.",
+      note: "MSHA Metal/Nonmetal production tonnage is not reported. S&S imports official quarterly employee hours and average employees as mine-level activity signals.",
     });
   } catch (error: any) {
     console.error("sync-msha-employment error", error);
-    return Response.json({ error: error?.message || String(error) }, { status: 500 });
+    return Response.json({ success: false, error: error?.message || String(error) }, { status: 500 });
   }
 }
