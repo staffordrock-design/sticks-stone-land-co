@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
-import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2 } from "lucide-react";
+import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2, Mountain } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
@@ -81,6 +81,8 @@ export default function MineSiteDetail() {
   const [production, setProduction] = useState([]);
   const [geology, setGeology] = useState([]);
   const [contracts, setContracts] = useState([]);
+  const [usgsOccurrences, setUsgsOccurrences] = useState([]);
+  const [usgsMarketProduction, setUsgsMarketProduction] = useState([]);
   const [liveParcel, setLiveParcel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -136,7 +138,7 @@ export default function MineSiteDetail() {
           return { $or: conditions };
         };
 
-        const [parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData, contractData] = await Promise.all([
+        const [parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData, contractData, usgsData, usgsMarketData] = await Promise.all([
           base44.entities.ParcelRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null, tdecPermit ? { tdec_permit_number: tdecPermit } : null]), "-updated_date", 50),
           base44.entities.TDECPermit.filter(linkOr([tdecPermit ? { permit_number: tdecPermit } : null]), "-updated_date", 50),
           base44.entities.EnvironmentalRecord.filter(linkOr([npdesPermit ? { npdes_permit_number: npdesPermit } : null]), "-updated_date", 50),
@@ -146,6 +148,8 @@ export default function MineSiteDetail() {
           base44.entities.ProductionRecord.filter(linkOr(), "-year", showAllRecords ? 500 : 100),
           base44.entities.GeologyRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
           base44.entities.ContractIntelligence.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
+          base44.entities.USGSMineralOccurrence.filter(linkOr(), "-updated_date", 20),
+          base44.entities.USGSMarketProduction.filter({ state: String(mine.state || "").toUpperCase() }, "-year", 20),
         ]);
 
         setParcels(parcelData || []);
@@ -157,6 +161,8 @@ export default function MineSiteDetail() {
         setProduction(productionData || []);
         setGeology(geologyData || []);
         setContracts(contractData || []);
+        setUsgsOccurrences(usgsData || []);
+        setUsgsMarketProduction(usgsMarketData || []);
       } catch (e) {
         setError(e?.message || "Unable to load site intelligence.");
       } finally {

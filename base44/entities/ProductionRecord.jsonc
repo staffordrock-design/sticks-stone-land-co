@@ -46,6 +46,48 @@
     },
     "notes": {
       "type": "string"
+    },
+    "record_type": {
+      "type": "string",
+      "enum": [
+        "MSHA Activity",
+        "S&S Estimate",
+        "Reported Production",
+        "Other"
+      ]
+    },
+    "is_estimate": {
+      "type": "boolean",
+      "default": false
+    },
+    "estimate_low": {
+      "type": "number"
+    },
+    "estimate_high": {
+      "type": "number"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ]
+    },
+    "methodology": {
+      "type": "string"
+    },
+    "calibration_source": {
+      "type": "string"
+    },
+    "calibration_state_total_metric_tons": {
+      "type": "number"
+    },
+    "calibration_group_hours": {
+      "type": "number"
+    },
+    "production_share_pct": {
+      "type": "number"
     }
   },
   "required": [

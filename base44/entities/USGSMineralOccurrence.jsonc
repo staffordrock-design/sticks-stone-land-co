@@ -1,0 +1,101 @@
+{
+  "name": "USGSMineralOccurrence",
+  "type": "object",
+  "properties": {
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "mrds_id": {
+      "type": "string",
+      "description": "USGS MRDS record ID (dep_id)"
+    },
+    "occurrence_name": {
+      "type": "string"
+    },
+    "commodity": {
+      "type": "string"
+    },
+    "commodity_list": {
+      "type": "string"
+    },
+    "mineralogy": {
+      "type": "string",
+      "description": "Ore / gangue minerals listed in the MRDS record"
+    },
+    "deposit_type": {
+      "type": "string"
+    },
+    "development_status": {
+      "type": "string"
+    },
+    "operation_type": {
+      "type": "string"
+    },
+    "geologic_model": {
+      "type": "string"
+    },
+    "host_rock": {
+      "type": "string"
+    },
+    "associated_rock": {
+      "type": "string"
+    },
+    "production_size": {
+      "type": "string"
+    },
+    "discovery_year": {
+      "type": "string"
+    },
+    "occurrence_state": {
+      "type": "string"
+    },
+    "occurrence_county": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "distance_meters": {
+      "type": "number",
+      "description": "Distance from the linked mining site to the MRDS occurrence point"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "mining_site_id",
+    "mrds_id",
+    "occurrence_name"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
