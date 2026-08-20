@@ -8,6 +8,7 @@ import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
+import { isReviewDemoMode } from "@/lib/reviewDemo";
 
 function worldImageryTile(lat, lng, zoom = 15) {
   if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return null;
@@ -86,6 +87,33 @@ export default function MineSiteDetail() {
   const [reportGenerating, setReportGenerating] = useState(false);
   const [reportMessage, setReportMessage] = useState("");
   const [showAllRecords, setShowAllRecords] = useState(false);
+  const [hasProfessional, setHasProfessional] = useState(user?.role === "admin" || isReviewDemoMode());
+
+  useEffect(() => {
+    let cancelled = false;
+    if (user?.role === "admin" || isReviewDemoMode()) {
+      setHasProfessional(true);
+      return () => { cancelled = true; };
+    }
+    if (!user?.id) {
+      setHasProfessional(false);
+      return () => { cancelled = true; };
+    }
+    (async () => {
+      try {
+        const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 20);
+        const activeProfessional = (rows || []).some((e) =>
+          ["active", "trial", "grace_period"].includes(e.status) &&
+          (/^professional(_|$)/.test(String(e.plan_code || "")) || /^deal_investor(_|$)/.test(String(e.plan_code || ""))) &&
+          (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())
+        );
+        if (!cancelled) setHasProfessional(activeProfessional);
+      } catch {
+        if (!cancelled) setHasProfessional(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, user?.role]);
 
   useEffect(() => {
     (async () => {
@@ -256,11 +284,7 @@ export default function MineSiteDetail() {
     setReportGenerating(true);
     setReportMessage("");
     try {
-      let allowed = user?.role === "admin";
-      if (!allowed && user?.id) {
-        const entitlements = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 10);
-        allowed = (entitlements || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now()));
-      }
+      const allowed = user?.role === "admin";
       if (!allowed) {
         if (!user?.id) {
           navigate(`/login?returnTo=${encodeURIComponent(`/mines/${site.id}`)}`);
@@ -344,7 +368,7 @@ export default function MineSiteDetail() {
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
             <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{recordStatusLabel(site)}</span>
-            {geologyRecord?.primary_rock && (
+            {hasProfessional && geologyRecord?.primary_rock && (
               <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800">
                 <Gem className="h-3.5 w-3.5" />
                 {geologyRecord.primary_rock}
@@ -367,29 +391,30 @@ export default function MineSiteDetail() {
             <ParcelMap
               lat={mapLat}
               lng={mapLng}
-              polygon={parcel?.boundary_polygon?.length >= 3 ? parcel.boundary_polygon : liveParcel?.boundary}
-              ownerName={landOwner || liveParcel?.owner}
-              parcelId={parcel?.parcel_id || liveParcel?.parcel_id || site.parcel_id}
-              acreage={parcelAcreage}
-              rockType={geologyRecord?.primary_rock || geologyRecord?.lithology || site.commodity}
-              boundarySource={parcel?.boundary_source || liveParcel?.source || parcel?.source_name}
+              polygon={hasProfessional ? (parcel?.boundary_polygon?.length >= 3 ? parcel.boundary_polygon : liveParcel?.boundary) : undefined}
+              ownerName={hasProfessional ? (landOwner || liveParcel?.owner) : undefined}
+              parcelId={hasProfessional ? (parcel?.parcel_id || liveParcel?.parcel_id || site.parcel_id) : undefined}
+              acreage={hasProfessional ? parcelAcreage : undefined}
+              rockType={hasProfessional ? (geologyRecord?.primary_rock || geologyRecord?.lithology || site.commodity) : undefined}
+              boundarySource={hasProfessional ? (parcel?.boundary_source || liveParcel?.source || parcel?.source_name) : undefined}
               height={440}
+              previewMode={!hasProfessional}
             />
           </Suspense>
           <Card title="Mine Record" icon={MapPinned}>
             <Row label="MSHA ID" value={site.msha_mine_id} />
             <Row label="Commodity" value={site.commodity} />
             <Row label="Mine type" value={site.mine_type} />
-            <Row label="Land owner" value={landOwner} />
             <Row label="Operator" value={operator} />
-            <Row label="Permittee" value={permittee} />
-            <Row label="Controller" value={site.controller_name} />
+            {hasProfessional && <Row label="Land owner" value={landOwner} />}
+            {hasProfessional && <Row label="Permittee" value={permittee} />}
+            {hasProfessional && <Row label="Controller" value={site.controller_name} />}
             <Row label="Address" value={[site.address, site.city, site.state, site.zip].filter(Boolean).join(", ")} />
-            <Row label="Permitted acres" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />
-            <Row label="Permit acreage basis" value={permitAcreageBasis} />
-            <Row label="Parcel acres" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />
+            {hasProfessional && <Row label="Permitted acres" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />}
+            {hasProfessional && <Row label="Permit acreage basis" value={permitAcreageBasis} />}
+            {hasProfessional && <Row label="Parcel acres" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />}
             <Row label="Category" value={site.category} />
-            <Row label="Parcel" value={site.parcel_id} />
+            {hasProfessional && <Row label="Parcel" value={site.parcel_id} />}
             <Row label="TDEC permit" value={site.tdec_permit_number} />
             <Row label="NPDES permit" value={site.npdes_permit_number} />
             <Row label="Source checked" value={displayDate(site.last_source_update)} />
@@ -401,6 +426,7 @@ export default function MineSiteDetail() {
           </Card>
         </div>
 
+        {hasProfessional ? (<>
         <div className="mb-6 rounded-2xl border border-stone-300 bg-stone-950 p-6 text-stone-50">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><LockKeyhole className="h-4 w-4" /> Acquisition Diligence Snapshot</div><div className="mt-2 text-2xl font-bold">{diligenceReady}/{diligence.length} intelligence layers connected</div><p className="mt-1 max-w-2xl text-sm text-stone-300">A fast completeness check for buyers, operators and advisers before deeper title, engineering, reserve, environmental and financial diligence.</p></div>
@@ -661,6 +687,14 @@ export default function MineSiteDetail() {
             ) : <p className="text-sm text-muted-foreground">No connected environmental, inspection or violation records are loaded for this site yet.</p>}
           </Card>
         </div>
+        </>) : (
+          <div className="mb-8 rounded-3xl border border-sky-200 bg-sky-50/70 p-7 text-center">
+            <LockKeyhole className="mx-auto h-8 w-8 text-slate-800" />
+            <h2 className="mt-3 font-heading text-2xl font-bold text-slate-950">Professional intelligence starts here</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700">Your Quarry Access membership opens the mine profile and source record. Professional Intelligence adds parcel and ownership data, permitted acreage, geology, production history, compliance, contract/royalty intelligence, valuation screening and S&amp;S opportunity analysis.</p>
+            <button onClick={() => navigate("/subscribe")} className="mt-5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Upgrade to Professional</button>
+          </div>
+        )}
 
         <div className="mt-6 rounded-2xl border border-sky-200 bg-sky-50/60 p-6">
           <div className="flex items-center gap-2 font-heading text-lg font-bold text-sky-950"><FileSearch className="h-5 w-5" /> About this S&amp;S Quarry Intelligence Report</div>
