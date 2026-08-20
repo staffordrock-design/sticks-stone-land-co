@@ -46,20 +46,6 @@ function displayDate(value) {
   return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-function compactNumber(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return "—";
-  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
-}
-
-function productionCommodityGroup(site) {
-  const text = `${site?.commodity || ""} ${site?.mine_name || ""}`.toLowerCase();
-  if (text.includes("dimension stone") || text.includes("dimension sandstone") || text.includes("dimension limestone") || text.includes("fieldstone")) return null;
-  if (/construction sand.{0,8}gravel|sand\s*(and|&)\s*gravel/.test(text)) return "Construction Sand and Gravel";
-  if (/crushed|broken|aggregate|limestone|dolomite|granite|traprock|quartzite|chert|shale|marble/.test(text)) return "Crushed Stone";
-  return null;
-}
-
 function Card({ title, icon: Icon, children }) {
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
@@ -234,26 +220,6 @@ export default function MineSiteDetail() {
       sameValue(r.msha_mine_id, site.msha_mine_id)
     );
   }, [site, production]);
-
-  const meaningfulProduction = useMemo(
-    () => relatedProduction.filter((r) => r.record_type || r.production_amount != null || r.employee_hours != null || r.average_employees != null),
-    [relatedProduction]
-  );
-  const latestEstimate = useMemo(
-    () => meaningfulProduction.find((r) => r.record_type === "S&S Estimate" || r.is_estimate) || null,
-    [meaningfulProduction]
-  );
-  const latestActivity = useMemo(
-    () => meaningfulProduction.find((r) => r.record_type === "MSHA Activity") || null,
-    [meaningfulProduction]
-  );
-  const siteProductionGroup = productionCommodityGroup(site);
-  const relevantMarketProduction = useMemo(() => {
-    const targetGroup = siteProductionGroup || "Construction Aggregates";
-    return [...usgsMarketProduction]
-      .filter((r) => r.commodity_group === targetGroup)
-      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0) || Number(String(b.period || "").replace(/\D/g, "") || 0) - Number(String(a.period || "").replace(/\D/g, "") || 0))[0] || null;
-  }, [usgsMarketProduction, siteProductionGroup]);
 
   const geologyRecord = useMemo(() => {
     if (!site) return null;

@@ -47,7 +47,7 @@ function parseGmlFeatures(xml: string) {
   });
 }
 
-async function fetchMrdsNear(lat: number, lon: number, radiusDeg = 0.05) {
+async function fetchMrdsNear(lat: number, lon: number, radiusDeg = 0.08) {
   const minLat = lat - radiusDeg;
   const maxLat = lat + radiusDeg;
   const minLon = lon - radiusDeg;
