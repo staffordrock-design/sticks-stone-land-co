@@ -27,6 +27,16 @@ function statusGroup(status = "") {
   return "New / Potential";
 }
 
+function isQuarryRelevant(site) {
+  const commodity = String(site?.commodity || "").toLowerCase().trim();
+  if (!commodity) return true;
+  if (commodity.includes("coal")) return false;
+  return [
+    "stone", "limestone", "sand", "gravel", "aggregate", "marble", "granite",
+    "slate", "shale", "quartz", "clay", "dolomite", "rock", "lime"
+  ].some((term) => commodity.includes(term));
+}
+
 export default function Home() {
   const { user } = useAuth();
   const [sites, setSites] = useState([]);
@@ -93,7 +103,9 @@ export default function Home() {
     }, new Map()).values()
   );
 
-  const filtered = visibleSites.filter((s) => {
+  const quarrySites = visibleSites.filter(isQuarryRelevant);
+
+  const filtered = quarrySites.filter((s) => {
     const matchesSource = source === "All" || s.source === source;
     const q = query.toLowerCase();
     const matchesQuery =
@@ -138,9 +150,9 @@ export default function Home() {
 
   const priorityOpportunities = ranked.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).slice(0, 3);
   const featured = ranked.find((s) => s.latitude && s.longitude) || sites.find((s) => s.latitude && s.longitude);
-  const activeCount = visibleSites.filter((s) => statusGroup(s.mine_status) === "Active").length;
-  const opportunityCount = visibleSites.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).length;
-  const statesCovered = new Set(visibleSites.map((s) => String(s.state || "").trim().toUpperCase()).filter(Boolean)).size;
+  const activeCount = quarrySites.filter((s) => statusGroup(s.mine_status) === "Active").length;
+  const opportunityCount = quarrySites.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).length;
+  const statesCovered = new Set(quarrySites.map((s) => String(s.state || "").trim().toUpperCase()).filter(Boolean)).size;
   const geologyLinked = new Set(geology.map((g) => g.mining_site_id || g.msha_mine_id).filter(Boolean)).size;
 
   const geologyLookup = React.useMemo(() => {
@@ -244,7 +256,7 @@ export default function Home() {
       <section className="border-b border-border bg-slate-50/80">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
           {[
-            [visibleSites.length.toLocaleString(), "Source-backed records"],
+            [quarrySites.length.toLocaleString(), "Quarry & aggregate records"],
             [opportunityCount.toLocaleString(), "Potential / idled opportunities"],
             [activeCount.toLocaleString(), "Active mine records"],
             [Math.max(statesCovered, SOUTHEAST_STATES.length).toLocaleString(), "Southeast states in scope"],
