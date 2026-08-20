@@ -287,7 +287,7 @@ export default function MineSiteDetail() {
     { label: "Geology / rock intelligence", ready: Boolean(geologyRecord), detail: geologyRecord?.primary_rock || geologyRecord?.lithology || "Geology linkage pending" },
     { label: "Permit / regulatory record", ready: Boolean(relatedPermits.length), detail: relatedPermits.length ? `${relatedPermits.length} connected record${relatedPermits.length === 1 ? "" : "s"}` : "Permit linkage pending" },
     { label: "Owner / operator / permitted footprint", ready: Boolean(landOwner && operator && Number(permittedAcreage) > 0), detail: `${landOwner || "owner pending"} · ${operator || "operator pending"} · ${Number(permittedAcreage) > 0 ? `${Number(permittedAcreage).toLocaleString()} permitted ac` : "permit acreage pending"}` },
-    { label: "Production history", ready: Boolean(relatedProduction.length), detail: relatedProduction.length ? `${relatedProduction.length} production record${relatedProduction.length === 1 ? "" : "s"}` : "Production linkage pending" },
+    { label: "Production intelligence", ready: Boolean(latestActivity || latestEstimate), detail: latestEstimate ? `S&S modeled range available · ${latestEstimate.confidence || "Low"} confidence` : latestActivity ? `${Number(latestActivity.employee_hours || 0).toLocaleString()} MSHA employee hours connected` : "Current MSHA activity / modeled production pending" },
     { label: "Compliance history", ready: Boolean(relatedInspections.length || relatedViolations.length || relatedEnvironmental.length), detail: `${relatedInspections.length} inspections · ${relatedViolations.length} violations · ${relatedEnvironmental.length} environmental` },
     { label: "Contract / royalty intelligence", ready: Boolean(relatedContracts.length), detail: relatedContracts.length ? `${relatedContracts.length} agreement record${relatedContracts.length === 1 ? "" : "s"}` : "Lease / royalty terms not connected" },
     { label: "USGS mineral intelligence", ready: Boolean(relatedUsgsOccurrences.length), detail: relatedUsgsOccurrences.length ? `${relatedUsgsOccurrences.length} MRDS occurrence${relatedUsgsOccurrences.length === 1 ? "" : "s"}` : "USGS MRDS linkage pending" },
@@ -718,26 +718,6 @@ export default function MineSiteDetail() {
               </div>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No USGS MRDS occurrence is linked to this mine yet. USGS Mineral Resources Data System records are matched by proximity and will appear here when the sync runs.</p>
-            )}
-            {usgsMarketProduction.length > 0 && (
-              <div className="mt-5 rounded-xl border border-sky-200 bg-sky-50/50 p-4">
-                <div className="text-xs font-bold uppercase tracking-wider text-sky-800">USGS State Mineral Production · {site.state}</div>
-                <div className="mt-3 space-y-2">
-                  {usgsMarketProduction.map((r) => (
-                    <div key={r.id} className="flex items-center justify-between gap-3 text-sm">
-                      <div>
-                        <div className="font-semibold text-foreground">{r.commodity_group}</div>
-                        <div className="text-xs text-muted-foreground">{r.year}{r.period ? ` · ${r.period}` : ""}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-foreground">{Number(r.quantity_metric_tons).toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">metric tons{r.percent_change_yoy != null ? ` · ${r.percent_change_yoy > 0 ? "+" : ""}${r.percent_change_yoy.toFixed(1)}% YoY` : ""}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                {usgsMarketProduction[0]?.source_url && <a href={usgsMarketProduction[0].source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-sky-800 hover:underline">Open USGS Minerals data <ExternalLink className="h-3 w-3" /></a>}
-              </div>
             )}
           </Card>
 
