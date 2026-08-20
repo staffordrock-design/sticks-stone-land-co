@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, Gem, ShieldCheck, Gauge, Landmark, Leaf } from "lucide-react";
+import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, Gem, ShieldCheck, Gauge, Landmark, Leaf, LockKeyhole } from "lucide-react";
 import { classifyRock } from "../../base44/shared/rockTypes.js";
 
 function worldImageryTile(lat, lng, zoom = 14) {
@@ -37,15 +37,15 @@ function displayDate(value) {
   return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-export default function MiningSiteCard({ site, valuation, geology, parcel, permits = [], environmental = [], opportunity, emphasizeOpportunity = false }) {
+export default function MiningSiteCard({ site, valuation, geology, parcel, permits = [], environmental = [], opportunity, emphasizeOpportunity = false, previewMode = false }) {
   const rockClass = geology ? classifyRock(geology.primary_rock || geology.lithology) : null;
-  const rockChip = geology?.primary_rock || geology?.lithology || site.commodity;
+  const rockChip = previewMode ? site.commodity : (geology?.primary_rock || geology?.lithology || site.commodity);
   const location = [site.county ? `${site.county}, ` : "", site.state].join("");
   const verified = site.is_verified_listing && site.listing_id;
   const aerialPreview = worldImageryTile(site.latitude, site.longitude);
   const heroImage = site.site_images?.[0] || aerialPreview;
   const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location preview" : null;
-  const showOpportunity = Boolean(opportunity) && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
+  const showOpportunity = !previewMode && Boolean(opportunity) && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
   const owner = parcel?.owner_name || site.parcel_owner;
   const parcelAcreage = parcel?.acreage ?? site.acreage;
   const primaryPermit = permits.find((p) => Number(p?.permitted_acres) > 0) || permits[0] || null;
@@ -180,22 +180,34 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
           <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><Camera className="h-3.5 w-3.5" /> {site.site_images.length} property photo{site.site_images.length === 1 ? "" : "s"}</div>
         )}
 
-        <div className="mt-4 grid grid-cols-3 gap-3 border-t border-border pt-4">
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Land owner</p>
-            <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{owner || "Owner pending"}</p>
-            {Number(parcelAcreage) > 0 && <p className="mt-1 text-[10px] text-muted-foreground">Parcel: {Number(parcelAcreage).toLocaleString()} ac</p>}
+        {previewMode ? (
+          <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/70 p-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 rounded-lg bg-slate-900 p-2 text-white"><LockKeyhole className="h-4 w-4" /></div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-sky-800">Professional intelligence</p>
+                <p className="mt-1 text-xs leading-5 text-slate-700">Owner &amp; operator, permitted acreage, mapped geology, regulatory history, production context and opportunity scoring are inside the full record.</p>
+              </div>
+            </div>
           </div>
-          <div className="min-w-0 border-l border-border pl-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Operator</p>
-            <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{operator || "Operator pending"}</p>
+        ) : (
+          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-border pt-4">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Land owner</p>
+              <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{owner || "Owner pending"}</p>
+              {Number(parcelAcreage) > 0 && <p className="mt-1 text-[10px] text-muted-foreground">Parcel: {Number(parcelAcreage).toLocaleString()} ac</p>}
+            </div>
+            <div className="min-w-0 border-l border-border pl-3">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Operator</p>
+              <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{operator || "Operator pending"}</p>
+            </div>
+            <div className="min-w-0 border-l border-border pl-3 text-right">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Permitted acres</p>
+              <p className="mt-1 font-display text-base font-bold text-foreground">{Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "—"}</p>
+              <p className="mt-1 text-[10px] text-muted-foreground">{primaryPermit?.acreage_basis || site.permitted_acres_basis || "TDEC acreage pending"}</p>
+            </div>
           </div>
-          <div className="min-w-0 border-l border-border pl-3 text-right">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Permitted acres</p>
-            <p className="mt-1 font-display text-base font-bold text-foreground">{Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "—"}</p>
-            <p className="mt-1 text-[10px] text-muted-foreground">{primaryPermit?.acreage_basis || site.permitted_acres_basis || "TDEC acreage pending"}</p>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
