@@ -42,7 +42,7 @@ const PageLoader = () => (
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = ['/privacy', '/terms', '/support', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
+  const publicPath = ['/', '/subscribe', '/privacy', '/terms', '/support', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   // Show loading spinner while checking app public settings or auth
