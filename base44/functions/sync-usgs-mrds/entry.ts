@@ -1,7 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.40";
 
 const MRDS_WFS = "https://mrdata.usgs.gov/services/wfs/mrds";
-const MRDS_LAYER = "mrds:mrds_all";
+const MRDS_LAYER = "mrds";
 const MRDS_SOURCE = "USGS Mineral Resources Data System (MRDS)";
 
 function validCoord(lat: unknown, lon: unknown) {
@@ -25,6 +25,28 @@ function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number)
   return Math.round(2 * R * Math.asin(Math.sqrt(a)));
 }
 
+// Parse GML2 feature members from the WFS response into { properties, coordinates } objects.
+function parseGmlFeatures(xml: string) {
+  const members = [...xml.matchAll(/<gml:featureMember>([\s\S]*?)<\/gml:featureMember>/g)];
+  return members.map((m) => {
+    const block = m[1];
+    const props: Record<string, string> = {};
+    // Extract all <ms:FIELD_NAME>value</ms:FIELD_NAME> property elements.
+    const propMatches = [...block.matchAll(/<ms:(\w+)>([^<]*)<\/ms:\w+>/g)];
+    for (const pm of propMatches) {
+      props[pm[1]] = pm[2].trim();
+    }
+    // Extract point coordinates (lon,lat).
+    const coordMatch = block.match(/<gml:coordinates>([^<]+)<\/gml:coordinates>/);
+    let coordinates: [number, number] | null = null;
+    if (coordMatch) {
+      const [lon, lat] = coordMatch[1].split(",").map(Number);
+      if (Number.isFinite(lon) && Number.isFinite(lat)) coordinates = [lon, lat];
+    }
+    return { properties: props, coordinates };
+  });
+}
+
 async function fetchMrdsNear(lat: number, lon: number, radiusDeg = 0.05) {
   const minLat = lat - radiusDeg;
   const maxLat = lat + radiusDeg;
@@ -35,7 +57,6 @@ async function fetchMrdsNear(lat: number, lon: number, radiusDeg = 0.05) {
     version: "1.0.0",
     request: "GetFeature",
     typeName: MRDS_LAYER,
-    outputFormat: "application/json",
     bbox: `${minLon},${minLat},${maxLon},${maxLat}`,
   });
   const url = `${MRDS_WFS}?${params.toString()}`;
@@ -44,8 +65,8 @@ async function fetchMrdsNear(lat: number, lon: number, radiusDeg = 0.05) {
     signal: AbortSignal.timeout(15000),
   });
   if (!resp.ok) throw new Error(`USGS MRDS WFS failed: ${resp.status}`);
-  const data = await resp.json();
-  return data?.features || [];
+  const xml = await resp.text();
+  return parseGmlFeatures(xml);
 }
 
 export default async function (req: Request) {
