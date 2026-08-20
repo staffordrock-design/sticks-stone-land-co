@@ -678,9 +678,9 @@ export default function MineSiteDetail() {
                   <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-emerald-800">Official MSHA activity signal</div>
                   <div className="mt-2 grid gap-3 sm:grid-cols-2">
                     <div><div className="text-xs text-emerald-800">Employee hours</div><div className="text-xl font-bold text-emerald-950">{Number(latestActivity.employee_hours || 0).toLocaleString()}</div></div>
-                    <div><div className="text-xs text-emerald-800">Average employees</div><div className="text-xl font-bold text-emerald-950">{Number(latestActivity.average_employees || 0).toLocaleString()}</div></div>
+                    <div><div className="text-xs text-emerald-800">Activity period</div><div className="text-xl font-bold text-emerald-950">{latestActivity.year || "—"} {latestActivity.period || ""}</div></div>
                   </div>
-                  <p className="mt-3 text-xs leading-5 text-emerald-900">MSHA requires metal/nonmetal employment reporting, but not quarry production tonnage. These hours are an activity signal, not a production report.</p>
+                  <p className="mt-3 text-xs leading-5 text-emerald-900">MSHA requires metal/nonmetal employment reporting, but not quarry production tonnage. S&amp;S uses employee hours as the primary activity signal. MSHA average-employee fields can be reported across multiple mine subunits, so they are not used to determine the modeled tonnage range.</p>
                   {latestActivity.source_url && <a href={latestActivity.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-900 hover:underline">Open MSHA data source <ExternalLink className="h-3 w-3" /></a>}
                 </div>
               )}
@@ -696,7 +696,7 @@ export default function MineSiteDetail() {
                   <div className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Source record history</div>
                   <div className="space-y-2">
                     {meaningfulProduction.slice(0, 12).map((r) => (
-                      <div key={r.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-xs">
+                      <div key={r.id || r.source_record_id || `${r.year}-${r.period}-${r.record_type}`} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-xs">
                         <div><strong className="text-foreground">{r.year || "—"}{r.period ? ` · ${r.period}` : ""}</strong><span className="ml-2 text-muted-foreground">{r.record_type || r.source_agency}</span></div>
                         <div className="text-right text-muted-foreground">{r.is_estimate ? `${Number(r.estimate_low || 0).toLocaleString()}–${Number(r.estimate_high || 0).toLocaleString()} t` : r.employee_hours != null ? `${Number(r.employee_hours).toLocaleString()} hours` : r.production_amount != null ? `${Number(r.production_amount).toLocaleString()} ${r.production_unit || ""}` : "source note"}</div>
                       </div>
