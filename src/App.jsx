@@ -12,7 +12,6 @@ import ScrollToTop from './components/ScrollToTop';
 import NativeBackHandler from './components/NativeBackHandler';
 import ActivityTracker from './components/ActivityTracker';
 import PaidAccessGate from './components/PaidAccessGate';
-import TimedPreviewGate from './components/TimedPreviewGate';
 // Add page imports here
 const Home = lazy(() => import('./pages/Home'));
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
@@ -73,7 +72,7 @@ const AuthenticatedApp = () => {
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Add your page Route elements here */}
-      <Route path="/" element={<TimedPreviewGate><Home /></TimedPreviewGate>} />
+      <Route path="/" element={<Home />} />
       <Route path="/listings/:id" element={<PageTransition><PaidAccessGate><ListingDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/mines/:id" element={<PageTransition><PaidAccessGate><MineSiteDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/admin/activity" element={<AdminActivity />} />
