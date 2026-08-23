@@ -1,10 +1,7 @@
 name: Prepare Apple App Review
 
 on:
-  # Temporary one-shot path trigger. Restore to manual-only after the guarded run finishes.
-  push:
-    paths:
-      - ".github/workflows/apple-review-prepare.yml"
+  # Keep App Review mutations deliberate after the guarded preparation run.
   workflow_dispatch:
 
 permissions:
