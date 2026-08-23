@@ -14,6 +14,39 @@ export function appleProductIds() {
   ]).filter(Boolean);
 }
 
+const APPLE_PRODUCT_TO_PLAN = Object.fromEntries(
+  ACCESS_TIERS.flatMap((tier) => [
+    [SUBSCRIPTION_PRODUCTS.apple[tier.code]?.monthly, `${tier.code}_monthly`],
+    [SUBSCRIPTION_PRODUCTS.apple[tier.code]?.annual, `${tier.code}_annual`],
+  ]).filter(([productId]) => Boolean(productId))
+);
+
+export function applePlanCodeForProduct(productId) {
+  return APPLE_PRODUCT_TO_PLAN[productId] || null;
+}
+
+export async function currentAppleSubscriptionAccess({ restore = false } = {}) {
+  if (!isNativeIOS()) return { active: false, professional: false, purchases: [], productIds: [], planCodes: [] };
+  if (restore) await NativePurchases.restorePurchases();
+
+  const { purchases = [] } = await NativePurchases.getPurchases({
+    productType: PURCHASE_TYPE.SUBS,
+    onlyCurrentEntitlements: true,
+  });
+  const current = (purchases || []).filter((tx) => appleProductIds().includes(tx?.productIdentifier));
+  const productIds = current.map((tx) => tx.productIdentifier).filter(Boolean);
+  const planCodes = productIds.map(applePlanCodeForProduct).filter(Boolean);
+  const professional = planCodes.some((code) => code.startsWith('professional_') || code.startsWith('deal_investor_'));
+
+  return {
+    active: current.length > 0,
+    professional,
+    purchases: current,
+    productIds,
+    planCodes,
+  };
+}
+
 async function sha256Hex(value) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
@@ -56,15 +89,23 @@ export async function verifyAppleTransactions(transactions, { reconcile = false 
 }
 
 export async function syncCurrentAppleSubscriptions({ restore = false } = {}) {
-  if (!isNativeIOS()) return { skipped: true };
-  if (restore) await NativePurchases.restorePurchases();
+  if (!isNativeIOS()) return { skipped: true, active: false, professional: false, purchases: [] };
 
-  const { purchases } = await NativePurchases.getPurchases({
-    productType: PURCHASE_TYPE.SUBS,
-    onlyCurrentEntitlements: true,
-  });
+  const access = await currentAppleSubscriptionAccess({ restore });
+  let user = null;
+  try {
+    user = await base44.auth.me();
+  } catch {
+    user = null;
+  }
 
-  return verifyAppleTransactions(purchases || [], { reconcile: true });
+  // Apple requires registration to remain optional for StoreKit purchases.
+  // Anonymous subscribers are authorized directly from StoreKit currentEntitlements.
+  // If they later sign in, the same signed transactions are linked to their S&S account.
+  if (!user?.id) return { ...access, anonymous: true };
+
+  const verified = await verifyAppleTransactions(access.purchases, { reconcile: true });
+  return { ...verified, ...access, anonymous: false };
 }
 
 export async function verifyAppleDataRoom(transaction, listingId) {
