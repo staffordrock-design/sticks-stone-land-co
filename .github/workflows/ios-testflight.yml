@@ -1,10 +1,7 @@
 name: iOS TestFlight Upload
 
 on:
-  # One-shot trigger for the corrected native API build; restored to manual-only immediately after push.
-  push:
-    paths:
-      - ".github/workflows/ios-testflight.yml"
+  # Keep App Store uploads deliberate. Run manually after a tested iOS build is ready.
   workflow_dispatch:
 
 permissions:
