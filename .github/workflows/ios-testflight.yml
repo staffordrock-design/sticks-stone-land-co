@@ -1,7 +1,7 @@
 name: iOS TestFlight Upload
 
 on:
-  # Temporary one-commit trigger used to start this authorized TestFlight build.
+  # Authorized direct-push trigger for this TestFlight build.
   push:
     paths:
       - ".github/workflows/ios-testflight.yml"
