@@ -1,0 +1,47 @@
+{
+  "name": "TDEC DMGR Permit Enrichment",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "tdec_dmgr_permit_enrichment",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sync_dmgr_permits": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-tn-dmgr-mining-permits",
+            "args": {
+              "limit": 60
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Sync Tennessee mining permits",
+            "description": "Import TDEC DMGR permit identity and permitted mine acreage from official public permit records"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 4,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-08-23T13:00:00Z",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "description": "Every four hours, advances through the official Tennessee DMGR mining-permit queue. Loads permittee/status/dates from the state ArcGIS feed and reads Mining Specific acreage from the linked public permit-detail page when available. Ambiguous mine matches remain unassigned."
+}
