@@ -25,6 +25,9 @@ export default function AdminDataSync() {
   const [dmgrPermitResult, setDmgrPermitResult] = useState(null);
   const [runningProductionIntel, setRunningProductionIntel] = useState(false);
   const [productionIntelResult, setProductionIntelResult] = useState(null);
+  const [runningMrds, setRunningMrds] = useState(false);
+  const [mrdsResult, setMrdsResult] = useState(null);
+  const [mrdsOffset, setMrdsOffset] = useState(0);
   const [error, setError] = useState("");
 
   const loadFreshness = async () => {
@@ -153,6 +156,23 @@ export default function AdminDataSync() {
       setError(e?.message || "Tennessee DMGR permit sync failed.");
     } finally {
       setRunningDmgrPermits(false);
+    }
+  };
+
+  const syncMrds = async () => {
+    setRunningMrds(true);
+    setMrdsResult(null);
+    setError("");
+    try {
+      const response = await base44.functions.invoke("sync-usgs-mrds", { state: "TN", limit: 40, offset: mrdsOffset });
+      const payload = response?.data || response;
+      if (payload?.success === false) throw new Error(payload?.error || "USGS MRDS sync failed.");
+      setMrdsResult(payload);
+      setMrdsOffset(payload?.has_more ? Number(payload.next_offset || 0) : 0);
+    } catch (e) {
+      setError(e?.message || "USGS mineral intelligence sync failed.");
+    } finally {
+      setRunningMrds(false);
     }
   };
 
