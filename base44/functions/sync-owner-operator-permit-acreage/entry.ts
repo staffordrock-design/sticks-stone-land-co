@@ -15,6 +15,17 @@ function same(a: unknown, b: unknown) {
   return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 }
 
+async function loadAllPages(loader: (limit: number, skip: number) => Promise<any[]>, maxRecords = 10000) {
+  const rows: any[] = [];
+  const pageSize = 500;
+  for (let skip = 0; skip < maxRecords; skip += pageSize) {
+    const page = await loader(pageSize, skip);
+    rows.push(...(page || []));
+    if (!page || page.length < pageSize) break;
+  }
+  return rows;
+}
+
 export default async function(req: Request) {
   const base44 = createClientFromRequest(req);
   try {
@@ -23,9 +34,12 @@ export default async function(req: Request) {
 
     const body = await req.json().catch(() => ({}));
     const limit = Math.min(Math.max(Number(body?.limit || 500), 1), 500);
-    const sites = await base44.asServiceRole.entities.MiningSite.filter({ state: "TN" }, "-updated_date", limit, 0);
-    const parcels = await base44.asServiceRole.entities.ParcelRecord.list("-updated_date", 500, 0);
-    const permits = await base44.asServiceRole.entities.TDECPermit.list("-updated_date", 500, 0);
+    const offset = Math.max(Number(body?.offset || 0), 0);
+    const sites = await base44.asServiceRole.entities.MiningSite.filter({ state: "TN" }, "created_date", limit, offset);
+    const [parcels, permits] = await Promise.all([
+      loadAllPages((pageSize, skip) => base44.asServiceRole.entities.ParcelRecord.list("created_date", pageSize, skip)),
+      loadAllPages((pageSize, skip) => base44.asServiceRole.entities.TDECPermit.list("created_date", pageSize, skip)),
+    ]);
 
     let updated = 0;
     let ownerLinked = 0;
@@ -94,7 +108,12 @@ export default async function(req: Request) {
 
     return Response.json({
       success: true,
+      offset,
       queried: (sites || []).length,
+      next_offset: offset + (sites || []).length,
+      has_more: (sites || []).length === limit,
+      parcels_scanned: (parcels || []).length,
+      permits_scanned: (permits || []).length,
       updated,
       owner_linked: ownerLinked,
       operator_linked: operatorLinked,
