@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const limit = Math.min(Math.max(Number(body?.limit || 200), 1), 500);
+    const limit = Math.min(Math.max(Number(body?.limit || 40), 1), 500);
     const concurrency = Math.min(Math.max(Number(body?.concurrency || 3), 1), 5);
 
     // Load all TN sites
