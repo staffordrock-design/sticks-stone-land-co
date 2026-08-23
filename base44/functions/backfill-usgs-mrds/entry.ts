@@ -168,13 +168,16 @@ export default async function (req: Request) {
     let errors = 0;
     const sample: any[] = [];
 
-    for (const site of toProcess) {
+    const concurrency = Math.min(Math.max(Number(body?.concurrency) || 6, 1), 8);
+    for (let i = 0; i < toProcess.length; i += concurrency) {
+      const group = toProcess.slice(i, i + concurrency);
+      await Promise.all(group.map(async (site: any) => {
       queried++;
       try {
         const features = await fetchMrdsNear(Number(site.latitude), Number(site.longitude));
         if (!features.length) {
           noMatch++;
-          continue;
+          return;
         }
 
         // Sort by distance to the mine site and take the closest.
@@ -193,7 +196,7 @@ export default async function (req: Request) {
         const closest = withDistance[0];
         if (!closest || closest.dist > 10000) {
           noMatch++;
-          continue;
+          return;
         }
 
         matched++;
@@ -257,6 +260,7 @@ export default async function (req: Request) {
         console.error("USGS MRDS lookup failed for", site.id, e?.message || e);
         errors++;
       }
+      }));
     }
 
     return Response.json({
