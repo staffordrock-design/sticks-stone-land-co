@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Clock3, Crown, LockKeyhole } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
+import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { isReviewDemoMode, isReviewDemoAccount } from "@/lib/reviewDemo";
 
 const PREVIEW_MS = 60 * 1000;
@@ -26,7 +26,7 @@ function getOrCreatePreviewStart() {
 
 export default function TimedPreviewGate({ children }) {
   const { user } = useAuth();
-  const [checkingAccess, setCheckingAccess] = useState(Boolean(user?.id));
+  const [checkingAccess, setCheckingAccess] = useState(Boolean(user?.id) || isNativeIOS());
   const [hasPaidAccess, setHasPaidAccess] = useState(user?.role === "admin" || isReviewDemoMode());
   const [secondsRemaining, setSecondsRemaining] = useState(60);
   const [previewExpired, setPreviewExpired] = useState(false);
@@ -41,27 +41,29 @@ export default function TimedPreviewGate({ children }) {
       return () => { cancelled = true; };
     }
 
-    if (!user?.id) {
-      setHasPaidAccess(false);
-      setCheckingAccess(false);
-      return () => { cancelled = true; };
-    }
-
     setCheckingAccess(true);
     (async () => {
       try {
+        let storeAccess = { active: false };
+        if (isNativeIOS()) {
+          try {
+            storeAccess = await currentAppleSubscriptionAccess();
+            if (user?.id) await syncCurrentAppleSubscriptions();
+          } catch (error) {
+            console.error("Apple StoreKit subscription check failed during preview check", error);
+          }
+        }
+
+        if (!user?.id) {
+          if (!cancelled) setHasPaidAccess(Boolean(storeAccess?.active));
+          return;
+        }
+
         if (isReviewDemoAccount(user?.email)) {
           try {
             await base44.functions.invoke("ensure-review-demo-entitlement", {});
           } catch (error) {
             console.error("Review demo entitlement ensure failed", error);
-          }
-        }
-        if (isNativeIOS()) {
-          try {
-            await syncCurrentAppleSubscriptions();
-          } catch (error) {
-            console.error("Apple subscription sync failed during preview check", error);
           }
         }
 
@@ -70,7 +72,7 @@ export default function TimedPreviewGate({ children }) {
           "-updated_date",
           20
         );
-        if (!cancelled) setHasPaidAccess((rows || []).some(entitlementIsActive));
+        if (!cancelled) setHasPaidAccess(Boolean(storeAccess?.active) || (rows || []).some(entitlementIsActive));
       } catch (error) {
         console.error("Subscription access check failed", error);
         if (!cancelled) setHasPaidAccess(false);
