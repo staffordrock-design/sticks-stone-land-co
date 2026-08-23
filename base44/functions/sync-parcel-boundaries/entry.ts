@@ -15,6 +15,54 @@ function isPriorityStatus(status: unknown) {
   return value.includes("new mine") || value.includes("potential") || value.includes("intermittent") || value.includes("temporarily idled") || value.includes("nonproducing") || value.includes("non-producing") || value.includes("inactive") || value.includes("historical") || value.includes("abandon");
 }
 
+function isQuarryRelevant(site: any) {
+  const commodity = String(site?.commodity || "").toLowerCase().trim();
+  if (commodity.includes("coal")) return false;
+  if (!commodity) return true;
+  return ["stone", "limestone", "sand", "gravel", "aggregate", "marble", "granite", "slate", "shale", "quartz", "clay", "dolomite", "rock", "lime"]
+    .some((term) => commodity.includes(term));
+}
+
+function validTennesseeCoordinates(lat: unknown, lng: unknown) {
+  const y = Number(lat);
+  const x = Number(lng);
+  return Number.isFinite(y) && Number.isFinite(x) && y >= 34.8 && y <= 36.8 && x >= -90.5 && x <= -81.5;
+}
+
+function daysSince(value: unknown) {
+  const t = new Date(String(value || "")).getTime();
+  return Number.isFinite(t) ? (Date.now() - t) / 86400000 : Infinity;
+}
+
+function shouldRetryVerification(v: any) {
+  if (!v) return true;
+  const age = daysSince(v.verified_at);
+  if (v.status === "Verified") return false;
+  if (v.status === "No Coordinates") return age >= 7;
+  if (v.status === "No Parcel Match" || v.status === "Parcel Matched - No Owner") return age >= 30;
+  return true;
+}
+
+async function saveVerification(base44: any, site: any, status: string, details: any = {}, existing?: any) {
+  const payload = {
+    mining_site_id: site.id,
+    msha_mine_id: site.msha_mine_id || undefined,
+    parcel_id: details.parcelId || site.parcel_id || undefined,
+    status,
+    owner_name: details.owner || undefined,
+    owner_name_2: details.owner2 || undefined,
+    tax_year: Number(details.taxYear) || undefined,
+    property_address: details.propertyAddress || undefined,
+    mailing_address: details.mailingAddress || undefined,
+    deed_book_page: details.deedBookPage || undefined,
+    source_updated: details.sourceUpdated || undefined,
+    verified_at: new Date().toISOString(),
+    source_url: details.sourceUrl || ASSESSMENT_SOURCE_URL,
+  };
+  if (existing?.id) return await base44.asServiceRole.entities.ParcelOwnershipVerification.update(existing.id, payload);
+  return await base44.asServiceRole.entities.ParcelOwnershipVerification.create(payload);
+}
+
 async function fetchJson(url: string) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -72,14 +120,20 @@ async function lookupParcel(lat: number, lng: number) {
   return { props, boundary_polygon, parcelId, assessment };
 }
 
-async function processSite(base44: any, site: any) {
+async function processSite(base44: any, site: any, verification?: any) {
   const lat = Number(site.latitude);
   const lng = Number(site.longitude);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return { status: "no_coordinates" };
+  if (!validTennesseeCoordinates(lat, lng)) {
+    await saveVerification(base44, site, "No Coordinates", {}, verification);
+    return { status: "no_coordinates" };
+  }
 
   try {
     const result = await lookupParcel(lat, lng);
-    if (!result || result.boundary_polygon.length < 3) return { status: "no_match" };
+    if (!result || result.boundary_polygon.length < 3) {
+      await saveVerification(base44, site, "No Parcel Match", {}, verification);
+      return { status: "no_match" };
+    }
 
     const { props, boundary_polygon, parcelId, assessment } = result;
     const ownerName = String(assessment?.OWNER || assessment?.OWNJAN1 || "").trim() || undefined;
@@ -123,12 +177,24 @@ async function processSite(base44: any, site: any) {
       await base44.asServiceRole.entities.ParcelRecord.create(payload);
     }
 
-    // Update the MiningSite with parcel_id and owner
+    // Update the MiningSite with parcel_id and owner.
     const siteUpdates: any = {};
     if (parcelId && parcelId !== site.parcel_id) siteUpdates.parcel_id = parcelId;
     if (ownerName && ownerName !== site.parcel_owner) siteUpdates.parcel_owner = ownerName;
     if (payload.acreage && payload.acreage !== site.acreage) siteUpdates.acreage = payload.acreage;
     if (Object.keys(siteUpdates).length) await base44.asServiceRole.entities.MiningSite.update(site.id, siteUpdates);
+
+    await saveVerification(base44, site, ownerName ? "Verified" : "Parcel Matched - No Owner", {
+      parcelId,
+      owner: ownerName,
+      owner2: String(assessment?.OWNER2 || "").trim() || undefined,
+      taxYear: assessment?.TAXYR,
+      propertyAddress: payload.property_address,
+      mailingAddress: payload.mailing_address,
+      deedBookPage: payload.deed_book_page,
+      sourceUpdated: payload.last_source_update,
+      sourceUrl: payload.source_url,
+    }, verification);
 
     return { status: ownerName ? "matched_with_owner" : "matched_no_owner", parcelId, owner: ownerName };
   } catch (error) {
@@ -151,11 +217,29 @@ Deno.serve(async (req) => {
       if (!batch || batch.length < 500) break;
     }
 
-    // Only process sites with coordinates that are missing parcel_owner
+    // Load prior lookup outcomes so scheduled runs advance through the state instead of
+    // repeatedly retrying the same no-match records every two hours.
+    const verifications: any[] = [];
+    for (let skip = 0; skip < 10000; skip += 500) {
+      const batch = await base44.asServiceRole.entities.ParcelOwnershipVerification.list("-verified_at", 500, skip);
+      verifications.push(...(batch || []));
+      if (!batch || batch.length < 500) break;
+    }
+    const verificationBySite = new Map<string, any>();
+    for (const v of verifications) if (v.mining_site_id && !verificationBySite.has(v.mining_site_id)) verificationBySite.set(v.mining_site_id, v);
+
+    // Focus parcel-owner work on quarry/aggregate records, not coal, and suppress recent
+    // failures. Invalid MSHA coordinates are recorded once and revisited later rather than
+    // consuming every scheduled batch.
     const candidates = allSites
-      .filter((s) => Number.isFinite(Number(s.latitude)) && Number.isFinite(Number(s.longitude)))
+      .filter(isQuarryRelevant)
       .filter((s) => !s.parcel_owner || !String(s.parcel_owner).trim())
-      .sort((a, b) => Number(isPriorityStatus(b.mine_status)) - Number(isPriorityStatus(a.mine_status)))
+      .filter((s) => shouldRetryVerification(verificationBySite.get(s.id)))
+      .sort((a, b) => {
+        const priority = Number(isPriorityStatus(b.mine_status)) - Number(isPriorityStatus(a.mine_status));
+        if (priority) return priority;
+        return Number(validTennesseeCoordinates(b.latitude, b.longitude)) - Number(validTennesseeCoordinates(a.latitude, a.longitude));
+      })
       .slice(0, limit);
 
     let matched = 0, matchedWithOwner = 0, noMatch = 0, noCoordinates = 0, errors = 0;
@@ -164,7 +248,7 @@ Deno.serve(async (req) => {
     // Process in concurrent batches
     for (let i = 0; i < candidates.length; i += concurrency) {
       const batch = candidates.slice(i, i + concurrency);
-      const results = await Promise.all(batch.map((site) => processSite(base44, site)));
+      const results = await Promise.all(batch.map((site) => processSite(base44, site, verificationBySite.get(site.id))));
       for (const r of results) {
         if (r.status === "matched_with_owner") { matched++; matchedWithOwner++; }
         else if (r.status === "matched_no_owner") { matched++; }
@@ -186,7 +270,8 @@ Deno.serve(async (req) => {
       no_coordinates: noCoordinates,
       errors,
       error_details: errorDetails,
-      note: "Owner names sourced from TN Comptroller IMPACT Property Assessment GIS. Boundaries are GIS reference geometry, not legal surveys.",
+      verification_records_loaded: verifications.length,
+      note: "Owner names sourced from TN Comptroller IMPACT Property Assessment GIS. Coal records are excluded from quarry-owner enrichment, invalid coordinates are quarantined, and recent no-match attempts are suppressed so scheduled runs continue statewide. Boundaries are GIS reference geometry, not legal surveys.",
     });
   } catch (error) {
     return Response.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
