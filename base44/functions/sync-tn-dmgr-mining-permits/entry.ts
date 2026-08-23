@@ -43,6 +43,8 @@ function normalize(value: unknown) {
   return String(value || "")
     .toLowerCase()
     .replace(/&amp;/g, " and ")
+    .replace(/\bhwy\b/g, " highway ")
+    .replace(/\bdept\b/g, " department ")
     .replace(/\b(dba|d\/b\/a)\b/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\b(inc|incorporated|llc|ltd|lp|company|co|corporation|corp|materials|construction)\b/g, " ")
@@ -91,6 +93,16 @@ function quarryRelevant(site: any) {
   if (!commodity) return true;
   return ["stone", "limestone", "sand", "gravel", "aggregate", "marble", "granite", "slate", "shale", "quartz", "clay", "dolomite", "rock", "lime"]
     .some((term) => commodity.includes(term));
+}
+
+function permitQuarryRelevant(attrs: any) {
+  const haystack = [attrs?.PROJECT_NAME, attrs?.SITE, attrs?.DESCRIPTION_OF_ACTIVITY, attrs?.PERMITTEE_NAME].filter(Boolean).join(" ").toLowerCase();
+  const sic = String(attrs?.SIC_CODE || "").trim();
+  if (/\bcoal\b|bituminous|anthracite/.test(haystack) || /^12\d\d/.test(sic)) return false;
+  if (/^14\d\d/.test(sic)) return true;
+  if (String(attrs?.PERMIT_TYPE || "") === "Surface Mining") return true;
+  return ["quarry", "stone", "limestone", "sand", "gravel", "aggregate", "marble", "granite", "slate", "shale", "quartz", "clay", "dolomite", "rock", "lime"]
+    .some((term) => haystack.includes(term));
 }
 
 async function fetchJson(url: string) {
@@ -244,8 +256,9 @@ Deno.serve(async (req) => {
     ]);
     const tnSites = allSites.filter((s) => String(s.state || "").toUpperCase() === "TN" && quarryRelevant(s));
     const permitByNumber = new Map(existingPermits.filter((p) => p.permit_number).map((p) => [String(p.permit_number), p]));
+    const quarryPermitFeatures = sourceFeatures.filter((f: any) => permitQuarryRelevant(f.attributes || {}));
 
-    const features = explicitOffset ? sourceFeatures : sourceFeatures
+    const queue = explicitOffset ? quarryPermitFeatures : quarryPermitFeatures
       .filter((f: any) => {
         const a = f.attributes || {};
         const existing = permitByNumber.get(String(a.PERMIT_NUMBER || ""));
@@ -259,8 +272,9 @@ Deno.serve(async (req) => {
         const ae = permitByNumber.get(String(a.attributes?.PERMIT_NUMBER || ""));
         const be = permitByNumber.get(String(b.attributes?.PERMIT_NUMBER || ""));
         return Number(Boolean(ae)) - Number(Boolean(be));
-      })
-      .slice(0, limit);
+      });
+    const pendingBeforeLimit = queue.length;
+    const features = explicitOffset ? queue : queue.slice(0, limit);
 
     let created = 0;
     let updated = 0;
@@ -376,10 +390,12 @@ Deno.serve(async (req) => {
       source: "TDEC DMGR Mineral and Geologic Permits",
       mode: explicitOffset ? "offset" : "smart statewide queue",
       offset: explicitOffset ? offset : null,
-      source_records_available: sourceFeatures.length,
+      source_records_total_mining_types: sourceFeatures.length,
+      source_records_available: quarryPermitFeatures.length,
+      queued_before_limit: pendingBeforeLimit,
       queried: features.length,
-      next_offset: explicitOffset ? offset + features.length : null,
-      has_more: explicitOffset ? features.length === limit : sourceFeatures.length > features.length,
+      next_offset: explicitOffset ? offset + sourceFeatures.length : null,
+      has_more: explicitOffset ? sourceFeatures.length === limit : pendingBeforeLimit > features.length,
       created,
       updated,
       quarry_matches: matched,
