@@ -9,6 +9,7 @@ import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
 import { isReviewDemoMode } from "@/lib/reviewDemo";
+import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 
 function worldImageryTile(lat, lng, zoom = 15) {
@@ -112,19 +113,30 @@ export default function MineSiteDetail() {
       setHasProfessional(true);
       return () => { cancelled = true; };
     }
-    if (!user?.id) {
-      setHasProfessional(false);
-      return () => { cancelled = true; };
-    }
     (async () => {
       try {
+        let appleProfessional = false;
+        if (isNativeIOS()) {
+          try {
+            const access = await currentAppleSubscriptionAccess();
+            appleProfessional = Boolean(access?.professional);
+          } catch (error) {
+            console.error("Apple professional entitlement check failed", error);
+          }
+        }
+
+        if (!user?.id) {
+          if (!cancelled) setHasProfessional(appleProfessional);
+          return;
+        }
+
         const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 20);
         const activeProfessional = (rows || []).some((e) =>
           ["active", "trial", "grace_period"].includes(e.status) &&
           (/^professional(_|$)/.test(String(e.plan_code || "")) || /^deal_investor(_|$)/.test(String(e.plan_code || ""))) &&
           (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())
         );
-        if (!cancelled) setHasProfessional(activeProfessional);
+        if (!cancelled) setHasProfessional(appleProfessional || activeProfessional);
       } catch {
         if (!cancelled) setHasProfessional(false);
       }
