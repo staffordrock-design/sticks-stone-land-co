@@ -224,10 +224,10 @@ export default function Subscription() {
               const annualStore = storeProducts[annualId];
               const storeLabel = isIOS ? "Apple" : "Google Play";
               const monthlyPriceLabel = isNative
-                ? (monthlyStore?.priceString || (storeLoading ? `Loading ${storeLabel} price…` : "Store price unavailable"))
+                ? (monthlyStore?.priceString || (storeLoading ? `Loading ${storeLabel} price…` : tier.monthly))
                 : tier.monthly;
               const annualPriceLabel = isNative
-                ? (annualStore?.priceString ? `${annualStore.priceString} annual` : (storeLoading ? `Loading ${storeLabel} annual price…` : "Annual store price unavailable"))
+                ? (annualStore?.priceString ? `${annualStore.priceString} annual` : (storeLoading ? `Loading ${storeLabel} annual price…` : tier.annual))
                 : tier.annual;
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
