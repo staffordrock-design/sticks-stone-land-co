@@ -27,6 +27,10 @@ function statusGroup(status = "") {
   return "New / Potential";
 }
 
+function escapeRegex(value = "") {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function isQuarryRelevant(site) {
   const commodity = String(site?.commodity || "").toLowerCase().trim();
   if (!commodity) return true;
@@ -47,6 +51,7 @@ export default function Home() {
   const [permits, setPermits] = useState([]);
   const [environmental, setEnvironmental] = useState([]);
   const [query, setQuery] = useState("");
+  const [remoteSearchSites, setRemoteSearchSites] = useState([]);
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [stateFilter, setStateFilter] = useState("All Southeast");
@@ -92,8 +97,42 @@ export default function Home() {
   };
   useEffect(() => { loadData(); }, [showAll]);
 
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setRemoteSearchSites([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const safe = escapeRegex(q).slice(0, 80);
+        const rows = await base44.entities.MiningSite.filter({
+          $or: [
+            { mine_name: { $regex: safe, $options: "i" } },
+            { operator_name: { $regex: safe, $options: "i" } },
+            { county: { $regex: safe, $options: "i" } },
+            { commodity: { $regex: safe, $options: "i" } },
+            { msha_mine_id: { $regex: safe, $options: "i" } },
+            { tdec_permit_number: { $regex: safe, $options: "i" } },
+            { parcel_id: { $regex: safe, $options: "i" } },
+          ],
+        }, "-updated_date", 100);
+        if (!cancelled) setRemoteSearchSites(rows || []);
+      } catch {
+        if (!cancelled) setRemoteSearchSites([]);
+      }
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
   const visibleSites = Array.from(
-    sites.reduce((map, site) => {
+    [...sites, ...remoteSearchSites].reduce((map, site) => {
       const mineId = String(site.msha_mine_id || "").trim();
       const key = mineId ? `msha:${mineId}` : `record:${site.id}`;
       const completeness = (row) => [row.mine_name,row.mine_status,row.commodity,row.operator_name,row.county,row.latitude,row.longitude,row.tdec_permit_number,row.npdes_permit_number,row.parcel_id,row.acreage].filter((v) => v !== null && v !== undefined && String(v).trim() !== "").length;
