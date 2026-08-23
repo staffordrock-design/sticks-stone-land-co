@@ -42,10 +42,21 @@ jobs:
           npm ci
 
       - name: Build web application
+        env:
+          VITE_BASE44_APP_ID: "6a78376a454093ba2f431acd"
+          VITE_BASE44_FUNCTIONS_VERSION: "preview"
         run: |
           set -Eeuo pipefail
           trap 'echo "::error title=Web build failed::npm run build failed"' ERR
           npm run build
+          grep -Rqs "6a78376a454093ba2f431acd" dist || {
+            echo "::error title=Base44 app ID missing from native bundle::The built web bundle does not contain the production Base44 app ID";
+            exit 1;
+          }
+          grep -Rqs "https://base44.app/api/apps/public" dist || {
+            echo "::error title=Native public API host missing::The built web bundle still contains a relative public-settings API path";
+            exit 1;
+          }
 
       - name: Smoke test public quarry inventory
         run: |
