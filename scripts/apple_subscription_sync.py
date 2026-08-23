@@ -66,7 +66,7 @@ PRODUCTS = [
         "description": "Annual access to advanced parcel, geology, permit, environmental, production and quarry screening intelligence.",
         "period": "ONE_YEAR",
         "group_level": 1,
-        "usa_price": Decimal("1390.00"),
+        "usa_price": Decimal("1000.00"),
     },
 ]
 
