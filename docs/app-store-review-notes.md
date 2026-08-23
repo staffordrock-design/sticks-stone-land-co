@@ -1,54 +1,45 @@
 # App Review Notes — S&S Rock Holdings
 
-IMPORTANT BEFORE SUBMISSION: replace `[PHYSICAL TEST DEVICE / OS]` below with the exact physical device used for the attached recording.
+BEFORE SUBMISSION: replace `[TEST DEVICE / OS]` with the exact physical device used for the attached recording.
 
-## 1. Physical-device recording
-A physical-device screen recording is attached. It begins from a fresh app launch and demonstrates the normal user flow: Home/map → quarry record → Subscribe → Apple subscription purchase while signed out → StoreKit purchase sheet → paid access → Restore Purchases / Manage Subscriptions. It also shows optional account registration/login and account deletion. The app does not request location, camera, contacts, microphone, or App Tracking Transparency permission. The app has no public user-to-user posting/chat; seller submissions are reviewed by S&S before publication and Support is available for content/data concerns.
+1. SCREEN RECORDING
+A physical-device recording is attached and starts from a fresh launch. It shows Home/map → quarry record → Subscribe → Apple subscription purchase while signed out → StoreKit sheet → paid access → Restore Purchases / Manage Subscriptions. It also shows optional registration/login and account deletion. The app does not request location, camera, contacts, microphone, or App Tracking Transparency permission. There is no public user-to-user posting/chat; seller submissions are reviewed before publication and Support handles content/data concerns.
 
-## 2. Devices tested
-- Developer physical test device: `[PHYSICAL TEST DEVICE / OS]`
-- Prior App Review device reported by Apple: iPad Air 11-inch (M3), iPadOS 26.6
+2. DEVICES TESTED
+- Developer physical device: `[TEST DEVICE / OS]`
+- Prior Apple review device reported: iPad Air 11-inch (M3), iPadOS 26.6
 
-## 3. Purpose / audience
-S&S Rock Holdings is quarry, aggregate, mineral-property and due-diligence intelligence for quarry operators, aggregate producers, investors, acquisition professionals, land professionals and industry advisers. It consolidates fragmented public-source mine, permit, parcel, geology, environmental and production/activity information into mapped quarry records and screening tools.
+3. PURPOSE / AUDIENCE
+S&S Rock Holdings provides quarry, aggregate, mineral-property and due-diligence intelligence for operators, producers, investors, acquisition professionals and industry advisers. It consolidates fragmented public mine, permit, parcel, geology, environmental and production/activity information into mapped quarry records and screening tools.
 
-## 4. Access instructions
-No registration is required to browse the public preview or purchase an Apple subscription.
+4. ACCESS / LOGIN
+Registration is NOT required to browse the preview or purchase an Apple subscription.
+Signed-out IAP path: Launch → Subscribe → Choose monthly/annual → native Apple StoreKit sheet → purchase → app reads StoreKit current entitlements and unlocks access without an S&S account. Restore Purchases also works signed out. Account creation is optional for users who later want account-linked S&S services.
 
-IAP test path while SIGNED OUT:
-1. Launch app.
-2. Open Subscribe.
-3. Tap Choose monthly or Choose annual.
-4. The native Apple StoreKit purchase sheet opens.
-5. After purchase, the app reads StoreKit current entitlements and unlocks the purchased level without requiring an S&S account.
-6. Restore Purchases also works while signed out.
-7. Account creation is optional and is offered only for users who want account-linked S&S services/access.
-
-Optional review account for inspecting account-specific features:
+Optional review account for account-specific features:
 Email: contact+appreview@ssrockholdings.com
 Password: SSRockReview2026!
 Account deletion: /account/delete
 
-## 5. External services
-Apple StoreKit (iOS IAP); Base44 (app backend/auth/database/functions); MSHA; TDEC Division of Mineral & Geologic Resources; Tennessee Comptroller IMPACT parcel/assessment GIS; USGS; EPA ECHO/ICIS-NPDES; Esri World Imagery; OpenStreetMap. Google Play Billing is used in the Android build. Stripe is used only for eligible website transactions; the native iOS subscription flow does not open external checkout.
+5. EXTERNAL SERVICES
+Apple StoreKit; Base44 backend/auth/database/functions; MSHA; TDEC Division of Mineral & Geologic Resources; Tennessee Comptroller IMPACT; USGS; EPA ECHO/ICIS-NPDES; Esri World Imagery; OpenStreetMap. Google Play Billing is used in Android. Stripe is used only for eligible website transactions; native iOS subscription purchase does not open external checkout.
 
-## 6. Regional differences
-App functionality is consistent across regions. Data depth varies by source availability. Tennessee has the deepest current parcel/ownership, TDEC permit, permitted-acreage, environmental and geology coverage; other states are enriched progressively. Missing values remain identified as unavailable/pending rather than being guessed.
+6. REGIONAL DIFFERENCES
+Features are consistent across regions; data depth varies by public-source availability. Tennessee currently has the deepest parcel/ownership, TDEC permit/permitted-acreage, environmental and geology coverage. Missing values remain unavailable/pending rather than being guessed.
 
-## 7. Regulated / third-party data
-The app is a business-intelligence and screening product. It is not a legal title opinion, appraisal, certified reserve estimate, engineering/geology opinion or environmental assessment. MSHA, TDEC, USGS, EPA and Tennessee Comptroller information comes from public government sources and is source-labeled. Seller-provided confidential materials are only presented through controlled listing/data-room workflows.
+7. REGULATED / THIRD-PARTY DATA
+This is a business-intelligence/screening product, not a title opinion, appraisal, certified reserve estimate, engineering/geology opinion or environmental assessment. MSHA, TDEC, USGS, EPA and Tennessee Comptroller data comes from public government sources and is source-labeled. Seller confidential materials use controlled listing/data-room workflows.
 
-## 8. In-App Purchases
-Subscriptions are auto-renewing and purchased through Apple StoreKit from Subscribe:
+8. IN-APP PURCHASES
+Auto-renewing subscriptions are purchased from Subscribe:
 - Quarry Access Monthly — com.ssrockholdings.marketplace.monthly — $69 / 1 month
 - Quarry Access Annual — com.ssrockholdings.marketplace.annual — $690 / 1 year
-- Professional Intelligence Monthly — com.ssrockholdings.professional.monthly — $139 / 1 month
-- Professional Intelligence Annual — com.ssrockholdings.professional.annual — $1,000 / 1 year
+- Professional Monthly — com.ssrockholdings.professional.monthly — $139 / 1 month
+- Professional Annual — com.ssrockholdings.professional.annual — $1,000 / 1 year
+The screen shows duration, auto-renew terms, Restore Purchases, Manage Subscriptions, Terms and Privacy. StoreKit storefront prices are shown at purchase.
 
-The Subscribe screen displays duration, auto-renewal terms, Restore Purchases, Manage Subscriptions, Terms of Use and Privacy Policy. Prices shown during purchase are the App Store storefront prices returned by StoreKit.
-
-## Changes made in response to prior review
-- Removed required S&S registration from the Apple subscription purchase path.
-- StoreKit entitlement now unlocks subscription access even while signed out.
-- Fixed Choose monthly / Choose annual so tapping always invokes StoreKit instead of becoming silently disabled when preliminary product metadata is delayed.
-- Added visible purchase errors/status, Restore Purchases, Manage Subscriptions and explicit subscription durations.
+PRIOR-REVIEW FIXES
+- Removed required S&S registration from Apple subscription purchase.
+- StoreKit entitlement unlocks access while signed out.
+- Choose monthly/annual always invokes StoreKit instead of silently disabling when product metadata is delayed.
+- Added visible purchase status/errors, restore/manage controls and explicit durations.
