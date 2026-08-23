@@ -330,8 +330,10 @@ export default function MineSiteDetail() {
   if (loading) return <div className="min-h-screen bg-background p-10 text-center text-muted-foreground">Loading site intelligence…</div>;
   if (error || !site) return <div className="min-h-screen bg-background p-10 text-center text-destructive">{error || "Site not found."}</div>;
 
-  const mapLat = site.latitude ?? parcel?.latitude;
-  const mapLng = site.longitude ?? parcel?.longitude;
+  const siteCoordinatesValid = isPlausibleSoutheastCoordinate(site.latitude, site.longitude, site.state);
+  const parcelCoordinatesValid = isPlausibleSoutheastCoordinate(parcel?.latitude, parcel?.longitude, site.state);
+  const mapLat = siteCoordinatesValid ? site.latitude : parcelCoordinatesValid ? parcel.latitude : null;
+  const mapLng = siteCoordinatesValid ? site.longitude : parcelCoordinatesValid ? parcel.longitude : null;
   const primaryPermit = relatedPermits.find((p) => Number(p?.permitted_acres) > 0) || relatedPermits[0] || null;
   const landOwner = parcel?.owner_name || site.parcel_owner || primaryPermit?.landowner_name || null;
   const siteOperator = site.operator_name && !/pending|unknown|verify|requires verification/i.test(site.operator_name) ? site.operator_name : null;
