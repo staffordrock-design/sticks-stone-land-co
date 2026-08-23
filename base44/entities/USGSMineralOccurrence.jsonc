@@ -49,8 +49,62 @@
     "discovery_year": {
       "type": "string"
     },
-    "occurrence_state": {
+    "record_type": {
       "type": "string"
+    },
+    "mine_method": {
+      "type": "string"
+    },
+    "deposit_size": {
+      "type": "string"
+    },
+    "significant": {
+      "type": "string"
+    },
+    "commodity_type": {
+      "type": "string"
+    },
+    "land_status": {
+      "type": "string"
+    },
+    "physiographic_division": {
+      "type": "string"
+    },
+    "physiographic_province": {
+      "type": "string"
+    },
+    "physiographic_section": {
+      "type": "string"
+    },
+    "elevation_m": {
+      "type": "number"
+    },
+    "point_reference": {
+      "type": "string"
+    },
+    "alternate_names": {
+      "type": "string"
+    },
+    "references": {
+      "type": "string"
+    },
+    "source_database": {
+      "type": "string"
+    },
+    "usgs_record_updated": {
+      "type": "string"
+    },
+    "raw_usgs_json": {
+      "type": "string",
+      "description": "Raw USGS MRDS JSON response preserved for traceability"
+    },
+    "occurrence_state": {
+      "type": "string",
+      "description": "Two-letter state code used by S&S, e.g. TN"
+    },
+    "occurrence_state_name": {
+      "type": "string",
+      "description": "State/province name published by USGS"
     },
     "occurrence_county": {
       "type": "string"
