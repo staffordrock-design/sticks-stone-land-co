@@ -165,6 +165,16 @@ export default function Subscription() {
     }
   };
 
+  const manageSubscriptions = async () => {
+    if (!isIOS && !isAndroid) return;
+    setPurchaseMessage("");
+    try {
+      await NativePurchases.manageSubscriptions();
+    } catch (error) {
+      setPurchaseMessage(error?.message || "Could not open subscription management.");
+    }
+  };
+
   const restore = async () => {
     if (!isIOS && !isAndroid) return;
     setPurchaseMessage("");
@@ -222,7 +232,9 @@ export default function Subscription() {
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
                 <div className="mt-3 flex items-end gap-2"><div className="text-3xl font-bold">{monthlyPriceLabel}</div><span className="pb-1 text-xs text-muted-foreground">monthly</span></div>
-                <div className="mt-1 text-sm text-muted-foreground">{annualPriceLabel}</div>
+                <div className="mt-1 text-xs font-semibold text-muted-foreground">1 month · auto-renewing</div>
+                <div className="mt-2 text-sm text-muted-foreground">{annualPriceLabel}</div>
+                <div className="mt-1 text-xs font-semibold text-muted-foreground">1 year · auto-renewing</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
                   <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Choose monthly"}</button>
@@ -246,7 +258,7 @@ export default function Subscription() {
             <p className="mt-3">By continuing you agree to the S&amp;S Rock Holdings <Link to="/terms" className="underline">Terms of Use</Link> and <Link to="/privacy" className="underline">Privacy Policy</Link>.</p>
           </div>
 
-          {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
+          {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button><button onClick={manageSubscriptions} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">Manage subscriptions</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
           <h2 className="mt-10 font-heading text-xl font-bold">Intelligence reports</h2>
           <p className="mt-2 text-sm text-muted-foreground">Report purchases are separate from membership access. Transaction-grade professional services such as legal opinions, surveys, reserve studies and environmental assessments remain separate.</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">{REPORT_PRODUCTS.map((report) => <div key={report.code} className="rounded-2xl border border-border p-5"><div className="flex items-start justify-between gap-4"><div className="font-bold">{report.name}</div><div className="shrink-0 text-lg font-bold">{report.price}</div></div><p className="mt-2 text-sm leading-6 text-muted-foreground">{report.description}</p></div>)}</div>
