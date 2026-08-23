@@ -1,10 +1,8 @@
 name: iOS TestFlight Upload
 
 on:
-  # Authorized direct-push trigger for this TestFlight build.
-  push:
-    paths:
-      - ".github/workflows/ios-testflight.yml"
+  # Keep App Store uploads deliberate. Run this workflow manually when a tested
+  # iOS build is ready to send to TestFlight/App Store Connect.
   workflow_dispatch:
 
 permissions:
