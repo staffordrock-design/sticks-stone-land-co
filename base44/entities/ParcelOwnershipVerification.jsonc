@@ -17,7 +17,8 @@
         "Verified",
         "Parcel Matched - No Owner",
         "No Parcel Match",
-        "No Coordinates"
+        "No Coordinates",
+        "Lookup Error"
       ],
       "default": "Verified"
     },
