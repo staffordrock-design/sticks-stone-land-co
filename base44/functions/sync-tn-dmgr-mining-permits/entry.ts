@@ -50,7 +50,7 @@ function normalize(value: unknown) {
     .trim();
 }
 
-const STOP = new Set(["the", "and", "of", "at", "mine", "mining", "plant", "site", "property", "area"]);
+const STOP = new Set(["the", "and", "of", "at", "mine", "mining", "plant", "site", "property", "area", "quarry", "sand", "gravel", "stone", "rock", "pit", "mill", "county", "operation", "operations"]);
 function tokenSet(value: unknown) {
   return new Set(normalize(value).split(" ").filter((t) => t.length > 1 && !STOP.has(t)));
 }
@@ -211,8 +211,11 @@ function matchSite(attrs: any, sites: any[]) {
     else if (operatorOverlap >= 0.5) score += 2;
 
     const strongName = nameContains || nameOverlap >= 0.5;
-    const identityAgreement = strongName && (operatorOverlap >= 0.5 || (dmgrCounty && siteCounty && dmgrCounty === siteCounty));
-    if (score >= 8 && (distance <= 2 || identityAgreement)) {
+    const sameCounty = Boolean(dmgrCounty && siteCounty && dmgrCounty === siteCounty);
+    const strongOperator = operatorOverlap >= 0.5;
+    const identityAgreement = strongName && (strongOperator || sameCounty);
+    const closeIdentity = distance <= 2 && (strongName || strongOperator);
+    if (score >= 8 && (identityAgreement || closeIdentity)) {
       scored.push({ site, score, distance, nameOverlap, nameContains });
     }
   }
