@@ -50,15 +50,24 @@ function elevationMeters(geo: any) {
 
 async function fetchMrdsDetail(mrdsId: string) {
   const url = `${MRDS_JSON_BASE}${encodeURIComponent(mrdsId)}`;
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "SSRockHoldings/1.0 quarry-intelligence",
-      "Accept": "application/json",
-    },
-    signal: AbortSignal.timeout(15000),
-  });
-  if (!response.ok) throw new Error(`USGS MRDS JSON ${response.status}`);
-  return await response.json();
+  let lastError: any = null;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "User-Agent": "SSRockHoldings/1.0 quarry-intelligence",
+          "Accept": "application/json",
+        },
+        signal: AbortSignal.timeout(20000),
+      });
+      if (!response.ok) throw new Error(`USGS MRDS JSON ${response.status}`);
+      return await response.json();
+    } catch (error: any) {
+      lastError = error;
+      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 700 * (attempt + 1)));
+    }
+  }
+  throw lastError || new Error("USGS MRDS JSON request failed");
 }
 
 export default async function(req: Request) {
