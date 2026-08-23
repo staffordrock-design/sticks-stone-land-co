@@ -59,19 +59,27 @@ jobs:
           IOS_BUNDLE_ID="com.base6a78376a454093ba2f431acd.app"
           python - <<'PY'
           from pathlib import Path
-          import re
+          import os, re
           p = Path('ios/App/App.xcodeproj/project.pbxproj')
           s = p.read_text()
           old = 'PRODUCT_BUNDLE_IDENTIFIER = com.ssrockholdings.quarrymarketplace;'
           new = 'PRODUCT_BUNDLE_IDENTIFIER = com.base6a78376a454093ba2f431acd.app;'
+          build_number = os.environ['GITHUB_RUN_NUMBER']
+          if not build_number.isdigit():
+              raise SystemExit(f'Invalid GitHub run number for iOS build: {build_number!r}')
           s = s.replace(old, new)
           s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.1;', s)
+          s = re.sub(r'CURRENT_PROJECT_VERSION = [^;]+;', f'CURRENT_PROJECT_VERSION = {build_number};', s)
           p.write_text(s)
           if new not in s:
               raise SystemExit('Expected App Store bundle identifier was not present after Capacitor sync')
           if 'MARKETING_VERSION = 2.130297.1;' not in s:
               raise SystemExit('Expected App Store marketing version was not present after Capacitor sync')
-          print('Pinned bundle identifier and App Store version 2.130297.1')
+          if f'CURRENT_PROJECT_VERSION = {build_number};' not in s:
+              raise SystemExit('Expected explicit iOS build number was not present after update')
+          print(f'Pinned bundle identifier, App Store version 2.130297.1, and build {build_number}')
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write(f'IOS_BUILD_NUMBER={build_number}\n')
           PY
 
       - name: Install CocoaPods
@@ -177,6 +185,18 @@ jobs:
 
           test -d "$ARCHIVE_PATH" || { echo "::error title=iOS archive failed::No archive was produced"; exit 1; }
 
+      - name: Verify archived version and build number
+        run: |
+          set -Eeuo pipefail
+          INFO_PLIST="$RUNNER_TEMP/SSRockHoldings.xcarchive/Products/Applications/App.app/Info.plist"
+          test -f "$INFO_PLIST" || { echo "::error title=Archive verification failed::App Info.plist was not found in the archive"; exit 1; }
+          ARCHIVE_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO_PLIST")
+          ARCHIVE_BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")
+          echo "Archive version: $ARCHIVE_VERSION"
+          echo "Archive build: $ARCHIVE_BUILD"
+          test "$ARCHIVE_VERSION" = "2.130297.1" || { echo "::error title=Wrong App Store version::Expected 2.130297.1, got $ARCHIVE_VERSION"; exit 1; }
+          test "$ARCHIVE_BUILD" = "$IOS_BUILD_NUMBER" || { echo "::error title=Wrong iOS build number::Expected $IOS_BUILD_NUMBER, got $ARCHIVE_BUILD"; exit 1; }
+
       - name: Create App Store Connect export options
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<'PLIST'
@@ -193,7 +213,7 @@ jobs:
             <key>teamID</key>
             <string>ZSM7CZ94X2</string>
             <key>manageAppVersionAndBuildNumber</key>
-            <true/>
+            <false/>
             <key>uploadSymbols</key>
             <true/>
           </dict>
