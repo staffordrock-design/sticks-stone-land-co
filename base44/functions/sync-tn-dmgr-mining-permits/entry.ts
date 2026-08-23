@@ -178,6 +178,12 @@ async function fetchMiningSpecific(sourceUrl: string | undefined) {
   return null;
 }
 
+async function saveFreshness(base44: any, payload: any) {
+  const rows = await base44.asServiceRole.entities.DataFreshnessStatus.filter({ source: "TDEC" }, "-updated_date", 1, 0);
+  if (rows?.[0]?.id) return await base44.asServiceRole.entities.DataFreshnessStatus.update(rows[0].id, payload);
+  return await base44.asServiceRole.entities.DataFreshnessStatus.create({ source: "TDEC", ...payload });
+}
+
 async function loadAll(base44: any, entity: string, sort: string, max = 10000) {
   const rows: any[] = [];
   for (let skip = 0; skip < max; skip += 500) {
@@ -385,6 +391,14 @@ Deno.serve(async (req) => {
       }
     }
 
+    await saveFreshness(base44, {
+      last_sync_at: new Date().toISOString(),
+      latest_source_period: "TDEC DMGR live permit viewer",
+      status: "Current",
+      records_updated: created + updated,
+      error_message: "",
+    });
+
     return Response.json({
       success: true,
       source: "TDEC DMGR Mineral and Geologic Permits",
@@ -406,6 +420,14 @@ Deno.serve(async (req) => {
       note: "Permit identity, permittee, status, dates and coordinates come from TDEC DMGR. For Mining permits, acreage is additionally read from the public TDEC permit-detail page's Mining Specific table when present. Parcel/tax acreage is never substituted for mining acreage. Mine linkage requires a high-confidence county/name/operator/proximity match; ambiguous links remain unassigned.",
     });
   } catch (error) {
-    return Response.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    await saveFreshness(base44, {
+      last_sync_at: new Date().toISOString(),
+      latest_source_period: "TDEC DMGR live permit viewer",
+      status: "Error",
+      records_updated: 0,
+      error_message: message,
+    }).catch(() => null);
+    return Response.json({ success: false, error: message }, { status: 500 });
   }
 });
