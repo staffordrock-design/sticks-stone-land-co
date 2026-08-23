@@ -1,10 +1,7 @@
 name: Prepare Apple App Review
 
 on:
-  # One-shot trigger for the final guarded App Review submission.
-  push:
-    paths:
-      - ".github/workflows/apple-review-prepare.yml"
+  # Keep App Review mutations deliberate after submission.
   workflow_dispatch:
 
 permissions:
