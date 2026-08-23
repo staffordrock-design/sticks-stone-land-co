@@ -95,7 +95,7 @@ function quarryRelevant(site: any) {
 
 async function fetchJson(url: string) {
   const response = await fetch(url, {
-    headers: { "User-Agent": "S&S Rock Holdings quarry intelligence / public data sync" },
+    headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36", "Accept": "application/json,text/plain,*/*" },
     signal: AbortSignal.timeout(30000),
   });
   if (!response.ok) throw new Error(`TDEC DMGR request failed (${response.status})`);
