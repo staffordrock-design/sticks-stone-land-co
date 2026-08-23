@@ -1,8 +1,11 @@
 name: iOS TestFlight Upload
 
 on:
-  # Keep App Store uploads deliberate. Run this workflow manually when a tested
-  # iOS build is ready to send to TestFlight/App Store Connect.
+  # Temporary workflow-file-only trigger for this authorized corrected TestFlight run.
+  # Other app/source pushes cannot trigger an upload.
+  push:
+    paths:
+      - ".github/workflows/ios-testflight.yml"
   workflow_dispatch:
 
 permissions:
@@ -117,22 +120,15 @@ jobs:
           print("Apple subscription sync confirmed all four required products.")
           PY
 
-      - name: Save Apple subscription sync result
+      - name: Preserve Apple subscription sync result
         if: always()
         run: |
           if [ ! -f reports/apple_subscription_sync.json ]; then
             mkdir -p reports
             printf '%s\n' '{"authenticated":false,"errors":["Apple subscription sync did not produce a report"]}' > reports/apple_subscription_sync.json
           fi
-          git config user.name "S&S Apple Sync"
-          git config user.email "actions@users.noreply.github.com"
-          git add reports/apple_subscription_sync.json
-          if git diff --cached --quiet; then
-            echo "Apple subscription report is unchanged."
-          else
-            git commit -m "Update Apple subscription sync result"
-            git push
-          fi
+          echo "Apple subscription sync report is available to later workflow steps."
+          echo "The TestFlight upload intentionally does not commit/push generated reports back to main."
 
       - name: Prepare App Store Connect API key
         env:
