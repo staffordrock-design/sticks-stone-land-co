@@ -117,6 +117,21 @@ async function fetchPermitBatch(offset: number, limit: number) {
   return data?.features || [];
 }
 
+async function fetchAllPermitFeatures(max = 3000) {
+  const rows: any[] = [];
+  for (let offset = 0; offset < max; offset += 500) {
+    const page = await fetchPermitBatch(offset, 500);
+    rows.push(...page);
+    if (page.length < 500) break;
+  }
+  return rows;
+}
+
+function daysSince(value: unknown) {
+  const t = new Date(String(value || "")).getTime();
+  return Number.isFinite(t) ? (Date.now() - t) / 86400000 : Infinity;
+}
+
 async function fetchMiningSpecific(sourceUrl: string | undefined) {
   if (!sourceUrl) return null;
   try {
@@ -214,16 +229,34 @@ Deno.serve(async (req) => {
     if (user && user.role !== "admin") return Response.json({ error: "Admin access required" }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
+    const explicitOffset = body?.offset !== undefined && body?.offset !== null;
     const offset = Math.max(Number(body?.offset || 0), 0);
     const limit = Math.min(Math.max(Number(body?.limit || 60), 1), 150);
-    const features = await fetchPermitBatch(offset, limit);
 
-    const [allSites, existingPermits] = await Promise.all([
+    const [sourceFeatures, allSites, existingPermits] = await Promise.all([
+      explicitOffset ? fetchPermitBatch(offset, limit) : fetchAllPermitFeatures(),
       loadAll(base44, "MiningSite", "created_date", 10000),
       loadAll(base44, "TDECPermit", "created_date", 10000),
     ]);
     const tnSites = allSites.filter((s) => String(s.state || "").toUpperCase() === "TN" && quarryRelevant(s));
     const permitByNumber = new Map(existingPermits.filter((p) => p.permit_number).map((p) => [String(p.permit_number), p]));
+
+    const features = explicitOffset ? sourceFeatures : sourceFeatures
+      .filter((f: any) => {
+        const a = f.attributes || {};
+        const existing = permitByNumber.get(String(a.PERMIT_NUMBER || ""));
+        if (!existing) return true;
+        const dmgrBacked = /dataviewers\.tdec\.tn\.gov|DMGR_Permits_DV/i.test(String(existing.source_url || existing.acreage_source_url || ""));
+        if (!dmgrBacked) return true;
+        if (String(a.PERMIT_TYPE || "") === "Mining" && !positive(existing.permitted_acres) && daysSince(existing.last_source_update) >= 30) return true;
+        return daysSince(existing.last_source_update) >= 30;
+      })
+      .sort((a: any, b: any) => {
+        const ae = permitByNumber.get(String(a.attributes?.PERMIT_NUMBER || ""));
+        const be = permitByNumber.get(String(b.attributes?.PERMIT_NUMBER || ""));
+        return Number(Boolean(ae)) - Number(Boolean(be));
+      })
+      .slice(0, limit);
 
     let created = 0;
     let updated = 0;
@@ -337,10 +370,12 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       source: "TDEC DMGR Mineral and Geologic Permits",
-      offset,
+      mode: explicitOffset ? "offset" : "smart statewide queue",
+      offset: explicitOffset ? offset : null,
+      source_records_available: sourceFeatures.length,
       queried: features.length,
-      next_offset: offset + features.length,
-      has_more: features.length === limit,
+      next_offset: explicitOffset ? offset + features.length : null,
+      has_more: explicitOffset ? features.length === limit : sourceFeatures.length > features.length,
       created,
       updated,
       quarry_matches: matched,
