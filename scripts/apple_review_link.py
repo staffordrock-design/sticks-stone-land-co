@@ -34,7 +34,7 @@ PRODUCTS = {
     "com.ssrockholdings.marketplace.monthly": Decimal("69.00"),
     "com.ssrockholdings.marketplace.annual": Decimal("690.00"),
     "com.ssrockholdings.professional.monthly": Decimal("139.00"),
-    "com.ssrockholdings.professional.annual": Decimal("1390.00"),
+    "com.ssrockholdings.professional.annual": Decimal("1000.00"),
 }
 
 ACTIVE_REVIEW_STATES = {
@@ -259,7 +259,7 @@ def ensure_usa_price(c: ASC, sid: str, desired: Decimal, audit: dict[str, Any]) 
 
     # If Apple's nearest valid tier is within 2% of the intended price, use it.
     # That covers normal Apple tier rounding (for example $1,399.99 for a
-    # $1,390 business target) while refusing a materially lower fallback like
+    # $1,000 App Store target) while refusing a materially lower fallback like
     # $1,000. Pricing is editable while an IAP/subscription is in review, so
     # this does not withdraw the review submission.
     if difference_ratio <= Decimal("0.02") and current_decimal != best_price:
