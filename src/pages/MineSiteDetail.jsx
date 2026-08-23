@@ -11,9 +11,10 @@ import { useAuth } from "@/lib/AuthContext";
 import { isReviewDemoMode } from "@/lib/reviewDemo";
 import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
+import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 
-function worldImageryTile(lat, lng, zoom = 15) {
-  if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return null;
+function worldImageryTile(lat, lng, state, zoom = 15) {
+  if (!isPlausibleSoutheastCoordinate(lat, lng, state)) return null;
   const z = Math.max(1, Math.min(19, zoom));
   const n = 2 ** z;
   const x = Math.floor(((Number(lng) + 180) / 360) * n);
@@ -342,7 +343,7 @@ export default function MineSiteDetail() {
   const parcelAcreage = parcel?.acreage ?? liveParcel?.acreage ?? site.acreage;
   const valuation = calculateIndicativeQuarryValue({ site, parcel, profile, geology: geologyRecord });
   const opportunity = calculateOpportunityScore({ site, parcel, geology: geologyRecord, permits: relatedPermits, environmental: relatedEnvironmental, profile });
-  const aerialPreview = worldImageryTile(mapLat, mapLng);
+  const aerialPreview = worldImageryTile(mapLat, mapLng, site.state);
   const diligence = [
     { label: "Mine / operating record", ready: Boolean(site.msha_mine_id || site.mine_status), detail: site.msha_mine_id ? `MSHA ${site.msha_mine_id}` : site.mine_status },
     { label: "Parcel / tax record", ready: Boolean(parcel), detail: parcel?.parcel_id || "Parcel linkage pending" },
