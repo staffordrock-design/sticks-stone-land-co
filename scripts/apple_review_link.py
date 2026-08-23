@@ -258,9 +258,8 @@ def ensure_usa_price(c: ASC, sid: str, desired: Decimal, audit: dict[str, Any]) 
     difference_ratio = abs(best_price - desired) / desired if desired else Decimal("1")
 
     # If Apple's nearest valid tier is within 2% of the intended price, use it.
-    # That covers normal Apple tier rounding (for example $1,399.99 for a
-    # $1,000 App Store target) while refusing a materially lower fallback like
-    # $1,000. Pricing is editable while an IAP/subscription is in review, so
+    # This covers normal Apple tier rounding while refusing a materially different
+    # fallback. Pricing is editable while an IAP/subscription is in review, so
     # this does not withdraw the review submission.
     if difference_ratio <= Decimal("0.02") and current_decimal != best_price:
         create_usa_price(c, sid, best_point)
