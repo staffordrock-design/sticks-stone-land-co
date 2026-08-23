@@ -21,6 +21,8 @@ export default function AdminDataSync() {
   const [runningOwnershipFootprint, setRunningOwnershipFootprint] = useState(false);
   const [ownershipFootprintResult, setOwnershipFootprintResult] = useState(null);
   const [ownershipOffset, setOwnershipOffset] = useState(0);
+  const [runningDmgrPermits, setRunningDmgrPermits] = useState(false);
+  const [dmgrPermitResult, setDmgrPermitResult] = useState(null);
   const [runningProductionIntel, setRunningProductionIntel] = useState(false);
   const [productionIntelResult, setProductionIntelResult] = useState(null);
   const [error, setError] = useState("");
@@ -137,6 +139,23 @@ export default function AdminDataSync() {
     }
   };
 
+  const syncDmgrPermits = async () => {
+    setRunningDmgrPermits(true);
+    setDmgrPermitResult(null);
+    setError("");
+    try {
+      const response = await base44.functions.invoke("sync-tn-dmgr-mining-permits", { limit: 60 });
+      const payload = response?.data || response;
+      if (payload?.success === false) throw new Error(payload?.error || "TDEC DMGR permit sync failed.");
+      setDmgrPermitResult(payload);
+      await loadFreshness();
+    } catch (e) {
+      setError(e?.message || "Tennessee DMGR permit sync failed.");
+    } finally {
+      setRunningDmgrPermits(false);
+    }
+  };
+
   const refreshFreshness = async () => {
     setRunningFreshness(true);
     setError("");
@@ -201,6 +220,18 @@ export default function AdminDataSync() {
           </div>
           <div className="mt-5 flex items-start gap-2 rounded-xl border border-sky-200 bg-white p-4 text-sm text-slate-800"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sky-800" /><span>USGS numbers are statewide market estimates. MSHA contributes mine-level employee hours. S&amp;S estimates are clearly labeled modeled ranges with confidence and methodology — never reported tonnage.</span></div>
           {productionIntelResult && <div className="mt-5 rounded-xl border border-border bg-background p-5"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Period</div><div className="mt-1 font-bold">{productionIntelResult.msha?.year ? `${productionIntelResult.msha.year} Q${productionIntelResult.msha.quarter}` : "—"}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">MSHA matches</div><div className="mt-1 font-bold">{productionIntelResult.msha?.matched ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">USGS groups</div><div className="mt-1 font-bold">{productionIntelResult.usgs?.records?.length ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Estimates created</div><div className="mt-1 font-bold">{productionIntelResult.estimates?.created ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Estimates updated</div><div className="mt-1 font-bold">{productionIntelResult.estimates?.updated ?? 0}</div></div></div>{productionIntelResult.estimates?.note && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{productionIntelResult.estimates.note}</p>}</div>}
+        </section>
+
+        <section className="mb-6 rounded-2xl border border-amber-300 bg-amber-50/40 p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-amber-800" /><h2 className="font-heading text-xl font-bold text-foreground">TDEC DMGR Mining Permits &amp; Acreage</h2></div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">Pulls Tennessee mining and surface-mining permits directly from the Division of Mineral &amp; Geologic Resources. For Mining permits, S&amp;S also reads the public permit-detail page's Mining Specific table to capture acreage the ArcGIS layer leaves blank.</p>
+            </div>
+            <button onClick={syncDmgrPermits} disabled={runningDmgrPermits} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-amber-800 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><RefreshCw className={`h-4 w-4 ${runningDmgrPermits ? "animate-spin" : ""}`} />{runningDmgrPermits ? "Reading TDEC permits…" : "Sync TDEC permits + acres"}</button>
+          </div>
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-amber-200 bg-white p-4 text-sm text-amber-950"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" /><span>Permit acreage is accepted only when Tennessee publishes it in the permit record or Mining Specific detail table. Tax-parcel acreage is never substituted. Ambiguous mine-to-permit matches stay unlinked.</span></div>
+          {dmgrPermitResult && <div className="mt-5 rounded-xl border border-border bg-background p-5"><div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">State records</div><div className="mt-1 font-bold">{Number(dmgrPermitResult.source_records_available || 0).toLocaleString()}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Processed</div><div className="mt-1 font-bold">{dmgrPermitResult.queried ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Quarry matches</div><div className="mt-1 font-bold">{dmgrPermitResult.quarry_matches ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Acreage found</div><div className="mt-1 font-bold">{dmgrPermitResult.permit_acreage_loaded ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Mine acres linked</div><div className="mt-1 font-bold">{dmgrPermitResult.mine_records_with_acreage_updated ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Unmatched / ambiguous</div><div className="mt-1 font-bold">{dmgrPermitResult.ambiguous_or_unmatched ?? 0}</div></div></div>{dmgrPermitResult.sample?.length > 0 && <div className="mt-5 grid gap-2 sm:grid-cols-2">{dmgrPermitResult.sample.slice(0, 8).map((item, index) => <div key={`${item.permit}-${index}`} className="rounded-lg border border-border bg-muted/20 p-3 text-sm"><div className="font-semibold text-foreground">{item.mine}</div><div className="mt-1 text-xs text-muted-foreground">{item.permit} · {item.permittee || "Permittee unavailable"}</div><div className="mt-1 text-xs font-semibold text-foreground">{item.permitted_acres ? `${Number(item.permitted_acres).toLocaleString()} permitted acres` : "Acreage not published on this record"}</div></div>)}</div>}{dmgrPermitResult.note && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{dmgrPermitResult.note}</p>}</div>}
         </section>
 
         <section className="mb-6 rounded-2xl border border-border bg-card p-6">
