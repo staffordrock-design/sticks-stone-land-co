@@ -391,6 +391,33 @@ export default function AdminDataSync() {
           )}
         </section>
 
+        <section className="mt-6 rounded-2xl border border-violet-200 bg-violet-50/30 p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <Gem className="h-5 w-5 text-violet-700" />
+                <h2 className="font-heading text-xl font-bold text-foreground">USGS MRDS Mineral Intelligence</h2>
+              </div>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                Connects Tennessee mine coordinates to nearby USGS Mineral Resources Data System occurrences and preserves the fields USGS actually publishes: commodity names, mineralogy, deposit type, operation type, geologic model, host rock, associated rock and production-size class.
+              </p>
+            </div>
+            <button
+              onClick={syncMrds}
+              disabled={runningMrds}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-violet-800 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${runningMrds ? "animate-spin" : ""}`} />
+              {runningMrds ? "Reading USGS…" : mrdsOffset > 0 ? `Sync next 40 · ${mrdsOffset.toLocaleString()}+` : "Sync USGS mineral data"}
+            </button>
+          </div>
+          <div className="mt-5 flex items-start gap-2 rounded-xl border border-violet-200 bg-white p-4 text-sm text-violet-950">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>MRDS is proximity-based mineral context, not proof that the USGS occurrence is the same legal mine or that a reserve is commercially recoverable. Distance is retained on every linked record.</span>
+          </div>
+          {mrdsResult && <div className="mt-5 rounded-xl border border-border bg-background p-5"><div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6"><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Batch</div><div className="mt-1 font-bold">{Number(mrdsResult.offset || 0).toLocaleString()}–{Number((mrdsResult.offset || 0) + (mrdsResult.source_rows || 0)).toLocaleString()}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Coordinates</div><div className="mt-1 font-bold">{mrdsResult.candidates ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Matched</div><div className="mt-1 font-bold">{mrdsResult.matched ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Created</div><div className="mt-1 font-bold">{mrdsResult.created ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">Updated</div><div className="mt-1 font-bold">{mrdsResult.updated ?? 0}</div></div><div><div className="text-xs uppercase tracking-wider text-muted-foreground">No match</div><div className="mt-1 font-bold">{mrdsResult.noMatch ?? 0}</div></div></div><p className="mt-4 text-xs text-muted-foreground">{mrdsResult.has_more ? "Run the next batch to continue through Tennessee records." : "Reached the end of the current Tennessee mine set; the next run restarts at the beginning and refreshes existing links."}</p>{mrdsResult.note && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{mrdsResult.note}</p>}</div>}
+        </section>
+
         <section className="mt-6 rounded-2xl border border-border bg-card p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div>
