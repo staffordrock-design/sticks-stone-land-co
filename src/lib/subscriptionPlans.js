@@ -50,7 +50,7 @@ export const ACCESS_TIERS = [
     code: "professional",
     name: "Professional Intelligence",
     monthly: "$139/mo",
-    annual: "$1,390/yr",
+    annual: "$1,000/yr",
     featured: true,
     features: [
       "Everything in Quarry Access",
@@ -73,7 +73,7 @@ export const REPORT_PRODUCTS = [
 
 export const PLAN_DISPLAY = {
   monthly: { name: "Professional Intelligence", price: "$139/mo" },
-  annual: { name: "Professional Intelligence Annual", price: "$1,390/yr", note: "Annual access priced at approximately two months free" },
+  annual: { name: "Professional Intelligence Annual", price: "$1,000/yr", note: "Annual subscription billed by Apple at the App Store price shown before purchase" },
 };
 
 export const PROFESSIONAL_FEATURES = ACCESS_TIERS[1].features;
