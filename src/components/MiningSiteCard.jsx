@@ -2,9 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, Gem, ShieldCheck, Gauge, Landmark, Leaf, LockKeyhole } from "lucide-react";
 import { classifyRock } from "../../base44/shared/rockTypes.js";
+import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 
-function worldImageryTile(lat, lng, zoom = 14) {
-  if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return null;
+function worldImageryTile(lat, lng, state, zoom = 14) {
+  if (!isPlausibleSoutheastCoordinate(lat, lng, state)) return null;
   const z = Math.max(1, Math.min(19, zoom));
   const n = 2 ** z;
   const x = Math.floor(((Number(lng) + 180) / 360) * n);
@@ -42,7 +43,7 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
   const rockChip = previewMode ? site.commodity : (geology?.primary_rock || geology?.lithology || site.commodity);
   const location = [site.county ? `${site.county}, ` : "", site.state].join("");
   const verified = site.is_verified_listing && site.listing_id;
-  const aerialPreview = worldImageryTile(site.latitude, site.longitude);
+  const aerialPreview = worldImageryTile(site.latitude, site.longitude, site.state);
   const heroImage = site.site_images?.[0] || aerialPreview;
   const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location preview" : null;
   const showOpportunity = !previewMode && Boolean(opportunity) && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
