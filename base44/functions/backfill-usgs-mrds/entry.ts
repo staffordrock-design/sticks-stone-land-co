@@ -2,7 +2,7 @@ import { createClientFromRequest } from "npm:@base44/sdk@0.8.40";
 
 const MRDS_WFS = "https://mrdata.usgs.gov/services/wfs/mrds";
 const MRDS_LAYER = "mrds";
-const MRDS_SOURCE = "USGS Mineral Resources Data System (MRDS)";
+const MRDS_SOURCE = "USGS Mineral Resources Data System (MRDS) — Tennessee quarry backfill";
 
 function validCoord(lat: unknown, lon: unknown) {
   const a = Number(lat);
