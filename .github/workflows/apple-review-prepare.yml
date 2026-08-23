@@ -1,7 +1,10 @@
 name: Prepare Apple App Review
 
 on:
-  # Keep App Review mutations deliberate after the guarded preparation run.
+  # One-shot trigger for the final guarded App Review submission.
+  push:
+    paths:
+      - ".github/workflows/apple-review-prepare.yml"
   workflow_dispatch:
 
 permissions:
@@ -30,7 +33,7 @@ jobs:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
           ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
           ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
-          ASC_EXPECTED_REVIEW_ATTACHMENT: "ScreenRecording_08-23-2026 16-33-50_1.mp4"
+          ASC_EXPECTED_REVIEW_ATTACHMENT: "ScreenRecording_08-23-2026 17-02-53_1.mov"
           ASC_ALLOW_FINAL_SUBMIT: "1"
         run: |
           set -Eeuo pipefail
