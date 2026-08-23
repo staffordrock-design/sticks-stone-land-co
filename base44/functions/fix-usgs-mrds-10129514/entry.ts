@@ -1,5 +1,5 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
-import record from "../../../tmp-mrds-10129514.json" with { type: "json" };
+import record from "./record.json" with { type: "json" };
 
 function clean(value: unknown) {
   const s = String(value ?? "").replace(/\s+/g, " ").trim();
