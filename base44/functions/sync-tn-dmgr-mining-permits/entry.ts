@@ -75,7 +75,7 @@ function validTnCoordinates(lat: unknown, lng: unknown) {
 }
 
 function miles(lat1: unknown, lon1: unknown, lat2: unknown, lon2: unknown) {
-  if (![lat1, lon1, lat2, lon2].every((v) => Number.isFinite(Number(v)))) return Infinity;
+  if (!validTnCoordinates(lat1, lon1) || !validTnCoordinates(lat2, lon2)) return Infinity;
   const r = 3958.7613;
   const p1 = Number(lat1) * Math.PI / 180;
   const p2 = Number(lat2) * Math.PI / 180;
@@ -136,8 +136,8 @@ async function fetchMiningSpecific(sourceUrl: string | undefined) {
   if (!sourceUrl) return null;
   try {
     const response = await fetch(sourceUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 S&S Rock Holdings public-data research" },
-      signal: AbortSignal.timeout(25000),
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" },
+      signal: AbortSignal.timeout(30000),
     });
     if (!response.ok) return null;
     const html = await response.text();
@@ -211,7 +211,8 @@ function matchSite(attrs: any, sites: any[]) {
     else if (operatorOverlap >= 0.5) score += 2;
 
     const strongName = nameContains || nameOverlap >= 0.5;
-    if (score >= 8 && (distance <= 2 || strongName)) {
+    const identityAgreement = strongName && (operatorOverlap >= 0.5 || (dmgrCounty && siteCounty && dmgrCounty === siteCounty));
+    if (score >= 8 && (distance <= 2 || identityAgreement)) {
       scored.push({ site, score, distance, nameOverlap, nameContains });
     }
   }
