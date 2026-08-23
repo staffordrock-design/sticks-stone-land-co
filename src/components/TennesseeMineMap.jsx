@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup, LayersControl, WMSTileLay
 import "leaflet/dist/leaflet.css";
 import { rockCategoryColor, rockCategoryFor } from "../../base44/shared/rockTypes";
 import GeologyMapLegend from "./GeologyMapLegend";
+import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 
 const SOUTHEAST_CENTER = [34.6, -85.4];
 
@@ -11,22 +12,9 @@ const SOUTHEAST_CENTER = [34.6, -85.4];
 // showing what rock formation is underground across the US.
 const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
 
-function isValidCoordinate(lat, lng) {
-  const nLat = Number(lat);
-  const nLng = Number(lng);
-  return (
-    Number.isFinite(nLat) &&
-    Number.isFinite(nLng) &&
-    nLat >= -90 &&
-    nLat <= 90 &&
-    nLng >= -180 &&
-    nLng <= 180
-  );
-}
-
 export default function TennesseeMineMap({ sites = [], geologyMap = {}, height = 520, previewMode = false }) {
   const mappedSites = useMemo(
-    () => sites.filter((site) => isValidCoordinate(site.latitude, site.longitude)),
+    () => sites.filter((site) => isPlausibleSoutheastCoordinate(site.latitude, site.longitude, site.state)),
     [sites]
   );
 
