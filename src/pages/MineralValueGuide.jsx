@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Download, Gem, LockKeyhole, Search, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
+import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
 
 const MATERIALS = [
   { name: "Limestone", group: "Carbonate", definition: "Sedimentary carbonate rock composed mainly of calcite; a core feedstock for crushed stone, cement, lime, agricultural lime and industrial fillers.", uses: "Aggregate, cement, lime, ag-lime, fillers", valueTier: "Moderate", value: "Value rises sharply with purity, chemistry, white color, low deleterious minerals, permitted reserves and proximity to market.", drivers: "CaCO₃ purity, Mg content, abrasion, soundness, color, bench thickness, stripping ratio, haul distance" },
@@ -44,20 +45,34 @@ export default function MineralValueGuide() {
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState("All");
   const [allowed, setAllowed] = useState(user?.role === "admin");
-  const [checking, setChecking] = useState(Boolean(user?.id) && user?.role !== "admin");
+  const [checking, setChecking] = useState((Boolean(user?.id) || isNativeIOS()) && user?.role !== "admin");
 
   React.useEffect(() => {
-    if (!user?.id || user?.role === "admin") return;
+    if (user?.role === "admin") return;
+    let cancelled = false;
     (async () => {
       try {
+        let appleProfessional = false;
+        if (isNativeIOS()) {
+          const access = await currentAppleSubscriptionAccess();
+          appleProfessional = Boolean(access?.professional);
+        }
+
+        if (!user?.id) {
+          if (!cancelled) setAllowed(appleProfessional);
+          return;
+        }
+
         const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 10);
-        setAllowed((rows || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())));
+        const accountProfessional = (rows || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now()));
+        if (!cancelled) setAllowed(appleProfessional || accountProfessional);
       } catch {
-        setAllowed(false);
+        if (!cancelled) setAllowed(false);
       } finally {
-        setChecking(false);
+        if (!cancelled) setChecking(false);
       }
     })();
+    return () => { cancelled = true; };
   }, [user?.id, user?.role]);
 
   const groups = useMemo(() => ["All", ...Array.from(new Set(MATERIALS.map((m) => m.group))).sort()], []);
