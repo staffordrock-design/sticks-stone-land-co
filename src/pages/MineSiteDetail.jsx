@@ -321,8 +321,9 @@ export default function MineSiteDetail() {
   const mapLng = site.longitude ?? parcel?.longitude;
   const primaryPermit = relatedPermits.find((p) => Number(p?.permitted_acres) > 0) || relatedPermits[0] || null;
   const landOwner = parcel?.owner_name || site.parcel_owner || primaryPermit?.landowner_name || null;
+  const siteOperator = site.operator_name && !/pending|unknown|verify|requires verification/i.test(site.operator_name) ? site.operator_name : null;
   const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
-  const operator = permitOperator || site.operator_name || null;
+  const operator = siteOperator || permitOperator || null;
   const permittee = primaryPermit?.permittee_name || site.permittee_name || null;
   const permittedAcreage = primaryPermit?.permitted_acres ?? site.permitted_acres;
   const permitAcreageBasis = primaryPermit?.acreage_basis || site.permitted_acres_basis || null;
@@ -470,7 +471,8 @@ export default function MineSiteDetail() {
             <Row label="MSHA ID" value={site.msha_mine_id} />
             <Row label="Commodity" value={site.commodity} />
             <Row label="Mine type" value={site.mine_type} />
-            <Row label="Operator" value={operator} />
+            <Row label={siteOperator ? "MSHA operator" : "Operator"} value={operator} />
+            {hasProfessional && permitOperator && siteOperator && permitOperator !== siteOperator && <Row label="Permit operator" value={permitOperator} />}
             {hasProfessional && <Row label="Land owner" value={landOwner} />}
             {hasProfessional && <Row label="Permittee" value={permittee} />}
             {hasProfessional && <Row label="Controller" value={site.controller_name} />}
