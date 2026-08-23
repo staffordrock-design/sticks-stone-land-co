@@ -1,5 +1,6 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 import record from "./record.json" with { type: "json" };
+// One-time repair uses the exact official USGS JSON snapshot bundled beside this function.
 
 function clean(value: unknown) {
   const s = String(value ?? "").replace(/\s+/g, " ").trim();
