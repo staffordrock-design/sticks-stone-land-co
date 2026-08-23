@@ -1,37 +1,36 @@
 # App Review Notes — S&S Rock Holdings
 
-1. SCREEN RECORDING
-A physical-device TestFlight recording of build 2.130297.1 (20) is attached. It shows the app running on an iPhone 15 Pro Max with iOS 27.0, quarry records and maps loading correctly (263 quarry/aggregate records visible in the recording), browsing while signed out, the Access screen stating that registration is not required, and Quarry Access Monthly opening Apple's native TestFlight StoreKit purchase sheet at $69.00/month. The recording directly demonstrates the previously failing subscription action now reaches Apple's purchase sheet without requiring S&S registration.
+1. SCREEN RECORDING / PRIOR ISSUE FIX
+A physical-device TestFlight recording of build 2.130297.1 (20) is provided. Tested on iPhone 15 Pro Max, iOS 27.0. It shows 263 quarry/aggregate records and maps loading, browsing while signed out, the Access screen stating registration is not required, and Quarry Access Monthly opening Apple's native TestFlight StoreKit purchase sheet at $69.00/month. This directly demonstrates the previously failing subscription action now reaches Apple's purchase sheet without requiring S&S registration.
 
-The app does not request location, camera, contacts, microphone, or App Tracking Transparency permission. There is no public user-to-user posting/chat; seller submissions are reviewed before publication and Support handles content/data concerns.
+The app does not request location, camera, contacts, microphone, or App Tracking Transparency permission. There is no public user-to-user posting/chat; seller submissions are reviewed before publication.
 
-2. DEVICES TESTED
-- Developer physical device: iPhone 15 Pro Max, iOS 27.0
-- TestFlight build demonstrated: 2.130297.1 (20)
-- Prior Apple review device reported: iPad Air 11-inch (M3), iPadOS 26.6
+2. TEST DEVICE
+- iPhone 15 Pro Max, iOS 27.0
+- TestFlight build 2.130297.1 (20)
+- Prior Apple review device: iPad Air 11-inch (M3), iPadOS 26.6
 
 3. PURPOSE / AUDIENCE
-S&S Rock Holdings provides quarry, aggregate, mineral-property and due-diligence intelligence for operators, producers, investors, acquisition professionals and industry advisers. It consolidates fragmented public mine, permit, parcel, geology, environmental and production/activity information into mapped quarry records and screening tools.
+S&S Rock Holdings provides quarry, aggregate, mineral-property and due-diligence intelligence for operators, producers, investors, acquisition professionals and industry advisers. It consolidates public mine, permit, parcel, geology, environmental and production/activity information into mapped quarry records and screening tools.
 
 4. ACCESS / LOGIN
-Registration is NOT required to browse the preview or purchase an Apple subscription.
-Signed-out IAP path: Launch → Subscribe → Choose monthly/annual → native Apple StoreKit sheet → purchase → app reads StoreKit current entitlements and unlocks access without an S&S account. Restore Purchases also works signed out. Account creation is optional for users who later want account-linked S&S services.
+Registration is NOT required to browse or purchase an Apple subscription.
+Signed-out path: Launch → Subscribe → Choose monthly/annual → native Apple StoreKit sheet → purchase → StoreKit entitlement unlocks access without an S&S account. Restore Purchases also works signed out. Account creation is optional for account-linked services.
 
-Optional review account for account-specific features:
+Optional review account:
 Email: contact+appreview@ssrockholdings.com
 Password: SSRockReview2026!
 Account deletion: /account/delete
 
 5. EXTERNAL SERVICES
-Apple StoreKit; Base44 backend/auth/database/functions; MSHA; TDEC Division of Mineral & Geologic Resources; Tennessee Comptroller IMPACT; USGS; EPA ECHO/ICIS-NPDES; Esri World Imagery; OpenStreetMap. Google Play Billing is used in Android. Stripe is used only for eligible website transactions; native iOS subscription purchase does not open external checkout.
+Apple StoreKit; Base44; MSHA; TDEC Division of Mineral & Geologic Resources; Tennessee Comptroller IMPACT; USGS; EPA ECHO/ICIS-NPDES; Esri World Imagery; OpenStreetMap. Google Play Billing is Android-only. Stripe is limited to eligible website transactions; native iOS subscriptions do not open external checkout.
 
-6. REGIONAL DIFFERENCES
-Features are consistent across regions; data depth varies by public-source availability. Tennessee currently has the deepest parcel/ownership, TDEC permit/permitted-acreage, environmental and geology coverage. Missing values remain unavailable/pending rather than being guessed.
+6. REGIONAL / DATA NOTES
+Features are consistent across regions; public-source depth varies. Tennessee currently has the deepest parcel/ownership, TDEC permit/permitted-acreage, environmental and geology coverage. Missing values remain unavailable/pending rather than being guessed.
 
-7. REGULATED / THIRD-PARTY DATA
-This is a business-intelligence/screening product, not a title opinion, appraisal, certified reserve estimate, engineering/geology opinion or environmental assessment. MSHA, TDEC, USGS, EPA and Tennessee Comptroller data comes from public government sources and is source-labeled. Seller confidential materials use controlled listing/data-room workflows.
+This is a business-intelligence/screening product, not a title opinion, appraisal, certified reserve estimate, engineering/geology opinion or environmental assessment. Government-source data is source-labeled.
 
-8. IN-APP PURCHASES
+7. IN-APP PURCHASES
 Auto-renewing subscriptions are purchased from Subscribe:
 - Quarry Access Monthly — com.ssrockholdings.marketplace.monthly — $69 / 1 month
 - Quarry Access Annual — com.ssrockholdings.marketplace.annual — $690 / 1 year
@@ -42,8 +41,6 @@ The screen shows duration, auto-renew terms, Restore Purchases, Manage Subscript
 PRIOR-REVIEW FIXES
 - Removed required S&S registration from Apple subscription purchase.
 - StoreKit entitlement unlocks access while signed out.
-- Corrected the native Base44 API configuration so TestFlight builds load quarry inventory and maps instead of showing an empty marketplace.
-- Corrected native public-settings/API routing for Capacitor builds.
-- Added StoreKit product retry/availability handling so monthly/annual purchase actions reliably reach Apple when products are available.
-- Added visible purchase status/errors, Restore Purchases / Manage Subscriptions controls and explicit subscription durations.
-- Paid Apps Agreement, banking and tax setup were completed before this TestFlight verification.
+- Corrected native Base44 API/public-settings routing so TestFlight loads quarry inventory/maps.
+- Added StoreKit product retry/availability handling.
+- Paid Apps Agreement, banking and tax setup are complete.
