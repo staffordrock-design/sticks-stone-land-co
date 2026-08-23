@@ -15,6 +15,54 @@ function clean(v: unknown) {
   return s || null;
 }
 
+function uniqueText(values: unknown[], separator = "; ") {
+  return [...new Set(values.map(clean).filter(Boolean) as string[])].join(separator) || null;
+}
+
+function mineralogyFrom(props: Record<string, string>) {
+  const parts = [
+    clean(props.ore) ? `Ore: ${clean(props.ore)}` : null,
+    clean(props.gangue) ? `Gangue: ${clean(props.gangue)}` : null,
+    clean(props.other_matl) ? `Other material: ${clean(props.other_matl)}` : null,
+  ].filter(Boolean);
+  return parts.join(" · ") || null;
+}
+
+function rockDescription(unit: unknown, type: unknown) {
+  const values = [clean(unit), clean(type)].filter(Boolean) as string[];
+  return [...new Set(values)].join(" · ") || null;
+}
+
+function discoveryYear(props: Record<string, string>) {
+  return clean(props.disc_year) || clean(props.disc_yr) || clean(props.year_disc) || clean(props.yr_disc) || null;
+}
+
+function contextNotes(props: Record<string, string>, distance: number, mrdsId: string) {
+  const details = [
+    `USGS MRDS occurrence matched by proximity (${distance} m from mine site).`,
+    `MRDS dep_id: ${mrdsId}.`,
+    clean(props.work_type) ? `Work type: ${clean(props.work_type)}.` : null,
+    clean(props.names) ? `Other names: ${clean(props.names)}.` : null,
+    clean(props.ore_ctrl) ? `Ore control: ${clean(props.ore_ctrl)}.` : null,
+    clean(props.alteration) ? `Alteration: ${clean(props.alteration)}.` : null,
+    clean(props.structure) ? `Structure: ${clean(props.structure)}.` : null,
+    clean(props.tectonic) ? `Tectonic setting: ${clean(props.tectonic)}.` : null,
+    clean(props.ref) ? `USGS reference: ${clean(props.ref)}.` : null,
+  ].filter(Boolean);
+  return details.join(" ");
+}
+
+async function loadAllOccurrences(base44: any, maxRecords = 10000) {
+  const rows: any[] = [];
+  const pageSize = 500;
+  for (let offset = 0; offset < maxRecords; offset += pageSize) {
+    const page = await base44.asServiceRole.entities.USGSMineralOccurrence.list("created_date", pageSize, offset);
+    rows.push(...(page || []));
+    if (!page || page.length < pageSize) break;
+  }
+  return rows;
+}
+
 // Haversine distance in meters between two lat/lng points.
 function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371000;
@@ -80,23 +128,28 @@ export default async function (req: Request) {
     }
 
     const body = await req.json().catch(() => ({}));
-    const limit = Math.min(Number(body?.limit) || 40, 200);
+    const limit = Math.min(Math.max(Number(body?.limit) || 40, 1), 100);
+    const offset = Math.max(Number(body?.offset) || 0, 0);
+    const state = String(body?.state || "TN").trim().toUpperCase();
 
-    // Load mining sites that have coordinates but no USGS occurrence linked yet.
-    const sites = await base44.asServiceRole.entities.MiningSite.list("-updated_date", 500);
-    const candidates = (sites || []).filter(
-      (s: any) => validCoord(s.latitude, s.longitude)
-    );
+    // Walk the state mine set in a stable order. Offset advances across *all* rows,
+    // including records without coordinates, so repeated admin runs eventually scan
+    // the full state instead of repeatedly touching only the newest 500 records.
+    const sites = await base44.asServiceRole.entities.MiningSite.filter({ state }, "created_date", limit, offset);
+    const candidates = (sites || []).filter((s: any) => validCoord(s.latitude, s.longitude));
 
-    // Check which sites already have a USGS occurrence so we can skip them.
-    const existing = await base44.asServiceRole.entities.USGSMineralOccurrence.list("-updated_date", 500);
-    const linkedSiteIds = new Set((existing || []).map((r: any) => r.mining_site_id).filter(Boolean));
+    // Load every existing linkage so this sync can update/backfill older sparse MRDS
+    // records instead of permanently skipping them after the first proximity match.
+    const existing = await loadAllOccurrences(base44);
+    const existingBySiteId = new Map((existing || []).filter((r: any) => r.mining_site_id).map((r: any) => [r.mining_site_id, r]));
 
-    const toProcess = candidates.filter((s: any) => !linkedSiteIds.has(s.id)).slice(0, limit);
+    const toProcess = candidates;
 
     let queried = 0;
     let matched = 0;
     let created = 0;
+    let updated = 0;
+    let noCoordinates = (sites || []).length - candidates.length;
     let noMatch = 0;
     let errors = 0;
     const sample: any[] = [];
@@ -135,24 +188,25 @@ export default async function (req: Request) {
         const coords = closest.feature?.coordinates || [];
         const occLon = Number(coords[0]);
         const occLat = Number(coords[1]);
-        const codeList = clean(props.code_list) || null;
+        const commodityList = uniqueText([props.commod1, props.commod2, props.commod3]);
+        const codeList = clean(props.code_list);
 
         const record = {
           mining_site_id: site.id,
           msha_mine_id: site.msha_mine_id || null,
           mrds_id: mrdsId,
-          occurrence_name: clean(props.site_name) || site.mine_name || "USGS occurrence",
-          commodity: codeList || site.commodity || null,
-          commodity_list: codeList,
-          mineralogy: null,
-          deposit_type: null,
-          development_status: clean(props.dev_stat) || null,
-          operation_type: null,
-          geologic_model: null,
-          host_rock: null,
-          associated_rock: null,
-          production_size: null,
-          discovery_year: null,
+          occurrence_name: clean(props.site) || clean(props.names) || site.mine_name || "USGS occurrence",
+          commodity: clean(props.commod1) || commodityList || site.commodity || null,
+          commodity_list: commodityList || codeList,
+          mineralogy: mineralogyFrom(props),
+          deposit_type: clean(props.dep_type),
+          development_status: clean(props.dev_stat),
+          operation_type: clean(props.oper_type),
+          geologic_model: clean(props.model),
+          host_rock: rockDescription(props.hrock_unit, props.hrock_type),
+          associated_rock: rockDescription(props.arock_unit, props.arock_type),
+          production_size: clean(props.prod_size),
+          discovery_year: discoveryYear(props),
           occurrence_state: site.state || null,
           occurrence_county: site.county || null,
           latitude: Number.isFinite(occLat) ? occLat : null,
@@ -160,11 +214,18 @@ export default async function (req: Request) {
           distance_meters: closest.dist,
           source_url: clean(props.url) || `https://mrdata.usgs.gov/mrds/show-mrds.php?dep_id=${encodeURIComponent(mrdsId)}`,
           last_source_update: new Date().toISOString(),
-          notes: `USGS MRDS occurrence matched by proximity (${closest.dist} m from mine site). MRDS dep_id: ${mrdsId}. Development status: ${clean(props.dev_stat) || "Unknown"}. Commodity codes: ${codeList || "None listed"}. Full mineral details available at the USGS MRDS record URL.`,
+          notes: contextNotes(props, closest.dist, mrdsId),
         };
 
-        await base44.asServiceRole.entities.USGSMineralOccurrence.create(record);
-        created++;
+        const prior = existingBySiteId.get(site.id);
+        if (prior?.id) {
+          await base44.asServiceRole.entities.USGSMineralOccurrence.update(prior.id, record);
+          updated++;
+        } else {
+          const createdRecord = await base44.asServiceRole.entities.USGSMineralOccurrence.create(record);
+          created++;
+          existingBySiteId.set(site.id, createdRecord || record);
+        }
 
         if (sample.length < 12) {
           sample.push({
@@ -187,16 +248,23 @@ export default async function (req: Request) {
     return Response.json({
       success: true,
       source: MRDS_SOURCE,
+      state,
+      offset,
+      source_rows: (sites || []).length,
       candidates: candidates.length,
-      already_linked: linkedSiteIds.size,
+      existing_records_scanned: existing.length,
       processed: toProcess.length,
       queried,
       matched,
       created,
+      updated,
+      no_coordinates: noCoordinates,
       noMatch,
       errors,
+      next_offset: offset + (sites || []).length,
+      has_more: (sites || []).length === limit,
       sample,
-      note: "USGS MRDS occurrences are matched by proximity to each mine's coordinates (within 10 km). MRDS is the USGS Mineral Resources Data System — a global database of mineral deposits and mines.",
+      note: "USGS MRDS occurrences are matched by proximity to each mine's coordinates (within 10 km). The sync now preserves USGS commodity names, mineralogy, deposit type, operation type, geologic model, host/associated rock and production-size fields, and refreshes earlier sparse links instead of skipping them.",
     });
   } catch (error: any) {
     console.error("sync-usgs-mrds error", error);
