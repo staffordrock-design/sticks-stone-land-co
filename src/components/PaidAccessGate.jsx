@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Crown, Eye, Loader2, LockKeyhole, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
+import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { disableReviewDemoMode, enableReviewDemoMode, isReviewDemoMode, isReviewDemoAccount } from "@/lib/reviewDemo";
 
 const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
@@ -13,28 +13,34 @@ export default function PaidAccessGate({ children }) {
   const { user } = useAuth();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [appleStoreActive, setAppleStoreActive] = useState(false);
   const [reviewDemo, setReviewDemo] = useState(isReviewDemoMode);
 
   useEffect(() => {
     let cancelled = false;
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
     (async () => {
       try {
+        if (isNativeIOS()) {
+          try {
+            const storeAccess = await currentAppleSubscriptionAccess();
+            if (!cancelled) setAppleStoreActive(Boolean(storeAccess?.active));
+            if (user?.id) await syncCurrentAppleSubscriptions();
+          } catch (error) {
+            console.error("Apple StoreKit access check failed", error);
+            if (!cancelled) setAppleStoreActive(false);
+          }
+        }
+
+        if (!user?.id) {
+          if (!cancelled) setRows([]);
+          return;
+        }
+
         if (isReviewDemoAccount(user?.email)) {
           try {
             await base44.functions.invoke("ensure-review-demo-entitlement", {});
           } catch (error) {
             console.error("Review demo entitlement ensure failed", error);
-          }
-        }
-        if (isNativeIOS()) {
-          try {
-            await syncCurrentAppleSubscriptions();
-          } catch (error) {
-            console.error("Apple subscription sync failed", error);
           }
         }
         const data = await base44.entities.SubscriptionEntitlement.filter(
@@ -52,7 +58,8 @@ export default function PaidAccessGate({ children }) {
     return () => { cancelled = true; };
   }, [user?.id]);
 
-  const active = useMemo(() => rows.find(isCurrentlyActive), [rows]);
+  const accountActive = useMemo(() => rows.find(isCurrentlyActive), [rows]);
+  const active = appleStoreActive || Boolean(accountActive);
 
   if (reviewDemo) {
     return (
