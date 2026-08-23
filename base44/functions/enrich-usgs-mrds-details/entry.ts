@@ -69,11 +69,15 @@ export default async function(req: Request) {
 
     const body = await req.json().catch(() => ({}));
     const state = String(body?.state || "TN").trim().toUpperCase();
+    const stateNames: Record<string, string> = { TN: "Tennessee" };
+    const stateName = stateNames[state] || state;
     const limit = Math.min(Math.max(Number(body?.limit) || 60, 1), 100);
     const offset = Math.max(Number(body?.offset) || 0, 0);
     const concurrency = Math.min(Math.max(Number(body?.concurrency) || 6, 1), 8);
 
-    const rows = await base44.asServiceRole.entities.USGSMineralOccurrence.filter({ occurrence_state: state }, "created_date", limit, offset);
+    const rows = await base44.asServiceRole.entities.USGSMineralOccurrence.filter({
+      $or: [{ occurrence_state: state }, { occurrence_state: stateName }, { occurrence_state_name: stateName }],
+    }, "created_date", limit, offset);
 
     let queried = 0;
     let updated = 0;
@@ -176,7 +180,8 @@ export default async function(req: Request) {
             source_database: sourceDatabase,
             usgs_record_updated: clean(dep?.update_date),
             raw_usgs_json: JSON.stringify(detail),
-            occurrence_state: clean(location?.state_prov) || row.occurrence_state,
+            occurrence_state: state,
+            occurrence_state_name: clean(location?.state_prov) || stateName,
             occurrence_county: clean(location?.county) || row.occurrence_county,
             latitude: Number.isFinite(lat) ? lat : row.latitude,
             longitude: Number.isFinite(lon) ? lon : row.longitude,
