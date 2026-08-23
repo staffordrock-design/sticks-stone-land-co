@@ -4,6 +4,16 @@ import { unzipSync, strFromU8 } from "npm:fflate";
 const DATA_URL = "https://arlweb.msha.gov/OpenGovernmentData/DataSets/Mines.zip";
 const SOURCE_PAGE = "https://arlweb.msha.gov/OpenGovernmentData/OGIMSHA.asp";
 const SOUTHEAST_STATES = new Set(["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"]);
+const STATE_BOUNDS: Record<string, { minLat: number; maxLat: number; minLng: number; maxLng: number }> = {
+  TN: { minLat: 34.8, maxLat: 36.8, minLng: -90.5, maxLng: -81.5 },
+  GA: { minLat: 30.2, maxLat: 35.2, minLng: -85.8, maxLng: -80.6 },
+  AL: { minLat: 30.1, maxLat: 35.2, minLng: -88.7, maxLng: -84.7 },
+  KY: { minLat: 36.3, maxLat: 39.3, minLng: -89.8, maxLng: -81.8 },
+  NC: { minLat: 33.7, maxLat: 36.8, minLng: -84.5, maxLng: -75.2 },
+  SC: { minLat: 31.9, maxLat: 35.3, minLng: -83.5, maxLng: -78.3 },
+  FL: { minLat: 24.2, maxLat: 31.2, minLng: -87.8, maxLng: -79.7 },
+  MS: { minLat: 30.0, maxLat: 35.2, minLng: -91.8, maxLng: -87.9 },
+};
 
 function clean(v: unknown) {
   const s = String(v ?? "").replace(/\s+/g, " ").trim();
@@ -13,6 +23,13 @@ function clean(v: unknown) {
 function num(v: unknown) {
   const n = Number(String(v ?? "").trim());
   return Number.isFinite(n) ? n : undefined;
+}
+
+function validStateCoordinate(state: string | undefined, lat: number | undefined, lng: number | undefined) {
+  if (lat == null || lng == null) return false;
+  const bounds = STATE_BOUNDS[String(state || "").toUpperCase()];
+  if (!bounds) return lat >= 24 && lat <= 40 && lng >= -92 && lng <= -75;
+  return lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng;
 }
 
 function rowsFromPipeText(text: string) {
@@ -72,6 +89,10 @@ export default async function(req: Request) {
     for (const r of southeast) {
       const mineId = clean(r.MINE_ID);
       if (!mineId) continue;
+      const state = clean(r.STATE)?.toUpperCase();
+      const latitude = num(r.LATITUDE);
+      const longitude = num(r.LONGITUDE);
+      const coordinatesValid = validStateCoordinate(state, latitude, longitude);
       const official = {
         source: "MSHA",
         source_record_id: mineId,
@@ -83,10 +104,10 @@ export default async function(req: Request) {
         operator_name: clean(r.CURRENT_OPERATOR_NAME),
         controller_name: clean(r.CURRENT_CONTROLLER_NAME),
         county: clean(r.FIPS_CNTY_NM)?.replace(/\s+County$/i, ""),
-        state: clean(r.STATE)?.toUpperCase(),
+        state,
         city: clean(r.NEAREST_TOWN),
-        latitude: num(r.LATITUDE),
-        longitude: num(r.LONGITUDE),
+        latitude: coordinatesValid ? latitude : undefined,
+        longitude: coordinatesValid ? longitude : undefined,
         source_url: SOURCE_PAGE,
         last_source_update: now,
       };
