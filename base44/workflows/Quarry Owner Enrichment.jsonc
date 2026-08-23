@@ -14,8 +14,8 @@
           "with": {
             "function_name": "sync-parcel-boundaries",
             "args": {
-              "limit": 100,
-              "concurrency": 4
+              "limit": 40,
+              "concurrency": 3
             }
           },
           "then": "end",
@@ -31,18 +31,18 @@
     "condition": null,
     "config": {
       "trigger_type": "scheduled",
-      "events": [],
-      "schedule_mode": "interval",
-      "cron_expression": null,
-      "one_time_date": null,
-      "timezone": "UTC",
       "interval_value": 2,
       "interval_unit": "hours",
       "interval_anchor": "2026-08-20T03:30:00Z",
       "ends_type": "never",
       "ends_on_date": null,
-      "ends_after_count": null
+      "ends_after_count": null,
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "events": []
     }
   },
-  "description": "Automatically looks up parcel owners for Tennessee quarry/aggregate sites missing ownership data using the TN Comptroller IMPACT assessment GIS. Runs every 2 hours, processing up to 100 sites per batch. Coal records are excluded, invalid coordinates are quarantined, and recent failed lookups are suppressed so the queue advances statewide."
+  "description": "Automatically looks up parcel owners for Tennessee quarry/aggregate sites missing ownership data using the TN Comptroller IMPACT assessment GIS. Runs every 2 hours, processing up to 40 sites per batch to stay within the platform function timeout. Coal records are excluded, invalid coordinates are quarantined, and recent failed lookups are suppressed so the queue advances statewide."
 }
