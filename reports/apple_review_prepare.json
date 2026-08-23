@@ -2,19 +2,19 @@
   "actions": [
     "Associated App Store version 2.130297.1 with build 20",
     "Updated App Store Review notes with build 20 physical-device verification",
-    "Marked corrected rejected review item ready again (appStoreVersion)"
+    "Submitted corrected build 20 to App Review"
   ],
   "app_id": "6802014287",
   "app_store_version": {
-    "app_store_state": "REJECTED",
-    "app_version_state": "REJECTED",
+    "app_store_state": "READY_FOR_REVIEW",
+    "app_version_state": "READY_FOR_REVIEW",
     "id": "094ac4b1-2b6f-4858-a46a-4871a3bc69d2",
     "version_string": "2.130297.1"
   },
   "attachment_gate": {
-    "expected_filename": "ScreenRecording_08-23-2026 16-33-50_1.mp4",
-    "found": false,
-    "upload_complete": false
+    "expected_filename": "ScreenRecording_08-23-2026 17-02-53_1.mov",
+    "found": true,
+    "upload_complete": true
   },
   "authenticated": true,
   "build": "20",
@@ -28,12 +28,19 @@
   },
   "bundle_id": "com.base6a78376a454093ba2f431acd.app",
   "errors": [],
-  "final_status": "READY_BUT_NEEDS_PHYSICAL_DEVICE_VIDEO_ATTACHMENT",
-  "generated_at": "2026-08-23T20:48:11.183483+00:00",
+  "final_status": "WAITING_FOR_REVIEW",
+  "generated_at": "2026-08-23T21:57:57.514320+00:00",
   "key_id_used": "2A3958GU5F",
   "review_detail": {
-    "attachments": [],
-    "demo_account_required": true,
+    "attachments": [
+      {
+        "delivery_state": "COMPLETE",
+        "file_name": "ScreenRecording_08-23-2026 17-02-53_1.mov",
+        "file_size": 5256198,
+        "id": "8bbe9f79-2a22-42d9-b728-b1b3a8fb80e4"
+      }
+    ],
+    "demo_account_required": false,
     "id": "6673a5be-dfbf-48b4-8138-aba825c152bd",
     "notes_characters": 3510
   },
@@ -82,33 +89,32 @@
   "subscriptions": {
     "com.ssrockholdings.marketplace.annual": {
       "subscription_id": "6802019423",
-      "subscription_state": "IN_REVIEW",
+      "subscription_state": "READY_TO_SUBMIT",
       "subscription_version_id": "fad44f73-d52c-4440-bdeb-a473393561b5",
-      "subscription_version_state": "IN_REVIEW"
+      "subscription_version_state": "READY_FOR_REVIEW"
     },
     "com.ssrockholdings.marketplace.monthly": {
       "subscription_id": "6802019025",
-      "subscription_state": "IN_REVIEW",
+      "subscription_state": "READY_TO_SUBMIT",
       "subscription_version_id": "777d7c98-ed59-4466-af77-e4b98c8b0f2f",
-      "subscription_version_state": "IN_REVIEW"
+      "subscription_version_state": "READY_FOR_REVIEW"
     },
     "com.ssrockholdings.professional.annual": {
       "subscription_id": "6802019468",
-      "subscription_state": "IN_REVIEW",
+      "subscription_state": "READY_TO_SUBMIT",
       "subscription_version_id": "686b02fc-84db-4667-abe9-177ae59c71aa",
-      "subscription_version_state": "IN_REVIEW"
+      "subscription_version_state": "READY_FOR_REVIEW"
     },
     "com.ssrockholdings.professional.monthly": {
       "subscription_id": "6802019370",
-      "subscription_state": "IN_REVIEW",
+      "subscription_state": "READY_TO_SUBMIT",
       "subscription_version_id": "de0e0f40-11c0-47ca-8d78-775358f26f07",
-      "subscription_version_state": "IN_REVIEW"
+      "subscription_version_state": "READY_FOR_REVIEW"
     }
   },
   "version": "2.130297.1",
   "warnings": [
     "App Store key Q4783H7CJ6 could not be used: RuntimeError",
-    "Could not re-patch build export compliance: PATCH https://api.appstoreconnect.apple.com/v1/builds/4c9478e2-7efd-47ce-980a-c7828bef60d7 -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"267f666f-4036-4ce3-9956-a2c6a756ebe6\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID\",\n    \"title\" : \"The provided entity includes an attribute with an invalid value\",\n    \"detail\" : \"You cannot update when the value is already set.\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/usesNonExemptEncryption\"\n    }\n  } ]\n}",
-    "Final App Review submit intentionally blocked until attachment 'ScreenRecording_08-23-2026 16-33-50_1.mp4' is present and fully uploaded."
+    "Could not re-patch build export compliance: PATCH https://api.appstoreconnect.apple.com/v1/builds/4c9478e2-7efd-47ce-980a-c7828bef60d7 -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"3dfb02c0-8067-4d8a-8287-554c76ea95ee\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID\",\n    \"title\" : \"The provided entity includes an attribute with an invalid value\",\n    \"detail\" : \"You cannot update when the value is already set.\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/usesNonExemptEncryption\"\n    }\n  } ]\n}"
   ]
 }
