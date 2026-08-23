@@ -777,6 +777,7 @@ export default function MineSiteDetail() {
                       <Row label="County" value={occ.occurrence_county} />
                       <Row label="Source checked" value={displayDate(occ.last_source_update)} />
                     </div>
+                    {occ.notes && <p className="mt-3 rounded-lg bg-muted/30 p-3 text-xs leading-5 text-muted-foreground">{occ.notes}</p>}
                     {occ.source_url && <a href={occ.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open USGS MRDS record <ExternalLink className="h-3.5 w-3.5" /></a>}
                   </div>
                 ))}
