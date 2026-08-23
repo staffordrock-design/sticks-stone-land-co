@@ -83,10 +83,13 @@ export default async function(req: Request) {
     const limit = Math.min(Math.max(Number(body?.limit) || 60, 1), 100);
     const offset = Math.max(Number(body?.offset) || 0, 0);
     const concurrency = Math.min(Math.max(Number(body?.concurrency) || 6, 1), 8);
+    const requestedMrdsId = clean(body?.mrds_id);
 
-    const rows = await base44.asServiceRole.entities.USGSMineralOccurrence.filter({
-      $or: [{ occurrence_state: state }, { occurrence_state: stateName }, { occurrence_state_name: stateName }],
-    }, "created_date", limit, offset);
+    const rows = requestedMrdsId
+      ? await base44.asServiceRole.entities.USGSMineralOccurrence.filter({ mrds_id: requestedMrdsId }, "created_date", 20, 0)
+      : await base44.asServiceRole.entities.USGSMineralOccurrence.filter({
+          $or: [{ occurrence_state: state }, { occurrence_state: stateName }, { occurrence_state_name: stateName }],
+        }, "created_date", limit, offset);
 
     let queried = 0;
     let updated = 0;
