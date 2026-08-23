@@ -62,14 +62,26 @@ export default function Home() {
   const loadData = async () => {
     try {
       const limit = showAll ? 500 : 200;
+      const safeLoad = async (label, request) => {
+        try {
+          return await request;
+        } catch (error) {
+          console.error(`Home data load failed: ${label}`, error);
+          return [];
+        }
+      };
+
+      // Do not let one optional enrichment source blank the entire marketplace.
+      // MiningSite is the core public inventory; parcel/geology/permit/environmental
+      // data enrich the cards when available.
       const [data, potentialData, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
-        base44.entities.MiningSite.list("-created_date", limit),
-        base44.entities.MiningSite.filter({ mine_status: "New Mine" }, "-created_date", 100),
-        base44.entities.QuarryPotentialProfile.list("-updated_date", limit),
-        base44.entities.ParcelRecord.list("-updated_date", limit),
-        base44.entities.GeologyRecord.list("-updated_date", limit),
-        base44.entities.TDECPermit.list("-last_source_update", limit),
-        base44.entities.EnvironmentalRecord.list("-last_source_update", limit),
+        safeLoad("MiningSite", base44.entities.MiningSite.list("-created_date", limit)),
+        safeLoad("Potential MiningSite", base44.entities.MiningSite.filter({ mine_status: "New Mine" }, "-created_date", 100)),
+        safeLoad("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.list("-updated_date", limit)),
+        safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", limit)),
+        safeLoad("GeologyRecord", base44.entities.GeologyRecord.list("-updated_date", limit)),
+        safeLoad("TDECPermit", base44.entities.TDECPermit.list("-last_source_update", limit)),
+        safeLoad("EnvironmentalRecord", base44.entities.EnvironmentalRecord.list("-last_source_update", limit)),
       ]);
 
       const siteList = Array.from(new Map([...(potentialData || []), ...(data || [])].map((site) => [site.id, site])).values());
