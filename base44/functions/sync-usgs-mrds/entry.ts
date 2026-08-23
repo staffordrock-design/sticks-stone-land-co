@@ -15,6 +15,16 @@ function clean(v: unknown) {
   return s || null;
 }
 
+function isQuarryRelevant(site: any) {
+  const commodity = String(site?.commodity || "").toLowerCase().trim();
+  const name = String(site?.mine_name || "").toLowerCase();
+  const haystack = `${commodity} ${name}`;
+  if (haystack.includes("coal")) return false;
+  if (!commodity) return /quarry|stone|sand|gravel|aggregate|limestone|dolomite|granite|marble|slate|shale|clay|rock|lime/.test(name);
+  return ["stone", "limestone", "sand", "gravel", "aggregate", "marble", "granite", "slate", "shale", "quartz", "clay", "dolomite", "rock", "lime"]
+    .some((term) => haystack.includes(term));
+}
+
 function uniqueText(values: unknown[], separator = "; ") {
   return [...new Set(values.map(clean).filter(Boolean) as string[])].join(separator) || null;
 }
@@ -123,7 +133,10 @@ export default async function (req: Request) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
-    if (!user || user.role !== "admin") {
+    // Scheduled/service invocations have no end-user session. Match the other
+    // public-source enrichment jobs: allow service/no-user calls, but reject a
+    // signed-in non-admin caller.
+    if (user && user.role !== "admin") {
       return Response.json({ error: "Admin access required" }, { status: 403 });
     }
 
@@ -136,7 +149,8 @@ export default async function (req: Request) {
     // including records without coordinates, so repeated admin runs eventually scan
     // the full state instead of repeatedly touching only the newest 500 records.
     const sites = await base44.asServiceRole.entities.MiningSite.filter({ state }, "created_date", limit, offset);
-    const candidates = (sites || []).filter((s: any) => validCoord(s.latitude, s.longitude));
+    const quarryRows = (sites || []).filter((s: any) => isQuarryRelevant(s));
+    const candidates = quarryRows.filter((s: any) => validCoord(s.latitude, s.longitude));
 
     // Load every existing linkage so this sync can update/backfill older sparse MRDS
     // records instead of permanently skipping them after the first proximity match.
@@ -149,7 +163,7 @@ export default async function (req: Request) {
     let matched = 0;
     let created = 0;
     let updated = 0;
-    let noCoordinates = (sites || []).length - candidates.length;
+    let noCoordinates = quarryRows.length - candidates.length;
     let noMatch = 0;
     let errors = 0;
     const sample: any[] = [];
@@ -251,6 +265,7 @@ export default async function (req: Request) {
       state,
       offset,
       source_rows: (sites || []).length,
+      quarry_rows: quarryRows.length,
       candidates: candidates.length,
       existing_records_scanned: existing.length,
       processed: toProcess.length,
