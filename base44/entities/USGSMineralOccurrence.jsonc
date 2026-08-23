@@ -96,7 +96,7 @@
     },
     "raw_usgs_json": {
       "type": "string",
-      "description": "Raw USGS MRDS JSON response preserved for traceability"
+      "description": "Compact official USGS MRDS source snapshot preserved for traceability; full live record remains linked by source_url"
     },
     "occurrence_state": {
       "type": "string",
