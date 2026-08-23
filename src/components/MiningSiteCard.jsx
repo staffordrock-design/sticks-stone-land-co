@@ -49,8 +49,9 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
   const owner = parcel?.owner_name || site.parcel_owner;
   const parcelAcreage = parcel?.acreage ?? site.acreage;
   const primaryPermit = permits.find((p) => Number(p?.permitted_acres) > 0) || permits[0] || null;
+  const siteOperator = site.operator_name && !/pending|unknown|verify|requires verification/i.test(site.operator_name) ? site.operator_name : null;
   const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
-  const operator = permitOperator || site.operator_name;
+  const operator = siteOperator || permitOperator;
   const permittedAcreage = primaryPermit?.permitted_acres ?? site.permitted_acres;
   const regulatoryLabel = permits.length
     ? `${permits.length} permit${permits.length === 1 ? "" : "s"}`
@@ -198,7 +199,7 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
               {Number(parcelAcreage) > 0 && <p className="mt-1 text-[10px] text-muted-foreground">Parcel: {Number(parcelAcreage).toLocaleString()} ac</p>}
             </div>
             <div className="min-w-0 border-l border-border pl-3">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Operator</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{siteOperator ? "MSHA operator" : "Operator"}</p>
               <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{operator || "Operator pending"}</p>
             </div>
             <div className="min-w-0 border-l border-border pl-3 text-right">
