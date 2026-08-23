@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Download, FileText, FlaskConical, Loader2, Lock, ShieldCheck, Apple } from "lucide-react";
+import { CreditCard, Download, FileText, FlaskConical, Loader2, Lock, ShieldCheck } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
-import { appleAccountTokenForUser, verifyAppleDataRoom } from "@/lib/appleSubscriptions";
 import { verifyGoogleDataRoom } from "@/lib/googleSubscriptions";
-import { DATA_ROOM_APPLE_PRODUCT_ID, DATA_ROOM_GOOGLE_PRODUCT_ID } from "@/lib/subscriptionPlans";
+import { DATA_ROOM_GOOGLE_PRODUCT_ID } from "@/lib/subscriptionPlans";
 
 const ACCESS_FEE = 250;
 
@@ -35,8 +34,6 @@ export default function NdaGate({ listing }) {
   const [submitting, setSubmitting] = useState(false);
   const [paying, setPaying] = useState(false);
   const [verifying, setVerifying] = useState(false);
-  const [appleProduct, setAppleProduct] = useState(null);
-  const [applePurchasing, setApplePurchasing] = useState(false);
   const [googleProduct, setGoogleProduct] = useState(null);
   const [googlePurchasing, setGooglePurchasing] = useState(false);
   const isIOSNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
@@ -83,23 +80,6 @@ export default function NdaGate({ listing }) {
 
     return () => { active = false; };
   }, [listing.id, isMobileNative, user?.id]);
-
-  useEffect(() => {
-    if (!isIOSNative) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { products } = await NativePurchases.getProducts({
-          productIdentifiers: [DATA_ROOM_APPLE_PRODUCT_ID],
-          productType: PURCHASE_TYPE.INAPP,
-        });
-        if (!cancelled) setAppleProduct((products || [])[0] || null);
-      } catch (error) {
-        console.error("Apple data-room product fetch failed", error);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [isIOSNative]);
 
   useEffect(() => {
     if (!isAndroidNative) return;
@@ -152,28 +132,6 @@ export default function NdaGate({ listing }) {
       alert("Could not start checkout. Please try again.");
     } finally {
       setPaying(false);
-    }
-  };
-
-  const startApplePurchase = async () => {
-    if (!isIOSNative || !user?.id) return;
-    setApplePurchasing(true);
-    try {
-      const appAccountToken = await appleAccountTokenForUser(user.id);
-      const transaction = await NativePurchases.purchaseProduct({
-        productIdentifier: DATA_ROOM_APPLE_PRODUCT_ID,
-        productType: PURCHASE_TYPE.INAPP,
-        quantity: 1,
-        appAccountToken,
-        isConsumable: true,
-      });
-      const result = await verifyAppleDataRoom(transaction, listing.id);
-      if (result?.paid) setPaid(true);
-    } catch (error) {
-      const message = String(error?.message || error || "Purchase was not completed.");
-      if (!/cancel/i.test(message)) alert(message);
-    } finally {
-      setApplePurchasing(false);
     }
   };
 
@@ -247,10 +205,8 @@ export default function NdaGate({ listing }) {
         <h3 className="mt-4 font-heading text-xl font-semibold text-foreground">NDA Signed</h3>
         {isIOSNative ? (
           <>
-            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Your NDA is on file. Unlock this listing's confidential data room with a one-time Apple in-app purchase.</p>
-            <div className="mt-5 flex items-center justify-center gap-2"><span className="font-display text-4xl font-bold text-foreground">{appleProduct?.priceString || `$${ACCESS_FEE}`}</span><span className="text-sm text-muted-foreground">one-time access</span></div>
-            <Button className="mt-5" onClick={startApplePurchase} disabled={applePurchasing || verifying || !appleProduct}>{applePurchasing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Connecting to Apple…</> : <><Apple className="mr-2 h-4 w-4" />Unlock with Apple</>}</Button>
-            {!appleProduct && <p className="mt-3 text-xs text-muted-foreground">Loading Apple purchase…</p>}
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Your NDA is on file. New confidential data-room purchases are not offered in this iOS version. Existing authorized data-room access remains available for accounts that already have it.</p>
+            <Button className="mt-5" variant="outline" onClick={() => window.location.assign("/support")}>Contact Support</Button>
           </>
         ) : isAndroidNative ? (
           <>
