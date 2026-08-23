@@ -36,6 +36,7 @@ export default function NdaGate({ listing }) {
   const [verifying, setVerifying] = useState(false);
   const [googleProduct, setGoogleProduct] = useState(null);
   const [googlePurchasing, setGooglePurchasing] = useState(false);
+  const [documents, setDocuments] = useState({ core_drilling_url: "", environmental_report_url: "" });
   const isIOSNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "ios";
   const isAndroidNative = Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
   const isMobileNative = isIOSNative || isAndroidNative;
@@ -80,6 +81,28 @@ export default function NdaGate({ listing }) {
 
     return () => { active = false; };
   }, [listing.id, isMobileNative, user?.id]);
+
+  useEffect(() => {
+    if (!paid || !user?.id) {
+      setDocuments({ core_drilling_url: "", environmental_report_url: "" });
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await base44.functions.invoke("get-data-room-documents", { listing_id: listing.id });
+        const payload = response?.data || response || {};
+        if (!cancelled) setDocuments({
+          core_drilling_url: payload.core_drilling_url || "",
+          environmental_report_url: payload.environmental_report_url || "",
+        });
+      } catch (error) {
+        console.error("Secure data-room document load failed", error);
+        if (!cancelled) setDocuments({ core_drilling_url: "", environmental_report_url: "" });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [listing.id, paid, user?.id]);
 
   useEffect(() => {
     if (!isAndroidNative) return;
@@ -232,11 +255,11 @@ export default function NdaGate({ listing }) {
       <div className="flex items-center gap-2 text-emerald-800"><ShieldCheck className="h-5 w-5" /><h3 className="font-heading text-lg font-semibold">Seller Confidential Data Room Unlocked</h3></div>
       <p className="mt-1 text-sm text-emerald-700">Your account has a signed NDA and verified access to seller-provided confidential materials for this listing.</p>
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        <a href={listing.core_drilling_url || "#"} target="_blank" rel="noreferrer" className={`flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition hover:shadow-md ${!listing.core_drilling_url ? "pointer-events-none opacity-50" : ""}`}>
+        <a href={documents.core_drilling_url || "#"} target="_blank" rel="noreferrer" className={`flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition hover:shadow-md ${!documents.core_drilling_url ? "pointer-events-none opacity-50" : ""}`}>
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stone-900 text-stone-50"><FileText className="h-5 w-5" /></div>
           <div className="min-w-0 flex-1"><div className="font-semibold text-foreground">Core Drilling Logs</div><div className="text-xs text-muted-foreground">Seller-provided document · when available</div></div><Download className="h-4 w-4 text-muted-foreground" />
         </a>
-        <a href={listing.environmental_report_url || "#"} target="_blank" rel="noreferrer" className={`flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition hover:shadow-md ${!listing.environmental_report_url ? "pointer-events-none opacity-50" : ""}`}>
+        <a href={documents.environmental_report_url || "#"} target="_blank" rel="noreferrer" className={`flex items-center gap-3 rounded-xl border border-border bg-card p-4 transition hover:shadow-md ${!documents.environmental_report_url ? "pointer-events-none opacity-50" : ""}`}>
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-700 text-white"><FlaskConical className="h-5 w-5" /></div>
           <div className="min-w-0 flex-1"><div className="font-semibold text-foreground">Environmental Reports</div><div className="text-xs text-muted-foreground">Seller-provided document · when available</div></div><Download className="h-4 w-4 text-muted-foreground" />
         </a>
