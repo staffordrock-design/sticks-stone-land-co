@@ -3,7 +3,7 @@
   "authenticated": true,
   "bundle_id": "com.base6a78376a454093ba2f431acd.app",
   "errors": [],
-  "generated_at": "2026-08-19T18:25:35.241988+00:00",
+  "generated_at": "2026-08-23T13:34:29.866655+00:00",
   "group": {
     "created": false,
     "id": "22312976",
@@ -45,11 +45,12 @@
       "id": "6802019468",
       "localized": true,
       "pricing": {
-        "status": "NO_EXACT_USA_PRICE_POINT",
-        "target_usa_price": "1390.00",
-        "warning": "No USA Apple price point exactly matches $1390.00; 800 price points checked."
+        "existing_price_territories": 175,
+        "price_failures": [],
+        "prices_created": 0,
+        "territories_available_from_equalization": 175,
+        "usa_price": "1000.00"
       },
-      "pricing_warning": "No USA Apple price point exactly matches $1390.00; 800 price points checked.",
       "state": "IN_REVIEW"
     },
     "com.ssrockholdings.professional.monthly": {
