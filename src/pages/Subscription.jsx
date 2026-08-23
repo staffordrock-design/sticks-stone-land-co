@@ -6,7 +6,7 @@ import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
-import { appleAccountTokenForUser, appleProductIds, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
+import { appleAccountTokenForUser, appleProductIds, currentAppleSubscriptionAccess, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
 import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 
@@ -21,6 +21,7 @@ export default function Subscription() {
   const [storeLoading, setStoreLoading] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState("");
   const [buyingId, setBuyingId] = useState("");
+  const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
   const isNative = Capacitor.isNativePlatform();
   const isIOS = Capacitor.getPlatform() === "ios";
   const isAndroid = isNativeAndroid();
@@ -44,7 +45,10 @@ export default function Subscription() {
     let cancelled = false;
     (async () => {
       try {
-        if (isNative && isIOS) await syncCurrentAppleSubscriptions();
+        if (isNative && isIOS) {
+          const access = await syncCurrentAppleSubscriptions();
+          if (!cancelled) setAppleStoreAccess(access || { active: false, professional: false, purchases: [], planCodes: [] });
+        }
         if (isAndroid) await syncCurrentGoogleSubscriptions();
       } catch (error) {
         console.error("Entitlement sync failed", error);
@@ -79,7 +83,12 @@ export default function Subscription() {
     return () => { cancelled = true; };
   }, [isNative, isIOS, isAndroid]);
 
-  const active = useMemo(() => entitlements.find((e) => ACTIVE.has(e.status) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())), [entitlements]);
+  const accountActive = useMemo(() => entitlements.find((e) => ACTIVE.has(e.status) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())), [entitlements]);
+  const active = accountActive || (isIOS && appleStoreAccess?.active ? {
+    plan_code: appleStoreAccess.professional ? "professional (Apple StoreKit)" : (appleStoreAccess.planCodes?.[0] || "quarry_access (Apple StoreKit)"),
+    platform: "apple",
+    expires_at: null,
+  } : null);
 
   const requestAccess = async () => {
     if (isNative || !user?.email || leadSaved) return;
@@ -103,24 +112,37 @@ export default function Subscription() {
     setBuyingId(productId);
     try {
       if (isIOS) {
-        const appAccountToken = await appleAccountTokenForUser(user.id);
-        const transaction = await NativePurchases.purchaseProduct({
+        const options = {
           productIdentifier: productId,
           productType: PURCHASE_TYPE.SUBS,
           quantity: 1,
-          appAccountToken,
-        });
-        await verifyAppleTransactions([transaction]);
+        };
+        // App account linking is optional. StoreKit purchasing must work while signed out.
+        if (user?.id) options.appAccountToken = await appleAccountTokenForUser(user.id);
+
+        const transaction = await NativePurchases.purchaseProduct(options);
+        if (user?.id) await verifyAppleTransactions([transaction]);
+
+        const storeAccess = await currentAppleSubscriptionAccess();
+        setAppleStoreAccess(storeAccess);
+        if (user?.id) await refreshEntitlements();
+        setPurchaseMessage(user?.id
+          ? "Purchase verified with Apple. Your S&S access is active."
+          : "Apple purchase complete. Your subscription is active without registration. Creating an S&S account is optional and can be done later if you want account-linked access.");
       } else {
+        if (!user?.id) {
+          window.location.href = "/login?returnTo=/subscribe";
+          return;
+        }
         const transaction = await NativePurchases.purchaseProduct({
           productIdentifier: productId,
           productType: PURCHASE_TYPE.SUBS,
           quantity: 1,
         });
         await verifyGoogleTransactions([transaction]);
+        await refreshEntitlements();
+        setPurchaseMessage("Purchase verified with Google Play. Your S&S access is active.");
       }
-      await refreshEntitlements();
-      setPurchaseMessage(`Purchase verified with ${isIOS ? "Apple" : "Google Play"}. Your S&S access is active.`);
     } catch (error) {
       const message = String(error?.message || error || "Purchase was not completed.");
       if (!/cancel/i.test(message)) setPurchaseMessage(message);
@@ -148,10 +170,19 @@ export default function Subscription() {
     setPurchaseMessage("");
     setStoreLoading(true);
     try {
-      if (isIOS) await syncCurrentAppleSubscriptions({ restore: true });
-      if (isAndroid) await syncCurrentGoogleSubscriptions({ restore: true });
-      await refreshEntitlements();
-      setPurchaseMessage(`${isIOS ? "Apple" : "Google Play"} purchases restored and verified. Your S&S access is up to date.`);
+      if (isIOS) {
+        const access = await syncCurrentAppleSubscriptions({ restore: true });
+        setAppleStoreAccess(access || { active: false, professional: false, purchases: [], planCodes: [] });
+        if (user?.id) await refreshEntitlements();
+        setPurchaseMessage(access?.active
+          ? "Apple purchases restored. Your subscription access is active; an S&S account is not required."
+          : "No active Apple subscription was found for this Apple account.");
+      }
+      if (isAndroid) {
+        await syncCurrentGoogleSubscriptions({ restore: true });
+        await refreshEntitlements();
+        setPurchaseMessage("Google Play purchases restored and verified. Your S&S access is up to date.");
+      }
     } catch (error) {
       setPurchaseMessage(error?.message || "Could not restore purchases.");
     } finally {
@@ -166,6 +197,8 @@ export default function Subscription() {
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Quarry intelligence access</h1></div></div>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Choose the level of quarry intelligence that fits your work. Downloadable reports are separate products so you only purchase the depth of diligence you need.</p>
+          {isIOS && !user?.id && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No registration required.</strong> You can subscribe with Apple while signed out. Creating an S&amp;S account is optional and only needed if you later want account-linked access across S&amp;S services.</div>}
+          {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950"><div className="font-bold">S&S access active</div><div className="mt-1 text-sm">Plan: {active.plan_code} · Platform: {active.platform}{active.expires_at ? ` · Renews/expires ${new Date(active.expires_at).toLocaleDateString()}` : ""}</div></div>
@@ -214,8 +247,6 @@ export default function Subscription() {
           </div>
 
           {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
-          {purchaseMessage && <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">{purchaseMessage}</div>}
-
           <h2 className="mt-10 font-heading text-xl font-bold">Intelligence reports</h2>
           <p className="mt-2 text-sm text-muted-foreground">Report purchases are separate from membership access. Transaction-grade professional services such as legal opinions, surveys, reserve studies and environmental assessments remain separate.</p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">{REPORT_PRODUCTS.map((report) => <div key={report.code} className="rounded-2xl border border-border p-5"><div className="flex items-start justify-between gap-4"><div className="font-bold">{report.name}</div><div className="shrink-0 text-lg font-bold">{report.price}</div></div><p className="mt-2 text-sm leading-6 text-muted-foreground">{report.description}</p></div>)}</div>
