@@ -263,6 +263,7 @@ Deno.serve(async (req) => {
       source: "TN Comptroller IMPACT Parcels + Assessment GIS",
       total_sites: allSites.length,
       candidates: candidates.length,
+      queried: candidates.length,
       processed: candidates.length,
       matched,
       matched_with_owner: matchedWithOwner,
