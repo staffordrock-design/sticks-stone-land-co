@@ -69,11 +69,23 @@ export default function Subscription() {
         const { isBillingSupported } = await NativePurchases.isBillingSupported();
         if (!isBillingSupported) throw new Error("Store purchases are not available on this device.");
         const ids = isIOS ? appleProductIds() : googleProductIds();
-        const { products } = await NativePurchases.getProducts({
-          productIdentifiers: ids,
-          productType: PURCHASE_TYPE.SUBS,
-        });
-        if (!cancelled) setStoreProducts(Object.fromEntries((products || []).map((p) => [p.identifier, p])));
+        let products = [];
+        const attempts = isIOS ? 3 : 1;
+        for (let attempt = 1; attempt <= attempts; attempt += 1) {
+          const result = await NativePurchases.getProducts({
+            productIdentifiers: ids,
+            productType: PURCHASE_TYPE.SUBS,
+          });
+          products = result?.products || [];
+          if (products.length > 0 || attempt === attempts) break;
+          await new Promise((resolve) => setTimeout(resolve, 900 * attempt));
+        }
+        if (!cancelled) {
+          setStoreProducts(Object.fromEntries(products.map((p) => [p.identifier, p])));
+          if (isIOS && products.length === 0) {
+            setPurchaseMessage("Apple is still preparing the subscription products for this TestFlight build. Please try again shortly.");
+          }
+        }
       } catch (error) {
         if (!cancelled) setPurchaseMessage(error?.message || "Subscription products are not available yet.");
       } finally {
@@ -112,6 +124,23 @@ export default function Subscription() {
     setBuyingId(productId);
     try {
       if (isIOS) {
+        let appleProduct = storeProducts[productId];
+        if (!appleProduct) {
+          for (let attempt = 1; attempt <= 3; attempt += 1) {
+            const result = await NativePurchases.getProducts({
+              productIdentifiers: [productId],
+              productType: PURCHASE_TYPE.SUBS,
+            });
+            appleProduct = (result?.products || []).find((p) => p.identifier === productId);
+            if (appleProduct) break;
+            if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 900 * attempt));
+          }
+        }
+        if (!appleProduct) {
+          throw new Error("Apple has not made this subscription available to TestFlight yet. Please try again shortly.");
+        }
+        setStoreProducts((current) => ({ ...current, [productId]: appleProduct }));
+
         const options = {
           productIdentifier: productId,
           productType: PURCHASE_TYPE.SUBS,
