@@ -14,8 +14,8 @@
           "with": {
             "function_name": "sync-parcel-boundaries",
             "args": {
-              "limit": 40,
-              "concurrency": 3
+              "limit": 100,
+              "concurrency": 4
             }
           },
           "then": "end",
@@ -44,5 +44,5 @@
       "ends_after_count": null
     }
   },
-  "description": "Automatically looks up parcel owners for TN quarry sites missing ownership data using the TN Comptroller IMPACT assessment GIS. Runs every 2 hours, processing 40 sites per batch, skipping sites that already have owners."
+  "description": "Automatically looks up parcel owners for Tennessee quarry/aggregate sites missing ownership data using the TN Comptroller IMPACT assessment GIS. Runs every 2 hours, processing up to 100 sites per batch. Coal records are excluded, invalid coordinates are quarantined, and recent failed lookups are suppressed so the queue advances statewide."
 }
