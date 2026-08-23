@@ -18,7 +18,7 @@ export default async function(req) {
 
     const now = Date.now();
     const results = [];
-    const verifiedTokens = new Set();
+    const verifiedOrderIds = new Set();
 
     for (const item of purchases) {
       const productId = String(item?.productId || '');
@@ -32,14 +32,18 @@ export default async function(req) {
         isSubscription: getPlanForGoogleProduct(productId) !== null,
       });
 
-      verifiedTokens.add(purchaseToken);
+      verifiedOrderIds.add(verified.orderId);
       const planCode = verified.planCode;
       if (!planCode) throw new Error(`Unrecognized Google product: ${productId}`);
 
-      const purchaseState = verified.purchaseState;
-      // 0 = purchased, 1 = canceled, 2 = pending
-      const active = purchaseState === 0;
-      const status = purchaseState === 1 ? 'cancelled' : purchaseState === 2 ? 'pending' : 'active';
+      // Google subscription responses use paymentState + expiryTimeMillis (purchaseState
+      // is for one-time products). A cancelled auto-renewal remains entitled until expiry.
+      const paymentState = Number(verified.purchase.paymentState);
+      const expiryMs = Number(verified.purchase.expiryTimeMillis || 0);
+      const expired = expiryMs > 0 && expiryMs <= now;
+      const paidOrTrial = paymentState === 1 || paymentState === 2 || paymentState === 3;
+      const active = !expired && paidOrTrial;
+      const status = expired ? 'expired' : active ? 'active' : 'inactive';
 
       // Store receipt
       const existingReceipt = await base44.asServiceRole.entities.StoreReceipt.filter(
@@ -58,7 +62,7 @@ export default async function(req) {
         original_transaction_id: verified.orderId,
         purchase_date: verified.purchase.startTimeMillis ? new Date(Number(verified.purchase.startTimeMillis)).toISOString() : new Date().toISOString(),
         expires_at: verified.purchase.expiryTimeMillis ? new Date(Number(verified.purchase.expiryTimeMillis)).toISOString() : '',
-        status: active ? 'Verified' : 'Expired',
+        status: expired ? 'Expired' : active ? 'Verified' : 'Pending Verification',
         last_verified_at: new Date().toISOString(),
       };
 
@@ -107,7 +111,7 @@ export default async function(req) {
         { user_id: user.id, platform: 'google' }, '-updated_date', 50, 0,
       );
       for (const entitlement of googleEntitlements || []) {
-        if (entitlement.original_transaction_id && !verifiedTokens.has(entitlement.transaction_id) && ['active', 'trial', 'grace_period'].includes(entitlement.status)) {
+        if (entitlement.original_transaction_id && !verifiedOrderIds.has(entitlement.original_transaction_id) && ['active', 'trial', 'grace_period'].includes(entitlement.status)) {
           await base44.asServiceRole.entities.SubscriptionEntitlement.update(entitlement.id, {
             status: 'expired',
             last_verified_at: new Date().toISOString(),
