@@ -20,9 +20,10 @@ const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
 
 function statusGroup(status = "") {
   const s = String(status).toLowerCase();
-  if (s.includes("active")) return "Active";
+  // Check inactive/idled terms before "active" because "inactive" contains "active".
   if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Inactive / Idled";
   if (s.includes("historical") || s.includes("abandon")) return "Historical / Abandoned";
+  if (s.includes("active")) return "Active";
   if (s.includes("new mine") || !s.trim()) return "New / Potential";
   return "New / Potential";
 }
