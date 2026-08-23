@@ -1,12 +1,13 @@
 # App Review Notes — S&S Rock Holdings
 
-BEFORE SUBMISSION: replace `[TEST DEVICE / OS]` with the exact physical device used for the attached recording.
-
 1. SCREEN RECORDING
-A physical-device recording is attached and starts from a fresh launch. It shows Home/map → quarry record → Subscribe → Apple subscription purchase while signed out → StoreKit sheet → paid access → Restore Purchases / Manage Subscriptions. It also shows optional registration/login and account deletion. The app does not request location, camera, contacts, microphone, or App Tracking Transparency permission. There is no public user-to-user posting/chat; seller submissions are reviewed before publication and Support handles content/data concerns.
+A physical-device TestFlight recording of build 2.130297.1 (20) is attached. It shows the app running on an iPhone 15 Pro Max with iOS 27.0, quarry records and maps loading correctly (263 quarry/aggregate records visible in the recording), browsing while signed out, the Access screen stating that registration is not required, and Quarry Access Monthly opening Apple's native TestFlight StoreKit purchase sheet at $69.00/month. The recording directly demonstrates the previously failing subscription action now reaches Apple's purchase sheet without requiring S&S registration.
+
+The app does not request location, camera, contacts, microphone, or App Tracking Transparency permission. There is no public user-to-user posting/chat; seller submissions are reviewed before publication and Support handles content/data concerns.
 
 2. DEVICES TESTED
-- Developer physical device: `[TEST DEVICE / OS]`
+- Developer physical device: iPhone 15 Pro Max, iOS 27.0
+- TestFlight build demonstrated: 2.130297.1 (20)
 - Prior Apple review device reported: iPad Air 11-inch (M3), iPadOS 26.6
 
 3. PURPOSE / AUDIENCE
@@ -41,5 +42,8 @@ The screen shows duration, auto-renew terms, Restore Purchases, Manage Subscript
 PRIOR-REVIEW FIXES
 - Removed required S&S registration from Apple subscription purchase.
 - StoreKit entitlement unlocks access while signed out.
-- Choose monthly/annual always invokes StoreKit instead of silently disabling when product metadata is delayed.
-- Added visible purchase status/errors, restore/manage controls and explicit durations.
+- Corrected the native Base44 API configuration so TestFlight builds load quarry inventory and maps instead of showing an empty marketplace.
+- Corrected native public-settings/API routing for Capacitor builds.
+- Added StoreKit product retry/availability handling so monthly/annual purchase actions reliably reach Apple when products are available.
+- Added visible purchase status/errors, Restore Purchases / Manage Subscriptions controls and explicit subscription durations.
+- Paid Apps Agreement, banking and tax setup were completed before this TestFlight verification.
