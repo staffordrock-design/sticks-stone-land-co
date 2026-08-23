@@ -48,6 +48,37 @@ function elevationMeters(geo: any) {
   return n;
 }
 
+function capped(value: unknown, max = 6000) {
+  const s = clean(value);
+  if (!s) return undefined;
+  return s.length <= max ? s : `${s.slice(0, max - 18)}… [truncated]`;
+}
+
+function compactSourceSnapshot(detail: any) {
+  const props = detail?.properties || {};
+  const snapshot = {
+    id: detail?.id,
+    type: detail?.type,
+    geometry: detail?.geometry,
+    properties: {
+      grade: props.grade,
+      deposits: props.deposits,
+      name: props.name,
+      geo_coordinates: props.geo_coordinates,
+      location: props.location,
+      commodity: props.commodity,
+      material: props.material,
+      ownership: props.ownership,
+      land_status: props.land_status,
+      holdings: props.holdings,
+      physiography: props.physiography,
+      districts: props.districts,
+      other_dbs: props.other_dbs,
+    },
+  };
+  return capped(JSON.stringify(snapshot), 9000);
+}
+
 async function fetchMrdsDetail(mrdsId: string) {
   const url = `${MRDS_JSON_BASE}${encodeURIComponent(mrdsId)}`;
   let lastError: any = null;
@@ -155,7 +186,7 @@ export default async function(req: Request) {
           const alternateNames = unique(names
             .map((n: any) => clean(n?.name))
             .filter((n: any) => n && n !== clean(currentName?.name)));
-          const references = unique(refs.map((r: any) => clean(r?.refs)), " | ");
+          const references = capped(unique(refs.map((r: any) => clean(r?.refs)), " | "));
           const sourceDatabase = unique(dbs.map((d: any) => {
             const agency = clean(d?.agency);
             const db = clean(d?.db_name) || clean(d?.code);
@@ -191,7 +222,7 @@ export default async function(req: Request) {
             references,
             source_database: sourceDatabase,
             usgs_record_updated: clean(dep?.update_date),
-            raw_usgs_json: JSON.stringify(detail),
+            raw_usgs_json: compactSourceSnapshot(detail),
             occurrence_state: state,
             occurrence_state_name: clean(location?.state_prov) || stateName,
             occurrence_county: clean(location?.county) || row.occurrence_county,
