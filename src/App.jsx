@@ -33,6 +33,9 @@ const Support = lazy(() => import('./pages/Support'));
 const MineralValueGuide = lazy(() => import('./pages/MineralValueGuide'));
 const MineralIntelligence = lazy(() => import('./pages/MineralIntelligence'));
 const AdminSellerReview = lazy(() => import('./pages/AdminSellerReview'));
+const QuarryCompare = lazy(() => import('./pages/QuarryCompare'));
+const QuarryWatchlist = lazy(() => import('./pages/QuarryWatchlist'));
+const DealInvestor = lazy(() => import('./pages/DealInvestor'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -43,7 +46,7 @@ const PageLoader = () => (
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = ['/', '/subscribe', '/privacy', '/terms', '/support', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
+  const publicPath = ['/', '/subscribe', '/privacy', '/terms', '/support', '/compare', '/watchlist', '/deal-investor', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   // Show loading spinner while checking app public settings or auth
@@ -88,6 +91,9 @@ const AuthenticatedApp = () => {
       <Route path="/mineral-intelligence" element={<MineralIntelligence />} />
       <Route path="/admin/seller-review" element={<AdminSellerReview />} />
       <Route path="/admin/deals" element={<DealDesk />} />
+      <Route path="/compare" element={<QuarryCompare />} />
+      <Route path="/watchlist" element={<QuarryWatchlist />} />
+      <Route path="/deal-investor" element={<DealInvestor />} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
