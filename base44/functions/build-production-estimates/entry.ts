@@ -29,6 +29,8 @@ function roundTons(value: number) {
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (user && user.role !== "admin") return Response.json({ error: "Admin access required" }, { status: 403 });
     const body = await req.json().catch(() => ({}));
     const state = clean(body?.state || "TN").toUpperCase();
 

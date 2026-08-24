@@ -32,6 +32,8 @@ async function upsert(base44: any, source: string, payload: any) {
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (user && user.role !== "admin") return Response.json({ error: "Admin access required" }, { status: 403 });
     const now = new Date().toISOString();
 
     const [sites, permits, geology, parcels, environmental, production] = await Promise.all([

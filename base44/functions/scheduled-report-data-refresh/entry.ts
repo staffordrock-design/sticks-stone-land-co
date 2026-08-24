@@ -13,6 +13,8 @@ async function run(base44: any, name: string, args: any = {}) {
 
 export default async function(req: Request) {
   const base44 = createClientFromRequest(req);
+  const user = await base44.auth.me().catch(() => null);
+  if (user && user.role !== "admin") return Response.json({ error: "Admin access required" }, { status: 403 });
   const now = new Date();
   const day = now.getUTCDay();
   const date = now.getUTCDate();

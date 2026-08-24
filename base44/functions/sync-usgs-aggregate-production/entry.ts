@@ -55,6 +55,8 @@ function parseStateRow(row: any[]) {
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (user && user.role !== "admin") return Response.json({ error: "Admin access required" }, { status: 403 });
     const page = await fetch(USGS_PAGE, { headers: { "User-Agent": "SSRockHoldings/1.0" } });
     if (!page.ok) throw new Error(`USGS publications page request failed: ${page.status}`);
     const latest = latestWorkbookUrl(await page.text());
