@@ -30,13 +30,18 @@ Features are consistent across regions; public-source depth varies. Tennessee cu
 
 This is a business-intelligence/screening product, not a title opinion, appraisal, certified reserve estimate, engineering/geology opinion or environmental assessment. Government-source data is source-labeled.
 
-7. IN-APP PURCHASES
-Auto-renewing subscriptions are purchased from Subscribe:
-- Quarry Access Monthly — com.ssrockholdings.marketplace.monthly — $69 / 1 month
-- Quarry Access Annual — com.ssrockholdings.marketplace.annual — $690 / 1 year
-- Professional Monthly — com.ssrockholdings.professional.monthly — $139 / 1 month
-- Professional Annual — com.ssrockholdings.professional.annual — $1,000 / 1 year
+7. IN-APP PURCHASES / PRICE CONFIRMATION
+Auto-renewing subscriptions are purchased from Subscribe. These intended App Store prices are correct:
+- Quarry Access Monthly — com.ssrockholdings.marketplace.monthly — $69.00 USD / 1 month
+- Quarry Access Annual — com.ssrockholdings.marketplace.annual — $690.00 USD / 1 year
+- Professional Monthly — com.ssrockholdings.professional.monthly — $139.00 USD / 1 month
+- Professional Annual — com.ssrockholdings.professional.annual — $1,000.00 USD / 1 year
+- Confidential Data Room Access — com.ssrockholdings.dataroom.access — $250.00 USD one-time access product
 The screen shows duration, auto-renew terms, Restore Purchases, Manage Subscriptions, Terms and Privacy. StoreKit storefront prices are shown at purchase.
+
+8. TERMS OF USE / EULA
+The standard Apple Terms of Use (EULA) applies to the iOS app and is linked in the app metadata and in the in-app Terms/subscription surfaces:
+https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 
 PRIOR-REVIEW FIXES
 - Removed required S&S registration from Apple subscription purchase.
