@@ -205,6 +205,8 @@ async function processSite(base44: any, site: any, verification?: any) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me().catch(() => null);
+    if (user && user.role !== "admin") return Response.json({ error: "Admin access required" }, { status: 403 });
     const body = await req.json().catch(() => ({}));
     const limit = Math.min(Math.max(Number(body?.limit || 40), 1), 500);
     const concurrency = Math.min(Math.max(Number(body?.concurrency || 3), 1), 5);
