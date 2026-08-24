@@ -187,8 +187,9 @@ export default function Subscription() {
     setBuyingId(planCode);
     try {
       const response = await base44.functions.invoke("create-subscription-checkout", { plan_code: planCode });
-      if (!response?.url) throw new Error(response?.error || "Could not start checkout.");
-      window.location.assign(response.url);
+      const payload = response?.data || response || {};
+      if (!payload?.url) throw new Error(payload?.error || "Could not start checkout.");
+      window.location.assign(payload.url);
     } catch (error) {
       setPurchaseMessage(error?.message || "Could not start checkout.");
       setBuyingId("");
