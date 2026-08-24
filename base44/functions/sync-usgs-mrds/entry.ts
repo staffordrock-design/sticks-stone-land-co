@@ -73,40 +73,6 @@ async function loadAllOccurrences(base44: any, maxRecords = 10000) {
   return rows;
 }
 
-// Haversine distance in meters between two lat/lng points.
-function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371000;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  return Math.round(2 * R * Math.asin(Math.sqrt(a)));
-}
-
-// Parse GML2 feature members from the WFS response into { properties, coordinates } objects.
-function parseGmlFeatures(xml: string) {
-  const members = [...xml.matchAll(/<gml:featureMember>([\s\S]*?)<\/gml:featureMember>/g)];
-  return members.map((m) => {
-    const block = m[1];
-    const props: Record<string, string> = {};
-    // Extract all <ms:FIELD_NAME>value</ms:FIELD_NAME> property elements.
-    const propMatches = [...block.matchAll(/<ms:(\w+)>([^<]*)<\/ms:\w+>/g)];
-    for (const pm of propMatches) {
-      props[pm[1]] = pm[2].trim();
-    }
-    // Extract point coordinates from <gml:Point> specifically (not the <gml:Box> bounding box).
-    const pointMatch = block.match(/<gml:Point[^>]*>\s*<gml:coordinates>([^<]+)<\/gml:coordinates>\s*<\/gml:Point>/);
-    let coordinates: [number, number] | null = null;
-    if (pointMatch) {
-      const parts = pointMatch[1].trim().split(/[,\s]+/);
-      const lon = Number(parts[0]);
-      const lat = Number(parts[1]);
-      if (Number.isFinite(lon) && Number.isFinite(lat)) coordinates = [lon, lat];
-    }
-    return { properties: props, coordinates };
-  });
-}
-
 async function fetchMrdsNear(lat: number, lon: number, radiusDeg = 0.08) {
   const minLat = lat - radiusDeg;
   const maxLat = lat + radiusDeg;

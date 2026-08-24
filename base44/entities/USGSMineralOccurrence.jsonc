@@ -3,7 +3,8 @@
   "type": "object",
   "properties": {
     "mining_site_id": {
-      "type": "string"
+      "type": "string",
+      "description": "Linked MiningSite record ID. Null for unmatched potential/historical occurrences."
     },
     "msha_mine_id": {
       "type": "string"
@@ -20,6 +21,10 @@
     },
     "commodity_list": {
       "type": "string"
+    },
+    "commodity_codes": {
+      "type": "string",
+      "description": "Raw USGS MRDS code_list field (e.g., 'LST SDG SIL')"
     },
     "mineralogy": {
       "type": "string",
@@ -119,6 +124,21 @@
       "type": "number",
       "description": "Distance from the linked mining site to the MRDS occurrence point"
     },
+    "match_status": {
+      "type": "string",
+      "enum": [
+        "matched",
+        "nearby",
+        "unmatched",
+        "historical"
+      ],
+      "default": "unmatched",
+      "description": "How this USGS occurrence relates to the S&S MiningSite inventory: matched = linked to a specific mine, nearby = close but not linked, unmatched = standalone potential/historical deposit, historical = past producer with no current mine link"
+    },
+    "match_method": {
+      "type": "string",
+      "description": "How the match was determined: coordinate, name, cross_reference, proximity"
+    },
     "source_url": {
       "type": "string"
     },
@@ -130,7 +150,6 @@
     }
   },
   "required": [
-    "mining_site_id",
     "mrds_id",
     "occurrence_name"
   ],
