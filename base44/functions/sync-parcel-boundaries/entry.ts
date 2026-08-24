@@ -64,16 +64,9 @@ async function saveVerification(base44: any, site: any, status: string, details:
 }
 
 async function fetchJson(url: string) {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
-      if (!response.ok) throw new Error(`Parcel service ${response.status}`);
-      return await response.json();
-    } catch (error) {
-      if (attempt === 0) await new Promise((r) => setTimeout(r, 800));
-      else throw error;
-    }
-  }
+  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  if (!response.ok) throw new Error(`Parcel service ${response.status}`);
+  return await response.json();
 }
 
 async function lookupParcel(lat: number, lng: number) {
@@ -251,19 +244,30 @@ Deno.serve(async (req) => {
     let matched = 0, matchedWithOwner = 0, noMatch = 0, noCoordinates = 0, errors = 0;
     const errorDetails: string[] = [];
     let processed = 0;
+    let consecutiveTimeouts = 0;
+    let circuitBroken = false;
 
     // Process in concurrent batches, respecting a global time budget.
+    // Circuit breaker: if 4 consecutive sites time out, the API is down — abort early.
     for (let i = 0; i < candidates.length; i += concurrency) {
       if (Date.now() - startedAt > TIME_BUDGET_MS) break;
+      if (circuitBroken) break;
       const batch = candidates.slice(i, i + concurrency);
       const results = await Promise.all(batch.map((site) => processSite(base44, site, verificationBySite.get(site.id))));
       for (const r of results) {
         processed++;
-        if (r.status === "matched_with_owner") { matched++; matchedWithOwner++; }
-        else if (r.status === "matched_no_owner") { matched++; }
-        else if (r.status === "no_match") { noMatch++; }
-        else if (r.status === "no_coordinates") { noCoordinates++; }
-        else { errors++; if (errorDetails.length < 10) errorDetails.push(r.error || "unknown"); }
+        if (r.status === "matched_with_owner") { matched++; matchedWithOwner++; consecutiveTimeouts = 0; }
+        else if (r.status === "matched_no_owner") { matched++; consecutiveTimeouts = 0; }
+        else if (r.status === "no_match") { noMatch++; consecutiveTimeouts = 0; }
+        else if (r.status === "no_coordinates") { noCoordinates++; consecutiveTimeouts = 0; }
+        else {
+          errors++;
+          if (errorDetails.length < 10) errorDetails.push(r.error || "unknown");
+          if (r.error && r.error.includes("timeout")) {
+            consecutiveTimeouts++;
+            if (consecutiveTimeouts >= 4) { circuitBroken = true; break; }
+          }
+        }
       }
     }
 
@@ -280,9 +284,10 @@ Deno.serve(async (req) => {
       no_coordinates: noCoordinates,
       errors,
       error_details: errorDetails,
+      circuit_broken: circuitBroken,
       verification_records_loaded: verificationBySite.size,
       elapsed_ms: Date.now() - startedAt,
-      note: "Owner names sourced from TN Comptroller IMPACT Property Assessment GIS. Coal records are excluded from quarry-owner enrichment, invalid coordinates are quarantined, and recent no-match attempts are suppressed so scheduled runs continue statewide. Boundaries are GIS reference geometry, not legal surveys.",
+      note: "Owner names sourced from TN Comptroller IMPACT Property Assessment GIS. Coal records are excluded from quarry-owner enrichment, invalid coordinates are quarantined, and recent no-match attempts are suppressed so scheduled runs continue statewide. A circuit breaker aborts early when the TN Comptroller API is consistently timing out. Boundaries are GIS reference geometry, not legal surveys.",
     });
   } catch (error) {
     return Response.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
