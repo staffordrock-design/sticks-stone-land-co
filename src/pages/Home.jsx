@@ -9,6 +9,7 @@ import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react"
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import PullToRefresh from "@/components/PullToRefresh";
+import ProfitabilityUpgradeBanner from "@/components/ProfitabilityUpgradeBanner";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
@@ -250,6 +251,8 @@ export default function Home() {
             <span className="font-medium text-foreground">Quarry Intelligence</span>
             <Link to="/mineral-value-guide" className="hover:text-foreground">Mineral Guide</Link>
             <Link to="/mineral-intelligence" className="hover:text-foreground">Mineral Map</Link>
+            <Link to="/compare" className="hover:text-foreground">Compare</Link>
+            <Link to="/watchlist" className="hover:text-foreground">Watchlist</Link>
             <Link to="/subscribe" className="hover:text-foreground">Access</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
@@ -323,6 +326,8 @@ export default function Home() {
         </div>
         {geologyLinked > 0 && <div className="mx-auto max-w-7xl px-6 py-3 text-xs text-slate-500">{geologyLinked.toLocaleString()} geology-linked records currently loaded for screening. Coverage continues to expand as public-source records are connected and verified.</div>}
       </section>
+
+      <ProfitabilityUpgradeBanner />
 
       {/* Priority quarry opportunities */}
       {priorityOpportunities.length > 0 && (
