@@ -249,6 +249,7 @@ export default function Home() {
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
             <span className="font-medium text-foreground">Quarry Intelligence</span>
             <Link to="/mineral-value-guide" className="hover:text-foreground">Mineral Guide</Link>
+            <Link to="/mineral-intelligence" className="hover:text-foreground">Mineral Map</Link>
             <Link to="/subscribe" className="hover:text-foreground">Access</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}

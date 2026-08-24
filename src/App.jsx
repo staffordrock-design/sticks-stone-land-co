@@ -31,6 +31,7 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const OAuthConsent = lazy(() => import('./pages/OAuthConsent'));
 const Support = lazy(() => import('./pages/Support'));
 const MineralValueGuide = lazy(() => import('./pages/MineralValueGuide'));
+const MineralIntelligence = lazy(() => import('./pages/MineralIntelligence'));
 const AdminSellerReview = lazy(() => import('./pages/AdminSellerReview'));
 
 const PageLoader = () => (
@@ -84,6 +85,7 @@ const AuthenticatedApp = () => {
       <Route path="/account-deletion" element={<AccountDeletion />} />
       <Route path="/support" element={<Support />} />
       <Route path="/mineral-value-guide" element={<PaidAccessGate><MineralValueGuide /></PaidAccessGate>} />
+      <Route path="/mineral-intelligence" element={<MineralIntelligence />} />
       <Route path="/admin/seller-review" element={<AdminSellerReview />} />
       <Route path="/admin/deals" element={<DealDesk />} />
       <Route path="/subscribe" element={<Subscription />} />
