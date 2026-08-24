@@ -16,12 +16,13 @@ const STATE_BOUNDS: Record<string, { minLat: number; maxLat: number; minLng: num
 };
 
 function clean(v: unknown) {
-  const s = String(v ?? "").replace(/\s+/g, " ").trim();
+  const s = String(v ?? "").replace(/\s+/g, " ").trim().replace(/^"(.*)"$/, "$1");
   return s || undefined;
 }
 
 function num(v: unknown) {
-  const n = Number(String(v ?? "").trim());
+  const s = String(v ?? "").trim().replace(/^"(.*)"$/, "$1");
+  const n = Number(s);
   return Number.isFinite(n) ? n : undefined;
 }
 
@@ -65,7 +66,7 @@ export default async function(req: Request) {
     const fileName = Object.keys(archive).find((n) => /mine/i.test(n) && /\.txt$|\.csv$|\.dat$/i.test(n)) || Object.keys(archive)[0];
     if (!fileName) throw new Error("MSHA Mines archive contained no data file");
     const rows = rowsFromPipeText(strFromU8(archive[fileName]));
-    const southeast = rows.filter((r: any) => SOUTHEAST_STATES.has(String(r.STATE || "").trim().toUpperCase()));
+    const southeast = rows.filter((r: any) => SOUTHEAST_STATES.has(clean(r.STATE)?.toUpperCase()));
 
     const existing: any[] = [];
     for (let offset = 0; ; offset += 500) {
@@ -81,10 +82,10 @@ export default async function(req: Request) {
       byMineId.get(id)!.push(site);
     }
 
-    let created = 0;
-    let updated = 0;
     let duplicateIds = 0;
     const sample: any[] = [];
+    const toCreate: any[] = [];
+    const toUpdate: any[] = [];
 
     for (const r of southeast) {
       const mineId = clean(r.MINE_ID);
@@ -94,7 +95,7 @@ export default async function(req: Request) {
       const longitude = num(r.LONGITUDE);
       const coordinatesValid = validStateCoordinate(state, latitude, longitude);
       const official = {
-        source: "MSHA",
+        source: "MSHA" as const,
         source_record_id: mineId,
         msha_mine_id: mineId,
         mine_name: clean(r.CURRENT_MINE_NAME) || `MSHA ${mineId}`,
@@ -114,14 +115,13 @@ export default async function(req: Request) {
 
       const matches = byMineId.get(mineId) || [];
       if (!matches.length) {
-        const createdSite = await base44.asServiceRole.entities.MiningSite.create(official);
-        byMineId.set(mineId, [createdSite]);
-        created++;
+        toCreate.push(official);
       } else {
         if (matches.length > 1) duplicateIds++;
         // Update every record carrying this unique MSHA ID so older imports cannot disagree.
         for (const site of matches) {
-          const merged = {
+          toUpdate.push({
+            id: site.id,
             ...official,
             // Preserve S&S-linked fields that MSHA does not own.
             tdec_permit_number: site.tdec_permit_number || undefined,
@@ -140,12 +140,26 @@ export default async function(req: Request) {
             is_verified_listing: Boolean(site.is_verified_listing),
             listing_id: site.listing_id || undefined,
             notes: site.notes || undefined,
-          };
-          await base44.asServiceRole.entities.MiningSite.update(site.id, merged);
-          updated++;
+          });
         }
       }
-      if (sample.length < 12) sample.push({ mine_id: mineId, name: official.mine_name, status: official.mine_status, operator: official.operator_name });
+      if (sample.length < 12) sample.push({ mine_id: mineId, name: official.mine_name, status: official.mine_status, operator: official.operator_name, state });
+    }
+
+    // Bulk create new records in batches of 500 to avoid rate limits.
+    let created = 0;
+    for (let i = 0; i < toCreate.length; i += 500) {
+      const batch = toCreate.slice(i, i + 500);
+      const result = await base44.asServiceRole.entities.MiningSite.bulkCreate(batch);
+      created += batch.length;
+    }
+
+    // Bulk update existing records in batches of 500.
+    let updated = 0;
+    for (let i = 0; i < toUpdate.length; i += 500) {
+      const batch = toUpdate.slice(i, i + 500);
+      await base44.asServiceRole.entities.MiningSite.bulkUpdate(batch);
+      updated += batch.length;
     }
 
     await upsertFreshness(base44, {
