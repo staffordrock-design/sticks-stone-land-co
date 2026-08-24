@@ -36,6 +36,10 @@ const AdminSellerReview = lazy(() => import('./pages/AdminSellerReview'));
 const QuarryCompare = lazy(() => import('./pages/QuarryCompare'));
 const QuarryWatchlist = lazy(() => import('./pages/QuarryWatchlist'));
 const DealInvestor = lazy(() => import('./pages/DealInvestor'));
+const SellProperty = lazy(() => import('./pages/SellProperty'));
+const SellerPortal = lazy(() => import('./pages/SellerPortal'));
+const BuyerProfile = lazy(() => import('./pages/BuyerProfile'));
+const MyOpportunities = lazy(() => import('./pages/MyOpportunities'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -94,6 +98,10 @@ const AuthenticatedApp = () => {
       <Route path="/compare" element={<QuarryCompare />} />
       <Route path="/watchlist" element={<QuarryWatchlist />} />
       <Route path="/deal-investor" element={<DealInvestor />} />
+      <Route path="/sell" element={<SellProperty />} />
+      <Route path="/seller-portal" element={<SellerPortal />} />
+      <Route path="/buyer-profile" element={<BuyerProfile />} />
+      <Route path="/opportunities" element={<MyOpportunities />} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
