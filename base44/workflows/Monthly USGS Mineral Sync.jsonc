@@ -1,0 +1,318 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 6 1 * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Monthly USGS Mineral Sync",
+  "description": "Runs monthly on the 1st at 06:00 UTC: syncs USGS MRDS mineral occurrence data for all 8 Southeast states (TN, GA, AL, KY, NC, SC, FL, MS), enriches each state with detailed mineralogy/deposit/host-rock fields, then appends a per-state summary report to a Google Sheet for import verification.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "monthly_usgs_mineral_sync",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sync_tn": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-mrds-southeast",
+            "args": {
+              "state": "TN"
+            }
+          },
+          "then": "sync_ga",
+          "x-base44": {
+            "title": "Sync Tennessee",
+            "description": "Pull latest USGS MRDS records for TN"
+          }
+        }
+      },
+      {
+        "sync_ga": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-mrds-southeast",
+            "args": {
+              "state": "GA"
+            }
+          },
+          "then": "sync_al",
+          "x-base44": {
+            "title": "Sync Georgia",
+            "description": "Pull latest USGS MRDS records for GA"
+          }
+        }
+      },
+      {
+        "sync_al": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-mrds-southeast",
+            "args": {
+              "state": "AL"
+            }
+          },
+          "then": "sync_ky",
+          "x-base44": {
+            "title": "Sync Alabama",
+            "description": "Pull latest USGS MRDS records for AL"
+          }
+        }
+      },
+      {
+        "sync_ky": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-mrds-southeast",
+            "args": {
+              "state": "KY"
+            }
+          },
+          "then": "sync_nc",
+          "x-base44": {
+            "title": "Sync Kentucky",
+            "description": "Pull latest USGS MRDS records for KY"
+          }
+        }
+      },
+      {
+        "sync_nc": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-mrds-southeast",
+            "args": {
+              "state": "NC"
+            }
+          },
+          "then": "sync_sc",
+          "x-base44": {
+            "title": "Sync North Carolina",
+            "description": "Pull latest USGS MRDS records for NC"
+          }
+        }
+      },
+      {
+        "sync_sc": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-mrds-southeast",
+            "args": {
+              "state": "SC"
+            }
+          },
+          "then": "sync_fl",
+          "x-base44": {
+            "title": "Sync South Carolina",
+            "description": "Pull latest USGS MRDS records for SC"
+          }
+        }
+      },
+      {
+        "sync_fl": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-mrds-southeast",
+            "args": {
+              "state": "FL"
+            }
+          },
+          "then": "sync_ms",
+          "x-base44": {
+            "title": "Sync Florida",
+            "description": "Pull latest USGS MRDS records for FL"
+          }
+        }
+      },
+      {
+        "sync_ms": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-mrds-southeast",
+            "args": {
+              "state": "MS"
+            }
+          },
+          "then": "enrich_tn",
+          "x-base44": {
+            "title": "Sync Mississippi",
+            "description": "Pull latest USGS MRDS records for MS"
+          }
+        }
+      },
+      {
+        "enrich_tn": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrich-usgs-mrds-details",
+            "args": {
+              "state": "TN"
+            }
+          },
+          "then": "enrich_ga",
+          "x-base44": {
+            "title": "Enrich Tennessee",
+            "description": "Enrich TN records with detailed mineralogy"
+          }
+        }
+      },
+      {
+        "enrich_ga": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrich-usgs-mrds-details",
+            "args": {
+              "state": "GA"
+            }
+          },
+          "then": "enrich_al",
+          "x-base44": {
+            "title": "Enrich Georgia",
+            "description": "Enrich GA records with detailed mineralogy"
+          }
+        }
+      },
+      {
+        "enrich_al": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrich-usgs-mrds-details",
+            "args": {
+              "state": "AL"
+            }
+          },
+          "then": "enrich_ky",
+          "x-base44": {
+            "title": "Enrich Alabama",
+            "description": "Enrich AL records with detailed mineralogy"
+          }
+        }
+      },
+      {
+        "enrich_ky": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrich-usgs-mrds-details",
+            "args": {
+              "state": "KY"
+            }
+          },
+          "then": "enrich_nc",
+          "x-base44": {
+            "title": "Enrich Kentucky",
+            "description": "Enrich KY records with detailed mineralogy"
+          }
+        }
+      },
+      {
+        "enrich_nc": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrich-usgs-mrds-details",
+            "args": {
+              "state": "NC"
+            }
+          },
+          "then": "enrich_sc",
+          "x-base44": {
+            "title": "Enrich North Carolina",
+            "description": "Enrich NC records with detailed mineralogy"
+          }
+        }
+      },
+      {
+        "enrich_sc": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrich-usgs-mrds-details",
+            "args": {
+              "state": "SC"
+            }
+          },
+          "then": "enrich_fl",
+          "x-base44": {
+            "title": "Enrich South Carolina",
+            "description": "Enrich SC records with detailed mineralogy"
+          }
+        }
+      },
+      {
+        "enrich_fl": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrich-usgs-mrds-details",
+            "args": {
+              "state": "FL"
+            }
+          },
+          "then": "enrich_ms",
+          "x-base44": {
+            "title": "Enrich Florida",
+            "description": "Enrich FL records with detailed mineralogy"
+          }
+        }
+      },
+      {
+        "enrich_ms": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enrich-usgs-mrds-details",
+            "args": {
+              "state": "MS"
+            }
+          },
+          "then": "log_to_sheets",
+          "x-base44": {
+            "title": "Enrich Mississippi",
+            "description": "Enrich MS records with detailed mineralogy"
+          }
+        }
+      },
+      {
+        "log_to_sheets": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "log-usgs-sync-to-sheets",
+            "args": {
+              "sync_tn": "${ .sync_tn }",
+              "sync_ga": "${ .sync_ga }",
+              "sync_al": "${ .sync_al }",
+              "sync_ky": "${ .sync_ky }",
+              "sync_nc": "${ .sync_nc }",
+              "sync_sc": "${ .sync_sc }",
+              "sync_fl": "${ .sync_fl }",
+              "sync_ms": "${ .sync_ms }",
+              "enrich_tn": "${ .enrich_tn }",
+              "enrich_ga": "${ .enrich_ga }",
+              "enrich_al": "${ .enrich_al }",
+              "enrich_ky": "${ .enrich_ky }",
+              "enrich_nc": "${ .enrich_nc }",
+              "enrich_sc": "${ .enrich_sc }",
+              "enrich_fl": "${ .enrich_fl }",
+              "enrich_ms": "${ .enrich_ms }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Log Summary to Google Sheets",
+            "description": "Append per-state sync results to the report spreadsheet"
+          }
+        }
+      }
+    ]
+  }
+}
