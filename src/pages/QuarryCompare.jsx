@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
+import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
 
 const MAX_COMPARE = 5;
 
@@ -44,8 +45,12 @@ export default function QuarryCompare() {
           user?.id ? base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 20) : Promise.resolve([]),
         ]);
         setSites(siteRows || []);
-        if (user?.role === "admin") setHasProfessional(true);
-        else setHasProfessional((entitlements || []).some((e) => ["active","trial","grace_period"].includes(e.status) && /^professional(_|$)|^deal(_|$)/.test(String(e.plan_code || ""))));
+        const appleAccess = isNativeIOS() ? await currentAppleSubscriptionAccess().catch(() => null) : null;
+        const entitlementProfessional = (entitlements || []).some((e) =>
+          ["active","trial","grace_period"].includes(e.status) &&
+          (/^professional(_|$)/.test(String(e.plan_code || "")) || /^deal(_|$)/.test(String(e.plan_code || "")))
+        );
+        setHasProfessional(user?.role === "admin" || Boolean(appleAccess?.professional) || entitlementProfessional);
         const ids = String(params.get("ids") || "").split(",").filter(Boolean).slice(0, MAX_COMPARE);
         const initial = ids.map((id) => (siteRows || []).find((s) => s.id === id)).filter(Boolean);
         setSelected(initial);
@@ -60,15 +65,18 @@ export default function QuarryCompare() {
       const next = { ...records };
       await Promise.all(selected.map(async (site) => {
         if (next[site.id]) return;
-        const link = { $or: [{ mining_site_id: site.id }, ...(site.msha_mine_id ? [{ msha_mine_id: site.msha_mine_id }] : [])] };
+        const siteLink = { $or: [{ mining_site_id: site.id }, ...(site.msha_mine_id ? [{ msha_mine_id: site.msha_mine_id }] : [])] };
+        const parcelConditions = [site.parcel_id ? { parcel_id: site.parcel_id } : null, site.msha_mine_id ? { msha_mine_id: site.msha_mine_id } : null, site.tdec_permit_number ? { tdec_permit_number: site.tdec_permit_number } : null].filter(Boolean);
+        const permitConditions = [site.msha_mine_id ? { msha_mine_id: site.msha_mine_id } : null, site.tdec_permit_number ? { permit_number: site.tdec_permit_number } : null].filter(Boolean);
+        const environmentalConditions = [site.msha_mine_id ? { msha_mine_id: site.msha_mine_id } : null, site.npdes_permit_number ? { npdes_permit_number: site.npdes_permit_number } : null].filter(Boolean);
         const [parcels, geology, permits, environmental, violations, production, profiles] = await Promise.all([
-          base44.entities.ParcelRecord.filter(link, "-updated_date", 10).catch(() => []),
-          base44.entities.GeologyRecord.filter(link, "-updated_date", 10).catch(() => []),
-          base44.entities.TDECPermit.filter(link, "-updated_date", 10).catch(() => []),
-          base44.entities.EnvironmentalRecord.filter(link, "-updated_date", 50).catch(() => []),
+          parcelConditions.length ? base44.entities.ParcelRecord.filter({ $or: parcelConditions }, "-updated_date", 10).catch(() => []) : [],
+          base44.entities.GeologyRecord.filter(siteLink, "-updated_date", 10).catch(() => []),
+          permitConditions.length ? base44.entities.TDECPermit.filter({ $or: permitConditions }, "-updated_date", 10).catch(() => []) : [],
+          environmentalConditions.length ? base44.entities.EnvironmentalRecord.filter({ $or: environmentalConditions }, "-updated_date", 50).catch(() => []) : [],
           site.msha_mine_id ? base44.entities.MSHAViolation.filter({ msha_mine_id: site.msha_mine_id }, "-issue_date", 100).catch(() => []) : [],
-          base44.entities.ProductionRecord.filter(link, "-year", 30).catch(() => []),
-          base44.entities.QuarryPotentialProfile.filter(link, "-updated_date", 5).catch(() => []),
+          base44.entities.ProductionRecord.filter(siteLink, "-year", 30).catch(() => []),
+          base44.entities.QuarryPotentialProfile.filter(siteLink, "-updated_date", 5).catch(() => []),
         ]);
         const parcel = parcels?.[0] || null;
         const geo = geology?.[0] || null;
