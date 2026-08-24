@@ -66,11 +66,11 @@ async function saveVerification(base44: any, site: any, status: string, details:
 async function fetchJson(url: string) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const response = await fetch(url, { signal: AbortSignal.timeout(25000) });
+      const response = await fetch(url, { signal: AbortSignal.timeout(12000) });
       if (!response.ok) throw new Error(`Parcel service ${response.status}`);
       return await response.json();
     } catch (error) {
-      if (attempt === 0) await new Promise((r) => setTimeout(r, 1000));
+      if (attempt === 0) await new Promise((r) => setTimeout(r, 800));
       else throw error;
     }
   }
@@ -208,34 +208,38 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me().catch(() => null);
     if (user && user.role !== "admin") return Response.json({ error: "Admin access required" }, { status: 403 });
     const body = await req.json().catch(() => ({}));
-    const limit = Math.min(Math.max(Number(body?.limit || 40), 1), 500);
-    const concurrency = Math.min(Math.max(Number(body?.concurrency || 3), 1), 5);
+    const limit = Math.min(Math.max(Number(body?.limit || 25), 1), 40);
+    const concurrency = Math.min(Math.max(Number(body?.concurrency || 2), 1), 3);
+    const startedAt = Date.now();
+    const TIME_BUDGET_MS = 240000; // 4 min budget, leaving 60s buffer under the 5 min function limit
 
-    // Load all TN sites
+    // Load TN sites — stop early once we have enough quarry-relevant candidates without owners.
     const allSites: any[] = [];
-    for (let skip = 0; skip < 5000; skip += 500) {
+    const candidateSites: any[] = [];
+    for (let skip = 0; skip < 5000 && candidateSites.length < limit * 4; skip += 500) {
       const batch = await base44.asServiceRole.entities.MiningSite.filter({ state: "TN" }, "-updated_date", 500, skip);
       allSites.push(...(batch || []));
+      for (const s of batch || []) {
+        if (isQuarryRelevant(s) && (!s.parcel_owner || !String(s.parcel_owner).trim())) candidateSites.push(s);
+      }
       if (!batch || batch.length < 500) break;
     }
 
-    // Load prior lookup outcomes so scheduled runs advance through the state instead of
-    // repeatedly retrying the same no-match records every two hours.
-    const verifications: any[] = [];
-    for (let skip = 0; skip < 10000; skip += 500) {
-      const batch = await base44.asServiceRole.entities.ParcelOwnershipVerification.list("-verified_at", 500, skip);
-      verifications.push(...(batch || []));
-      if (!batch || batch.length < 500) break;
-    }
+    // Load only the verification records for candidate sites (not all 10000+).
+    // Bulk-filter by mining_site_id in batches to avoid loading the entire table.
+    const candidateIds = candidateSites.map((s) => s.id);
     const verificationBySite = new Map<string, any>();
-    for (const v of verifications) if (v.mining_site_id && !verificationBySite.has(v.mining_site_id)) verificationBySite.set(v.mining_site_id, v);
+    for (let i = 0; i < candidateIds.length; i += 50) {
+      const chunk = candidateIds.slice(i, i + 50);
+      const orConditions = chunk.map((id) => ({ mining_site_id: id }));
+      const rows = await base44.asServiceRole.entities.ParcelOwnershipVerification.filter({ $or: orConditions }, "-verified_at", 50);
+      for (const v of rows || []) if (v.mining_site_id && !verificationBySite.has(v.mining_site_id)) verificationBySite.set(v.mining_site_id, v);
+    }
 
     // Focus parcel-owner work on quarry/aggregate records, not coal, and suppress recent
     // failures. Invalid MSHA coordinates are recorded once and revisited later rather than
     // consuming every scheduled batch.
-    const candidates = allSites
-      .filter(isQuarryRelevant)
-      .filter((s) => !s.parcel_owner || !String(s.parcel_owner).trim())
+    const candidates = candidateSites
       .filter((s) => shouldRetryVerification(verificationBySite.get(s.id)))
       .sort((a, b) => {
         const priority = Number(isPriorityStatus(b.mine_status)) - Number(isPriorityStatus(a.mine_status));
@@ -246,12 +250,15 @@ Deno.serve(async (req) => {
 
     let matched = 0, matchedWithOwner = 0, noMatch = 0, noCoordinates = 0, errors = 0;
     const errorDetails: string[] = [];
+    let processed = 0;
 
-    // Process in concurrent batches
+    // Process in concurrent batches, respecting a global time budget.
     for (let i = 0; i < candidates.length; i += concurrency) {
+      if (Date.now() - startedAt > TIME_BUDGET_MS) break;
       const batch = candidates.slice(i, i + concurrency);
       const results = await Promise.all(batch.map((site) => processSite(base44, site, verificationBySite.get(site.id))));
       for (const r of results) {
+        processed++;
         if (r.status === "matched_with_owner") { matched++; matchedWithOwner++; }
         else if (r.status === "matched_no_owner") { matched++; }
         else if (r.status === "no_match") { noMatch++; }
@@ -266,14 +273,15 @@ Deno.serve(async (req) => {
       total_sites: allSites.length,
       candidates: candidates.length,
       queried: candidates.length,
-      processed: candidates.length,
+      processed,
       matched,
       matched_with_owner: matchedWithOwner,
       no_match: noMatch,
       no_coordinates: noCoordinates,
       errors,
       error_details: errorDetails,
-      verification_records_loaded: verifications.length,
+      verification_records_loaded: verificationBySite.size,
+      elapsed_ms: Date.now() - startedAt,
       note: "Owner names sourced from TN Comptroller IMPACT Property Assessment GIS. Coal records are excluded from quarry-owner enrichment, invalid coordinates are quarantined, and recent no-match attempts are suppressed so scheduled runs continue statewide. Boundaries are GIS reference geometry, not legal surveys.",
     });
   } catch (error) {
