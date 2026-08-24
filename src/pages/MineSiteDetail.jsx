@@ -12,6 +12,7 @@ import { isReviewDemoMode } from "@/lib/reviewDemo";
 import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
+import QuarryActionBar from "@/components/QuarryActionBar";
 
 function worldImageryTile(lat, lng, state, zoom = 15) {
   if (!isPlausibleSoutheastCoordinate(lat, lng, state)) return null;
@@ -460,6 +461,8 @@ export default function MineSiteDetail() {
             )}
           </div>
         </div>
+
+        <div className="mb-6"><QuarryActionBar site={site} /></div>
 
         {reportMessage && <div className="mb-6 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-950">{reportMessage}</div>}
 
