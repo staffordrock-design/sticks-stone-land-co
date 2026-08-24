@@ -44,7 +44,18 @@ export default async function(req: Request) {
       return Response.json({ error: "Admin access required" }, { status: 403 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const limit = Math.min(Math.max(Number(body?.limit || 40), 1), 200);
+
     const sites = await base44.asServiceRole.entities.MiningSite.list("-updated_date", 500);
+    // Process only TN sites that don't already have a geology record from this source,
+    // bounded by the limit so each invocation stays within the platform timeout.
+    const tnSites = (sites || []).filter((s: any) => String(s.state || "").toUpperCase() === "TN" && validCoord(s.latitude, s.longitude));
+    const existingGeology = await base44.asServiceRole.entities.GeologyRecord.list("-updated_date", 500);
+    const sitesWithGeology = new Set((existingGeology || []).filter((r: any) => r.source_agency === GEOLOGY_SOURCE).map((r: any) => r.mining_site_id));
+    const candidates = tnSites.filter((s: any) => !sitesWithGeology.has(s.id)).slice(0, limit);
+    const toProcess = candidates.length ? candidates : tnSites.slice(0, limit);
+
     let queried = 0;
     let matched = 0;
     let created = 0;
@@ -53,12 +64,7 @@ export default async function(req: Request) {
     let noCoordinates = 0;
     const sample: any[] = [];
 
-    for (const site of sites || []) {
-      if (String(site.state || "").toUpperCase() !== "TN") continue;
-      if (!validCoord(site.latitude, site.longitude)) {
-        noCoordinates++;
-        continue;
-      }
+    for (const site of toProcess) {
       queried++;
 
       try {
