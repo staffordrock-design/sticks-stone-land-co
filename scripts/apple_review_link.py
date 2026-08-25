@@ -23,7 +23,7 @@ import jwt
 import requests
 
 API = "https://api.appstoreconnect.apple.com"
-BUNDLE_ID = "com.base6a78376a454093ba2f431acd.app"
+BUNDLE_ID = "com.ssrockholdings.quarrymarketplace"
 ISSUER_ID = os.getenv("ASC_ISSUER_ID", "7097918c-2758-4720-b0fa-938914c24b36")
 KEY_IDS = [x.strip() for x in os.getenv("ASC_KEY_IDS", "").split(",") if x.strip()]
 PRIVATE_KEY = os.getenv("ASC_PRIVATE_KEY", "")
