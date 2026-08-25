@@ -1,154 +1,81 @@
 {
   "actions": [],
-  "app_id": "6802014287",
-  "app_store_version": {
-    "app_store_state": "WAITING_FOR_REVIEW",
-    "app_version_state": "WAITING_FOR_REVIEW",
-    "id": "094ac4b1-2b6f-4858-a46a-4871a3bc69d2",
-    "version_string": "2.130297.1"
-  },
+  "app_id": "6801479135",
+  "app_store_version": null,
   "authenticated": true,
-  "bundle_id": "com.base6a78376a454093ba2f431acd.app",
-  "errors": [],
-  "generated_at": "2026-08-19T18:25:00.412575+00:00",
+  "bundle_id": "com.ssrockholdings.quarrymarketplace",
+  "errors": [
+    "com.ssrockholdings.marketplace.monthly: product not found",
+    "com.ssrockholdings.marketplace.annual: product not found",
+    "com.ssrockholdings.professional.monthly: product not found",
+    "com.ssrockholdings.professional.annual: product not found"
+  ],
+  "generated_at": "2026-08-25T12:11:05.294213+00:00",
   "key_id_used": "2A3958GU5F",
   "products": {
     "com.ssrockholdings.marketplace.annual": {
+      "error": "Product ID not found under this app's subscription groups",
       "expected_usa_price": "690.00",
-      "group_id": "22312976",
-      "linked_to_current_review": true,
-      "price_status": "MATCHES_EXPECTED",
+      "group_id": null,
+      "linked_to_current_review": false,
+      "price_status": null,
       "product_id": "com.ssrockholdings.marketplace.annual",
-      "subscription_id": "6802019423",
-      "subscription_state": "IN_REVIEW",
-      "subscription_version_id": "fad44f73-d52c-4440-bdeb-a473393561b5",
-      "subscription_version_state": "IN_REVIEW",
-      "usa_pricing": {
-        "current": {
-          "customer_price": "690.0",
-          "preserved": false,
-          "price_point_id": "eyJzIjoiNjgwMjAxOTQyMyIsInQiOiJVU0EiLCJwIjoiMTA3MzEifQ",
-          "start_date": null
-        },
-        "schedule": [
-          {
-            "customer_price": "690.0",
-            "preserved": false,
-            "price_point_id": "eyJzIjoiNjgwMjAxOTQyMyIsInQiOiJVU0EiLCJwIjoiMTA3MzEifQ",
-            "start_date": null
-          }
-        ]
-      },
-      "version_images": 0,
-      "version_localizations": 1
+      "subscription_id": null,
+      "subscription_state": null,
+      "subscription_version_id": null,
+      "subscription_version_state": null,
+      "usa_pricing": null,
+      "version_images": null,
+      "version_localizations": null
     },
     "com.ssrockholdings.marketplace.monthly": {
+      "error": "Product ID not found under this app's subscription groups",
       "expected_usa_price": "69.00",
-      "group_id": "22312976",
-      "linked_to_current_review": true,
-      "price_status": "MATCHES_EXPECTED",
+      "group_id": null,
+      "linked_to_current_review": false,
+      "price_status": null,
       "product_id": "com.ssrockholdings.marketplace.monthly",
-      "subscription_id": "6802019025",
-      "subscription_state": "IN_REVIEW",
-      "subscription_version_id": "777d7c98-ed59-4466-af77-e4b98c8b0f2f",
-      "subscription_version_state": "IN_REVIEW",
-      "usa_pricing": {
-        "current": {
-          "customer_price": "69.0",
-          "preserved": false,
-          "price_point_id": "eyJzIjoiNjgwMjAxOTAyNSIsInQiOiJVU0EiLCJwIjoiMTAzODUifQ",
-          "start_date": null
-        },
-        "schedule": [
-          {
-            "customer_price": "69.0",
-            "preserved": false,
-            "price_point_id": "eyJzIjoiNjgwMjAxOTAyNSIsInQiOiJVU0EiLCJwIjoiMTAzODUifQ",
-            "start_date": null
-          }
-        ]
-      },
-      "version_images": 0,
-      "version_localizations": 1
+      "subscription_id": null,
+      "subscription_state": null,
+      "subscription_version_id": null,
+      "subscription_version_state": null,
+      "usa_pricing": null,
+      "version_images": null,
+      "version_localizations": null
     },
     "com.ssrockholdings.professional.annual": {
-      "closest_apple_price": "1000.00",
-      "expected_usa_price": "1390.00",
-      "group_id": "22312976",
-      "linked_to_current_review": true,
-      "nearest_valid_usa_price_points": [
-        "1000.00",
-        "999.99",
-        "999.00",
-        "990.00",
-        "989.99",
-        "989.00",
-        "979.99",
-        "979.00"
-      ],
-      "price_status": "EXPECTED_PRICE_POINT_NOT_FOUND",
+      "error": "Product ID not found under this app's subscription groups",
+      "expected_usa_price": "1000.00",
+      "group_id": null,
+      "linked_to_current_review": false,
+      "price_status": null,
       "product_id": "com.ssrockholdings.professional.annual",
-      "subscription_id": "6802019468",
-      "subscription_state": "IN_REVIEW",
-      "subscription_version_id": "686b02fc-84db-4667-abe9-177ae59c71aa",
-      "subscription_version_state": "IN_REVIEW",
-      "usa_pricing": {
-        "current": {
-          "customer_price": "1000.0",
-          "preserved": false,
-          "price_point_id": "eyJzIjoiNjgwMjAxOTQ2OCIsInQiOiJVU0EiLCJwIjoiMTA4MDAifQ",
-          "start_date": null
-        },
-        "schedule": [
-          {
-            "customer_price": "1000.0",
-            "preserved": false,
-            "price_point_id": "eyJzIjoiNjgwMjAxOTQ2OCIsInQiOiJVU0EiLCJwIjoiMTA4MDAifQ",
-            "start_date": null
-          }
-        ]
-      },
-      "version_images": 0,
-      "version_localizations": 1
+      "subscription_id": null,
+      "subscription_state": null,
+      "subscription_version_id": null,
+      "subscription_version_state": null,
+      "usa_pricing": null,
+      "version_images": null,
+      "version_localizations": null
     },
     "com.ssrockholdings.professional.monthly": {
+      "error": "Product ID not found under this app's subscription groups",
       "expected_usa_price": "139.00",
-      "group_id": "22312976",
-      "linked_to_current_review": true,
-      "price_status": "MATCHES_EXPECTED",
+      "group_id": null,
+      "linked_to_current_review": false,
+      "price_status": null,
       "product_id": "com.ssrockholdings.professional.monthly",
-      "subscription_id": "6802019370",
-      "subscription_state": "IN_REVIEW",
-      "subscription_version_id": "de0e0f40-11c0-47ca-8d78-775358f26f07",
-      "subscription_version_state": "IN_REVIEW",
-      "usa_pricing": {
-        "current": {
-          "customer_price": "139.0",
-          "preserved": false,
-          "price_point_id": "eyJzIjoiNjgwMjAxOTM3MCIsInQiOiJVU0EiLCJwIjoiMTA1MjEifQ",
-          "start_date": null
-        },
-        "schedule": [
-          {
-            "customer_price": "139.0",
-            "preserved": false,
-            "price_point_id": "eyJzIjoiNjgwMjAxOTM3MCIsInQiOiJVU0EiLCJwIjoiMTA1MjEifQ",
-            "start_date": null
-          }
-        ]
-      },
-      "version_images": 0,
-      "version_localizations": 1
+      "subscription_id": null,
+      "subscription_state": null,
+      "subscription_version_id": null,
+      "subscription_version_state": null,
+      "usa_pricing": null,
+      "version_images": null,
+      "version_localizations": null
     }
   },
-  "review_submission": {
-    "editable": false,
-    "id": "dea0049c-0adb-4b39-828f-38563051e5e2",
-    "state": "WAITING_FOR_REVIEW",
-    "submitted_date": "2026-08-18T08:15:58.145Z",
-    "subscription_version_item_count": 4
-  },
+  "review_submission": null,
   "warnings": [
-    "com.ssrockholdings.professional.annual: Apple has no close USA price point for $1390.00; nearest available is $1000.00"
+    "No active iOS review submission was found for this app."
   ]
 }
