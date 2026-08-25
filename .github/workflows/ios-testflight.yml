@@ -226,7 +226,7 @@ jobs:
           ARCHIVE_BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")
           echo "Archive version: $ARCHIVE_VERSION"
           echo "Archive build: $ARCHIVE_BUILD"
-          test "$ARCHIVE_VERSION" = "2.130297.1" || { echo "::error title=Wrong App Store version::Expected 2.130297.1, got $ARCHIVE_VERSION"; exit 1; }
+          test "$ARCHIVE_VERSION" = "1.0" || { echo "::error title=Wrong App Store version::Expected 1.0, got $ARCHIVE_VERSION"; exit 1; }
           test "$ARCHIVE_BUILD" = "$IOS_BUILD_NUMBER" || { echo "::error title=Wrong iOS build number::Expected $IOS_BUILD_NUMBER, got $ARCHIVE_BUILD"; exit 1; }
 
       - name: Create App Store Connect export options
