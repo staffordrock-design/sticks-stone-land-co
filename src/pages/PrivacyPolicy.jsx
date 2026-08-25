@@ -13,18 +13,87 @@ export default function PrivacyPolicy() {
       <main className="mx-auto max-w-4xl px-6 py-12">
         <div className="mb-8 flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-stone-900 text-white"><ShieldCheck className="h-5 w-5" /></div><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Legal</p><h1 className="font-heading text-3xl font-bold">Privacy Policy</h1></div></div>
         <div className="space-y-7 text-sm leading-7 text-muted-foreground">
-          <p><strong className="text-foreground">Effective date: August 11, 2026.</strong> S&S Rock Holdings LLC operates S&S Rock Holdings, providing industrial quarry intelligence, GIS, geology, regulatory, ownership, and due-diligence research tools. This policy explains the information collected when you use our website or app and how it is used.</p>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Information we collect</h2><p className="mt-2">We may collect account information such as your name, email address, user ID, company, role, and authentication information; research requests, report requests, or NDA information you submit; and activity information such as pages and listings viewed, mine or property profiles viewed, timestamps, session identifiers, referrer information, and device/browser user-agent information. We may also receive payment confirmation and customer details from Stripe for website purchases. We do not store full payment-card numbers.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">How we use information</h2><p className="mt-2">We use information to operate accounts, provide and secure intelligence and data-room access, improve search and GIS features, understand product usage, respond to requests, maintain audit and transaction records, prevent misuse, and comply with legal obligations.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Public-source property and mining data</h2><p className="mt-2">The service may display information obtained from public or licensed sources, including mine, permit, environmental, parcel, tax, geology, ownership, and regulatory datasets. Those records may describe properties or businesses rather than app users. Source attribution and limitations are shown where available.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Service providers</h2><p className="mt-2">We use service providers to host and operate the product and process website payments. These may include Base44 for application infrastructure and Stripe for website checkout/payment processing. We may also use mapping, GIS, public-data, or infrastructure providers necessary to deliver the service.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Viewer analytics</h2><p className="mt-2">For signed-in users, the service may associate viewing activity with the user account so S&S Rock Holdings can understand which mine, quarry, listing, or data page was viewed and when. Anonymous sessions may be recorded without claiming to know the visitor's real identity.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Payments</h2><p className="mt-2">Stripe checkout for confidential data-room access is offered on the website. The native mobile app does not launch that external checkout. If website access is purchased, the resulting entitlement may be recognized by the app when you sign in with the same account.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Retention and security</h2><p className="mt-2">We retain information for as long as reasonably necessary to provide the service, preserve transaction and NDA records, meet legal obligations, resolve disputes, and protect the service. We use access controls and other reasonable safeguards, but no online system can guarantee absolute security.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Your choices</h2><p className="mt-2">You may request deletion of your S&S Rock Holdings account from the in-app Account Deletion page. Some records may be retained when required for legal, fraud-prevention, financial, NDA, or transaction-record purposes. You may also stop using the service at any time.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Children</h2><p className="mt-2">This service is intended for business, real-estate, mining, land, and investment users and is not directed to children under 13.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Contact and support</h2><p className="mt-2">Questions about privacy, account data, or the service can be sent through the <Link to="/support" className="underline">S&amp;S Rock Holdings Support page</Link>. Account deletion can be initiated from the <Link to="/account/delete" className="underline">Account Deletion page</Link>.</p></section>
-          <section><h2 className="font-heading text-xl font-bold text-foreground">Changes</h2><p className="mt-2">We may update this policy as the product changes. The effective date above will be revised when material changes are published.</p></section>
+          <p><strong className="text-foreground">Last updated: August 25, 2026.</strong> This Privacy Policy explains how Sticks &amp; Stone Land Co. ("we," "us," "our") collects, uses, and protects information when you use our mobile application and related services (the "Service").</p>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">1. Information We Collect</h2>
+            <div className="mt-3 space-y-3">
+              <div><strong className="text-foreground">Account Information</strong><p className="mt-1">When you create an account, we collect your name, email address, company/organization name, and role (e.g., buyer, seller, broker).</p></div>
+              <div><strong className="text-foreground">Transaction &amp; Subscription Information</strong><p className="mt-1">We collect subscription plan details, billing status, and payment confirmation data. Payment card details are processed by Apple (via In-App Purchase) or our payment processor — we do not store your full payment card number.</p></div>
+              <div><strong className="text-foreground">Deal &amp; Listing Data</strong><p className="mt-1">Information you submit related to land parcels, listings, offers, deal documents, and communications with other users through the platform.</p></div>
+              <div><strong className="text-foreground">Property &amp; Public Records Data</strong><p className="mt-1">Parcel ownership, permit, environmental, and mining safety records we display are sourced from public and licensed third-party data providers (including government sources such as USGS and MSHA). This is not personal information about you, but may relate to landowners or businesses referenced in listings.</p></div>
+              <div><strong className="text-foreground">Usage Data</strong><p className="mt-1">Device type, app version, log data, and how you interact with the app, collected automatically for analytics and troubleshooting.</p></div>
+              <div><strong className="text-foreground">Documents You Upload</strong><p className="mt-1">Files you upload to data rooms, NDAs, or deal documentation, which may be shared with other users you authorize (e.g., a counterparty in a deal).</p></div>
+            </div>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">2. How We Use Information</h2>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>To provide, operate, and maintain the Service</li>
+              <li>To process subscriptions and payments</li>
+              <li>To facilitate deals, communications, and document sharing between buyers and sellers</li>
+              <li>To generate valuation reports and data-backed insights</li>
+              <li>To send transactional notifications (billing, deal updates, account activity)</li>
+              <li>To improve the Service and troubleshoot issues</li>
+              <li>To comply with legal obligations</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">3. How We Share Information</h2>
+            <p className="mt-2">We do not sell your personal information. We may share information:</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li><strong className="text-foreground">With other users</strong> you choose to interact with (e.g., a seller you submit an offer to)</li>
+              <li><strong className="text-foreground">With service providers</strong> who help us operate the Service (hosting, payment processing, analytics)</li>
+              <li><strong className="text-foreground">With Apple</strong> for subscription and payment processing via In-App Purchase</li>
+              <li><strong className="text-foreground">For legal reasons</strong>, if required by law, subpoena, or to protect our rights</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">4. Data Retention</h2>
+            <p className="mt-2">We retain account and deal data for as long as your account is active or as needed to provide the Service, comply with legal obligations, resolve disputes, and enforce agreements.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">5. Your Choices</h2>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>You can access and update your account information within the app</li>
+              <li>You can request deletion of your account and associated data by contacting us (see below), subject to legal retention requirements</li>
+              <li>You can manage subscription and notification preferences within the app or your Apple ID account settings</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">6. Data Security</h2>
+            <p className="mt-2">We use commercially reasonable technical and organizational measures to protect your information. No system is completely secure, and we cannot guarantee absolute security.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">7. Children's Privacy</h2>
+            <p className="mt-2">The Service is not directed to individuals under 18. We do not knowingly collect information from children.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">8. Third-Party Data Sources</h2>
+            <p className="mt-2">Some data displayed in the app (e.g., parcel records, environmental permits, USGS mineral data, MSHA inspection records) originates from public government databases or licensed third parties. We are not responsible for the accuracy of third-party source data, though we make reasonable efforts to keep it current.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">9. Changes to This Policy</h2>
+            <p className="mt-2">We may update this Privacy Policy from time to time. We will post the updated version with a new "Last updated" date.</p>
+          </section>
+
+          <section>
+            <h2 className="font-heading text-xl font-bold text-foreground">10. Contact Us</h2>
+            <p className="mt-2">If you have questions about this Privacy Policy or wish to exercise your data rights, contact us at:</p>
+            <div className="mt-2 space-y-0.5">
+              <p><strong className="text-foreground">Email:</strong> contact@ssholdings.com</p>
+              <p><strong className="text-foreground">Company:</strong> S&amp;S Rock Holdings, LLC.</p>
+              <p><strong className="text-foreground">Address:</strong> 196 Riverside Drive, Benton, TN 37307</p>
+            </div>
+          </section>
         </div>
       </main>
     </div>
