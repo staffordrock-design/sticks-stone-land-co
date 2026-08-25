@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
-import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2, Mountain } from "lucide-react";
+import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2, Mountain, TrendingUp } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
@@ -13,6 +13,7 @@ import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscrip
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import QuarryActionBar from "@/components/QuarryActionBar";
+import MarketValuationChart from "@/components/MarketValuationChart";
 
 function worldImageryTile(lat, lng, state, zoom = 15) {
   if (!isPlausibleSoutheastCoordinate(lat, lng, state)) return null;
@@ -572,6 +573,15 @@ export default function MineSiteDetail() {
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{valuation?.reason || "S&S withholds a dollar range until enough source-backed parcel, acreage and land-value evidence is connected."}{valuation?.available && valuation?.confidence === "Low" ? " The current inputs only support low confidence, so no range is displayed." : ""}</p>
               </>
             )}
+          </Card>
+
+          <Card title="Market Valuation Trend" icon={TrendingUp}>
+            <MarketValuationChart
+              site={site}
+              production={meaningfulProduction}
+              usgsMarketProduction={usgsMarketProduction}
+              valuation={valuation}
+            />
           </Card>
 
           <Card title="Contract & Royalty Intelligence" icon={FileKey2}>
