@@ -153,7 +153,7 @@ jobs:
               print("::warning title=Apple subscription sync warnings::" + " | ".join(product_errors))
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"ASC_KEY_ID={key_id}\n")
-          print("Apple subscription sync confirmed all four required products.")
+          print("Apple subscription sync check completed; continuing to build upload.")
           PY
 
       - name: Preserve Apple subscription sync result
