@@ -575,12 +575,11 @@ export default function MineSiteDetail() {
             )}
           </Card>
 
-          <Card title="Market Valuation Trend" icon={TrendingUp}>
+          <Card title="Production & Market Trend" icon={TrendingUp}>
             <MarketValuationChart
               site={site}
               production={meaningfulProduction}
-              usgsMarketProduction={usgsMarketProduction}
-              valuation={valuation}
+             usgsMarketProduction={usgsMarketProduction}
             />
           </Card>
 

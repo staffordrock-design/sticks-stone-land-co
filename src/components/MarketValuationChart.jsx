@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import {
-  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine,
+  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import { TrendingUp, Activity } from "lucide-react";
 
@@ -14,12 +14,6 @@ function periodLabel(year, period) {
   return `${year} ${p}`.trim();
 }
 
-function compactMoney(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return "—";
-  return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1, style: "currency", currency: "USD" }).format(n);
-}
-
 function compactNum(value) {
   const n = Number(value);
   if (!Number.isFinite(n)) return "—";
@@ -27,11 +21,12 @@ function compactNum(value) {
 }
 
 /**
- * Market Valuation Trend chart for a mine site.
- * Combines the site's MSHA activity (employee hours per period) with statewide
- * USGS market production value to show how the site tracks against its market.
+ * Production & Market Trend chart for a mine site.
+ * Bars: this site's MSHA employee hours per reporting period (operational intensity).
+ * Line: statewide USGS quarterly production tonnage for the matching commodity group
+ *       (market context — NOT this quarry's tonnage, which USGS does not publish).
  */
-export default function MarketValuationChart({ site, production = [], usgsMarketProduction = [], valuation = null }) {
+export default function MarketValuationChart({ site, production = [], usgsMarketProduction = [] }) {
   const siteGroup = useMemo(() => {
     const text = `${site?.commodity || ""} ${site?.mine_name || ""}`.toLowerCase();
     if (/construction sand.{0,8}gravel|sand\s*(and|&)\s*gravel/.test(text)) return "Construction Sand and Gravel";
@@ -51,58 +46,47 @@ export default function MarketValuationChart({ site, production = [], usgsMarket
         const prev = points[key].siteHours || 0;
         points[key].siteHours = prev + Number(r.employee_hours);
       }
-      if ((r.record_type === "S&S Estimate" || r.is_estimate) && r.estimate_low != null && r.estimate_high != null) {
-        points[key].estLow = Number(r.estimate_low);
-        points[key].estHigh = Number(r.estimate_high);
-      }
     }
 
-    // Statewide USGS market production value by period — the market context.
+    // Statewide USGS quarterly tonnage by period — market context.
+    // Uses quantity_metric_tons (the current-period estimate), NOT prior_year_annual_value_usd
+    // (which is a prior full-year dollar figure, not a quarterly value).
     const marketRows = usgsMarketProduction.filter((r) => !siteGroup || r.commodity_group === siteGroup);
     for (const r of marketRows) {
-      if (!r.year) continue;
+      if (!r.year || r.quantity_metric_tons == null) continue;
       const key = periodKey(r.year, r.period);
       if (!points[key]) points[key] = { label: periodLabel(r.year, r.period), sort: key };
-      if (r.quantity_metric_tons != null) {
-        points[key].marketTons = Number(r.quantity_metric_tons);
-      }
-      // prior_year_annual_value_usd is the most reliable dollar figure USGS publishes per quarter.
-      if (r.prior_year_annual_value_usd != null) {
-        points[key].marketValue = Number(r.prior_year_annual_value_usd);
-      }
+      points[key].marketTons = Number(r.quantity_metric_tons);
     }
 
     return Object.values(points).sort((a, b) => a.sort.localeCompare(b.sort));
   }, [production, usgsMarketProduction, siteGroup]);
 
   const hasSiteData = data.some((d) => d.siteHours != null);
-  const hasMarketData = data.some((d) => d.marketValue != null || d.marketTons != null);
+  const hasMarketData = data.some((d) => d.marketTons != null);
 
   if (!hasSiteData && !hasMarketData) {
     return (
       <div className="rounded-xl border border-border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
-        Market trend data is not connected for this site yet. USGS statewide production and MSHA activity records will populate this chart as quarterly syncs accumulate.
+        Production trend data is not connected for this site yet. MSHA activity and USGS statewide quarterly figures will populate this chart as syncs accumulate.
       </div>
     );
   }
-
-  const valuationLow = valuation?.available ? valuation.low : null;
-  const valuationHigh = valuation?.available ? valuation.high : null;
 
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-sky-800">
-            <TrendingUp className="h-4 w-4" /> Market valuation trend
+            <TrendingUp className="h-4 w-4" /> Production &amp; market trend
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            {site?.state ? `${site.state} ` : ""}statewide {siteGroup ? siteGroup.toLowerCase() : "aggregate"} market value vs. this site's MSHA activity over recent reporting periods.
+            {site?.state ? `${site.state} ` : ""}statewide {siteGroup ? siteGroup.toLowerCase() : "aggregate"} quarterly tonnage vs. this site's MSHA activity.
           </p>
         </div>
         <div className="flex flex-wrap gap-3 text-[11px]">
           <div className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-sm bg-sky-500" /><span className="text-muted-foreground">Site activity (hrs)</span></div>
-          <div className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-600" /><span className="text-muted-foreground">State market value ($)</span></div>
+          <div className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-600" /><span className="text-muted-foreground">State tons</span></div>
         </div>
       </div>
 
@@ -121,19 +105,19 @@ export default function MarketValuationChart({ site, production = [], usgsMarket
               label={{ value: "Hours", angle: -90, position: "insideLeft", style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" } }}
             />
             <YAxis
-              yAxisId="value"
+              yAxisId="tons"
               orientation="right"
               tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(v) => compactMoney(v)}
-              label={{ value: "Market $", angle: 90, position: "insideRight", style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" } }}
+              tickFormatter={(v) => compactNum(v)}
+              label={{ value: "State tons", angle: 90, position: "insideRight", style: { fontSize: 10, fill: "hsl(var(--muted-foreground))" } }}
             />
             <Tooltip
               contentStyle={{ fontSize: 12, borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--popover))" }}
               formatter={(value, name) => {
                 if (name === "Site activity (hrs)") return [Number(value).toLocaleString() + " hrs", name];
-                if (name === "State market value") return [compactMoney(value), name];
+                if (name === "Statewide tons") return [Number(value).toLocaleString() + " t", name];
                 return [value, name];
               }}
             />
@@ -143,19 +127,16 @@ export default function MarketValuationChart({ site, production = [], usgsMarket
             )}
             {hasMarketData && (
               <Line
-                yAxisId="value"
+                yAxisId="tons"
                 type="monotone"
-                dataKey="marketValue"
-                name="State market value"
+                dataKey="marketTons"
+                name="Statewide tons"
                 stroke="hsl(142 71% 45%)"
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: "hsl(142 71% 45%)" }}
                 activeDot={{ r: 6 }}
                 connectNulls
               />
-            )}
-            {valuationLow != null && valuationHigh != null && (
-              <ReferenceLine yAxisId="value" y={valuationHigh} stroke="hsl(var(--accent))" strokeDasharray="4 4" label={{ value: "Valuation high", fontSize: 10, fill: "hsl(var(--muted-foreground))", position: "insideTopRight" }} />
             )}
           </ComposedChart>
         </ResponsiveContainer>
@@ -164,9 +145,7 @@ export default function MarketValuationChart({ site, production = [], usgsMarket
       <div className="mt-3 flex items-start gap-2 rounded-lg border border-border bg-muted/20 p-3 text-[11px] leading-5 text-muted-foreground">
         <Activity className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-600" />
         <p>
-          Bars show this mine's MSHA employee hours per reporting period (a proxy for operating intensity). The line shows the statewide USGS {siteGroup ? siteGroup.toLowerCase() : "aggregate"} production value for {site?.state || "the state"} — the broader market this site sells into.
-          {valuation?.available ? ` The dashed line marks the high end of S&S's indicative valuation range (${compactMoney(valuationHigh)}).` : ""}
-          {" "}Statewide figures are USGS survey estimates, not this quarry's confidential tonnage.
+          Bars show this mine's MSHA employee hours per reporting period (a proxy for operating intensity). The line shows statewide USGS {siteGroup ? siteGroup.toLowerCase() : "aggregate"} quarterly production tonnage for {site?.state || "the state"} — the broader market this site sells into. Statewide figures are USGS survey estimates, not this quarry's confidential tonnage.
         </p>
       </div>
     </div>
