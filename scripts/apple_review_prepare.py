@@ -28,7 +28,7 @@ import jwt
 import requests
 
 API = "https://api.appstoreconnect.apple.com"
-BUNDLE_ID = "com.base6a78376a454093ba2f431acd.app"
+BUNDLE_ID = "com.ssrockholdings.quarrymarketplace"
 VERSION_STRING = "2.130297.1"
 BUILD_NUMBER = "20"
 EXPECTED_ATTACHMENT = os.getenv(
