@@ -22,7 +22,7 @@ import jwt
 import requests
 
 API = "https://api.appstoreconnect.apple.com"
-BUNDLE_ID = "com.base6a78376a454093ba2f431acd.app"
+BUNDLE_ID = "com.ssrockholdings.quarrymarketplace"
 GROUP_REFERENCE = "S&S Rock Holdings Access"
 GROUP_DISPLAY_NAME = "S&S Rock Holdings Access"
 ISSUER_ID = os.getenv("ASC_ISSUER_ID", "7097918c-2758-4720-b0fa-938914c24b36")
