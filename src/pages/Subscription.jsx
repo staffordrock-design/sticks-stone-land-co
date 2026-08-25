@@ -288,7 +288,7 @@ export default function Subscription() {
           <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5 text-xs leading-5 text-muted-foreground">
             <p className="font-semibold text-foreground">Subscription terms</p>
             <p className="mt-2">Payment will be charged to your {isIOS ? "Apple ID" : isAndroid ? "Google Play" : "payment"} account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period at the then-current price. You can manage and cancel your subscriptions in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} account settings at any time. Any unused portion of a free trial, if offered, is forfeited when a subscription is purchased.</p>
-            <p className="mt-3">By continuing you agree to the S&amp;S Rock Holdings <Link to="/terms" className="underline">Terms of Use</Link>, Apple&apos;s <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" className="underline" target="_blank" rel="noreferrer">standard EULA</a>, and <Link to="/privacy" className="underline">Privacy Policy</Link>.</p>
+            <p className="mt-3">By continuing you agree to the S&amp;S Rock Holdings <Link to="/terms" className="underline">Terms of Use</Link>{isIOS && <> and Apple&apos;s <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" className="underline" target="_blank" rel="noreferrer">standard EULA</a></>}, and <Link to="/privacy" className="underline">Privacy Policy</Link>.</p>
           </div>
 
           {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button><button onClick={manageSubscriptions} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">Manage subscriptions</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
@@ -309,11 +309,9 @@ export default function Subscription() {
           </div>}
 
           {!isNative && !active && <div className="mt-8 rounded-2xl border border-stone-300 bg-stone-50 p-5">
-            <div className="font-semibold text-foreground">Want S&S access?</div>
-            <p className="mt-1 text-sm text-muted-foreground">{user?.email ? "Join the launch list and S&S Rock Holdings can follow up when web subscriptions are activated." : "Create an account or sign in to join the launch list. S&S Rock Holdings will follow up when web subscriptions are activated."}</p>
-            {user?.email ? (
-              <button onClick={requestAccess} disabled={leadSaved} className="mt-4 rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60">{leadSaved ? "You're on the launch list" : "Request Access"}</button>
-            ) : (
+            <div className="font-semibold text-foreground">Ready to subscribe?</div>
+            <p className="mt-1 text-sm text-muted-foreground">{user?.email ? "Choose a plan above to start secure checkout with Stripe." : "Create an account or sign in, then choose a plan above to start secure checkout with Stripe."}</p>
+            {!user?.email && (
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <Link to="/register" className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white">Create account</Link>
                 <Link to="/login" className="text-sm font-semibold text-sky-800 hover:underline">Sign in</Link>
