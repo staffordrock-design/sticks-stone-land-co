@@ -9,6 +9,7 @@ import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react"
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import PullToRefresh from "@/components/PullToRefresh";
+import BrandLogo from "@/components/BrandLogo";
 import ProfitabilityUpgradeBanner from "@/components/ProfitabilityUpgradeBanner";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
@@ -234,19 +235,7 @@ export default function Home() {
       {/* Top bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-sm backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 16px)" }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 pb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-slate-50 shadow-sm">
-              <Mountain className="h-5 w-5" />
-            </div>
-            <div className="leading-none">
-              <p className="font-heading text-base font-bold tracking-tight text-foreground">
-                S&amp;S Rock Holdings
-              </p>
-              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Industrial Quarry Intelligence
-              </p>
-            </div>
-          </div>
+          <BrandLogo />
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
             <span className="font-medium text-foreground">Quarry Intelligence</span>
             <Link to="/mineral-value-guide" className="hover:text-foreground">Mineral Guide</Link>
