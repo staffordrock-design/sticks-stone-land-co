@@ -29,7 +29,7 @@ import requests
 
 API = "https://api.appstoreconnect.apple.com"
 BUNDLE_ID = "com.ssrockholdings.quarrymarketplace"
-VERSION_STRING = "2.130297.1"
+VERSION_STRING = "1.0"
 BUILD_NUMBER = "20"
 EXPECTED_ATTACHMENT = os.getenv(
     "ASC_EXPECTED_REVIEW_ATTACHMENT",
