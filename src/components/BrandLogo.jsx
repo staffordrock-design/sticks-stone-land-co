@@ -1,77 +1,64 @@
 import React from "react";
 
 /**
- * S&S Rock Holdings brand mark — a bold, faceted boulder SVG.
- * Renders the rock icon alone when `withWordmark` is false.
+ * S&S Rock Holdings brand mark — a bold, geometric boulder silhouette.
+ * Clean angular facets read clearly at small sizes (header icon).
  */
 export default function BrandLogo({ withWordmark = true, className = "", iconClassName = "h-9 w-9" }) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <div className={`relative flex shrink-0 items-center justify-center rounded-lg bg-slate-900 shadow-sm ${iconClassName}`}>
+      <div className={`relative flex shrink-0 items-center justify-center ${iconClassName}`}>
         <svg
           viewBox="0 0 48 48"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="h-[78%] w-[78%]"
+          className="h-full w-full"
           aria-hidden="true"
         >
-          {/* Bold faceted boulder — angular rock faces */}
+          {/* Main boulder body — bold angular silhouette */}
           <path
-            d="M24 4 L40 12 L44 26 L36 42 L14 44 L5 32 L8 14 Z"
-            fill="url(#rockFace)"
-            stroke="#0f172a"
+            d="M24 3 L41 11 L45 27 L37 43 L13 45 L4 31 L8 13 Z"
+            fill="url(#boulderGrad)"
+            stroke="#1e293b"
+            strokeWidth="2"
+            strokeLinejoin="round"
+          />
+          {/* Top-left light facet */}
+          <path
+            d="M24 3 L8 13 L20 20 L24 3 Z"
+            fill="#e2e8f0"
+            stroke="#1e293b"
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
-          {/* Light facet — top right */}
+          {/* Top-right mid facet */}
           <path
-            d="M24 4 L40 12 L30 18 L24 4 Z"
-            fill="#cbd5e1"
-            stroke="#0f172a"
-            strokeWidth="1.2"
-            strokeLinejoin="round"
-          />
-          {/* Mid facet — left face */}
-          <path
-            d="M24 4 L8 14 L18 22 L24 4 Z"
+            d="M24 3 L41 11 L30 19 L24 3 Z"
             fill="#94a3b8"
-            stroke="#0f172a"
-            strokeWidth="1.2"
+            stroke="#1e293b"
+            strokeWidth="1.5"
             strokeLinejoin="round"
           />
-          {/* Shadow facet — bottom */}
+          {/* Bottom shadow facet */}
           <path
-            d="M8 14 L5 32 L18 22 L18 22 Z"
-            fill="#64748b"
-            stroke="#0f172a"
-            strokeWidth="1.2"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M40 12 L44 26 L30 18 Z"
+            d="M41 11 L45 27 L30 19 Z"
             fill="#475569"
-            stroke="#0f172a"
-            strokeWidth="1.2"
+            stroke="#1e293b"
+            strokeWidth="1.5"
             strokeLinejoin="round"
           />
-          {/* S&S monogram etched on the front face */}
-          <text
-            x="24"
-            y="33"
-            textAnchor="middle"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            fontWeight="800"
-            fontSize="11"
-            fill="#f8fafc"
-            letterSpacing="0.5"
-          >
-            S&amp;S
-          </text>
+          <path
+            d="M8 13 L4 31 L20 20 Z"
+            fill="#64748b"
+            stroke="#1e293b"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
           <defs>
-            <linearGradient id="rockFace" x1="10" y1="6" x2="38" y2="42" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#e2e8f0" />
-              <stop offset="0.5" stopColor="#94a3b8" />
-              <stop offset="1" stopColor="#475569" />
+            <linearGradient id="boulderGrad" x1="8" y1="6" x2="40" y2="44" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#cbd5e1" />
+              <stop offset="0.45" stopColor="#64748b" />
+              <stop offset="1" stopColor="#334155" />
             </linearGradient>
           </defs>
         </svg>
