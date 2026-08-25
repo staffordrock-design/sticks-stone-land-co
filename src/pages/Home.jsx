@@ -5,9 +5,10 @@ import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { Search, Layers, ShieldCheck, TrendingUp } from "lucide-react";
+import { Layers, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
+import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
 import PullToRefresh from "@/components/PullToRefresh";
 import BrandLogo from "@/components/BrandLogo";
 import ProfitabilityUpgradeBanner from "@/components/ProfitabilityUpgradeBanner";
@@ -427,15 +428,7 @@ export default function Home() {
             <p className="mt-1 text-sm text-muted-foreground">Explore the marketplace before you subscribe. Tennessee is the verified core, with phased expansion across the Southeast. Search by mine name, MSHA Mine ID, state, county or commodity. Open a record to unlock owner/operator, permitted acreage, detailed geology, permits, compliance, production context and opportunity analysis.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Mine, county, state, MSHA ID, commodity…"
-                className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring sm:w-64"
-              />
-            </div>
+            <QuarrySearchAutocomplete sites={quarrySites} query={query} setQuery={setQuery} />
             <div className="flex flex-col gap-2">
               <BottomSheetSelect
                 value={stateFilter}
