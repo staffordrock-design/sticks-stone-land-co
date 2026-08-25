@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { Search, Mountain, Layers, ShieldCheck, TrendingUp } from "lucide-react";
+import { Search, Layers, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import PullToRefresh from "@/components/PullToRefresh";

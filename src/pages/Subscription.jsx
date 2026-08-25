@@ -17,7 +17,6 @@ export default function Subscription() {
   const { user } = useAuth();
   const [entitlements, setEntitlements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [leadSaved, setLeadSaved] = useState(false);
   const [storeProducts, setStoreProducts] = useState({});
   const [storeLoading, setStoreLoading] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState("");
@@ -102,22 +101,6 @@ export default function Subscription() {
     platform: "apple",
     expires_at: null,
   } : null);
-
-  const requestAccess = async () => {
-    if (isNative || !user?.email || leadSaved) return;
-    await base44.entities.SalesLead.create({
-      user_id: user.id || "",
-      name: user.name || "",
-      email: user.email,
-      company: user.company || "",
-      role: user.role || "",
-      interest: "S&S quarry intelligence subscription",
-      source: "Subscription page",
-      status: "New",
-      created_at: new Date().toISOString(),
-    });
-    setLeadSaved(true);
-  };
 
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
