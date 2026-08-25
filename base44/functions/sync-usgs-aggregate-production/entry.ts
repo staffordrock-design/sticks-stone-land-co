@@ -65,8 +65,16 @@ export default async function(req: Request) {
     if (!workbookResponse.ok) throw new Error(`USGS aggregates workbook request failed: ${workbookResponse.status}`);
     const workbook = XLSX.read(new Uint8Array(await workbookResponse.arrayBuffer()), { type: "array" });
 
-    const state = "TN";
-    const stateName = "Tennessee";
+    const SOUTHEAST_STATES: { code: string; name: string }[] = [
+      { code: "TN", name: "Tennessee" },
+      { code: "GA", name: "Georgia" },
+      { code: "AL", name: "Alabama" },
+      { code: "KY", name: "Kentucky" },
+      { code: "NC", name: "North Carolina" },
+      { code: "SC", name: "South Carolina" },
+      { code: "FL", name: "Florida" },
+      { code: "MS", name: "Mississippi" },
+    ];
     const now = new Date().toISOString();
     const period = `Q${latest.quarter}`;
     const found: any[] = [];
@@ -76,44 +84,46 @@ export default async function(req: Request) {
       const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null }) as any[][];
       const group = classifySheet(rows);
       if (!group) continue;
-      const stateRow = rows.find((row) => clean(row?.[0]).toLowerCase() === stateName.toLowerCase());
-      if (!stateRow) continue;
-      const parsed = parseStateRow(stateRow);
-      if (!parsed) continue;
-      const record = {
-        state,
-        commodity_group: group,
-        year: latest.year,
-        period,
-        quantity_metric_tons: parsed.quantity_metric_tons,
-        percent_change_yoy: parsed.percent_change_yoy ?? undefined,
-        prior_year_annual_quantity_metric_tons: parsed.prior_year_annual_quantity_metric_tons ?? undefined,
-        prior_year_annual_value_usd: parsed.prior_year_annual_value_usd ?? undefined,
-        source_title: `USGS Crushed Stone and Sand and Gravel in ${period} ${latest.year}`,
-        source_url: latest.url,
-        publication_date: now.slice(0, 10),
-        methodology_note: "USGS state production-for-consumption estimate from its quarterly sample survey of construction aggregate producers. State totals are estimates and are not individual-quarry reported tonnage.",
-        last_source_update: now,
-      };
-      const existing = await base44.asServiceRole.entities.USGSMarketProduction.filter({
-        state,
-        commodity_group: group,
-        year: latest.year,
-        period,
-      }, "-updated_date", 1, 0);
-      if (existing?.[0]) await base44.asServiceRole.entities.USGSMarketProduction.update(existing[0].id, record);
-      else await base44.asServiceRole.entities.USGSMarketProduction.create(record);
-      found.push(record);
+      for (const { code, name } of SOUTHEAST_STATES) {
+        const stateRow = rows.find((row) => clean(row?.[0]).toLowerCase() === name.toLowerCase());
+        if (!stateRow) continue;
+        const parsed = parseStateRow(stateRow);
+        if (!parsed) continue;
+        const record = {
+          state: code,
+          commodity_group: group,
+          year: latest.year,
+          period,
+          quantity_metric_tons: parsed.quantity_metric_tons,
+          percent_change_yoy: parsed.percent_change_yoy ?? undefined,
+          prior_year_annual_quantity_metric_tons: parsed.prior_year_annual_quantity_metric_tons ?? undefined,
+          prior_year_annual_value_usd: parsed.prior_year_annual_value_usd ?? undefined,
+          source_title: `USGS Crushed Stone and Sand and Gravel in ${period} ${latest.year}`,
+          source_url: latest.url,
+          publication_date: now.slice(0, 10),
+          methodology_note: "USGS state production-for-consumption estimate from its quarterly sample survey of construction aggregate producers. State totals are estimates and are not individual-quarry reported tonnage.",
+          last_source_update: now,
+        };
+        const existing = await base44.asServiceRole.entities.USGSMarketProduction.filter({
+          state: code,
+          commodity_group: group,
+          year: latest.year,
+          period,
+        }, "-updated_date", 1, 0);
+        if (existing?.[0]) await base44.asServiceRole.entities.USGSMarketProduction.update(existing[0].id, record);
+        else await base44.asServiceRole.entities.USGSMarketProduction.create(record);
+        found.push(record);
+      }
     }
 
-    if (!found.length) throw new Error("USGS workbook loaded, but Tennessee state production rows were not found");
+    if (!found.length) throw new Error("USGS workbook loaded, but no Southeast state production rows were found");
 
     try {
       await base44.asServiceRole.entities.OperationsEvent.create({
         event_type: "Report",
         related_entity_id: "sync-usgs-aggregate-production",
         status: "Completed",
-        summary: `USGS aggregate production ${latest.year} ${period}: ${found.length} Tennessee market rows refreshed.`,
+        summary: `USGS aggregate production ${latest.year} ${period}: ${found.length} Southeast market rows refreshed across ${new Set(found.map((r) => r.state)).size} states.`,
         occurred_at: now,
       });
     } catch (_) {}
@@ -123,8 +133,8 @@ export default async function(req: Request) {
       source: latest.url,
       year: latest.year,
       quarter: latest.quarter,
-      state,
-      records: found.map((r) => ({ commodity_group: r.commodity_group, quantity_metric_tons: r.quantity_metric_tons, percent_change_yoy: r.percent_change_yoy })),
+      statesCovered: [...new Set(found.map((r) => r.state))],
+      records: found.map((r) => ({ state: r.state, commodity_group: r.commodity_group, quantity_metric_tons: r.quantity_metric_tons, percent_change_yoy: r.percent_change_yoy, prior_year_annual_value_usd: r.prior_year_annual_value_usd })),
       note: "USGS values are statewide production-for-consumption estimates. Individual mine tonnage is not published in this layer.",
     });
   } catch (error: any) {
