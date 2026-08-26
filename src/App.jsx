@@ -12,6 +12,7 @@ import ScrollToTop from './components/ScrollToTop';
 import NativeBackHandler from './components/NativeBackHandler';
 import ActivityTracker from './components/ActivityTracker';
 import PaidAccessGate from './components/PaidAccessGate';
+import AccountProfileGate from './components/AccountProfileGate';
 // Add page imports here
 const Home = lazy(() => import('./pages/Home'));
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
@@ -40,6 +41,7 @@ const SellProperty = lazy(() => import('./pages/SellProperty'));
 const SellerPortal = lazy(() => import('./pages/SellerPortal'));
 const BuyerProfile = lazy(() => import('./pages/BuyerProfile'));
 const MyOpportunities = lazy(() => import('./pages/MyOpportunities'));
+const Profile = lazy(() => import('./pages/Profile')); 
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -50,7 +52,7 @@ const PageLoader = () => (
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = ['/', '/subscribe', '/privacy', '/terms', '/support', '/compare', '/watchlist', '/deal-investor', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
+  const publicPath = ['/privacy', '/terms', '/support', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   // Show loading spinner while checking app public settings or auth
@@ -77,6 +79,7 @@ const AuthenticatedApp = () => {
   return (
     <>
     <div className={pathname === "/" ? "" : "app-secondary-safe"}>
+    <AccountProfileGate>
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Add your page Route elements here */}
@@ -101,6 +104,7 @@ const AuthenticatedApp = () => {
       <Route path="/sell" element={<SellProperty />} />
       <Route path="/seller-portal" element={<SellerPortal />} />
       <Route path="/buyer-profile" element={<BuyerProfile />} />
+      <Route path="/profile" element={<Profile />} />
       <Route path="/opportunities" element={<MyOpportunities />} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/login" element={<Login />} />
@@ -111,6 +115,7 @@ const AuthenticatedApp = () => {
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </Suspense>
+    </AccountProfileGate>
     </div>
     {!hideBottomNav && <BottomNav />}
     </>
