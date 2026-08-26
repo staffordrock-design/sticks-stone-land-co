@@ -1,0 +1,89 @@
+{
+  "name": "ContentReport",
+  "type": "object",
+  "properties": {
+    "reporter_user_id": {
+      "type": "string"
+    },
+    "reported_user_id": {
+      "type": "string"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "Profile",
+        "Post",
+        "Comment",
+        "Message"
+      ]
+    },
+    "content_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "Spam",
+        "Harassment",
+        "Fraud or Scam",
+        "False Information",
+        "Unsafe Content",
+        "Other"
+      ]
+    },
+    "details": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Reviewing",
+        "Resolved",
+        "Dismissed"
+      ],
+      "default": "Open"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "resolved_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "reporter_user_id",
+    "content_type",
+    "content_id",
+    "reason",
+    "status",
+    "created_at"
+  ],
+  "rls": {
+    "create": {
+      "data.reporter_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.reporter_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "name": "ProfessionalConnection",
+  "type": "object",
+  "properties": {
+    "requester_user_id": {
+      "type": "string"
+    },
+    "recipient_user_id": {
+      "type": "string"
+    },
+    "requester_name": {
+      "type": "string"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Accepted",
+        "Declined",
+        "Removed"
+      ],
+      "default": "Pending"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "responded_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "requester_user_id",
+    "recipient_user_id",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.requester_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.requester_user_id": "{{user.id}}"
+        },
+        {
+          "data.recipient_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.requester_user_id": "{{user.id}}"
+        },
+        {
+          "data.recipient_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.requester_user_id": "{{user.id}}"
+        },
+        {
+          "data.recipient_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

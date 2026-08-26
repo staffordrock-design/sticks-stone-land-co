@@ -1,0 +1,107 @@
+{
+  "name": "NetworkPost",
+  "type": "object",
+  "properties": {
+    "author_user_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_company": {
+      "type": "string"
+    },
+    "author_headline": {
+      "type": "string"
+    },
+    "post_type": {
+      "type": "string",
+      "enum": [
+        "Update",
+        "Opportunity",
+        "Equipment",
+        "Hiring",
+        "Project",
+        "Question",
+        "News"
+      ],
+      "default": "Update"
+    },
+    "body": {
+      "type": "string"
+    },
+    "linked_mining_site_id": {
+      "type": "string"
+    },
+    "linked_listing_id": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "edited_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Published",
+        "Hidden",
+        "Removed"
+      ],
+      "default": "Published"
+    }
+  },
+  "required": [
+    "author_user_id",
+    "body",
+    "created_at",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.author_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.author_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.author_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

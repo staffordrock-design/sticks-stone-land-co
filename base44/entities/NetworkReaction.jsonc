@@ -1,0 +1,54 @@
+{
+  "name": "NetworkReaction",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "reaction": {
+      "type": "string",
+      "enum": [
+        "Like",
+        "Insightful",
+        "Interested"
+      ],
+      "default": "Like"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "post_id",
+    "user_id",
+    "reaction"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}
