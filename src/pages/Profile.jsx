@@ -45,6 +45,13 @@ export default function Profile() {
     home_state: "",
     states_of_interest: "",
     commodities_of_interest: "",
+    headline: "",
+    bio: "",
+    website: "",
+    skills: "",
+    industry_years: "",
+    open_to_opportunities: true,
+    profile_visibility: "Network",
     terms_accepted: false,
   });
 
@@ -71,6 +78,13 @@ export default function Profile() {
           home_state: existing?.home_state || "",
           states_of_interest: existing?.states_of_interest || "",
           commodities_of_interest: existing?.commodities_of_interest || "",
+          headline: existing?.headline || "",
+          bio: existing?.bio || "",
+          website: existing?.website || "",
+          skills: existing?.skills || "",
+          industry_years: existing?.industry_years ?? "",
+          open_to_opportunities: existing?.open_to_opportunities !== false,
+          profile_visibility: existing?.profile_visibility || "Network",
           terms_accepted: Boolean(existing?.terms_accepted),
         }));
       } catch (profileError) {
@@ -115,6 +129,13 @@ export default function Profile() {
         home_state: form.home_state.trim().toUpperCase(),
         states_of_interest: form.states_of_interest.trim(),
         commodities_of_interest: form.commodities_of_interest.trim(),
+        headline: form.headline.trim(),
+        bio: form.bio.trim(),
+        website: form.website.trim(),
+        skills: form.skills.trim(),
+        industry_years: form.industry_years === "" ? null : Number(form.industry_years),
+        open_to_opportunities: Boolean(form.open_to_opportunities),
+        profile_visibility: form.profile_visibility,
         profile_complete: true,
         terms_accepted: true,
         created_at: record?.created_at || now,
@@ -206,8 +227,23 @@ export default function Profile() {
             <Field label="Home state"><input className="input" maxLength={2} placeholder="TN" value={form.home_state} onChange={(e) => set("home_state", e.target.value)} /></Field>
           </div>
 
+          <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-sky-950">
+            <div className="text-xs font-bold uppercase tracking-[0.16em] text-sky-700">Quarry Network Profile</div>
+            <p className="mt-1 text-sm leading-6">This is how other quarry, aggregate and mineral-industry members will know who you are.</p>
+          </div>
+          <Field label="Professional headline"><input className="input" placeholder="Quarry operator · Limestone · Southeast" value={form.headline} onChange={(e) => set("headline", e.target.value)} /></Field>
+          <Field label="About you"><textarea className="input min-h-24" placeholder="Your experience, projects, quarry interests and what you do in the industry…" value={form.bio} onChange={(e) => set("bio", e.target.value)} /></Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Website"><input className="input" inputMode="url" placeholder="https://…" value={form.website} onChange={(e) => set("website", e.target.value)} /></Field>
+            <Field label="Years in industry"><input className="input" inputMode="numeric" value={form.industry_years} onChange={(e) => set("industry_years", e.target.value)} /></Field>
+          </div>
+          <Field label="Skills / specialties"><input className="input" placeholder="Operations, geology, permitting, aggregates, acquisitions…" value={form.skills} onChange={(e) => set("skills", e.target.value)} /></Field>
           <Field label="States of interest"><input className="input" placeholder="TN, GA, AL, KY…" value={form.states_of_interest} onChange={(e) => set("states_of_interest", e.target.value)} /></Field>
           <Field label="Rock / commodity interests"><input className="input" placeholder="Limestone, granite, sand & gravel…" value={form.commodities_of_interest} onChange={(e) => set("commodities_of_interest", e.target.value)} /></Field>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="flex items-center gap-3 rounded-2xl border border-border p-4 text-sm font-semibold"><input type="checkbox" className="h-4 w-4" checked={form.open_to_opportunities} onChange={(e) => set("open_to_opportunities", e.target.checked)} />Open to industry opportunities</label>
+            <Field label="Network visibility"><select className="input" value={form.profile_visibility} onChange={(e) => set("profile_visibility", e.target.value)}><option value="Network">Visible to S&amp;S Network</option><option value="Private">Private</option></select></Field>
+          </div>
 
           <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted/20 p-4 text-sm leading-6">
             <input type="checkbox" className="mt-1 h-4 w-4" checked={form.terms_accepted} onChange={(e) => set("terms_accepted", e.target.checked)} />
