@@ -14,6 +14,8 @@ import ActivityTracker from './components/ActivityTracker';
 import PaidAccessGate from './components/PaidAccessGate';
 import AccountProfileGate from './components/AccountProfileGate';
 import MembershipRequiredGate from './components/MembershipRequiredGate';
+import TimedPreviewGate from './components/TimedPreviewGate';
+import { isNativeIOS } from '@/lib/appleSubscriptions';
 // Add page imports here
 const Home = lazy(() => import('./pages/Home'));
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
@@ -55,7 +57,7 @@ const PageLoader = () => (
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = ['/privacy', '/terms', '/support', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
+  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   // Show loading spinner while checking app public settings or auth
@@ -87,7 +89,7 @@ const AuthenticatedApp = () => {
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Add your page Route elements here */}
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<TimedPreviewGate><Home /></TimedPreviewGate>} />
       <Route path="/listings/:id" element={<PageTransition><PaidAccessGate><ListingDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/mines/:id" element={<PageTransition><PaidAccessGate><MineSiteDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/admin/activity" element={<AdminActivity />} />
