@@ -21,6 +21,7 @@ const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Othe
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
 const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
+const QUARRY_COMMODITY_REGEX = "stone|limestone|sand|gravel|aggregate|marble|granite|slate|shale|quartz|clay|dolomite|rock|lime";
 
 function statusGroup(status = "") {
   const s = String(status).toLowerCase();
@@ -61,7 +62,7 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [stateFilter, setStateFilter] = useState("All Southeast");
   const [sortMode, setSortMode] = useState("Opportunity Priority");
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
   const loadData = async () => {
     try {
@@ -78,21 +79,39 @@ export default function Home() {
       const loadMiningSiteInventory = async () => {
         if (!showAll) return safeLoad("MiningSite", base44.entities.MiningSite.list("-created_date", 200));
 
-        const rows = [];
-        const seen = new Set();
-        for (const state of SOUTHEAST_STATES) {
-          for (let offset = 0; offset < 20000; offset += 500) {
+        const stateRows = await Promise.all(SOUTHEAST_STATES.map(async (state) => {
+          const rows = [];
+
+          // Ask Base44 for quarry/aggregate commodities directly instead of downloading
+          // every mine record (Kentucky/Alabama contain thousands of coal records).
+          for (let offset = 0; offset < 10000; offset += 500) {
             const page = await safeLoad(
-              `MiningSite ${state} offset ${offset}`,
-              base44.entities.MiningSite.filter({ state }, "-created_date", 500, offset)
+              `MiningSite quarry inventory ${state} offset ${offset}`,
+              base44.entities.MiningSite.filter({
+                state,
+                commodity: { $regex: QUARRY_COMMODITY_REGEX, $options: "i" },
+              }, "-created_date", 500, offset)
             );
-            for (const site of page || []) {
-              if (!isQuarryRelevant(site) || seen.has(site.id)) continue;
-              seen.add(site.id);
-              rows.push(site);
-            }
+            rows.push(...(page || []));
             if (!page || page.length < 500) break;
           }
+
+          // A small number of legitimate mine records have no commodity populated yet.
+          // Keep them visible until their commodity is enriched rather than hiding them.
+          const [blankCommodity, missingCommodity] = await Promise.all([
+            safeLoad(`MiningSite blank commodity ${state}`, base44.entities.MiningSite.filter({ state, commodity: "" }, "-created_date", 500)),
+            safeLoad(`MiningSite missing commodity ${state}`, base44.entities.MiningSite.filter({ state, commodity: null }, "-created_date", 500)),
+          ]);
+          rows.push(...(blankCommodity || []), ...(missingCommodity || []));
+          return rows;
+        }));
+
+        const seen = new Set();
+        const rows = [];
+        for (const site of stateRows.flat()) {
+          if (!isQuarryRelevant(site) || seen.has(site.id)) continue;
+          seen.add(site.id);
+          rows.push(site);
         }
         return rows;
       };
