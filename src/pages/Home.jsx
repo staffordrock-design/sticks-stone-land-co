@@ -75,12 +75,34 @@ export default function Home() {
         }
       };
 
+      const loadMiningSiteInventory = async () => {
+        if (!showAll) return safeLoad("MiningSite", base44.entities.MiningSite.list("-created_date", 200));
+
+        const rows = [];
+        const seen = new Set();
+        for (const state of SOUTHEAST_STATES) {
+          for (let offset = 0; offset < 20000; offset += 500) {
+            const page = await safeLoad(
+              `MiningSite ${state} offset ${offset}`,
+              base44.entities.MiningSite.filter({ state }, "-created_date", 500, offset)
+            );
+            for (const site of page || []) {
+              if (!isQuarryRelevant(site) || seen.has(site.id)) continue;
+              seen.add(site.id);
+              rows.push(site);
+            }
+            if (!page || page.length < 500) break;
+          }
+        }
+        return rows;
+      };
+
       // Do not let one optional enrichment source blank the entire marketplace.
       // MiningSite is the core public inventory; parcel/geology/permit/environmental
       // data enrich the cards when available.
       const [data, potentialData, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
-        safeLoad("MiningSite", base44.entities.MiningSite.list("-created_date", limit)),
-        safeLoad("Potential MiningSite", base44.entities.MiningSite.filter({ mine_status: "New Mine" }, "-created_date", 100)),
+        loadMiningSiteInventory(),
+        showAll ? Promise.resolve([]) : safeLoad("Potential MiningSite", base44.entities.MiningSite.filter({ mine_status: "New Mine" }, "-created_date", 100)),
         safeLoad("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.list("-updated_date", limit)),
         safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", limit)),
         safeLoad("GeologyRecord", base44.entities.GeologyRecord.list("-updated_date", limit)),
