@@ -34,31 +34,19 @@ export const DATA_ROOM_GOOGLE_PRODUCT_ID = "ssrockholdings_dataroom_access";
 
 export const ACCESS_TIERS = [
   {
-    code: "marketplace",
-    name: "Quarry Access",
-    monthly: "$69/mo",
-    annual: "$690/yr",
-    features: [
-      "Access to S&S quarry intelligence",
-      "Mine/quarry identity, location and operating status",
-      "Interactive quarry and mine mapping",
-      "Basic site and commodity intelligence",
-      "Report purchasing access",
-    ],
-  },
-  {
     code: "professional",
-    name: "Professional Intelligence",
-    monthly: "$139/mo",
-    annual: "$1,000/yr",
+    name: "Full Quarry Intelligence",
+    monthly: "$199/mo",
     featured: true,
     features: [
-      "Everything in Quarry Access",
+      "Full access to S&S quarry intelligence",
+      "Mine/quarry identity, location and operating status",
+      "Interactive quarry and mine mapping",
       "Parcel/tax and mapped ownership intelligence",
       "Mapped geology, rock type and mineral value guide",
       "MSHA, TDEC, environmental and production intelligence",
       "Advanced quarry opportunity screening",
-      "Preferred pricing on downloadable intelligence reports",
+      "Report purchasing access and preferred report pricing",
     ],
   },
 ];
@@ -72,8 +60,7 @@ export const REPORT_PRODUCTS = [
 ];
 
 export const PLAN_DISPLAY = {
-  monthly: { name: "Professional Intelligence", price: "$139/mo" },
-  annual: { name: "Professional Intelligence Annual", price: "$1,000/yr", note: "Annual subscription billed by Apple at the App Store price shown before purchase" },
+  monthly: { name: "Full Quarry Intelligence", price: "$199/mo" },
 };
 
-export const PROFESSIONAL_FEATURES = ACCESS_TIERS[1].features;
+export const PROFESSIONAL_FEATURES = ACCESS_TIERS[0].features;
