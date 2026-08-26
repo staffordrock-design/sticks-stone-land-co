@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Mountain, Gem, Crown, LifeBuoy, UserRound } from "lucide-react";
+import { Mountain, Gem, Crown, Users, UserRound } from "lucide-react";
 
 const TABS = [
   { to: "/", label: "Quarries", icon: Mountain, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
+  { to: "/network", label: "Network", icon: Users, match: (p) => p.startsWith("/network") || p.startsWith("/messages") },
   { to: "/mineral-value-guide", label: "Minerals", icon: Gem, match: (p) => p.startsWith("/mineral-value-guide") },
   { to: "/subscribe", label: "Access", icon: Crown, match: (p) => p.startsWith("/subscribe") },
   { to: "/profile", label: "Profile", icon: UserRound, match: (p) => p.startsWith("/profile") || p.startsWith("/buyer-profile") || p.startsWith("/opportunities") },
-  { to: "/support", label: "Support", icon: LifeBuoy, match: (p) => p.startsWith("/support") },
 ];
 
 // Preserve each tab's last in-tab route and scroll position across tab switches.
