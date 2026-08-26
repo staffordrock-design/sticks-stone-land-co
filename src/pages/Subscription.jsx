@@ -13,11 +13,12 @@ import DealTierCard from "@/components/DealTierCard";
 
 const ACTIVE = new Set(["active", "trial", "grace_period"]);
 const STORE_TIMEOUT_MS = 15000;
+const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
-function withStoreTimeout(promise, message = "The store did not respond. Please try again.") {
+function withStoreTimeout(promise, message = "The store did not respond. Please try again.", timeoutMs = STORE_TIMEOUT_MS) {
   return Promise.race([
     promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), STORE_TIMEOUT_MS)),
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), timeoutMs)),
   ]);
 }
 
@@ -82,14 +83,15 @@ export default function Subscription() {
         if (!isBillingSupported) throw new Error("Store purchases are not available on this device.");
         const ids = isIOS ? appleProductIds() : googleProductIds();
         let products = [];
-        const attempts = isIOS ? 3 : 1;
+        const attempts = isIOS ? 2 : 1;
         for (let attempt = 1; attempt <= attempts; attempt += 1) {
           const result = await withStoreTimeout(
             NativePurchases.getProducts({
               productIdentifiers: ids,
               productType: PURCHASE_TYPE.SUBS,
             }),
-            `${isIOS ? "Apple" : "Google Play"} products did not load. Please try again shortly.`
+            `${isIOS ? "Apple" : "Google Play"} products did not load. Please try again shortly.`,
+            PRODUCT_LOOKUP_TIMEOUT_MS
           );
           products = result?.products || [];
           if (products.length > 0 || attempt === attempts) break;
@@ -125,17 +127,18 @@ export default function Subscription() {
       if (isIOS) {
         let appleProduct = storeProducts[productId];
         if (!appleProduct) {
-          for (let attempt = 1; attempt <= 3; attempt += 1) {
+          for (let attempt = 1; attempt <= 2; attempt += 1) {
             const result = await withStoreTimeout(
               NativePurchases.getProducts({
                 productIdentifiers: [productId],
                 productType: PURCHASE_TYPE.SUBS,
               }),
-              "Apple did not return this subscription product. Please try again shortly."
+              "Apple did not return this subscription product. Please try again shortly.",
+              PRODUCT_LOOKUP_TIMEOUT_MS
             );
             appleProduct = (result?.products || []).find((p) => p.identifier === productId);
             if (appleProduct) break;
-            if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 900 * attempt));
+            if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 700));
           }
         }
         if (!appleProduct) {
@@ -151,10 +154,9 @@ export default function Subscription() {
         // App account linking is optional. StoreKit purchasing must work while signed out.
         if (user?.id) options.appAccountToken = await appleAccountTokenForUser(user.id);
 
-        const transaction = await withStoreTimeout(
-          NativePurchases.purchaseProduct(options),
-          "Apple purchase did not respond. Please close and reopen the app, then try again."
-        );
+        // Do not put a short JavaScript timeout around StoreKit's purchase sheet.
+        // The user may need time for Face ID, password entry, or Apple's confirmation UI.
+        const transaction = await NativePurchases.purchaseProduct(options);
         if (user?.id) await verifyAppleTransactions([transaction]);
 
         const storeAccess = await currentAppleSubscriptionAccess();
