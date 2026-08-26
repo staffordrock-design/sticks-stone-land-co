@@ -13,6 +13,7 @@ import NativeBackHandler from './components/NativeBackHandler';
 import ActivityTracker from './components/ActivityTracker';
 import PaidAccessGate from './components/PaidAccessGate';
 import AccountProfileGate from './components/AccountProfileGate';
+import MembershipRequiredGate from './components/MembershipRequiredGate';
 // Add page imports here
 const Home = lazy(() => import('./pages/Home'));
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
@@ -81,6 +82,7 @@ const AuthenticatedApp = () => {
   return (
     <>
     <div className={pathname === "/" ? "" : "app-secondary-safe"}>
+    <MembershipRequiredGate>
     <AccountProfileGate>
     <Suspense fallback={<PageLoader />}>
     <Routes>
@@ -120,6 +122,7 @@ const AuthenticatedApp = () => {
     </Routes>
     </Suspense>
     </AccountProfileGate>
+    </MembershipRequiredGate>
     </div>
     {!hideBottomNav && <BottomNav />}
     </>
