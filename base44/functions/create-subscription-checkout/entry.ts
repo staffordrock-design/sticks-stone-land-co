@@ -2,11 +2,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk';
 import Stripe from 'npm:stripe';
 import { secrets } from 'base44:runtime';
 
-const PRICE_IDS: Record<string, string> = {
-  marketplace_monthly: 'price_1U4vqOHBH3xrClLV9vFwHk8r',
-  marketplace_annual: 'price_1U4vqYHBH3xrClLVmXss2arI',
-  professional_monthly: 'price_1U4vqZHBH3xrClLVvnE0N1Le',
-  professional_annual: 'price_1U4vqaHBH3xrClLVJ5aUGec0',
+const SUBSCRIPTION_PLANS = {
+  professional_monthly: {
+    name: 'S&S Rock Holdings — Full Quarry Intelligence',
+    unitAmount: 19900,
+    currency: 'usd',
+    interval: 'month' as const,
+  },
 };
 
 function randomSuffix() {
@@ -21,19 +23,25 @@ export default async function(req: Request) {
     const user = await base44.auth.me();
     if (!user?.id || !user?.email) return Response.json({ error: 'Sign in required' }, { status: 401 });
     const { plan_code } = await req.json();
-    const priceId = PRICE_IDS[plan_code];
-    if (!priceId) return Response.json({ error: 'Invalid plan' }, { status: 400 });
+    const plan = SUBSCRIPTION_PLANS[plan_code as keyof typeof SUBSCRIPTION_PLANS];
+    if (!plan) return Response.json({ error: 'Invalid plan' }, { status: 400 });
 
     const stripeKey = secrets.get('STRIPE_SECRET_KEY');
     if (!stripeKey) return Response.json({ error: 'Stripe is not configured' }, { status: 503 });
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
-    const price = await stripe.prices.retrieve(priceId);
-    if (!price.active || !price.recurring) return Response.json({ error: 'Subscription price unavailable' }, { status: 503 });
 
     const origin = req.headers.get('origin') || 'https://ssrockholdings.com';
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{
+        price_data: {
+          currency: plan.currency,
+          unit_amount: plan.unitAmount,
+          recurring: { interval: plan.interval },
+          product_data: { name: plan.name },
+        },
+        quantity: 1,
+      }],
       customer_email: user.email,
       client_reference_id: user.id,
       integration_identifier: `ssrockholdings_${randomSuffix()}`,
