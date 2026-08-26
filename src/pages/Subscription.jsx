@@ -119,10 +119,6 @@ export default function Subscription() {
 
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
-    if (isIOS && !storeProducts[productId]) {
-      setPurchaseMessage("Apple has not made this subscription product available for this app record yet. Restore Purchases still works for existing Apple purchases.");
-      return;
-    }
     setPurchaseMessage("");
     setBuyingId(productId);
     try {
@@ -268,13 +264,11 @@ export default function Subscription() {
               const monthlyStore = storeProducts[monthlyId];
               const annualStore = storeProducts[annualId];
               const storeLabel = isIOS ? "Apple" : "Google Play";
-              const monthlyReady = !isNative || Boolean(monthlyStore);
-              const annualReady = !isNative || Boolean(annualStore);
               const monthlyPriceLabel = isNative
-                ? (monthlyStore?.priceString || (storeLoading ? `Loading ${storeLabel} price…` : tier.monthly))
+                ? (monthlyStore?.priceString || tier.monthly)
                 : tier.monthly;
               const annualPriceLabel = isNative
-                ? (annualStore?.priceString ? `${annualStore.priceString} annual` : (storeLoading ? `Loading ${storeLabel} annual price…` : tier.annual))
+                ? (annualStore?.priceString ? `${annualStore.priceString} annual` : tier.annual)
                 : tier.annual;
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
@@ -288,18 +282,11 @@ export default function Subscription() {
                   <button onClick={() => startWebCheckout(`${tier.code}_annual`)} disabled={!!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === `${tier.code}_annual` ? "Opening secure checkout…" : "Choose annual"}</button>
                 </div>}
                 {isNative && isIOS && (
-                  !storeLoading && !monthlyStore && !annualStore ? (
-                    <div className="mt-6 grid gap-2">
-                      <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">Apple is still preparing these subscriptions for this app record. Restore remains available for existing Apple purchases.</div>
-                      <button type="button" disabled className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white opacity-50">Apple monthly unavailable · {tier.monthly}</button>
-                      <button type="button" disabled className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold opacity-50">Apple annual unavailable · {tier.annual}</button>
-                    </div>
-                  ) : (
-                    <div className="mt-6 grid gap-2">
-                      <button onClick={() => purchase(monthlyId)} disabled={!monthlyReady || storeLoading || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : !monthlyReady ? "Loading Apple monthly…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
-                      <button onClick={() => purchase(annualId)} disabled={!annualReady || storeLoading || !!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Apple…" : !annualReady ? "Loading Apple annual…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ""}`}</button>
-                    </div>
-                  )
+                  <div className="mt-6 grid gap-2">
+                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ` · ${tier.monthly}`}`}</button>
+                    <button onClick={() => purchase(annualId)} disabled={!!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Apple…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ` · ${tier.annual}`}`}</button>
+                    {!monthlyStore && !annualStore && <div className="text-[11px] leading-4 text-muted-foreground">Tap a plan to connect directly to Apple. If StoreKit is still preparing the products, the app will show the Apple error instead of leaving the button stuck.</div>}
+                  </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
                   <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
