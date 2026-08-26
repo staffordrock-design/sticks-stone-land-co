@@ -41,7 +41,9 @@ const SellProperty = lazy(() => import('./pages/SellProperty'));
 const SellerPortal = lazy(() => import('./pages/SellerPortal'));
 const BuyerProfile = lazy(() => import('./pages/BuyerProfile'));
 const MyOpportunities = lazy(() => import('./pages/MyOpportunities'));
-const Profile = lazy(() => import('./pages/Profile')); 
+const Profile = lazy(() => import('./pages/Profile'));
+const Network = lazy(() => import('./pages/Network'));
+const Messages = lazy(() => import('./pages/Messages'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -105,6 +107,8 @@ const AuthenticatedApp = () => {
       <Route path="/seller-portal" element={<SellerPortal />} />
       <Route path="/buyer-profile" element={<BuyerProfile />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/network" element={<Network />} />
+      <Route path="/messages" element={<Messages />} />
       <Route path="/opportunities" element={<MyOpportunities />} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/login" element={<Login />} />
