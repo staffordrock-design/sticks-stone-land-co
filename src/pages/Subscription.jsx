@@ -263,7 +263,6 @@ export default function Subscription() {
               const annualId = SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.annual;
               const monthlyStore = storeProducts[monthlyId];
               const annualStore = storeProducts[annualId];
-              const storeLabel = isIOS ? "Apple" : "Google Play";
               const monthlyPriceLabel = isNative
                 ? (monthlyStore?.priceString || tier.monthly)
                 : tier.monthly;
