@@ -3,8 +3,10 @@ import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { isNativeIOS } from "@/lib/appleSubscriptions";
 
 const PUBLIC_PATHS = new Set([
+  "/",
   "/login",
   "/register",
   "/forgot-password",
@@ -61,6 +63,7 @@ export default function AccountProfileGate({ children }) {
   }, [user?.id, pathname, isPublic]);
 
   if (isPublic) return children;
+  if (isNativeIOS() && !user?.id) return children;
 
   if (isLoadingPublicSettings || isLoadingAuth || !authChecked) return loadingScreen();
 
