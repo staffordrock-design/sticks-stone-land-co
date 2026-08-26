@@ -15,10 +15,17 @@ export default function MineralIntelligence() {
       try {
         setLoading(true);
         const all = [];
-        for (let offset = 0; offset < 10000; offset += 500) {
-          const page = await base44.entities.USGSMineralOccurrence.list("-created_date", 500, offset);
-          all.push(...(page || []));
-          if (!page || page.length < 500) break;
+        for (const state of SOUTHEAST_STATES) {
+          for (let offset = 0; offset < 10000; offset += 500) {
+            const page = await base44.entities.USGSMineralOccurrence.filter(
+              { occurrence_state: state },
+              "-created_date",
+              500,
+              offset
+            );
+            all.push(...(page || []));
+            if (!page || page.length < 500) break;
+          }
         }
         setOccurrences(all);
       } catch (err) {
