@@ -2,8 +2,8 @@
 // Stripe webhook handler for Base44 functions
 // - Verifies webhook signature using STRIPE_WEBHOOK_SECRET
 // - Maps Stripe price IDs to internal plan keys and upserts SubscriptionEntitlement
-// - Supports an additional dynamic $199/month Price ID via STRIPE_PRICE_ID_199 (set this env var after creating the price in Stripe)
-// - Does NOT include any secret values; use STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in your Base44 secrets
+// - Uses STRIPE_PRICE_ID_199 if set in environment, otherwise falls back to the provided price ID
+// - Does NOT include any secret values; keep STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in Base44 secrets
 
 import Stripe from 'stripe';
 import { buffer } from 'micro';
@@ -18,10 +18,10 @@ const PRICE_MAP = {
   'price_1U4vqaHBH3xrClLVJ5aUGec0': 'professional.annual',
 };
 
-// Support a dynamic new price (e.g., $199/month). Set STRIPE_PRICE_ID_199 in your Base44 secrets once you create the price in Stripe.
-if (process.env.STRIPE_PRICE_ID_199) {
-  PRICE_MAP[process.env.STRIPE_PRICE_ID_199] = 'premium.199';
-}
+// Dynamic $199 price: prefer env var, fall back to the price ID you provided
+const FALLBACK_PRICE_199 = 'price_1U8mh3HBH3xrClLVT3w37VcC';
+const PRICE_ID_199 = process.env.STRIPE_PRICE_ID_199 || FALLBACK_PRICE_199;
+PRICE_MAP[PRICE_ID_199] = 'premium.199';
 
 // Default webhook path: /functions/stripe-webhook
 // NOTE: Replace db.* calls with your Base44 DB client implementation.
