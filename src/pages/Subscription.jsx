@@ -50,10 +50,13 @@ export default function Subscription() {
   };
 
   useEffect(() => {
-    if (!user?.id) { setLoading(false); return; }
     let cancelled = false;
     setLoading(false);
-    refreshEntitlements().catch((error) => console.error("Account entitlement refresh failed", error));
+
+    if (user?.id) {
+      refreshEntitlements().catch((error) => console.error("Account entitlement refresh failed", error));
+    }
+
     if (isNative && isIOS) {
       syncCurrentAppleSubscriptions()
         .then((access) => {
@@ -61,11 +64,13 @@ export default function Subscription() {
         })
         .catch((error) => console.error("Apple entitlement sync failed", error));
     }
-    if (isAndroid) {
+
+    if (isAndroid && user?.id) {
       syncCurrentGoogleSubscriptions()
         .then(() => refreshEntitlements())
         .catch((error) => console.error("Google entitlement sync failed", error));
     }
+
     return () => { cancelled = true; };
   }, [user?.id, isNative, isIOS, isAndroid]);
 
@@ -121,7 +126,7 @@ export default function Subscription() {
 
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
-    if (!user?.id) {
+    if (!user?.id && isAndroid) {
       window.location.href = "/login?returnTo=/subscribe";
       return;
     }
@@ -154,18 +159,18 @@ export default function Subscription() {
           productIdentifier: productId,
           productType: PURCHASE_TYPE.SUBS,
           quantity: 1,
-          appAccountToken: await appleAccountTokenForUser(user.id),
         };
+        if (user?.id) options.appAccountToken = await appleAccountTokenForUser(user.id);
 
         // Do not put a short JavaScript timeout around StoreKit's purchase sheet.
         // The user may need time for Face ID, password entry, or Apple's confirmation UI.
         const transaction = await NativePurchases.purchaseProduct(options);
-        await verifyAppleTransactions([transaction]);
+        if (user?.id) await verifyAppleTransactions([transaction]);
 
         const storeAccess = await currentAppleSubscriptionAccess();
         setAppleStoreAccess(storeAccess);
-        await refreshEntitlements();
-        setPurchaseMessage("Purchase verified with Apple. Your S&S access is active.");
+        if (user?.id) await refreshEntitlements();
+        setPurchaseMessage("Purchase confirmed by Apple. Your full S&S access is active — no S&S sign-in is required on this iPhone.");
       } else {
         const transaction = await withStoreTimeout(
           NativePurchases.purchaseProduct({
@@ -217,7 +222,7 @@ export default function Subscription() {
 
   const restore = async () => {
     if (!isIOS && !isAndroid) return;
-    if (!user?.id) {
+    if (!user?.id && isAndroid) {
       window.location.href = "/login?returnTo=/subscribe";
       return;
     }
@@ -250,8 +255,9 @@ export default function Subscription() {
         <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Quarry intelligence access</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Choose the level of quarry intelligence that fits your work. Downloadable reports are separate products so you only purchase the depth of diligence you need.</p>
-          {!user?.id && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Create your S&amp;S account first.</strong> Sign in or create an account before subscribing so the membership is attached to your account and the app can unlock immediately after payment. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">One membership unlocks the full quarry intelligence platform for $199 per month. Downloadable reports and custom diligence remain separate products.</p>
+          {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Subscribe with your Apple ID and the app will recognize the active Apple subscription on this device.</div>}
+          {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Create your S&amp;S account first.</strong> Sign in or create an account before subscribing so web or Google Play access can be attached to your account. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
@@ -259,40 +265,30 @@ export default function Subscription() {
           ) : null}
 
           <h2 className="mt-9 font-heading text-xl font-bold">Membership plans</h2>
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="mt-4 grid max-w-2xl gap-4">
             {ACCESS_TIERS.map((tier) => {
               const storeKey = isIOS ? "apple" : "google";
               const monthlyId = SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.monthly;
-              const annualId = SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.annual;
               const monthlyStore = storeProducts[monthlyId];
-              const annualStore = storeProducts[annualId];
               const monthlyPriceLabel = isNative
                 ? (monthlyStore?.priceString || tier.monthly)
                 : tier.monthly;
-              const annualPriceLabel = isNative
-                ? (annualStore?.priceString ? `${annualStore.priceString} annual` : tier.annual)
-                : tier.annual;
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
                 <div className="mt-3 flex items-end gap-2"><div className="text-3xl font-bold">{monthlyPriceLabel}</div><span className="pb-1 text-xs text-muted-foreground">monthly</span></div>
-                <div className="mt-1 text-xs font-semibold text-muted-foreground">1 month · auto-renewing</div>
-                <div className="mt-2 text-sm text-muted-foreground">{annualPriceLabel}</div>
-                <div className="mt-1 text-xs font-semibold text-muted-foreground">1 year · auto-renewing</div>
+                <div className="mt-1 text-xs font-semibold text-muted-foreground">1 month · auto-renewing · full app access</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
-                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Choose monthly"}</button>
-                  <button onClick={() => startWebCheckout(`${tier.code}_annual`)} disabled={!!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === `${tier.code}_annual` ? "Opening secure checkout…" : "Choose annual"}</button>
-                </div>}
+                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Subscribe · $199/month"}</button>
+                </div>
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
-                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ` · ${tier.monthly}`}`}</button>
-                    <button onClick={() => purchase(annualId)} disabled={!!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Apple…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ` · ${tier.annual}`}`}</button>
-                    {!monthlyStore && !annualStore && <div className="text-[11px] leading-4 text-muted-foreground">Tap a plan to connect directly to Apple. If StoreKit is still preparing the products, the app will show the Apple error instead of leaving the button stuck.</div>}
+                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : `Subscribe monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ` · ${tier.monthly}`}`}</button>
+                    {!monthlyStore && <div className="text-[11px] leading-4 text-muted-foreground">Tap Subscribe to connect directly to Apple. Apple shows the final subscription price before you confirm.</div>}
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
-                  <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
-                  <button onClick={() => purchase(annualId)} disabled={!annualStore || !!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Google Play…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ""}`}</button>
+                  <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : `Subscribe monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
                 </div>}
               </div>;
             })}
