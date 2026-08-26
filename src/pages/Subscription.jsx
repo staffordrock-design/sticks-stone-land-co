@@ -51,20 +51,20 @@ export default function Subscription() {
   useEffect(() => {
     if (!user?.id) { setLoading(false); return; }
     let cancelled = false;
-    (async () => {
-      try {
-        if (isNative && isIOS) {
-          const access = await syncCurrentAppleSubscriptions();
+    setLoading(false);
+    refreshEntitlements().catch((error) => console.error("Account entitlement refresh failed", error));
+    if (isNative && isIOS) {
+      syncCurrentAppleSubscriptions()
+        .then((access) => {
           if (!cancelled) setAppleStoreAccess(access || { active: false, professional: false, purchases: [], planCodes: [] });
-        }
-        if (isAndroid) await syncCurrentGoogleSubscriptions();
-      } catch (error) {
-        console.error("Entitlement sync failed", error);
-      } finally {
-        if (!cancelled) await refreshEntitlements();
-        if (!cancelled) setLoading(false);
-      }
-    })();
+        })
+        .catch((error) => console.error("Apple entitlement sync failed", error));
+    }
+    if (isAndroid) {
+      syncCurrentGoogleSubscriptions()
+        .then(() => refreshEntitlements())
+        .catch((error) => console.error("Google entitlement sync failed", error));
+    }
     return () => { cancelled = true; };
   }, [user?.id, isNative, isIOS, isAndroid]);
 
@@ -72,6 +72,11 @@ export default function Subscription() {
     if (!isNative || (!isIOS && !isAndroid)) return;
     let cancelled = false;
     (async () => {
+      if (isIOS) {
+        setStoreLoading(false);
+        setPurchaseMessage("Apple subscriptions are being reconnected in App Store Connect. The screen will not freeze; Restore Purchases remains available for existing Apple purchases.");
+        return;
+      }
       setStoreLoading(true);
       try {
         const { isBillingSupported } = await withStoreTimeout(
@@ -118,6 +123,10 @@ export default function Subscription() {
 
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
+    if (isIOS && !storeProducts[productId]) {
+      setPurchaseMessage("Apple has not made this subscription product available for this app record yet. Restore Purchases still works for existing Apple purchases.");
+      return;
+    }
     setPurchaseMessage("");
     setBuyingId(productId);
     try {
