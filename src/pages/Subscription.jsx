@@ -72,11 +72,7 @@ export default function Subscription() {
     if (!isNative || (!isIOS && !isAndroid)) return;
     let cancelled = false;
     (async () => {
-      if (isIOS) {
-        setStoreLoading(false);
-        setPurchaseMessage("Apple subscriptions are being reconnected in App Store Connect. The screen will not freeze; Restore Purchases remains available for existing Apple purchases.");
-        return;
-      }
+      setPurchaseMessage("");
       setStoreLoading(true);
       try {
         const { isBillingSupported } = await withStoreTimeout(
