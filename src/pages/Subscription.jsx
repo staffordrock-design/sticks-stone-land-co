@@ -83,7 +83,7 @@ export default function Subscription() {
         if (!cancelled) {
           setStoreProducts(Object.fromEntries(products.map((p) => [p.identifier, p])));
           if (isIOS && products.length === 0) {
-            setPurchaseMessage("Apple is still preparing the subscription products for this TestFlight build. Please try again shortly.");
+            setPurchaseMessage("Apple is still preparing the subscription products for this build, so secure Stripe checkout is available below in the meantime.");
           }
         }
       } catch (error) {
@@ -256,10 +256,20 @@ export default function Subscription() {
                   <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Choose monthly"}</button>
                   <button onClick={() => startWebCheckout(`${tier.code}_annual`)} disabled={!!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === `${tier.code}_annual` ? "Opening secure checkout…" : "Choose annual"}</button>
                 </div>}
-                {isNative && isIOS && <div className="mt-6 grid gap-2">
-                  <button onClick={() => purchase(monthlyId)} disabled={!monthlyReady || storeLoading || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : !monthlyReady ? "Loading Apple monthly…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
-                  <button onClick={() => purchase(annualId)} disabled={!annualReady || storeLoading || !!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Apple…" : !annualReady ? "Loading Apple annual…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ""}`}</button>
-                </div>}
+                {isNative && isIOS && (
+                  !storeLoading && !monthlyStore && !annualStore ? (
+                    <div className="mt-6 grid gap-2">
+                      <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">Apple is still reviewing these subscriptions. Secure Stripe checkout is available now.</div>
+                      <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : `Choose monthly · ${tier.monthly}`}</button>
+                      <button onClick={() => startWebCheckout(`${tier.code}_annual`)} disabled={!!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === `${tier.code}_annual` ? "Opening secure checkout…" : `Choose annual · ${tier.annual}`}</button>
+                    </div>
+                  ) : (
+                    <div className="mt-6 grid gap-2">
+                      <button onClick={() => purchase(monthlyId)} disabled={!monthlyReady || storeLoading || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : !monthlyReady ? "Loading Apple monthly…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
+                      <button onClick={() => purchase(annualId)} disabled={!annualReady || storeLoading || !!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Apple…" : !annualReady ? "Loading Apple annual…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ""}`}</button>
+                    </div>
+                  )
+                )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
                   <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : `Choose monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ""}`}</button>
                   <button onClick={() => purchase(annualId)} disabled={!annualStore || !!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === annualId ? "Connecting to Google Play…" : `Choose annual${annualStore?.priceString ? ` · ${annualStore.priceString}` : ""}`}</button>
