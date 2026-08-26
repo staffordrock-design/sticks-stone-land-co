@@ -3,6 +3,11 @@ name: iOS TestFlight Upload
 on:
   # Keep App Store uploads deliberate. Run manually after a tested iOS build is ready.
   workflow_dispatch:
+  # One-shot trigger used to ship the corrected TestFlight build from main.
+  push:
+    branches: [main]
+    paths:
+      - ".github/testflight-trigger"
 
 permissions:
   contents: write
