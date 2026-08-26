@@ -12,6 +12,14 @@ import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import DealTierCard from "@/components/DealTierCard";
 
 const ACTIVE = new Set(["active", "trial", "grace_period"]);
+const STORE_TIMEOUT_MS = 15000;
+
+function withStoreTimeout(promise, message = "The store did not respond. Please try again.") {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), STORE_TIMEOUT_MS)),
+  ]);
+}
 
 export default function Subscription() {
   const { user } = useAuth();
@@ -66,16 +74,22 @@ export default function Subscription() {
     (async () => {
       setStoreLoading(true);
       try {
-        const { isBillingSupported } = await NativePurchases.isBillingSupported();
+        const { isBillingSupported } = await withStoreTimeout(
+          NativePurchases.isBillingSupported(),
+          "The store did not respond. Please close and reopen the app, then try Subscribe again."
+        );
         if (!isBillingSupported) throw new Error("Store purchases are not available on this device.");
         const ids = isIOS ? appleProductIds() : googleProductIds();
         let products = [];
         const attempts = isIOS ? 3 : 1;
         for (let attempt = 1; attempt <= attempts; attempt += 1) {
-          const result = await NativePurchases.getProducts({
-            productIdentifiers: ids,
-            productType: PURCHASE_TYPE.SUBS,
-          });
+          const result = await withStoreTimeout(
+            NativePurchases.getProducts({
+              productIdentifiers: ids,
+              productType: PURCHASE_TYPE.SUBS,
+            }),
+            `${isIOS ? "Apple" : "Google Play"} products did not load. Please try again shortly.`
+          );
           products = result?.products || [];
           if (products.length > 0 || attempt === attempts) break;
           await new Promise((resolve) => setTimeout(resolve, 900 * attempt));
@@ -83,7 +97,7 @@ export default function Subscription() {
         if (!cancelled) {
           setStoreProducts(Object.fromEntries(products.map((p) => [p.identifier, p])));
           if (isIOS && products.length === 0) {
-            setPurchaseMessage("Apple is still preparing the subscription products for this build, so secure Stripe checkout is available below in the meantime.");
+            setPurchaseMessage("Apple is still preparing the subscription products for this build. Please try again after the App Store product setup finishes.");
           }
         }
       } catch (error) {
@@ -111,10 +125,13 @@ export default function Subscription() {
         let appleProduct = storeProducts[productId];
         if (!appleProduct) {
           for (let attempt = 1; attempt <= 3; attempt += 1) {
-            const result = await NativePurchases.getProducts({
-              productIdentifiers: [productId],
-              productType: PURCHASE_TYPE.SUBS,
-            });
+            const result = await withStoreTimeout(
+              NativePurchases.getProducts({
+                productIdentifiers: [productId],
+                productType: PURCHASE_TYPE.SUBS,
+              }),
+              "Apple did not return this subscription product. Please try again shortly."
+            );
             appleProduct = (result?.products || []).find((p) => p.identifier === productId);
             if (appleProduct) break;
             if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 900 * attempt));
@@ -133,7 +150,10 @@ export default function Subscription() {
         // App account linking is optional. StoreKit purchasing must work while signed out.
         if (user?.id) options.appAccountToken = await appleAccountTokenForUser(user.id);
 
-        const transaction = await NativePurchases.purchaseProduct(options);
+        const transaction = await withStoreTimeout(
+          NativePurchases.purchaseProduct(options),
+          "Apple purchase did not respond. Please close and reopen the app, then try again."
+        );
         if (user?.id) await verifyAppleTransactions([transaction]);
 
         const storeAccess = await currentAppleSubscriptionAccess();
@@ -147,11 +167,14 @@ export default function Subscription() {
           window.location.href = "/login?returnTo=/subscribe";
           return;
         }
-        const transaction = await NativePurchases.purchaseProduct({
-          productIdentifier: productId,
-          productType: PURCHASE_TYPE.SUBS,
-          quantity: 1,
-        });
+        const transaction = await withStoreTimeout(
+          NativePurchases.purchaseProduct({
+            productIdentifier: productId,
+            productType: PURCHASE_TYPE.SUBS,
+            quantity: 1,
+          }),
+          "Google Play purchase did not respond. Please close and reopen the app, then try again."
+        );
         await verifyGoogleTransactions([transaction]);
         await refreshEntitlements();
         setPurchaseMessage("Purchase verified with Google Play. Your S&S access is active.");
@@ -183,7 +206,10 @@ export default function Subscription() {
     if (!isIOS && !isAndroid) return;
     setPurchaseMessage("");
     try {
-      await NativePurchases.manageSubscriptions();
+      await withStoreTimeout(
+        NativePurchases.manageSubscriptions(),
+        "Subscription management did not open. Please manage it from your device account settings."
+      );
     } catch (error) {
       setPurchaseMessage(error?.message || "Could not open subscription management.");
     }
@@ -259,9 +285,9 @@ export default function Subscription() {
                 {isNative && isIOS && (
                   !storeLoading && !monthlyStore && !annualStore ? (
                     <div className="mt-6 grid gap-2">
-                      <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">Apple is still reviewing these subscriptions. Secure Stripe checkout is available now.</div>
-                      <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : `Choose monthly · ${tier.monthly}`}</button>
-                      <button onClick={() => startWebCheckout(`${tier.code}_annual`)} disabled={!!buyingId} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold disabled:opacity-50">{buyingId === `${tier.code}_annual` ? "Opening secure checkout…" : `Choose annual · ${tier.annual}`}</button>
+                      <div className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-900">Apple is still preparing these subscriptions for this app record. Restore remains available for existing Apple purchases.</div>
+                      <button type="button" disabled className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white opacity-50">Apple monthly unavailable · {tier.monthly}</button>
+                      <button type="button" disabled className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold opacity-50">Apple annual unavailable · {tier.annual}</button>
                     </div>
                   ) : (
                     <div className="mt-6 grid gap-2">
