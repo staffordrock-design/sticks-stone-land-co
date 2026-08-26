@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Clock3, Crown, LockKeyhole } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -25,6 +25,7 @@ function getOrCreatePreviewStart() {
 }
 
 export default function TimedPreviewGate({ children }) {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [checkingAccess, setCheckingAccess] = useState(Boolean(user?.id) || isNativeIOS());
   const [hasPaidAccess, setHasPaidAccess] = useState(user?.role === "admin" || isReviewDemoMode());
@@ -138,9 +139,13 @@ export default function TimedPreviewGate({ children }) {
               </div>
             </div>
             <div className="mt-5 grid gap-3">
-              <Link to="/subscribe" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">
+              <button
+                type="button"
+                onClick={() => navigate("/subscribe")}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"
+              >
                 <Crown className="h-4 w-4" /> Unlock full quarry intelligence
-              </Link>
+              </button>
               {!user?.id && !isNativeIOS() && (
                 <Link to="/login?returnTo=/subscribe" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-900">
                   Already a member? Sign in
