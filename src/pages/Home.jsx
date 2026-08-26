@@ -70,7 +70,7 @@ export default function Home() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const limit = stateFilter === "All Southeast" ? 180 : 250;
+      const limit = 80;
       const safeLoad = async (label, request) => {
         try {
           return await request;
@@ -85,24 +85,28 @@ export default function Home() {
         const perStateLimit = stateFilter === "All Southeast" ? INITIAL_PER_STATE : SELECTED_STATE_LIMIT;
 
         const stateRows = await Promise.all(statesToLoad.map(async (state) => {
-          const [quarryRows, blankCommodity, missingCommodity] = await Promise.all([
-            safeLoad(
-              `MiningSite quarry inventory ${state}`,
-              base44.entities.MiningSite.filter({
-                state,
-                commodity: { $regex: QUARRY_COMMODITY_REGEX, $options: "i" },
-              }, "-updated_date", perStateLimit)
-            ),
+          const quarryRows = await safeLoad(
+            `MiningSite quarry inventory ${state}`,
+            base44.entities.MiningSite.filter({
+              state,
+              commodity: { $regex: QUARRY_COMMODITY_REGEX, $options: "i" },
+            }, "-updated_date", perStateLimit)
+          );
+
+          // Avoid 16 extra requests on the Southeast overview. Blank-commodity
+          // records remain searchable and are included when a single state is selected.
+          if (stateFilter === "All Southeast") return quarryRows || [];
+
+          const [blankCommodity, missingCommodity] = await Promise.all([
             safeLoad(
               `MiningSite blank commodity ${state}`,
-              base44.entities.MiningSite.filter({ state, commodity: "" }, "-updated_date", Math.min(20, perStateLimit))
+              base44.entities.MiningSite.filter({ state, commodity: "" }, "-updated_date", 20)
             ),
             safeLoad(
               `MiningSite missing commodity ${state}`,
-              base44.entities.MiningSite.filter({ state, commodity: null }, "-updated_date", Math.min(20, perStateLimit))
+              base44.entities.MiningSite.filter({ state, commodity: null }, "-updated_date", 20)
             ),
           ]);
-
           return [...(quarryRows || []), ...(blankCommodity || []), ...(missingCommodity || [])];
         }));
 
@@ -334,7 +338,7 @@ export default function Home() {
       <section className="border-b border-border bg-slate-50/80">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
           {[
-            [quarrySites.length.toLocaleString(), "Quarry & aggregate records"],
+            [quarrySites.length.toLocaleString(), "Quarry records loaded"],
             [opportunityCount.toLocaleString(), "Potential / idled opportunities"],
             [activeCount.toLocaleString(), "Active mine records"],
             [Math.max(statesCovered, SOUTHEAST_STATES.length).toLocaleString(), "Southeast states in scope"],
@@ -456,7 +460,7 @@ export default function Home() {
               <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{ranked.length.toLocaleString()} results</span>
               {filtersActive && <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>}
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">Explore the marketplace before you subscribe. Tennessee is the verified core, with phased expansion across the Southeast. Search by mine name, MSHA Mine ID, state, county or commodity. Open a record to unlock owner/operator, permitted acreage, detailed geology, permits, compliance, production context and opportunity analysis.</p>
+            <p className="mt-1 text-sm text-muted-foreground">The app loads a fast working set instead of thousands of records at once. Search by mine name, MSHA Mine ID, state, county or commodity to query the larger quarry database. Open a record for owner/operator, permitted acreage, geology, permits, compliance, production context and opportunity analysis.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <QuarrySearchAutocomplete sites={quarrySites} query={query} setQuery={setQuery} />
