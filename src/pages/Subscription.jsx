@@ -9,7 +9,6 @@ import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subs
 import { appleAccountTokenForUser, appleProductIds, currentAppleSubscriptionAccess, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
 import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
-import DealTierCard from "@/components/DealTierCard";
 
 const ACTIVE = new Set(["active", "trial", "grace_period"]);
 const STORE_TIMEOUT_MS = 15000;
@@ -293,8 +292,6 @@ export default function Subscription() {
               </div>;
             })}
           </div>
-
-          <div className="mt-5"><DealTierCard /></div>
 
           <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5 text-xs leading-5 text-muted-foreground">
             <p className="font-semibold text-foreground">Subscription terms</p>
