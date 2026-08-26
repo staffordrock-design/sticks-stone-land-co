@@ -283,7 +283,7 @@ export default function Home() {
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
-          <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Account"}</div>
+          <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Preview"}</div>
         </div>
       </header>
 
@@ -313,9 +313,9 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Explore the Quarry Map</a>
-              <Link to="/subscribe" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">View Membership Plans</Link>
+              <Link to="/subscribe" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">View Membership</Link>
             </div>
-            <p className="mt-4 max-w-xl text-sm text-slate-300">Browse mine locations, status, commodity and source records without a countdown. Owner/operator intelligence, permitted acreage, detailed geology, production context, compliance history and opportunity analysis unlock with membership.</p>
+            <p className="mt-4 max-w-xl text-sm text-slate-300">Try the quarry marketplace in a 60-second preview. Full owner/operator intelligence, permitted acreage, detailed geology, production context, compliance history and opportunity analysis unlock with the $199/month membership.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
