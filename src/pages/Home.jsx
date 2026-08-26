@@ -22,6 +22,10 @@ const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abando
 const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
 const QUARRY_COMMODITY_REGEX = "stone|limestone|sand|gravel|aggregate|marble|granite|slate|shale|quartz|clay|dolomite|rock|lime";
+const INITIAL_PER_STATE = 45;
+const SELECTED_STATE_LIMIT = 300;
+const MAP_RENDER_LIMIT = 240;
+const CARD_RENDER_LIMIT = 90;
 
 function statusGroup(status = "") {
   const s = String(status).toLowerCase();
@@ -62,11 +66,11 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [stateFilter, setStateFilter] = useState("All Southeast");
   const [sortMode, setSortMode] = useState("Opportunity Priority");
-  const [showAll, setShowAll] = useState(true);
 
   const loadData = async () => {
+    setLoading(true);
     try {
-      const limit = showAll ? 500 : 200;
+      const limit = stateFilter === "All Southeast" ? 180 : 250;
       const safeLoad = async (label, request) => {
         try {
           return await request;
@@ -77,33 +81,29 @@ export default function Home() {
       };
 
       const loadMiningSiteInventory = async () => {
-        if (!showAll) return safeLoad("MiningSite", base44.entities.MiningSite.list("-created_date", 200));
+        const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
+        const perStateLimit = stateFilter === "All Southeast" ? INITIAL_PER_STATE : SELECTED_STATE_LIMIT;
 
-        const stateRows = await Promise.all(SOUTHEAST_STATES.map(async (state) => {
-          const rows = [];
-
-          // Ask Base44 for quarry/aggregate commodities directly instead of downloading
-          // every mine record (Kentucky/Alabama contain thousands of coal records).
-          for (let offset = 0; offset < 10000; offset += 500) {
-            const page = await safeLoad(
-              `MiningSite quarry inventory ${state} offset ${offset}`,
+        const stateRows = await Promise.all(statesToLoad.map(async (state) => {
+          const [quarryRows, blankCommodity, missingCommodity] = await Promise.all([
+            safeLoad(
+              `MiningSite quarry inventory ${state}`,
               base44.entities.MiningSite.filter({
                 state,
                 commodity: { $regex: QUARRY_COMMODITY_REGEX, $options: "i" },
-              }, "-created_date", 500, offset)
-            );
-            rows.push(...(page || []));
-            if (!page || page.length < 500) break;
-          }
-
-          // A small number of legitimate mine records have no commodity populated yet.
-          // Keep them visible until their commodity is enriched rather than hiding them.
-          const [blankCommodity, missingCommodity] = await Promise.all([
-            safeLoad(`MiningSite blank commodity ${state}`, base44.entities.MiningSite.filter({ state, commodity: "" }, "-created_date", 500)),
-            safeLoad(`MiningSite missing commodity ${state}`, base44.entities.MiningSite.filter({ state, commodity: null }, "-created_date", 500)),
+              }, "-updated_date", perStateLimit)
+            ),
+            safeLoad(
+              `MiningSite blank commodity ${state}`,
+              base44.entities.MiningSite.filter({ state, commodity: "" }, "-updated_date", Math.min(20, perStateLimit))
+            ),
+            safeLoad(
+              `MiningSite missing commodity ${state}`,
+              base44.entities.MiningSite.filter({ state, commodity: null }, "-updated_date", Math.min(20, perStateLimit))
+            ),
           ]);
-          rows.push(...(blankCommodity || []), ...(missingCommodity || []));
-          return rows;
+
+          return [...(quarryRows || []), ...(blankCommodity || []), ...(missingCommodity || [])];
         }));
 
         const seen = new Set();
@@ -119,9 +119,8 @@ export default function Home() {
       // Do not let one optional enrichment source blank the entire marketplace.
       // MiningSite is the core public inventory; parcel/geology/permit/environmental
       // data enrich the cards when available.
-      const [data, potentialData, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
+      const [data, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
         loadMiningSiteInventory(),
-        showAll ? Promise.resolve([]) : safeLoad("Potential MiningSite", base44.entities.MiningSite.filter({ mine_status: "New Mine" }, "-created_date", 100)),
         safeLoad("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.list("-updated_date", limit)),
         safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", limit)),
         safeLoad("GeologyRecord", base44.entities.GeologyRecord.list("-updated_date", limit)),
@@ -129,19 +128,10 @@ export default function Home() {
         safeLoad("EnvironmentalRecord", base44.entities.EnvironmentalRecord.list("-last_source_update", limit)),
       ]);
 
-      const siteList = Array.from(new Map([...(potentialData || []), ...(data || [])].map((site) => [site.id, site])).values());
+      const siteList = Array.from(new Map((data || []).map((site) => [site.id, site])).values());
       const geoRecords = geologyData || [];
 
-      // Pull in sites that have connected geology data but sit beyond the 500-record
-      // display limit, so data-rich quarries appear on the Home page.
-      const loadedSiteIds = new Set(siteList.map((s) => s.id));
-      const geoSiteIds = [...new Set(geoRecords.map((g) => g.mining_site_id).filter(Boolean))];
-      const missingIds = geoSiteIds.filter((sid) => !loadedSiteIds.has(sid));
-      const missingSites = (
-        await Promise.all(missingIds.map((sid) => base44.entities.MiningSite.get(sid).catch(() => null)))
-      ).filter(Boolean);
-
-      setSites([...siteList, ...missingSites]);
+      setSites(siteList);
       setProfiles(profileData || []);
       setParcels(parcelData || []);
       setGeology(geoRecords);
@@ -153,7 +143,7 @@ export default function Home() {
       setLoading(false);
     }
   };
-  useEffect(() => { loadData(); }, [showAll]);
+  useEffect(() => { loadData(); }, [stateFilter]);
 
   useEffect(() => {
     const q = query.trim();
@@ -448,7 +438,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-6 pb-14">
         <Suspense fallback={<div className="h-[560px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
           <TennesseeMineMap
-            sites={filtered}
+            sites={ranked.slice(0, MAP_RENDER_LIMIT)}
             geologyMap={geologyLookup}
             height={560}
             previewMode
@@ -523,7 +513,7 @@ export default function Home() {
         ) : (
           <>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {ranked.map((s) => {
+              {ranked.slice(0, CARD_RENDER_LIMIT).map((s) => {
                 const profile = profileForSite(s);
                 const parcel = parcelForSite(s);
                 const geologyRecord = geologyForSite(s);
@@ -534,9 +524,9 @@ export default function Home() {
                 return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} previewMode />;
               })}
             </div>
-            {!showAll && sites.length >= 190 && (
-              <div className="mt-8 text-center">
-                <button onClick={() => setShowAll(true)} className="rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted">Show all records (load full dataset)</button>
+            {ranked.length > CARD_RENDER_LIMIT && (
+              <div className="mt-8 rounded-2xl border border-border bg-muted/20 p-5 text-center text-sm text-muted-foreground">
+                Showing the first {CARD_RENDER_LIMIT} results for speed. Use search or choose a state to query the full quarry database without loading every record onto the phone at once.
               </div>
             )}
           </>
