@@ -77,8 +77,8 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
           {mappedSites.map((site) => {
             const geo = geologyMap[site.id] || (site.msha_mine_id ? geologyMap[`msha:${site.msha_mine_id}`] : null);
             const rockName = previewMode ? site.commodity : (geo?.primary_rock || geo?.lithology || site.commodity);
-            const color = previewMode ? "#334155" : rockCategoryColor(rockName);
-            const category = previewMode ? null : rockCategoryFor(rockName);
+            const color = rockCategoryColor(rockName);
+            const category = rockCategoryFor(rockName);
             const isListing = site.is_verified_listing && site.listing_id;
             return (
               <CircleMarker
@@ -123,7 +123,7 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
             );
           })}
         </MapContainer>
-        <div className="pointer-events-none absolute bottom-3 left-3 z-[500]">
+        <div className="pointer-events-none absolute bottom-7 right-2 z-[500]">
           <GeologyMapLegend compact />
         </div>
       </div>
