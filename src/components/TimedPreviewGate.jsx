@@ -130,23 +130,18 @@ export default function TimedPreviewGate({ children }) {
             <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-slate-600">
               You’ve seen the marketplace, source-backed quarry records and opportunity screening. Membership unlocks the detailed mine pages, mapped geology, parcel/ownership intelligence, regulatory history and deeper analysis behind each record.
             </p>
-            <div className="mt-6 grid grid-cols-2 gap-3 text-left">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Quarry Access</div>
-                <div className="mt-1 text-xl font-bold text-slate-950">$69<span className="text-xs font-semibold text-slate-500">/mo</span></div>
-                <div className="mt-1 text-xs leading-5 text-slate-600">Marketplace, mine identity, maps and basic site intelligence.</div>
-              </div>
-              <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
-                <div className="text-xs font-bold uppercase tracking-wider text-sky-700">Professional</div>
-                <div className="mt-1 text-xl font-bold text-slate-950">$139<span className="text-xs font-semibold text-slate-500">/mo</span></div>
-                <div className="mt-1 text-xs leading-5 text-slate-600">Parcel, geology, permits, production and advanced screening.</div>
+            <div className="mt-6 text-left">
+              <div className="rounded-2xl border border-sky-200 bg-sky-50 p-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-sky-700">Full Quarry Intelligence</div>
+                <div className="mt-1 text-2xl font-bold text-slate-950">$199<span className="text-xs font-semibold text-slate-500">/mo</span></div>
+                <div className="mt-2 text-xs leading-5 text-slate-600">Full app access to quarry records, maps, ownership, geology, permits, production and advanced screening.</div>
               </div>
             </div>
             <div className="mt-5 grid gap-3">
               <Link to="/subscribe" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">
                 <Crown className="h-4 w-4" /> Unlock full quarry intelligence
               </Link>
-              {!user?.id && (
+              {!user?.id && !isNativeIOS() && (
                 <Link to="/login?returnTo=/subscribe" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-900">
                   Already a member? Sign in
                 </Link>
