@@ -3,6 +3,15 @@ import { NativePurchases, PURCHASE_TYPE } from '@capgo/native-purchases';
 import { base44 } from '@/api/base44Client';
 import { ACCESS_TIERS, SUBSCRIPTION_PRODUCTS } from '@/lib/subscriptionPlans';
 
+const STOREKIT_TIMEOUT_MS = 12000;
+
+function withStoreKitTimeout(promise, message = 'Apple did not respond. Please try again.') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), STOREKIT_TIMEOUT_MS)),
+  ]);
+}
+
 export function isNativeIOS() {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
 }
@@ -27,12 +36,18 @@ export function applePlanCodeForProduct(productId) {
 
 export async function currentAppleSubscriptionAccess({ restore = false } = {}) {
   if (!isNativeIOS()) return { active: false, professional: false, purchases: [], productIds: [], planCodes: [] };
-  if (restore) await NativePurchases.restorePurchases();
+  if (restore) await withStoreKitTimeout(
+    NativePurchases.restorePurchases(),
+    'Apple restore did not respond. Please try again from Restore Purchases.'
+  );
 
-  const { purchases = [] } = await NativePurchases.getPurchases({
-    productType: PURCHASE_TYPE.SUBS,
-    onlyCurrentEntitlements: true,
-  });
+  const { purchases = [] } = await withStoreKitTimeout(
+    NativePurchases.getPurchases({
+      productType: PURCHASE_TYPE.SUBS,
+      onlyCurrentEntitlements: true,
+    }),
+    'Apple subscription check did not respond. You can still browse the preview and try again.'
+  );
   const current = (purchases || []).filter((tx) => appleProductIds().includes(tx?.productIdentifier));
   const productIds = current.map((tx) => tx.productIdentifier).filter(Boolean);
   const planCodes = productIds.map(applePlanCodeForProduct).filter(Boolean);
@@ -64,7 +79,10 @@ export async function appleAccountTokenForUser(userId) {
 
 async function signedAppTransaction() {
   try {
-    const { appTransaction } = await NativePurchases.getAppTransaction();
+    const { appTransaction } = await withStoreKitTimeout(
+      NativePurchases.getAppTransaction(),
+      'Apple app transaction did not respond.'
+    );
     return appTransaction?.jwsRepresentation || '';
   } catch {
     return '';
