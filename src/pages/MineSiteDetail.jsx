@@ -874,7 +874,7 @@ export default function MineSiteDetail() {
           <div className="mb-8 rounded-3xl border border-sky-200 bg-sky-50/70 p-7 text-center">
             <LockKeyhole className="mx-auto h-8 w-8 text-slate-800" />
             <h2 className="mt-3 font-heading text-2xl font-bold text-slate-950">Professional intelligence starts here</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700">Your Quarry Access membership opens the mine profile and source record. Professional Intelligence adds parcel and ownership data, permitted acreage, geology, production history, compliance, contract/royalty intelligence, valuation screening and S&amp;S opportunity analysis.</p>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700">Full Quarry Intelligence unlocks the complete mine profile: source records, parcel and ownership data, permitted acreage, geology, production history, compliance, contract/royalty intelligence, valuation screening and S&amp;S opportunity analysis.</p>
             <button onClick={() => navigate("/subscribe")} className="mt-5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Upgrade to Professional</button>
           </div>
         )}
