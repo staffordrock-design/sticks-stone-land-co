@@ -15,6 +15,7 @@ const PUBLIC_PATHS = new Set([
   "/support",
   "/account/delete",
   "/account-deletion",
+  "/subscribe",
 ]);
 
 function loadingScreen() {
