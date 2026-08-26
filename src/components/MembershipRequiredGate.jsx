@@ -9,6 +9,7 @@ import { isReviewDemoAccount, isReviewDemoMode } from "@/lib/reviewDemo";
 
 const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
 const EXEMPT_PATHS = new Set([
+  "/",
   "/login",
   "/register",
   "/forgot-password",
@@ -52,7 +53,7 @@ export default function MembershipRequiredGate({ children }) {
       return () => { cancelled = true; };
     }
 
-    if (!user?.id) {
+    if (!user?.id && !isNativeIOS()) {
       setAccessState({ loading: false, active: false });
       return () => { cancelled = true; };
     }
@@ -71,9 +72,14 @@ export default function MembershipRequiredGate({ children }) {
           try {
             const storeAccess = await currentAppleSubscriptionAccess();
             storeActive = Boolean(storeAccess?.active);
-            await syncCurrentAppleSubscriptions();
+            if (user?.id) await syncCurrentAppleSubscriptions();
           } catch (error) {
             console.error("Apple membership sync failed", error);
+          }
+
+          if (!user?.id) {
+            if (!cancelled) setAccessState({ loading: false, active: storeActive });
+            return;
           }
         }
 
@@ -113,11 +119,16 @@ export default function MembershipRequiredGate({ children }) {
 
   if (isLoadingPublicSettings || isLoadingAuth || !authChecked) return loadingScreen();
 
-  if (!user?.id) {
+  if (!user?.id && !isNativeIOS()) {
     return <Navigate to="/login?returnTo=%2Fsubscribe" replace />;
   }
 
   if (accessState.loading) return loadingScreen();
+
+  if (!user?.id && isNativeIOS()) {
+    if (!accessState.active) return <Navigate to="/subscribe" replace />;
+    return children;
+  }
 
   if (!accessState.active) {
     return <Navigate to="/subscribe" replace />;
