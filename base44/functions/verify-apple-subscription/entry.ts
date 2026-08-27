@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk';
 import { verifyApplePurchases, sha256Hex, isoFromMillis } from '../../shared/appleVerify.ts';
 
 const PRODUCT_TO_PLAN = {
+  'com.ssrockholdings.quarryintelligence.monthly199': 'professional_monthly',
   'com.ssrockholdings.marketplace.monthly': 'marketplace_monthly',
   'com.ssrockholdings.marketplace.annual': 'marketplace_annual',
   'com.ssrockholdings.professional.monthly': 'professional_monthly',
