@@ -3,11 +3,11 @@
     {
       "app_id": "6801479135",
       "bundle_id": "com.ssrockholdings.quarrymarketplace",
-      "id": "f0692310-17cc-4968-b3c7-13554d61e85d",
+      "id": "6a071b06-2bd8-4214-948a-affda721f5cf",
       "name": "S&S Quarry Intelligence",
       "platform": "IOS",
-      "state": "WAITING_FOR_REVIEW",
-      "submitted_date": "2026-08-26T21:57:02.871Z"
+      "state": "READY_FOR_REVIEW",
+      "submitted_date": null
     },
     {
       "app_id": "6802014287",
@@ -32,18 +32,18 @@
     {
       "active_reviews": [
         {
-          "id": "f0692310-17cc-4968-b3c7-13554d61e85d",
+          "id": "6a071b06-2bd8-4214-948a-affda721f5cf",
           "platform": "IOS",
-          "state": "WAITING_FOR_REVIEW",
-          "submitted_date": "2026-08-26T21:57:02.871Z"
+          "state": "READY_FOR_REVIEW",
+          "submitted_date": null
         }
       ],
       "bundle_id": "com.ssrockholdings.quarrymarketplace",
       "id": "6801479135",
       "ios_versions": [
         {
-          "app_store_state": "WAITING_FOR_REVIEW",
-          "app_version_state": "WAITING_FOR_REVIEW",
+          "app_store_state": "READY_FOR_REVIEW",
+          "app_version_state": "READY_FOR_REVIEW",
           "created_date": "2026-08-14T02:28:29-07:00",
           "id": "2529d759-049e-4622-87cb-8c63460f20ef",
           "version_string": "1.0"
@@ -55,7 +55,15 @@
         {
           "id": "22320430",
           "reference_name": "S&S Rock Holdings Access",
-          "subscriptions": []
+          "subscriptions": [
+            {
+              "id": "6805699765",
+              "name": "Full Quarry Intelligence Monthly",
+              "period": "ONE_MONTH",
+              "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
+              "state": "MISSING_METADATA"
+            }
+          ]
         }
       ]
     },
@@ -182,7 +190,7 @@
   ],
   "authenticated": true,
   "errors": [],
-  "generated_at": "2026-08-27T00:20:20.424977+00:00",
+  "generated_at": "2026-08-27T18:01:27.454648+00:00",
   "key_id_used": "2A3958GU5F",
   "target_product_locations": {
     "com.ssrockholdings.marketplace.annual": {
