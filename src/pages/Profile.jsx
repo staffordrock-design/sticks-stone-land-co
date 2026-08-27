@@ -183,6 +183,10 @@ export default function Profile() {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-7 w-7 animate-spin text-slate-700" /></div>;
   }
 
+  if (!user?.id) {
+    return <div className="min-h-screen bg-background px-6 py-16 text-center"><UserRound className="mx-auto h-10 w-10 text-muted-foreground"/><h1 className="mt-4 font-heading text-2xl font-bold">S&amp;S account is optional for Apple subscribers</h1><p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">Your Full Quarry Intelligence subscription is recognized from your Apple ID. Create or sign in to an S&amp;S account only if you want saved opportunities, alerts, buyer/seller tools, messages or a professional network profile.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><Link to="/login?returnTo=/profile" className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Sign in</Link><Link to="/register?returnTo=/profile" className="rounded-xl border border-border px-5 py-3 text-sm font-bold">Create account</Link><Link to="/" className="rounded-xl border border-border px-5 py-3 text-sm font-bold">Back to quarries</Link></div></div>;
+  }
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <header className="border-b border-border bg-card">
