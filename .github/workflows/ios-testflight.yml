@@ -77,10 +77,27 @@ jobs:
             echo "::error title=Apple product missing from iOS web bundle::The built app cannot recognize the current Apple subscription";
             exit 1;
           }
-          if grep -RqsE '\$69|\$139|60-second preview|Your 60-second preview|ss-quarry-preview-start' src dist; then
-            echo "::error title=Retired access model found::Old pricing or the 60-second preview is still present in the build";
+          if grep -RqsE '\$69|\$139|\$690|\$89|\$189|\$389|\$1,500|\$2,500|60-second preview|Your 60-second preview|ss-quarry-preview-start|Explore review demo|ss-apple-review-demo' src dist; then
+            echo "::error title=Retired access model found::Old pricing, a retired preview gate, or the public review-demo bypass is present in the build";
             exit 1;
           fi
+          if grep -qE 'com\.ssrockholdings\.(marketplace|deal)\.(monthly|annual)|com\.ssrockholdings\.professional\.(monthly|annual)' src/lib/subscriptionPlans.js; then
+            echo "::error title=Legacy Apple products exposed::The client subscription catalog still contains a retired Apple subscription product";
+            exit 1;
+          fi
+          node --input-type=module <<'NODE'
+          import { ACCESS_TIERS, SUBSCRIPTION_PRODUCTS } from './src/lib/subscriptionPlans.js';
+          if (ACCESS_TIERS.length !== 1 || ACCESS_TIERS[0]?.code !== 'professional') {
+            throw new Error(`Expected exactly one client membership tier, got ${ACCESS_TIERS.length}`);
+          }
+          if (SUBSCRIPTION_PRODUCTS.apple?.professional?.monthly !== 'com.ssrockholdings.quarryintelligence.monthly199') {
+            throw new Error('Current Apple Full Quarry Intelligence product ID is not the only client monthly product');
+          }
+          if (SUBSCRIPTION_PRODUCTS.apple?.professional?.annual) {
+            throw new Error('An Apple annual plan is unexpectedly exposed by the client');
+          }
+          console.log('Single-tier client subscription catalog passed.');
+          NODE
           grep -q 'storeAccess?.active && storeAccess?.professional' src/components/MembershipRequiredGate.jsx || {
             echo "::error title=Membership gate mismatch::Quarry routes are not tied to Full Quarry Intelligence";
             exit 1;
