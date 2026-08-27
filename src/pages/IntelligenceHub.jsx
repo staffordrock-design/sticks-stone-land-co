@@ -46,9 +46,9 @@ const tools = [
   {
     to: "/mineral-value-guide",
     icon: Gem,
-    eyebrow: "Rock economics",
-    title: "Mineral Value Guide",
-    description: "Use rock-type and material-value context to support early quarry screening before deeper diligence.",
+    eyebrow: "Material screening",
+    title: "Material Opportunity Analyzer",
+    description: "Filter the live quarry database by state and material, then rank targets using activity, geology, permitted acreage and S&S opportunity signals.",
   },
   {
     to: "/deal-investor",
