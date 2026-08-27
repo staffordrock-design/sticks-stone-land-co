@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Mountain, Gem, Crown, Users, UserRound } from "lucide-react";
+import { Mountain, Layers3, Crown, Users, UserRound } from "lucide-react";
 
 const TABS = [
   { to: "/", label: "Quarries", icon: Mountain, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
+  { to: "/intelligence", label: "Intel", icon: Layers3, match: (p) => p.startsWith("/intelligence") || p.startsWith("/mineral-intelligence") || p.startsWith("/mineral-value-guide") || p.startsWith("/compare") || p.startsWith("/watchlist") || p.startsWith("/opportunities") || p.startsWith("/deal-investor") },
   { to: "/network", label: "Network", icon: Users, match: (p) => p.startsWith("/network") || p.startsWith("/messages") },
-  { to: "/mineral-value-guide", label: "Minerals", icon: Gem, match: (p) => p.startsWith("/mineral-value-guide") },
   { to: "/subscribe", label: "Access", icon: Crown, match: (p) => p.startsWith("/subscribe") },
   { to: "/profile", label: "Profile", icon: UserRound, match: (p) => p.startsWith("/profile") || p.startsWith("/buyer-profile") || p.startsWith("/opportunities") },
 ];
