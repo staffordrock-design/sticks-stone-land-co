@@ -9,8 +9,7 @@ import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subs
 import { appleAccountTokenForUser, appleProductIds, currentAppleSubscriptionAccess, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
 import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
-
-const ACTIVE = new Set(["active", "trial", "grace_period"]);
+import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -19,6 +18,16 @@ function withStoreTimeout(promise, message = "The store did not respond. Please 
     promise,
     new Promise((_, reject) => setTimeout(() => reject(new Error(message)), timeoutMs)),
   ]);
+}
+
+async function waitForAppleStoreAccess(attempts = 4) {
+  let access = { active: false, professional: false, purchases: [], planCodes: [] };
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    access = await currentAppleSubscriptionAccess();
+    if (access?.active && access?.professional) return access;
+    if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, 650 * attempt));
+  }
+  return access;
 }
 
 export default function Subscription() {
@@ -123,7 +132,7 @@ export default function Subscription() {
     return () => { cancelled = true; };
   }, [isNative, isIOS, isAndroid]);
 
-  const accountActive = useMemo(() => entitlements.find((e) => ACTIVE.has(e.status) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())), [entitlements]);
+  const accountActive = useMemo(() => findFullQuarryEntitlement(entitlements), [entitlements]);
   const active = accountActive || (isIOS && appleStoreAccess?.active ? {
     plan_code: appleStoreAccess.professional ? "professional (Apple StoreKit)" : (appleStoreAccess.planCodes?.[0] || "quarry_access (Apple StoreKit)"),
     platform: "apple",
@@ -173,7 +182,10 @@ export default function Subscription() {
         const transaction = await NativePurchases.purchaseProduct(options);
         if (user?.id) await verifyAppleTransactions([transaction]);
 
-        const storeAccess = await currentAppleSubscriptionAccess();
+        const storeAccess = await waitForAppleStoreAccess();
+        if (!storeAccess?.active || !storeAccess?.professional) {
+          throw new Error("Apple confirmed the purchase, but the entitlement has not refreshed yet. Use Restore Purchases, then try opening the quarry again.");
+        }
         setAppleStoreAccess(storeAccess);
         if (user?.id) await refreshEntitlements();
         setPurchaseMessage("Purchase confirmed by Apple. Your full S&S quarry intelligence is active.");
@@ -205,7 +217,7 @@ export default function Subscription() {
     setPurchaseMessage("");
     setBuyingId(planCode);
     try {
-      const response = await base44.functions.invoke("create-subscription-checkout", { plan_code: planCode });
+      const response = await base44.functions.invoke("create-subscription-checkout", { plan_code: planCode, return_to: returnTo });
       const payload = response?.data || response || {};
       if (!payload?.url) throw new Error(payload?.error || "Could not start checkout.");
       window.location.assign(payload.url);
@@ -238,7 +250,8 @@ export default function Subscription() {
     setStoreLoading(true);
     try {
       if (isIOS) {
-        const access = await syncCurrentAppleSubscriptions({ restore: true });
+        let access = await syncCurrentAppleSubscriptions({ restore: true });
+        if (!access?.active || !access?.professional) access = await waitForAppleStoreAccess();
         setAppleStoreAccess(access || { active: false, professional: false, purchases: [], planCodes: [] });
         if (user?.id) await refreshEntitlements();
         setPurchaseMessage(access?.active
