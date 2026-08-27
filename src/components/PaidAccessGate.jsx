@@ -23,7 +23,7 @@ export default function PaidAccessGate({ children }) {
         if (isNativeIOS()) {
           try {
             const storeAccess = await currentAppleSubscriptionAccess();
-            if (!cancelled) setAppleStoreActive(Boolean(storeAccess?.active));
+            if (!cancelled) setAppleStoreActive(Boolean(storeAccess?.active && storeAccess?.professional));
             if (user?.id) await syncCurrentAppleSubscriptions();
           } catch (error) {
             console.error("Apple StoreKit access check failed", error);
