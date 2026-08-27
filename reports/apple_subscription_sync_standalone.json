@@ -2,10 +2,8 @@
   "app_id": "6801479135",
   "authenticated": true,
   "bundle_id": "com.ssrockholdings.quarrymarketplace",
-  "errors": [
-    "com.ssrockholdings.quarryintelligence.monthly199: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptionIntroductoryOffers -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"9a60935d-7723-43dd-a10a-d95aaeab9b57\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.RELATIONSHIP.REQUIRED\",\n    \"title\" : \"The provided entity is missing a required relationship\",\n    \"detail\" : \"You must provide a value for the relationship 'territory' with this request\",\n    \"source\" : {\n      \"pointer\" : \"/data/relationships/territory\"\n    }\n  } ]\n}"
-  ],
-  "generated_at": "2026-08-27T01:01:42.913114+00:00",
+  "errors": [],
+  "generated_at": "2026-08-27T01:08:49.456986+00:00",
   "group": {
     "created": false,
     "id": "22320430",
@@ -15,36 +13,31 @@
   "products": {
     "com.ssrockholdings.quarryintelligence.monthly199": {
       "created": false,
-      "error": "com.ssrockholdings.quarryintelligence.monthly199: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptionIntroductoryOffers -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"9a60935d-7723-43dd-a10a-d95aaeab9b57\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.RELATIONSHIP.REQUIRED\",\n    \"title\" : \"The provided entity is missing a required relationship\",\n    \"detail\" : \"You must provide a value for the relationship 'territory' with this request\",\n    \"source\" : {\n      \"pointer\" : \"/data/relationships/territory\"\n    }\n  } ]\n}",
       "group_id": "22320430",
       "id": "6805699765",
-      "introductory_offer": null,
+      "introductory_offer": {
+        "created": true,
+        "duration": "THREE_DAYS",
+        "end_date": null,
+        "existing_territories": 0,
+        "number_of_periods": 1,
+        "offer_mode": "FREE_TRIAL",
+        "start_date": "2026-08-27",
+        "territories_created": 175,
+        "territories_total": 175
+      },
       "localized": true,
+      "plan_availability": {
+        "available_in_new_territories": true,
+        "created": true,
+        "id": "eyJhIjoiNjgwNTY5OTc2NSIsInAiOiIwIn0",
+        "plan_type": "UPFRONT",
+        "territories": 175
+      },
       "pricing": {
         "existing_price_territories": 0,
-        "price_failures": [
-          "USA:RuntimeError",
-          "AFG:RuntimeError",
-          "AGO:RuntimeError",
-          "AIA:RuntimeError",
-          "ALB:RuntimeError",
-          "ARE:RuntimeError",
-          "ARG:RuntimeError",
-          "ARM:RuntimeError",
-          "ATG:RuntimeError",
-          "AUS:RuntimeError",
-          "AUT:RuntimeError",
-          "AZE:RuntimeError",
-          "BEL:RuntimeError",
-          "BEN:RuntimeError",
-          "BFA:RuntimeError",
-          "BGR:RuntimeError",
-          "BHR:RuntimeError",
-          "BHS:RuntimeError",
-          "BIH:RuntimeError",
-          "BLR:RuntimeError"
-        ],
-        "prices_created": 0,
+        "price_failures": [],
+        "prices_created": 175,
         "territories_available_from_equalization": 175,
         "usa_price": "199.00"
       },
