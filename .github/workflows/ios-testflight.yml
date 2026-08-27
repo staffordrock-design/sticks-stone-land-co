@@ -137,20 +137,21 @@ jobs:
           report = json.loads(pathlib.Path("reports/apple_subscription_sync.json").read_text())
           key_id = report.get("key_id_used")
           products = report.get("products", {})
-          required = {
-              "com.ssrockholdings.marketplace.monthly",
-              "com.ssrockholdings.marketplace.annual",
-              "com.ssrockholdings.professional.monthly",
-              "com.ssrockholdings.professional.annual",
-          }
+          required = {"com.ssrockholdings.quarryintelligence.monthly199"}
           missing = [pid for pid in sorted(required) if not products.get(pid, {}).get("id")]
           product_errors = [products.get(pid, {}).get("error") for pid in sorted(required) if products.get(pid, {}).get("error")]
           if not report.get("authenticated") or not key_id:
               raise SystemExit("App Store Connect authentication did not succeed")
+          if report.get("bundle_id") != "com.ssrockholdings.quarrymarketplace":
+              raise SystemExit("Apple subscription sync targeted the wrong iOS app")
           if missing:
-              print("::warning title=Apple subscriptions need manual review::The App Store already reports these product IDs as used, so the build upload will continue. Check in-app purchase setup manually: " + ", ".join(missing))
-          if product_errors:
-              print("::warning title=Apple subscription sync warnings::" + " | ".join(product_errors))
+              raise SystemExit("Required Apple subscription is missing: " + ", ".join(missing))
+          if product_errors or report.get("errors"):
+              raise SystemExit("Apple subscription sync contains errors: " + " | ".join(product_errors + report.get("errors", [])))
+          product = products["com.ssrockholdings.quarryintelligence.monthly199"]
+          offer = product.get("introductory_offer") or {}
+          if offer.get("offer_mode") != "FREE_TRIAL" or offer.get("duration") != "THREE_DAYS":
+              raise SystemExit("Required 3-day Apple free trial was not verified")
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"ASC_KEY_ID={key_id}\n")
           print("Apple subscription sync check completed; continuing to build upload.")
