@@ -1,67 +1,18 @@
-name: Prepare Apple App Review
+name: Retired Apple Review Prep
 
 on:
-  # Keep App Review mutations deliberate after submission.
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  prepare-review:
-    name: Guarded build 20 App Review prep
+  retired:
+    name: Retired workflow safeguard
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
-      - name: Check out project
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install App Store Connect dependencies
-        run: python -m pip install --quiet PyJWT cryptography requests
-
-      - name: Prepare build 20 for App Review
-        env:
-          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
-          ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
-          ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
-          ASC_EXPECTED_REVIEW_ATTACHMENT: "ScreenRecording_08-23-2026 17-02-53_1.mov"
-          ASC_ALLOW_FINAL_SUBMIT: "1"
+      - name: Do not mutate App Store review
         run: |
-          set -Eeuo pipefail
-          test -n "$ASC_PRIVATE_KEY" || { echo "::error title=Missing App Store key::ASC_PRIVATE_KEY is not configured"; exit 1; }
-          python scripts/apple_review_prepare.py
-
-      - name: Show sanitized result
-        if: always()
-        run: |
-          if [ -f reports/apple_review_prepare.json ]; then
-            cat reports/apple_review_prepare.json
-          else
-            echo '{"final_status":"NO_REPORT"}'
-          fi
-
-      - name: Preserve sanitized Apple prep report
-        if: always()
-        run: |
-          set -Eeuo pipefail
-          test -f reports/apple_review_prepare.json || exit 0
-          git config user.name "base44-builder[bot]"
-          git config user.email "base44-builder[bot]@users.noreply.github.com"
-          git add reports/apple_review_prepare.json
-          if git diff --cached --quiet; then
-            echo "No report changes to commit."
-            exit 0
-          fi
-          git commit -m "Record guarded Apple review preparation result"
-          for attempt in 1 2 3; do
-            git pull --rebase origin main && git push origin HEAD:main && exit 0
-            echo "Report push attempt $attempt failed; retrying..."
-            sleep $((attempt * 3))
-          done
-          echo "::warning title=Report not pushed::Apple prep ran, but sanitized report could not be committed back to main."
+          echo "This legacy build-20 App Review preparation workflow is retired."
+          echo "Use the iOS TestFlight Upload workflow for the current build and current Full Quarry Intelligence subscription."
+          echo "No App Store Connect changes were made."
