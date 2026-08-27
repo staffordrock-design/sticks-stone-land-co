@@ -33,40 +33,13 @@ TODAY = dt.datetime.now(dt.timezone.utc).date().isoformat()
 
 PRODUCTS = [
     {
-        "product_id": "com.ssrockholdings.marketplace.monthly",
-        "internal_name": "Quarry Access Monthly",
-        "display_name": "Quarry Access Monthly",
-        "description": "Monthly access to S&S Rock Holdings quarry marketplace, maps, mine identity and basic site intelligence.",
-        "period": "ONE_MONTH",
-        "group_level": 2,
-        "usa_price": Decimal("69.00"),
-    },
-    {
-        "product_id": "com.ssrockholdings.marketplace.annual",
-        "internal_name": "Quarry Access Annual",
-        "display_name": "Quarry Access Annual",
-        "description": "Annual access to S&S Rock Holdings quarry marketplace, maps, mine identity and basic site intelligence.",
-        "period": "ONE_YEAR",
-        "group_level": 2,
-        "usa_price": Decimal("690.00"),
-    },
-    {
-        "product_id": "com.ssrockholdings.professional.monthly",
-        "internal_name": "Professional Intelligence Monthly",
-        "display_name": "Professional Intelligence Monthly",
-        "description": "Monthly access to advanced parcel, geology, permit, environmental, production and quarry screening intelligence.",
+        "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
+        "internal_name": "Full Quarry Intelligence Monthly",
+        "display_name": "Full Quarry Intelligence Monthly",
+        "description": "Full monthly access to S&S quarry intelligence, mapping, parcel, geology, permit, environmental and production data.",
         "period": "ONE_MONTH",
         "group_level": 1,
-        "usa_price": Decimal("139.00"),
-    },
-    {
-        "product_id": "com.ssrockholdings.professional.annual",
-        "internal_name": "Professional Intelligence Annual",
-        "display_name": "Professional Intelligence Annual",
-        "description": "Annual access to advanced parcel, geology, permit, environmental, production and quarry screening intelligence.",
-        "period": "ONE_YEAR",
-        "group_level": 1,
-        "usa_price": Decimal("1000.00"),
+        "usa_price": Decimal("199.00"),
     },
 ]
 
@@ -292,6 +265,53 @@ def ensure_localization(client: ASC, subscription_id: str, product: dict[str, An
     client.request("POST", "/v1/subscriptionLocalizations", payload=payload)
 
 
+def ensure_three_day_free_trial(client: ASC, subscription_id: str) -> dict[str, Any]:
+    """Ensure one global 3-day FREE_TRIAL introductory offer for new subscribers."""
+    offers = client.all(
+        f"/v1/subscriptions/{subscription_id}/introductoryOffers",
+        params={"limit": 200},
+    )
+    for offer in offers:
+        attrs = offer.get("attributes") or {}
+        if attrs.get("offerMode") == "FREE_TRIAL" and attrs.get("duration") == "THREE_DAYS":
+            return {
+                "created": False,
+                "id": offer.get("id"),
+                "offer_mode": "FREE_TRIAL",
+                "duration": "THREE_DAYS",
+                "number_of_periods": attrs.get("numberOfPeriods", 1),
+                "start_date": attrs.get("startDate"),
+                "end_date": attrs.get("endDate"),
+            }
+
+    payload = {
+        "data": {
+            "type": "subscriptionIntroductoryOffers",
+            "attributes": {
+                "startDate": TODAY,
+                "endDate": None,
+                "duration": "THREE_DAYS",
+                "offerMode": "FREE_TRIAL",
+                "numberOfPeriods": 1,
+            },
+            "relationships": {
+                "subscription": {"data": {"type": "subscriptions", "id": subscription_id}},
+            },
+        }
+    }
+    offer = client.request("POST", "/v1/subscriptionIntroductoryOffers", payload=payload)["data"]
+    attrs = offer.get("attributes") or {}
+    return {
+        "created": True,
+        "id": offer.get("id"),
+        "offer_mode": attrs.get("offerMode", "FREE_TRIAL"),
+        "duration": attrs.get("duration", "THREE_DAYS"),
+        "number_of_periods": attrs.get("numberOfPeriods", 1),
+        "start_date": attrs.get("startDate", TODAY),
+        "end_date": attrs.get("endDate"),
+    }
+
+
 def decimal_price(value: Any) -> Decimal:
     return Decimal(str(value)).quantize(Decimal("0.01"))
 
@@ -407,7 +427,7 @@ def main() -> None:
 
     for product in PRODUCTS:
         pid = product["product_id"]
-        entry = {"created": False, "localized": False, "pricing": None, "state": None, "id": None}
+        entry = {"created": False, "localized": False, "pricing": None, "introductory_offer": None, "state": None, "id": None}
         report["products"][pid] = entry
         try:
             sub = existing.get(pid)
@@ -438,6 +458,7 @@ def main() -> None:
                 }
                 entry["pricing_warning"] = str(price_exc)[:700]
                 print(f"WARNING {pid}: {price_exc}")
+            entry["introductory_offer"] = ensure_three_day_free_trial(client, sid)
             entry["state"] = read_subscription_state(client, sid)
         except Exception as exc:
             message = f"{pid}: {type(exc).__name__}: {str(exc)[:700]}"
