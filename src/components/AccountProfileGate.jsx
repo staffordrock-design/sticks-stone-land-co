@@ -20,6 +20,18 @@ const PUBLIC_PATHS = new Set([
   "/subscribe",
 ]);
 
+// A completed profile is useful for account/workspace features, but it must never
+// stand between a paid subscriber and the quarry intelligence they purchased.
+const PROFILE_REQUIRED_PATHS = new Set([
+  "/watchlist",
+  "/opportunities",
+  "/buyer-profile",
+  "/sell",
+  "/seller-portal",
+  "/network",
+  "/messages",
+]);
+
 function loadingScreen() {
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-background">
@@ -38,11 +50,12 @@ export default function AccountProfileGate({ children }) {
 
   const isPublic = PUBLIC_PATHS.has(pathname);
   const isProfile = pathname === "/profile";
+  const requiresProfile = PROFILE_REQUIRED_PATHS.has(pathname);
 
   useEffect(() => {
     let cancelled = false;
 
-    if (isPublic || !user?.id) {
+    if (isPublic || !requiresProfile || !user?.id) {
       setProfileState({ loading: false, complete: false });
       return () => { cancelled = true; };
     }
@@ -60,9 +73,9 @@ export default function AccountProfileGate({ children }) {
     })();
 
     return () => { cancelled = true; };
-  }, [user?.id, pathname, isPublic]);
+  }, [user?.id, pathname, isPublic, requiresProfile]);
 
-  if (isPublic) return children;
+  if (isPublic || (!requiresProfile && !isProfile)) return children;
   if (isNativeIOS() && !user?.id) return children;
 
   if (isLoadingPublicSettings || isLoadingAuth || !authChecked) return loadingScreen();
