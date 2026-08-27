@@ -10,6 +10,7 @@ import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js"
 import { useAuth } from "@/lib/AuthContext";
 import { isReviewDemoMode } from "@/lib/reviewDemo";
 import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
+import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import QuarryActionBar from "@/components/QuarryActionBar";
@@ -134,11 +135,7 @@ export default function MineSiteDetail() {
         }
 
         const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 20);
-        const activeProfessional = (rows || []).some((e) =>
-          ["active", "trial", "grace_period"].includes(e.status) &&
-          (/^professional(_|$)/.test(String(e.plan_code || "")) || /^deal_investor(_|$)/.test(String(e.plan_code || ""))) &&
-          (!e.expires_at || new Date(e.expires_at).getTime() > Date.now())
-        );
+        const activeProfessional = hasFullQuarryEntitlement(rows || []);
         if (!cancelled) setHasProfessional(appleProfessional || activeProfessional);
       } catch {
         if (!cancelled) setHasProfessional(false);
@@ -875,7 +872,7 @@ export default function MineSiteDetail() {
             <LockKeyhole className="mx-auto h-8 w-8 text-slate-800" />
             <h2 className="mt-3 font-heading text-2xl font-bold text-slate-950">Full quarry intelligence starts here</h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700">Full Quarry Intelligence unlocks the complete mine profile: source records, parcel and ownership data, permitted acreage, geology, production history, compliance, contract/royalty intelligence, valuation screening and S&amp;S opportunity analysis.</p>
-            <button onClick={() => navigate("/subscribe")} className="mt-5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Unlock full access · $199/month</button>
+            <button onClick={() => navigate(`/subscribe?returnTo=${encodeURIComponent(`/mines/${id}`)}`)} className="mt-5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Unlock full access · $199/month</button>
           </div>
         )}
 
