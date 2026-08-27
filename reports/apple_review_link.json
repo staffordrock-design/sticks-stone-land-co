@@ -1,81 +1,55 @@
 {
   "actions": [],
   "app_id": "6801479135",
-  "app_store_version": null,
+  "app_store_version": {
+    "app_store_state": "WAITING_FOR_REVIEW",
+    "app_version_state": "WAITING_FOR_REVIEW",
+    "id": "2529d759-049e-4622-87cb-8c63460f20ef",
+    "version_string": "1.0"
+  },
   "authenticated": true,
   "bundle_id": "com.ssrockholdings.quarrymarketplace",
-  "errors": [
-    "com.ssrockholdings.marketplace.monthly: product not found",
-    "com.ssrockholdings.marketplace.annual: product not found",
-    "com.ssrockholdings.professional.monthly: product not found",
-    "com.ssrockholdings.professional.annual: product not found"
-  ],
-  "generated_at": "2026-08-25T12:11:05.294213+00:00",
+  "errors": [],
+  "generated_at": "2026-08-27T23:16:26.700458+00:00",
   "key_id_used": "2A3958GU5F",
   "products": {
-    "com.ssrockholdings.marketplace.annual": {
-      "error": "Product ID not found under this app's subscription groups",
-      "expected_usa_price": "690.00",
-      "group_id": null,
+    "com.ssrockholdings.quarryintelligence.monthly199": {
+      "expected_usa_price": "199.00",
+      "group_id": "22320430",
+      "link_blocked_by_review_state": "WAITING_FOR_REVIEW",
       "linked_to_current_review": false,
-      "price_status": null,
-      "product_id": "com.ssrockholdings.marketplace.annual",
-      "subscription_id": null,
-      "subscription_state": null,
-      "subscription_version_id": null,
-      "subscription_version_state": null,
-      "usa_pricing": null,
-      "version_images": null,
-      "version_localizations": null
-    },
-    "com.ssrockholdings.marketplace.monthly": {
-      "error": "Product ID not found under this app's subscription groups",
-      "expected_usa_price": "69.00",
-      "group_id": null,
-      "linked_to_current_review": false,
-      "price_status": null,
-      "product_id": "com.ssrockholdings.marketplace.monthly",
-      "subscription_id": null,
-      "subscription_state": null,
-      "subscription_version_id": null,
-      "subscription_version_state": null,
-      "usa_pricing": null,
-      "version_images": null,
-      "version_localizations": null
-    },
-    "com.ssrockholdings.professional.annual": {
-      "error": "Product ID not found under this app's subscription groups",
-      "expected_usa_price": "1000.00",
-      "group_id": null,
-      "linked_to_current_review": false,
-      "price_status": null,
-      "product_id": "com.ssrockholdings.professional.annual",
-      "subscription_id": null,
-      "subscription_state": null,
-      "subscription_version_id": null,
-      "subscription_version_state": null,
-      "usa_pricing": null,
-      "version_images": null,
-      "version_localizations": null
-    },
-    "com.ssrockholdings.professional.monthly": {
-      "error": "Product ID not found under this app's subscription groups",
-      "expected_usa_price": "139.00",
-      "group_id": null,
-      "linked_to_current_review": false,
-      "price_status": null,
-      "product_id": "com.ssrockholdings.professional.monthly",
-      "subscription_id": null,
-      "subscription_state": null,
-      "subscription_version_id": null,
-      "subscription_version_state": null,
-      "usa_pricing": null,
-      "version_images": null,
-      "version_localizations": null
+      "price_status": "MATCHES_EXPECTED",
+      "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
+      "subscription_id": "6805699765",
+      "subscription_state": "MISSING_METADATA",
+      "subscription_version_id": "e8ec65bd-125d-48a6-b2e5-5cfce859f397",
+      "subscription_version_state": "PREPARE_FOR_SUBMISSION",
+      "usa_pricing": {
+        "current": {
+          "customer_price": "199.0",
+          "preserved": false,
+          "price_point_id": "eyJzIjoiNjgwNTY5OTc2NSIsInQiOiJVU0EiLCJwIjoiMTA1ODkifQ",
+          "start_date": null
+        },
+        "schedule": [
+          {
+            "customer_price": "199.0",
+            "preserved": false,
+            "price_point_id": "eyJzIjoiNjgwNTY5OTc2NSIsInQiOiJVU0EiLCJwIjoiMTA1ODkifQ",
+            "start_date": null
+          }
+        ]
+      },
+      "version_images": 0,
+      "version_localizations": 1
     }
   },
-  "review_submission": null,
-  "warnings": [
-    "No active iOS review submission was found for this app."
-  ]
+  "review_submission": {
+    "editable": false,
+    "id": "bdc35f69-a04e-41da-b3a0-e4eb309ceb71",
+    "state": "WAITING_FOR_REVIEW",
+    "submitted_date": "2026-08-27T18:19:31.286Z",
+    "subscription_version_item_count": 0
+  },
+  "warnings": []
 }
