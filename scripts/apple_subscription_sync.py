@@ -417,7 +417,8 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
             created += 1
             time.sleep(0.03)
         except Exception as exc:
-            failed.append(f"{territory}:{type(exc).__name__}")
+            failed.append(f"{territory}:{type(exc).__name__}:{str(exc)[:1200]}")
+            break
 
     return {
         "usa_price": str(desired),
