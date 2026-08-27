@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { Layers, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, Bell, Database, GitCompareArrows, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
@@ -353,6 +353,34 @@ export default function Home() {
       </section>
 
       <ProfitabilityUpgradeBanner />
+
+      {/* Mobile-first intelligence command center */}
+      <section className="mx-auto max-w-7xl px-6 py-10">
+        <div className="rounded-3xl border border-slate-700 bg-slate-950 p-6 text-white sm:p-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><Database className="h-4 w-4" /> S&amp;S Intelligence Center</div>
+              <h2 className="mt-2 font-heading text-2xl font-bold sm:text-3xl">Use the full quarry intelligence toolkit.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">The deeper tools are already built into this app. Compare targets, map mineral occurrences, monitor quarry opportunities and move serious prospects into diligence from one place.</p>
+            </div>
+            <Link to="/intelligence" className="inline-flex items-center gap-2 text-sm font-bold text-sky-200 hover:text-white">Open all intelligence <ArrowRight className="h-4 w-4" /></Link>
+          </div>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["/compare", GitCompareArrows, "Compare quarries", "Side-by-side quarry decision intelligence"],
+              ["/mineral-intelligence", MapPinned, "Mineral map", "USGS occurrences and mineral clusters"],
+              ["/watchlist", Bell, "Watchlist & alerts", "Track acquisition targets and criteria"],
+              ["/intelligence", Layers, "All intelligence", "Ownership, permits, geology, production and more"],
+            ].map(([to, Icon, title, description]) => (
+              <Link key={to + title} to={to} className="group rounded-2xl border border-slate-800 bg-slate-900/70 p-4 transition hover:border-sky-700 hover:bg-slate-900">
+                <div className="flex items-center justify-between"><Icon className="h-5 w-5 text-sky-300" /><ArrowRight className="h-4 w-4 text-slate-500 transition group-hover:translate-x-1 group-hover:text-sky-300" /></div>
+                <div className="mt-3 font-heading text-base font-bold">{title}</div>
+                <div className="mt-1 text-xs leading-5 text-slate-400">{description}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Priority quarry opportunities */}
       {priorityOpportunities.length > 0 && (
