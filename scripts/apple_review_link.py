@@ -31,10 +31,7 @@ REPORT_PATH = Path(os.getenv("ASC_REVIEW_REPORT_PATH", "reports/apple_review_lin
 TODAY = dt.datetime.now(dt.timezone.utc).date()
 
 PRODUCTS = {
-    "com.ssrockholdings.marketplace.monthly": Decimal("69.00"),
-    "com.ssrockholdings.marketplace.annual": Decimal("690.00"),
-    "com.ssrockholdings.professional.monthly": Decimal("139.00"),
-    "com.ssrockholdings.professional.annual": Decimal("1000.00"),
+    "com.ssrockholdings.quarryintelligence.monthly199": Decimal("199.00"),
 }
 
 ACTIVE_REVIEW_STATES = {
