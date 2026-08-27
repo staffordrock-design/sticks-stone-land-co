@@ -6,8 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount, isReviewDemoMode } from "@/lib/reviewDemo";
-
-const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
+import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 const EXEMPT_PATHS = new Set([
   "/",
   "/login",
@@ -22,10 +21,6 @@ const EXEMPT_PATHS = new Set([
   "/account-deletion",
   "/subscribe",
 ]);
-
-function entitlementIsActive(row) {
-  return ACTIVE_STATUSES.has(row?.status) && (!row?.expires_at || new Date(row.expires_at).getTime() > Date.now());
-}
 
 function loadingScreen() {
   return (
@@ -106,7 +101,7 @@ export default function MembershipRequiredGate({ children }) {
           "-updated_date",
           20
         );
-        const accountActive = (rows || []).some(entitlementIsActive);
+        const accountActive = hasFullQuarryEntitlement(rows || []);
         if (!cancelled) setAccessState({ loading: false, active: storeActive || accountActive || isReviewDemoAccount(user?.email) });
       } catch (error) {
         console.error("Membership access check failed", error);
