@@ -404,10 +404,9 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
         payload = {
             "data": {
                 "type": "subscriptionPrices",
-                "attributes": {"startDate": TODAY, "preserveCurrentPrice": False},
+                "attributes": {"startDate": None, "preserveCurrentPrice": False},
                 "relationships": {
                     "subscription": {"data": {"type": "subscriptions", "id": subscription_id}},
-                    "territory": {"data": {"type": "territories", "id": territory}},
                     "subscriptionPricePoint": {"data": {"type": "subscriptionPricePoints", "id": point["id"]}},
                 },
             }
@@ -418,7 +417,6 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
             time.sleep(0.03)
         except Exception as exc:
             failed.append(f"{territory}:{type(exc).__name__}:{str(exc)[:1200]}")
-            break
 
     return {
         "usa_price": str(desired),
