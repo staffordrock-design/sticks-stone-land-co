@@ -8,7 +8,7 @@ import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
-import { isReviewDemoMode } from "@/lib/reviewDemo";
+import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
@@ -109,11 +109,11 @@ export default function MineSiteDetail() {
   const [reportGenerating, setReportGenerating] = useState(false);
   const [reportMessage, setReportMessage] = useState("");
   const [showAllRecords, setShowAllRecords] = useState(false);
-  const [hasProfessional, setHasProfessional] = useState(user?.role === "admin" || isReviewDemoMode());
+  const [hasProfessional, setHasProfessional] = useState(user?.role === "admin" || isReviewDemoAccount(user?.email));
 
   useEffect(() => {
     let cancelled = false;
-    if (user?.role === "admin" || isReviewDemoMode()) {
+    if (user?.role === "admin" || isReviewDemoAccount(user?.email)) {
       setHasProfessional(true);
       return () => { cancelled = true; };
     }
@@ -371,12 +371,11 @@ export default function MineSiteDetail() {
           return;
         }
 
-        const amount = reportType === "Enhanced" ? 389 : 189;
         const existing = await base44.entities.IntelligenceReportOrder.filter({
           user_id: user.id,
           mining_site_id: site.id,
           report_type: reportType,
-          status: "Pending Payment",
+          status: "Requested",
         }, "-created_date", 1);
 
         const order = existing?.[0] || await base44.entities.IntelligenceReportOrder.create({
@@ -386,13 +385,12 @@ export default function MineSiteDetail() {
           listing_id: site.listing_id || "",
           site_name: site.mine_name || "",
           report_type: reportType,
-          status: "Pending Payment",
-          amount,
+          status: "Requested",
           requested_at: new Date().toISOString(),
-          notes: `${reportType} report requested from the mine detail page. S&S payment and fulfillment follow-up required.`,
+          notes: `${reportType} report requested from the mine detail page. S&S will confirm scope, pricing and fulfillment directly.`,
         });
 
-        setReportMessage(`${reportType} report request received for $${amount}. S&S will contact ${user.email || "your account email"} with payment and delivery details. Order ${order.id}.`);
+        setReportMessage(`${reportType} report request received. S&S will contact ${user.email || "your account email"} to confirm scope, pricing and delivery. Order ${order.id}.`);
         return;
       }
 
@@ -444,8 +442,8 @@ export default function MineSiteDetail() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {(!isNativeIOS() || user?.role === "admin") ? <>
-              <button onClick={() => downloadIntelligenceReport("Standard")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-sky-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Working…" : "Standard report · $189"}</button>
-              <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-sky-400 bg-stone-950 px-4 py-2 text-xs font-bold text-sky-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Working…" : "Enhanced report · $389"}</button>
+              <button onClick={() => downloadIntelligenceReport("Standard")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-sky-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Working…" : "Request Standard report"}</button>
+              <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-sky-400 bg-stone-950 px-4 py-2 text-xs font-bold text-sky-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Working…" : "Request Enhanced report"}</button>
             </> : <button onClick={() => navigate("/support")} className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-950"><FileSearch className="h-4 w-4" />Custom research services</button>}
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
