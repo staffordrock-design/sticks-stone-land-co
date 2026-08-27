@@ -5,8 +5,7 @@
 // - Uses STRIPE_PRICE_ID_199 if set in environment, otherwise falls back to the provided price ID
 // - Does NOT include any secret values; keep STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in Base44 secrets
 
-import Stripe from 'stripe';
-import { buffer } from 'micro';
+import Stripe from 'npm:stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -80,7 +79,7 @@ export default async function handler(req, res) {
   let rawBody;
 
   try {
-    rawBody = (await buffer(req)).toString();
+    rawBody = new TextDecoder().decode(await req.arrayBuffer());
   } catch (err) {
     console.error('Failed to read raw request body', err);
     return res.status(400).send('Invalid request body');
