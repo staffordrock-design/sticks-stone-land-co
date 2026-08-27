@@ -14,7 +14,6 @@ import ActivityTracker from './components/ActivityTracker';
 import PaidAccessGate from './components/PaidAccessGate';
 import AccountProfileGate from './components/AccountProfileGate';
 import MembershipRequiredGate from './components/MembershipRequiredGate';
-import TimedPreviewGate from './components/TimedPreviewGate';
 import { isNativeIOS } from '@/lib/appleSubscriptions';
 // Add page imports here
 const Home = lazy(() => import('./pages/Home'));
@@ -89,7 +88,7 @@ const AuthenticatedApp = () => {
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Add your page Route elements here */}
-      <Route path="/" element={<TimedPreviewGate><Home /></TimedPreviewGate>} />
+      <Route path="/" element={<Home />} />
       <Route path="/listings/:id" element={<PageTransition><PaidAccessGate><ListingDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/mines/:id" element={<PageTransition><PaidAccessGate><MineSiteDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/admin/activity" element={<AdminActivity />} />
