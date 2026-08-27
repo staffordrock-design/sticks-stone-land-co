@@ -270,8 +270,11 @@ export default function Subscription() {
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
-            <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950"><div className="font-bold">S&S access active</div><div className="mt-1 text-sm">Plan: {active.plan_code} · Platform: {active.platform}{active.expires_at ? ` · Renews/expires ${new Date(active.expires_at).toLocaleDateString()}` : ""}</div></div>
-            <Link to={returnTo} className="mt-4 inline-flex rounded-xl bg-emerald-900 px-4 py-2.5 text-sm font-bold text-white">Open quarry intelligence</Link></div>
+            <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
+              <div className="font-bold">S&S access active</div>
+              <div className="mt-1 text-sm">Plan: {active.plan_code} · Platform: {active.platform}{active.expires_at ? ` · Renews/expires ${new Date(active.expires_at).toLocaleDateString()}` : ""}</div>
+              <Link to={returnTo} className="mt-4 inline-flex rounded-xl bg-emerald-900 px-4 py-2.5 text-sm font-bold text-white">Open quarry intelligence</Link>
+            </div>
           ) : null}
 
           <h2 className="mt-9 font-heading text-xl font-bold">Membership plans</h2>
