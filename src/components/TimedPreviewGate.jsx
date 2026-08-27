@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Clock3, Crown, LockKeyhole } from "lucide-react";
+import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
+import { Clock3, Crown, Loader2, LockKeyhole } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
+import { SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
 import { isReviewDemoMode, isReviewDemoAccount } from "@/lib/reviewDemo";
 
 const PREVIEW_MS = 60 * 1000;
@@ -31,6 +33,8 @@ export default function TimedPreviewGate({ children }) {
   const [hasPaidAccess, setHasPaidAccess] = useState(user?.role === "admin" || isReviewDemoMode());
   const [secondsRemaining, setSecondsRemaining] = useState(60);
   const [previewExpired, setPreviewExpired] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
+  const [unlockError, setUnlockError] = useState("");
   const previewProgress = Math.max(0, Math.min(100, (secondsRemaining / 60) * 100));
 
   useEffect(() => {
@@ -104,6 +108,43 @@ export default function TimedPreviewGate({ children }) {
     return <>{children}</>;
   }
 
+  const openSubscription = async () => {
+    setUnlockError("");
+    if (!isNativeIOS()) {
+      navigate("/subscribe");
+      return;
+    }
+
+    const productId = SUBSCRIPTION_PRODUCTS.apple.professional.monthly;
+    setUnlocking(true);
+    try {
+      const { products = [] } = await NativePurchases.getProducts({
+        productIdentifiers: [productId],
+        productType: PURCHASE_TYPE.SUBS,
+      });
+      if (!products.some((product) => product.identifier === productId)) {
+        throw new Error("Apple has not made the subscription available to this TestFlight build yet.");
+      }
+
+      await NativePurchases.purchaseProduct({
+        productIdentifier: productId,
+        productType: PURCHASE_TYPE.SUBS,
+        quantity: 1,
+      });
+
+      const access = await syncCurrentAppleSubscriptions();
+      if (!access?.active) {
+        throw new Error("Apple completed the purchase, but access has not refreshed yet. Close and reopen the app, then use Restore Purchases.");
+      }
+      setHasPaidAccess(true);
+    } catch (error) {
+      const message = String(error?.message || error || "Apple could not start the subscription purchase.");
+      if (!/cancel/i.test(message)) setUnlockError(message);
+    } finally {
+      setUnlocking(false);
+    }
+  };
+
   return (
     <>
       <div className={previewExpired ? "pointer-events-none select-none blur-[2px]" : ""}>
@@ -141,11 +182,14 @@ export default function TimedPreviewGate({ children }) {
             <div className="mt-5 grid gap-3">
               <button
                 type="button"
-                onClick={() => navigate("/subscribe")}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"
+                onClick={openSubscription}
+                disabled={unlocking}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white disabled:opacity-60"
               >
-                <Crown className="h-4 w-4" /> Unlock full quarry intelligence
+                {unlocking ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crown className="h-4 w-4" />}
+                {unlocking ? "Connecting to Apple…" : "Unlock full quarry intelligence"}
               </button>
+              {unlockError && <p role="status" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-xs leading-5 text-red-800">{unlockError}</p>}
               {!user?.id && !isNativeIOS() && (
                 <Link to="/login?returnTo=/subscribe" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 px-5 py-3 text-sm font-bold text-slate-900">
                   Already a member? Sign in
