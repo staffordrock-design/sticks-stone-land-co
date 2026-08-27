@@ -142,7 +142,7 @@ export default function MineSiteDetail() {
       }
     })();
     return () => { cancelled = true; };
-  }, [user?.id, user?.role]);
+  }, [user?.id, user?.email, user?.role]);
 
   useEffect(() => {
     (async () => {
