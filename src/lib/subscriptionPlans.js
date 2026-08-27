@@ -5,8 +5,8 @@ export const SUBSCRIPTION_PRODUCTS = {
       annual: "com.ssrockholdings.marketplace.annual",
     },
     professional: {
-      monthly: "com.ssrockholdings.professional.monthly",
-      annual: "com.ssrockholdings.professional.annual",
+      monthly: "com.ssrockholdings.quarryintelligence.monthly199",
+      annual: null,
     },
     deal_investor: {
       monthly: "com.ssrockholdings.deal.monthly",
