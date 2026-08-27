@@ -1,0 +1,120 @@
+{
+  "name": "NetworkMemberProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "full_name": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "role_title": {
+      "type": "string"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "Buyer",
+        "Seller",
+        "Quarry Operator",
+        "Landowner",
+        "Investor",
+        "Real Estate Professional",
+        "Industry Professional",
+        "Other"
+      ],
+      "default": "Buyer"
+    },
+    "headline": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "home_state": {
+      "type": "string"
+    },
+    "states_of_interest": {
+      "type": "string"
+    },
+    "commodities_of_interest": {
+      "type": "string"
+    },
+    "skills": {
+      "type": "string"
+    },
+    "industry_years": {
+      "type": "number"
+    },
+    "open_to_opportunities": {
+      "type": "boolean",
+      "default": true
+    },
+    "profile_visibility": {
+      "type": "string",
+      "enum": [
+        "Network",
+        "Private"
+      ],
+      "default": "Network"
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "full_name",
+    "account_type",
+    "profile_visibility"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

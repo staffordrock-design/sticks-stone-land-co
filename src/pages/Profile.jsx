@@ -147,6 +147,28 @@ export default function Profile() {
         : await base44.entities.UserProfile.create(payload);
       setRecord(updated);
 
+      const publicNetworkPayload = {
+        user_id: user.id,
+        full_name: payload.full_name,
+        company: payload.company,
+        role_title: payload.role_title,
+        account_type: payload.account_type,
+        headline: payload.headline,
+        bio: payload.bio,
+        website: payload.website,
+        home_state: payload.home_state,
+        states_of_interest: payload.states_of_interest,
+        commodities_of_interest: payload.commodities_of_interest,
+        skills: payload.skills,
+        industry_years: payload.industry_years,
+        open_to_opportunities: payload.open_to_opportunities,
+        profile_visibility: payload.profile_visibility,
+        updated_at: now,
+      };
+      const publicNetworkRows = await base44.entities.NetworkMemberProfile.filter({ user_id: user.id }, "-updated_at", 1);
+      if (publicNetworkRows?.[0]) await base44.entities.NetworkMemberProfile.update(publicNetworkRows[0].id, publicNetworkPayload);
+      else await base44.entities.NetworkMemberProfile.create(publicNetworkPayload);
+
       const accountRows = await base44.entities.CustomerAccount.filter({ user_id: user.id }, "-updated_date", 1);
       const accountPayload = {
         user_id: user.id,

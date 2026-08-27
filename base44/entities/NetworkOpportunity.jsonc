@@ -1,0 +1,140 @@
+{
+  "name": "NetworkOpportunity",
+  "type": "object",
+  "properties": {
+    "author_user_id": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_company": {
+      "type": "string"
+    },
+    "author_headline": {
+      "type": "string"
+    },
+    "opportunity_type": {
+      "type": "string",
+      "enum": [
+        "Looking For",
+        "Have / Offering"
+      ],
+      "default": "Looking For"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "states": {
+      "type": "string"
+    },
+    "counties": {
+      "type": "string"
+    },
+    "commodities": {
+      "type": "string"
+    },
+    "asset_types": {
+      "type": "string"
+    },
+    "min_acres": {
+      "type": "number"
+    },
+    "max_acres": {
+      "type": "number"
+    },
+    "budget_min": {
+      "type": "number"
+    },
+    "budget_max": {
+      "type": "number"
+    },
+    "asking_price": {
+      "type": "number"
+    },
+    "linked_mining_site_id": {
+      "type": "string"
+    },
+    "linked_listing_id": {
+      "type": "string"
+    },
+    "confidentiality": {
+      "type": "string",
+      "enum": [
+        "Network",
+        "NDA / Confidential"
+      ],
+      "default": "Network"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Discussion",
+        "Matched",
+        "Closed"
+      ],
+      "default": "Open"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "author_user_id",
+    "opportunity_type",
+    "title",
+    "description",
+    "status",
+    "created_at"
+  ],
+  "rls": {
+    "create": {
+      "data.author_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.author_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.author_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
