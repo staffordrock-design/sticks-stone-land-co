@@ -68,7 +68,7 @@ export default function MembershipRequiredGate({ children }) {
         if (isNativeIOS()) {
           try {
             const storeAccess = await currentAppleSubscriptionAccess();
-            storeActive = Boolean(storeAccess?.active);
+            storeActive = Boolean(storeAccess?.active && storeAccess?.professional);
             if (user?.id) await syncCurrentAppleSubscriptions();
           } catch (error) {
             console.error("Apple membership sync failed", error);
