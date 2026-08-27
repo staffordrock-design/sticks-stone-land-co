@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
+import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 
 const MAX_COMPARE = 5;
 
@@ -46,10 +47,7 @@ export default function QuarryCompare() {
         ]);
         setSites(siteRows || []);
         const appleAccess = isNativeIOS() ? await currentAppleSubscriptionAccess().catch(() => null) : null;
-        const entitlementProfessional = (entitlements || []).some((e) =>
-          ["active","trial","grace_period"].includes(e.status) &&
-          (/^professional(_|$)/.test(String(e.plan_code || "")) || /^deal(_|$)/.test(String(e.plan_code || "")))
-        );
+        const entitlementProfessional = hasFullQuarryEntitlement(entitlements || []);
         setHasProfessional(user?.role === "admin" || Boolean(appleAccess?.professional) || entitlementProfessional);
         const ids = String(params.get("ids") || "").split(",").filter(Boolean).slice(0, MAX_COMPARE);
         const initial = ids.map((id) => (siteRows || []).find((s) => s.id === id)).filter(Boolean);
