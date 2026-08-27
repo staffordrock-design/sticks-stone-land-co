@@ -266,49 +266,63 @@ def ensure_localization(client: ASC, subscription_id: str, product: dict[str, An
 
 
 def ensure_three_day_free_trial(client: ASC, subscription_id: str) -> dict[str, Any]:
-    """Ensure one global 3-day FREE_TRIAL introductory offer for new subscribers."""
+    """Ensure a 3-day FREE_TRIAL introductory offer in every App Store territory."""
     offers = client.all(
         f"/v1/subscriptions/{subscription_id}/introductoryOffers",
-        params={"limit": 200},
+        params={"include": "territory", "limit": 200},
     )
+    existing_territories: set[str] = set()
     for offer in offers:
         attrs = offer.get("attributes") or {}
-        if attrs.get("offerMode") == "FREE_TRIAL" and attrs.get("duration") == "THREE_DAYS":
-            return {
-                "created": False,
-                "id": offer.get("id"),
-                "offer_mode": "FREE_TRIAL",
-                "duration": "THREE_DAYS",
-                "number_of_periods": attrs.get("numberOfPeriods", 1),
-                "start_date": attrs.get("startDate"),
-                "end_date": attrs.get("endDate"),
-            }
+        if attrs.get("offerMode") != "FREE_TRIAL" or attrs.get("duration") != "THREE_DAYS":
+            continue
+        territory_rel = ((offer.get("relationships") or {}).get("territory") or {}).get("data") or {}
+        if territory_rel.get("id"):
+            existing_territories.add(str(territory_rel["id"]))
 
-    payload = {
-        "data": {
-            "type": "subscriptionIntroductoryOffers",
-            "attributes": {
-                "startDate": TODAY,
-                "endDate": None,
-                "duration": "THREE_DAYS",
-                "offerMode": "FREE_TRIAL",
-                "numberOfPeriods": 1,
-            },
-            "relationships": {
-                "subscription": {"data": {"type": "subscriptions", "id": subscription_id}},
-            },
+    territories = client.all("/v1/territories", params={"limit": 200})
+    created = 0
+    failures: list[str] = []
+    for territory in territories:
+        territory_id = str(territory.get("id") or "")
+        if not territory_id or territory_id in existing_territories:
+            continue
+        payload = {
+            "data": {
+                "type": "subscriptionIntroductoryOffers",
+                "attributes": {
+                    "startDate": TODAY,
+                    "endDate": None,
+                    "duration": "THREE_DAYS",
+                    "offerMode": "FREE_TRIAL",
+                    "numberOfPeriods": 1,
+                },
+                "relationships": {
+                    "subscription": {"data": {"type": "subscriptions", "id": subscription_id}},
+                    "territory": {"data": {"type": "territories", "id": territory_id}},
+                },
+            }
         }
-    }
-    offer = client.request("POST", "/v1/subscriptionIntroductoryOffers", payload=payload)["data"]
-    attrs = offer.get("attributes") or {}
+        try:
+            client.request("POST", "/v1/subscriptionIntroductoryOffers", payload=payload)
+            created += 1
+            time.sleep(0.03)
+        except Exception as exc:
+            failures.append(f"{territory_id}:{type(exc).__name__}:{str(exc)[:250]}")
+
+    if failures:
+        raise RuntimeError("Apple 3-day trial creation failed for: " + " | ".join(failures[:10]))
+
     return {
-        "created": True,
-        "id": offer.get("id"),
-        "offer_mode": attrs.get("offerMode", "FREE_TRIAL"),
-        "duration": attrs.get("duration", "THREE_DAYS"),
-        "number_of_periods": attrs.get("numberOfPeriods", 1),
-        "start_date": attrs.get("startDate", TODAY),
-        "end_date": attrs.get("endDate"),
+        "created": created > 0,
+        "offer_mode": "FREE_TRIAL",
+        "duration": "THREE_DAYS",
+        "number_of_periods": 1,
+        "existing_territories": len(existing_territories),
+        "territories_created": created,
+        "territories_total": len(territories),
+        "start_date": TODAY,
+        "end_date": None,
     }
 
 
@@ -393,6 +407,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
                 "attributes": {"startDate": TODAY, "preserveCurrentPrice": False},
                 "relationships": {
                     "subscription": {"data": {"type": "subscriptions", "id": subscription_id}},
+                    "territory": {"data": {"type": "territories", "id": territory}},
                     "subscriptionPricePoint": {"data": {"type": "subscriptionPricePoints", "id": point["id"]}},
                 },
             }
@@ -443,6 +458,8 @@ def main() -> None:
             entry["localized"] = True
             try:
                 entry["pricing"] = ensure_prices(client, sid, product["usa_price"])
+                if entry["pricing"].get("price_failures"):
+                    raise RuntimeError("Apple subscription pricing failed: " + " | ".join(entry["pricing"]["price_failures"][:10]))
             except RuntimeError as price_exc:
                 if "No USA Apple price point exactly matches" not in str(price_exc):
                     raise
@@ -478,9 +495,9 @@ def main() -> None:
     save_report()
 
     if report["errors"]:
-        print(f"Completed with {len(report['errors'])} issue(s). See {REPORT_PATH}.")
-    else:
-        print(f"Apple subscription sync completed successfully. See {REPORT_PATH}.")
+        print(f"Completed with {len(report['errors'])} issue(s). See {REPORT_PATH}.", file=sys.stderr)
+        raise SystemExit(1)
+    print(f"Apple subscription sync completed successfully. See {REPORT_PATH}.")
 
 
 if __name__ == "__main__":
