@@ -49,7 +49,10 @@ export default async function(req: Request) {
       client_reference_id: user.id,
       integration_identifier: `ssrockholdings_${randomSuffix()}`,
       metadata: { purchase_type: 'subscription', user_id: user.id, plan_code, return_to: returnTo },
-      subscription_data: { metadata: { user_id: user.id, plan_code, return_to: returnTo } },
+      subscription_data: {
+        trial_period_days: 3,
+        metadata: { user_id: user.id, plan_code, return_to: returnTo },
+      },
       success_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
       cancel_url: `${origin}/subscribe?checkout=cancelled&returnTo=${encodeURIComponent(returnTo)}`,
     });
