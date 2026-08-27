@@ -22,8 +22,11 @@ export default async function(req: Request) {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user?.id || !user?.email) return Response.json({ error: 'Sign in required' }, { status: 401 });
-    const { plan_code } = await req.json();
+    const { plan_code, return_to } = await req.json();
     const plan = SUBSCRIPTION_PLANS[plan_code as keyof typeof SUBSCRIPTION_PLANS];
+    const returnTo = typeof return_to === 'string' && return_to.startsWith('/') && !return_to.startsWith('//') && !return_to.startsWith('/subscribe')
+      ? return_to
+      : '/';
     if (!plan) return Response.json({ error: 'Invalid plan' }, { status: 400 });
 
     const stripeKey = secrets.get('STRIPE_SECRET_KEY');
@@ -45,10 +48,10 @@ export default async function(req: Request) {
       customer_email: user.email,
       client_reference_id: user.id,
       integration_identifier: `ssrockholdings_${randomSuffix()}`,
-      metadata: { purchase_type: 'subscription', user_id: user.id, plan_code },
-      subscription_data: { metadata: { user_id: user.id, plan_code } },
-      success_url: `${origin}/subscribe?checkout=success`,
-      cancel_url: `${origin}/subscribe?checkout=cancelled`,
+      metadata: { purchase_type: 'subscription', user_id: user.id, plan_code, return_to: returnTo },
+      subscription_data: { metadata: { user_id: user.id, plan_code, return_to: returnTo } },
+      success_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
+      cancel_url: `${origin}/subscribe?checkout=cancelled&returnTo=${encodeURIComponent(returnTo)}`,
     });
     return Response.json({ url: session.url });
   } catch (error) {
