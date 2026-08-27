@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Crown, Eye, Loader2, LockKeyhole, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -11,6 +11,8 @@ const isCurrentlyActive = (row) => ACTIVE_STATUSES.has(row.status) && (!row.expi
 
 export default function PaidAccessGate({ children }) {
   const { user } = useAuth();
+  const location = useLocation();
+  const subscribeHref = `/subscribe?returnTo=${encodeURIComponent(`${location.pathname}${location.search || ""}`)}`;
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [appleStoreActive, setAppleStoreActive] = useState(false);
@@ -95,7 +97,7 @@ export default function PaidAccessGate({ children }) {
             <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5"><div className="text-xs font-bold uppercase tracking-wider text-sky-700">Full Quarry Intelligence</div><div className="mt-1 text-2xl font-bold">$199<span className="text-xs font-semibold text-muted-foreground">/mo</span></div><div className="mt-2 text-xs leading-5 text-muted-foreground">Full app access to quarry records, mapping, ownership, geology, regulatory, production and advanced screening.</div></div>
           </div>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <Link to="/subscribe" className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />Unlock full intelligence</Link>
+            <Link to={subscribeHref} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />Unlock full intelligence</Link>
             <Link to="/" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Keep browsing preview</Link>
             {!user?.id && isNativeIOS() && <button type="button" onClick={() => { enableReviewDemoMode(); setReviewDemo(true); }} className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-5 py-3 text-sm font-bold text-sky-950"><Eye className="h-4 w-4" />Explore review demo</button>}
             {!user?.id && !isNativeIOS() && <Link to="/register" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Create account</Link>}
