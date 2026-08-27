@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import {
   Building2, Check, CircleDollarSign, Flag, Handshake, Heart, Loader2, MapPin,
   MessageCircle, Mountain, Plus, Search, Send, ShieldBan, Target, UserPlus, Users,
-  X, ArrowRight, LockKeyhole
+  X, ArrowRight, LockKeyhole, Sparkles, FileKey2, ShieldCheck
 } from "lucide-react";
 
 const POST_TYPES = ["Update", "Equipment", "Hiring", "Project", "Question", "News"];
@@ -45,6 +45,65 @@ function opportunitySummary(o) {
   return [o.states, o.commodities, acreage.length ? acreage.join("–") : "", budget.length ? budget.join("–") : ""].filter(Boolean);
 }
 
+function terms(value) {
+  return new Set(String(value || "").toLowerCase().split(/[,;/|]+/).map((v) => v.trim()).filter(Boolean));
+}
+
+function overlaps(a, b) {
+  const aa = terms(a);
+  const bb = terms(b);
+  if (!aa.size || !bb.size) return false;
+  return [...aa].some((value) => [...bb].some((other) => value.includes(other) || other.includes(value)));
+}
+
+function rangesOverlap(minA, maxA, minB, maxB) {
+  const aMin = Number(minA) || 0;
+  const aMax = Number(maxA) || Number.POSITIVE_INFINITY;
+  const bMin = Number(minB) || 0;
+  const bMax = Number(maxB) || Number.POSITIVE_INFINITY;
+  return Math.max(aMin, bMin) <= Math.min(aMax, bMax);
+}
+
+function matchOpportunities(first, second) {
+  if (!first || !second || first.opportunity_type === second.opportunity_type) return { score: 0, reasons: [] };
+  const buyer = first.opportunity_type === "Looking For" ? first : second;
+  const offer = first.opportunity_type === "Have / Offering" ? first : second;
+  let score = 0;
+  const reasons = [];
+
+  if (overlaps(buyer.states, offer.states)) { score += 25; reasons.push("state/region"); }
+  if (overlaps(buyer.counties, offer.counties)) { score += 8; reasons.push("county/area"); }
+  if (overlaps(buyer.commodities, offer.commodities)) { score += 25; reasons.push("rock/commodity"); }
+  if (overlaps(buyer.asset_types, offer.asset_types)) { score += 15; reasons.push("asset type"); }
+  if (rangesOverlap(buyer.min_acres, buyer.max_acres, offer.min_acres, offer.max_acres)) { score += 12; reasons.push("acreage"); }
+
+  const maxBudget = Number(buyer.budget_max) || 0;
+  const minBudget = Number(buyer.budget_min) || 0;
+  const asking = Number(offer.asking_price) || 0;
+  if (asking && maxBudget && asking <= maxBudget && (!minBudget || asking >= minBudget * 0.5)) { score += 10; reasons.push("budget"); }
+  else if (!asking || !maxBudget) score += 3;
+
+  if (offer.linked_mining_site_id) { score += 5; reasons.push("linked S&S record"); }
+  return { score: Math.min(100, score), reasons };
+}
+
+function buyerProfileOpportunity(profile, userId) {
+  if (!profile) return null;
+  return {
+    id: "buyer-profile",
+    author_user_id: userId,
+    opportunity_type: "Looking For",
+    title: "Your buyer profile",
+    states: profile.target_states || "",
+    commodities: profile.target_commodities || "",
+    asset_types: profile.asset_preferences || "",
+    min_acres: profile.min_acres,
+    max_acres: profile.max_acres,
+    budget_min: profile.min_budget,
+    budget_max: profile.max_budget,
+  };
+}
+
 export default function Network() {
   const { user } = useAuth();
   const [params, setParams] = useSearchParams();
@@ -62,6 +121,8 @@ export default function Network() {
   const [profiles, setProfiles] = useState([]);
   const [posts, setPosts] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
+  const [dataRoomRequests, setDataRoomRequests] = useState([]);
+  const [requestingRoomId, setRequestingRoomId] = useState("");
   const [connections, setConnections] = useState([]);
   const [blocks, setBlocks] = useState([]);
   const [buyerProfile, setBuyerProfile] = useState(null);
@@ -104,12 +165,13 @@ export default function Network() {
     if (!user?.id) { setLoading(false); return; }
     setLoading(true);
     try {
-      const [mineRows, publicMineRows, people, feed, opportunityRows, links, blocked, buyers] = await Promise.all([
+      const [mineRows, publicMineRows, people, feed, opportunityRows, roomRequests, links, blocked, buyers] = await Promise.all([
         base44.entities.UserProfile.filter({ user_id: user.id }, "-updated_date", 1),
         base44.entities.NetworkMemberProfile.filter({ user_id: user.id }, "-updated_at", 1).catch(() => []),
         base44.entities.NetworkMemberProfile.list("-updated_at", 300).catch(() => []),
         base44.entities.NetworkPost.list("-created_at", 250).catch(() => []),
         base44.entities.NetworkOpportunity.list("-created_at", 300).catch(() => []),
+        base44.entities.DataRoomRequest.list("-requested_at", 200).catch(() => []),
         base44.entities.ProfessionalConnection.list("-created_at", 500).catch(() => []),
         base44.entities.UserBlock.filter({ blocker_user_id: user.id }, "-created_at", 250).catch(() => []),
         base44.entities.BuyerProfile.filter({ user_id: user.id }, "-updated_date", 1).catch(() => []),
@@ -121,6 +183,7 @@ export default function Network() {
       setProfiles((people || []).filter((p) => p.user_id !== user.id && p.profile_visibility !== "Private"));
       setPosts((feed || []).filter((p) => p.status === "Published"));
       setOpportunities((opportunityRows || []).filter((o) => o.status !== "Closed" || o.author_user_id === user.id));
+      setDataRoomRequests(roomRequests || []);
       setConnections(links || []);
       setBlocks(blocked || []);
       setBuyerProfile(buyers?.[0] || null);
@@ -166,6 +229,32 @@ export default function Network() {
         .some((v) => String(v || "").toLowerCase().includes(q));
     });
   }, [opportunities, blockedIds, search, opportunityFilter]);
+
+  const myCriteria = useMemo(() => {
+    const ownOpen = opportunities.filter((o) => o.author_user_id === user?.id && o.status !== "Closed");
+    const profileCriteria = buyerProfileOpportunity(buyerProfile, user?.id);
+    return profileCriteria ? [...ownOpen, profileCriteria] : ownOpen;
+  }, [opportunities, buyerProfile, user?.id]);
+
+  const matchesForMe = useMemo(() => {
+    return opportunities
+      .filter((item) => item.author_user_id !== user?.id && item.status !== "Closed")
+      .map((item) => {
+        let best = { score: 0, reasons: [], criteria: null };
+        for (const criteria of myCriteria) {
+          const result = matchOpportunities(criteria, item);
+          if (result.score > best.score) best = { ...result, criteria };
+        }
+        return { item, ...best };
+      })
+      .filter((match) => match.score >= 35)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+  }, [opportunities, myCriteria, user?.id]);
+
+  const matchFor = (item) => matchesForMe.find((match) => match.item.id === item.id) || null;
+  const roomRequestFor = (item) => dataRoomRequests.find((request) => request.network_opportunity_id === item.id && request.user_id === user?.id) || null;
+  const incomingRoomRequestCount = (item) => dataRoomRequests.filter((request) => request.network_opportunity_id === item.id && request.opportunity_owner_user_id === user?.id).length;
 
   const relationFor = (otherId) => connections.find((c) =>
     (c.requester_user_id === user?.id && c.recipient_user_id === otherId) ||
@@ -243,6 +332,37 @@ export default function Network() {
   const setOpportunityStatus = async (item, status) => {
     await base44.entities.NetworkOpportunity.update(item.id, { ...item, status, updated_at: new Date().toISOString() });
     await load();
+  };
+
+  const requestDataRoom = async (item) => {
+    if (!user?.id || item.author_user_id === user.id || requestingRoomId) return;
+    const existing = roomRequestFor(item);
+    if (existing) {
+      setNotice(`Your data-room request is already ${existing.status.toLowerCase()}.`);
+      return;
+    }
+    setRequestingRoomId(item.id);
+    try {
+      const needsNda = item.confidentiality === "NDA / Confidential";
+      await base44.entities.DataRoomRequest.create({
+        user_id: user.id,
+        listing_id: item.linked_listing_id || "",
+        seller_submission_id: "",
+        network_opportunity_id: item.id,
+        mining_site_id: item.linked_mining_site_id || "",
+        opportunity_title: item.title,
+        opportunity_owner_user_id: item.author_user_id,
+        buyer_company: publicProfile?.company || privateProfile?.company || "",
+        purpose: `Evaluate S&S Quarry Network opportunity: ${item.title}`,
+        nda_agreed: false,
+        status: needsNda ? "NDA Required" : "Requested",
+        requested_at: new Date().toISOString(),
+      });
+      setNotice(needsNda ? "Data-room request sent. S&S will qualify the request and the NDA is required before confidential access." : "Data-room request sent for S&S qualification review.");
+      await load();
+    } finally {
+      setRequestingRoomId("");
+    }
   };
 
   const createPost = async (event) => {
