@@ -36,7 +36,7 @@ PRODUCTS = [
         "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
         "internal_name": "Full Quarry Intelligence Monthly",
         "display_name": "Full Quarry Intelligence Monthly",
-        "description": "Full monthly access to S&S quarry intelligence, mapping, parcel, geology, permit, environmental and production data.",
+        "description": "Full monthly access to S&S quarry intelligence.",
         "period": "ONE_MONTH",
         "group_level": 1,
         "usa_price": Decimal("199.00"),
