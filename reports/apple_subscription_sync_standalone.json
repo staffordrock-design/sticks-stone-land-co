@@ -1,71 +1,27 @@
 {
-  "app_id": "6802014287",
+  "app_id": "6801479135",
   "authenticated": true,
-  "bundle_id": "com.base6a78376a454093ba2f431acd.app",
-  "errors": [],
-  "generated_at": "2026-08-23T13:34:29.866655+00:00",
+  "bundle_id": "com.ssrockholdings.quarrymarketplace",
+  "errors": [
+    "com.ssrockholdings.quarryintelligence.monthly199: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptionLocalizations -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"fa54e8b9-7d4f-469d-a182-f4ec04921e69\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.TOO_LONG\",\n    \"title\" : \"The provided entity contains a field whose value is too long\",\n    \"detail\" : \"The field (DESCRIPTION) is too long. Max number of characters is (55).\",\n    \"source\" : {\n      \"pointer\" : \"/data/id\"\n    }\n  } ]\n}"
+  ],
+  "generated_at": "2026-08-27T00:56:32.204617+00:00",
   "group": {
     "created": false,
-    "id": "22312976",
-    "reference_name": "S&S Quarry Intelligence Membership"
+    "id": "22320430",
+    "reference_name": "S&S Rock Holdings Access"
   },
   "key_id_used": "2A3958GU5F",
   "products": {
-    "com.ssrockholdings.marketplace.annual": {
-      "created": false,
-      "group_id": "22312976",
-      "id": "6802019423",
-      "localized": true,
-      "pricing": {
-        "existing_price_territories": 175,
-        "price_failures": [],
-        "prices_created": 0,
-        "territories_available_from_equalization": 175,
-        "usa_price": "690.00"
-      },
-      "state": "IN_REVIEW"
-    },
-    "com.ssrockholdings.marketplace.monthly": {
-      "created": false,
-      "group_id": "22312976",
-      "id": "6802019025",
-      "localized": true,
-      "pricing": {
-        "existing_price_territories": 175,
-        "price_failures": [],
-        "prices_created": 0,
-        "territories_available_from_equalization": 175,
-        "usa_price": "69.00"
-      },
-      "state": "IN_REVIEW"
-    },
-    "com.ssrockholdings.professional.annual": {
-      "created": false,
-      "group_id": "22312976",
-      "id": "6802019468",
-      "localized": true,
-      "pricing": {
-        "existing_price_territories": 175,
-        "price_failures": [],
-        "prices_created": 0,
-        "territories_available_from_equalization": 175,
-        "usa_price": "1000.00"
-      },
-      "state": "IN_REVIEW"
-    },
-    "com.ssrockholdings.professional.monthly": {
-      "created": false,
-      "group_id": "22312976",
-      "id": "6802019370",
-      "localized": true,
-      "pricing": {
-        "existing_price_territories": 175,
-        "price_failures": [],
-        "prices_created": 0,
-        "territories_available_from_equalization": 175,
-        "usa_price": "139.00"
-      },
-      "state": "IN_REVIEW"
+    "com.ssrockholdings.quarryintelligence.monthly199": {
+      "created": true,
+      "error": "com.ssrockholdings.quarryintelligence.monthly199: RuntimeError: POST https://api.appstoreconnect.apple.com/v1/subscriptionLocalizations -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"fa54e8b9-7d4f-469d-a182-f4ec04921e69\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.TOO_LONG\",\n    \"title\" : \"The provided entity contains a field whose value is too long\",\n    \"detail\" : \"The field (DESCRIPTION) is too long. Max number of characters is (55).\",\n    \"source\" : {\n      \"pointer\" : \"/data/id\"\n    }\n  } ]\n}",
+      "group_id": "22320430",
+      "id": "6805699765",
+      "introductory_offer": null,
+      "localized": false,
+      "pricing": null,
+      "state": "MISSING_METADATA"
     }
   }
 }
