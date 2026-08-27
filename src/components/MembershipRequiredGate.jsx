@@ -117,7 +117,8 @@ export default function MembershipRequiredGate({ children }) {
   if (isLoadingPublicSettings || isLoadingAuth || !authChecked) return loadingScreen();
 
   if (!user?.id && !isNativeIOS()) {
-    return <Navigate to="/login?returnTo=%2Fsubscribe" replace />;
+    const subscribeReturn = `/subscribe?returnTo=${returnTo}`;
+    return <Navigate to={`/login?returnTo=${encodeURIComponent(subscribeReturn)}`} replace />;
   }
 
   if (accessState.loading) return loadingScreen();
