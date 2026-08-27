@@ -1,51 +1,52 @@
 # App Review Notes — S&S Rock Holdings
 
-1. SCREEN RECORDING / PRIOR ISSUE FIX
-A physical-device TestFlight recording of build 2.130297.1 (20) is provided. Tested on iPhone 15 Pro Max, iOS 27.0. It shows 263 quarry/aggregate records and maps loading, browsing while signed out, the Access screen stating registration is not required, and Quarry Access Monthly opening Apple's native TestFlight StoreKit purchase sheet at $69.00/month. This directly demonstrates the previously failing subscription action now reaches Apple's purchase sheet without requiring S&S registration.
+## 1. Current subscription model
+S&S Rock Holdings now offers one auto-renewing iOS subscription:
 
-The app does not request location, camera, contacts, microphone, or App Tracking Transparency permission. There is no public user-to-user posting/chat; seller submissions are reviewed before publication.
+- Full Quarry Intelligence Monthly
+- Product ID: com.ssrockholdings.quarryintelligence.monthly199
+- Price: $199.00 USD per month
+- Introductory offer: 3-day free trial for eligible new subscribers
+- Billing period: 1 month, auto-renewing
 
-2. TEST DEVICE
-- iPhone 15 Pro Max, iOS 27.0
-- TestFlight build 2.130297.1 (20)
-- Prior Apple review device: iPad Air 11-inch (M3), iPadOS 26.6
+The retired Marketplace, Professional, annual, and Deal subscription tiers are not offered by the current app UI.
 
-3. PURPOSE / AUDIENCE
-S&S Rock Holdings provides quarry, aggregate, mineral-property and due-diligence intelligence for operators, producers, investors, acquisition professionals and industry advisers. It consolidates public mine, permit, parcel, geology, environmental and production/activity information into mapped quarry records and screening tools.
+## 2. Purchase and access flow
+Registration is not required to purchase the Apple subscription.
 
-4. ACCESS / LOGIN
-Registration is NOT required to browse or purchase an Apple subscription.
-Signed-out path: Launch → Subscribe → Choose monthly/annual → native Apple StoreKit sheet → purchase → StoreKit entitlement unlocks access without an S&S account. Restore Purchases also works signed out. Account creation is optional for account-linked services.
+Signed-out iPhone path:
+Launch → Membership → Full Quarry Intelligence → Subscribe → Apple StoreKit purchase sheet → eligible 3-day free trial → $199/month renewal.
 
-Optional review account:
-Email: contact+appreview@ssrockholdings.com
-Password: SSRockReview2026!
-Account deletion: /account/delete
+After Apple confirms an active StoreKit entitlement, Full Quarry Intelligence unlocks on the device. Restore Purchases is available while signed out. An S&S account is optional for Apple subscription access and is used for account-linked tools such as saved opportunities, alerts, buyer/seller tools, messages, and network profiles.
 
-5. EXTERNAL SERVICES
-Apple StoreKit; Base44; MSHA; TDEC Division of Mineral & Geologic Resources; Tennessee Comptroller IMPACT; USGS; EPA ECHO/ICIS-NPDES; Esri World Imagery; OpenStreetMap. Google Play Billing is Android-only. Stripe is limited to eligible website transactions; native iOS subscriptions do not open external checkout.
+The app does not open Stripe or another external checkout for the iOS subscription.
 
-6. REGIONAL / DATA NOTES
-Features are consistent across regions; public-source depth varies. Tennessee currently has the deepest parcel/ownership, TDEC permit/permitted-acreage, environmental and geology coverage. Missing values remain unavailable/pending rather than being guessed.
+## 3. What Full Quarry Intelligence unlocks
+The membership unlocks detailed quarry and mine intelligence, including source-linked mine identity and operating status, mapping, parcel/tax and ownership intelligence, permitted acreage where available, geology and rock type, MSHA/TDEC/environmental records, production/activity context, opportunity screening, and related professional workflow tools.
 
-This is a business-intelligence/screening product, not a title opinion, appraisal, certified reserve estimate, engineering/geology opinion or environmental assessment. Government-source data is source-labeled.
+Custom reports, due-diligence research, surveys, reserve studies, environmental work, and similar engagements are separate professional services. Scope and pricing are confirmed directly by S&S Rock Holdings and are not additional in-app subscription tiers.
 
-7. IN-APP PURCHASES / PRICE CONFIRMATION
-Auto-renewing subscriptions are purchased from Subscribe. These intended App Store prices are correct:
-- Quarry Access Monthly — com.ssrockholdings.marketplace.monthly — $69.00 USD / 1 month
-- Quarry Access Annual — com.ssrockholdings.marketplace.annual — $690.00 USD / 1 year
-- Professional Monthly — com.ssrockholdings.professional.monthly — $139.00 USD / 1 month
-- Professional Annual — com.ssrockholdings.professional.annual — $1,000.00 USD / 1 year
-- Confidential Data Room Access — com.ssrockholdings.dataroom.access — $250.00 USD one-time access product
-The screen shows duration, auto-renew terms, Restore Purchases, Manage Subscriptions, Terms and Privacy. StoreKit storefront prices are shown at purchase.
+## 4. Apple review access
+A dedicated App Review account is available. The review-account credentials are maintained in App Store Connect Review Information rather than in this repository.
 
-8. TERMS OF USE / EULA
-The standard Apple Terms of Use (EULA) applies to the iOS app and is linked in the app metadata and in the in-app Terms/subscription surfaces:
-https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Account deletion is available in the app at /account/delete.
 
-PRIOR-REVIEW FIXES
-- Removed required S&S registration from Apple subscription purchase.
-- StoreKit entitlement unlocks access while signed out.
-- Corrected native Base44 API/public-settings routing so TestFlight loads quarry inventory/maps.
-- Added StoreKit product retry/availability handling.
-- Paid Apps Agreement, banking and tax setup are complete.
+## 5. External services and source data
+The app uses Apple StoreKit, Base44, MSHA, Tennessee Department of Environment and Conservation / Division of Mineral & Geologic Resources, Tennessee Comptroller property sources, USGS, EPA sources, Esri imagery, and OpenStreetMap where applicable. Google Play Billing is Android-only. Stripe is limited to eligible website transactions.
+
+Tennessee currently has the deepest parcel/ownership, permit/permitted-acreage, environmental, and geology coverage. Missing values are shown as unavailable or pending rather than guessed.
+
+S&S Rock Holdings provides business-intelligence and screening information. It is not a title opinion, appraisal, certified reserve estimate, engineering opinion, geological certification, environmental assessment, or guarantee of commercially recoverable material. Government and other external data are source-labeled where available.
+
+## 6. Subscription controls and legal links
+The Membership screen shows the monthly price, free-trial eligibility language, auto-renewal terms, Restore Purchases, Manage Subscriptions, Terms of Use, Privacy Policy, and Apple standard EULA link. StoreKit presents Apple's final storefront price and confirmation before purchase.
+
+The standard Apple Terms of Use (EULA) applies to the iOS app.
+
+## 7. Prior-review fixes retained
+- Apple subscription purchase does not require S&S registration.
+- Active StoreKit entitlement unlocks Full Quarry Intelligence while signed out.
+- Native Base44 API/public-settings routing is pinned to the production Base44 service.
+- StoreKit product loading includes retry and timeout handling.
+- The retired 60-second JavaScript preview gate is removed.
+- The current app presents one $199/month Full Quarry Intelligence subscription rather than the retired multi-tier pricing model.
