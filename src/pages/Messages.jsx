@@ -23,7 +23,7 @@ export default function Messages() {
     setLoading(true);
     try {
       const [people, rows] = await Promise.all([
-        base44.entities.UserProfile.list("full_name", 250),
+        base44.entities.NetworkMemberProfile.list("full_name", 250),
         base44.entities.MarketplaceMessage.list("-sent_at", 500),
       ]);
       setProfiles((people || []).filter((p) => p.user_id !== user.id && p.profile_visibility !== "Private"));
