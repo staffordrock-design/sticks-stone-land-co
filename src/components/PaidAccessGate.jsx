@@ -5,9 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { disableReviewDemoMode, enableReviewDemoMode, isReviewDemoMode, isReviewDemoAccount } from "@/lib/reviewDemo";
-
-const ACTIVE_STATUSES = new Set(["active", "trial", "grace_period"]);
-const isCurrentlyActive = (row) => ACTIVE_STATUSES.has(row.status) && (!row.expires_at || new Date(row.expires_at).getTime() > Date.now());
+import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 
 export default function PaidAccessGate({ children }) {
   const { user } = useAuth();
@@ -60,7 +58,7 @@ export default function PaidAccessGate({ children }) {
     return () => { cancelled = true; };
   }, [user?.id]);
 
-  const accountActive = useMemo(() => rows.find(isCurrentlyActive), [rows]);
+  const accountActive = useMemo(() => findFullQuarryEntitlement(rows), [rows]);
   const active = appleStoreActive || Boolean(accountActive);
 
   if (reviewDemo) {
