@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Check, Crown, Loader2, RotateCcw } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
@@ -23,6 +23,13 @@ function withStoreTimeout(promise, message = "The store did not respond. Please 
 
 export default function Subscription() {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const returnTo = useMemo(() => {
+    const candidate = new URLSearchParams(location.search).get("returnTo");
+    if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//") || candidate.startsWith("/subscribe")) return "/";
+    return candidate;
+  }, [location.search]);
   const [entitlements, setEntitlements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [storeProducts, setStoreProducts] = useState({});
@@ -169,7 +176,8 @@ export default function Subscription() {
         const storeAccess = await currentAppleSubscriptionAccess();
         setAppleStoreAccess(storeAccess);
         if (user?.id) await refreshEntitlements();
-        setPurchaseMessage("Purchase confirmed by Apple. Your full S&S access is active — no S&S sign-in is required on this iPhone.");
+        setPurchaseMessage("Purchase confirmed by Apple. Your full S&S quarry intelligence is active.");
+        navigate(returnTo, { replace: true });
       } else {
         const transaction = await withStoreTimeout(
           NativePurchases.purchaseProduct({
@@ -181,7 +189,8 @@ export default function Subscription() {
         );
         await verifyGoogleTransactions([transaction]);
         await refreshEntitlements();
-        setPurchaseMessage("Purchase verified with Google Play. Your S&S access is active.");
+        setPurchaseMessage("Purchase verified with Google Play. Your S&S quarry intelligence is active.");
+        navigate(returnTo, { replace: true });
       }
     } catch (error) {
       const message = String(error?.message || error || "Purchase was not completed.");
@@ -233,8 +242,9 @@ export default function Subscription() {
         setAppleStoreAccess(access || { active: false, professional: false, purchases: [], planCodes: [] });
         if (user?.id) await refreshEntitlements();
         setPurchaseMessage(access?.active
-          ? "Apple purchases restored. Your subscription access is active."
+          ? "Apple purchases restored. Your full quarry intelligence is active."
           : "No active Apple subscription was found for this Apple account.");
+        if (access?.active) navigate(returnTo, { replace: true });
       }
       if (isAndroid) {
         await syncCurrentGoogleSubscriptions({ restore: true });
@@ -261,6 +271,7 @@ export default function Subscription() {
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950"><div className="font-bold">S&S access active</div><div className="mt-1 text-sm">Plan: {active.plan_code} · Platform: {active.platform}{active.expires_at ? ` · Renews/expires ${new Date(active.expires_at).toLocaleDateString()}` : ""}</div></div>
+            <Link to={returnTo} className="mt-4 inline-flex rounded-xl bg-emerald-900 px-4 py-2.5 text-sm font-bold text-white">Open quarry intelligence</Link></div>
           ) : null}
 
           <h2 className="mt-9 font-heading text-xl font-bold">Membership plans</h2>
