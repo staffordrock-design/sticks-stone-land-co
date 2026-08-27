@@ -39,6 +39,8 @@ export default function Subscription() {
     if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//") || candidate.startsWith("/subscribe")) return "/";
     return candidate;
   }, [location.search]);
+  const checkoutStatus = useMemo(() => new URLSearchParams(location.search).get("checkout"), [location.search]);
+  const stripeSessionId = useMemo(() => new URLSearchParams(location.search).get("session_id") || "", [location.search]);
   const [entitlements, setEntitlements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [storeProducts, setStoreProducts] = useState({});
@@ -90,6 +92,31 @@ export default function Subscription() {
   }, [user?.id, isNative, isIOS, isAndroid]);
 
   useEffect(() => {
+    if (isNative || !user?.id || checkoutStatus !== "success" || !stripeSessionId) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setPurchaseMessage("Confirming your $199 Full Quarry Intelligence subscription…");
+      try {
+        const response = await base44.functions.invoke("verify-stripe-subscription", { session_id: stripeSessionId });
+        const payload = response?.data || response || {};
+        if (payload?.error) throw new Error(payload.error);
+        const rows = await refreshEntitlements();
+        if (!findFullQuarryEntitlement(rows)) throw new Error("Payment was confirmed, but access has not refreshed yet. Please try again in a moment.");
+        if (!cancelled) {
+          setPurchaseMessage("Subscription confirmed. Your full quarry intelligence is active.");
+          navigate(returnTo, { replace: true });
+        }
+      } catch (error) {
+        if (!cancelled) setPurchaseMessage(error?.message || "Could not confirm the web subscription yet.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isNative, user?.id, checkoutStatus, stripeSessionId, returnTo]);
+
+  useEffect(() => {
     if (!isNative || (!isIOS && !isAndroid)) return;
     let cancelled = false;
     (async () => {
@@ -133,8 +160,8 @@ export default function Subscription() {
   }, [isNative, isIOS, isAndroid]);
 
   const accountActive = useMemo(() => findFullQuarryEntitlement(entitlements), [entitlements]);
-  const active = accountActive || (isIOS && appleStoreAccess?.active ? {
-    plan_code: appleStoreAccess.professional ? "professional (Apple StoreKit)" : (appleStoreAccess.planCodes?.[0] || "quarry_access (Apple StoreKit)"),
+  const active = accountActive || (isIOS && appleStoreAccess?.active && appleStoreAccess?.professional ? {
+    plan_code: "professional (Apple StoreKit)",
     platform: "apple",
     expires_at: null,
   } : null);
@@ -142,7 +169,7 @@ export default function Subscription() {
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
     if (!user?.id && isAndroid) {
-      window.location.href = "/login?returnTo=/subscribe";
+      window.location.href = `/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`;
       return;
     }
     setPurchaseMessage("");
@@ -243,7 +270,7 @@ export default function Subscription() {
   const restore = async () => {
     if (!isIOS && !isAndroid) return;
     if (!user?.id && isAndroid) {
-      window.location.href = "/login?returnTo=/subscribe";
+      window.location.href = `/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`;
       return;
     }
     setPurchaseMessage("");
