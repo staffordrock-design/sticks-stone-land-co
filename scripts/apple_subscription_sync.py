@@ -330,6 +330,77 @@ def decimal_price(value: Any) -> Decimal:
     return Decimal(str(value)).quantize(Decimal("0.01"))
 
 
+def ensure_upfront_plan_availability(client: ASC, subscription_id: str) -> dict[str, Any]:
+    """Configure the standard pay-up-front billing plan in every territory.
+
+    For a ONE_MONTH auto-renewable subscription, UPFRONT is Apple's standard
+    cancel-anytime monthly billing plan. MONTHLY is reserved for Apple's newer
+    monthly-pay/12-month-commitment option and is intentionally not enabled.
+    """
+    territories = client.all("/v1/territories", params={"limit": 200})
+    territory_data = [
+        {"type": "territories", "id": str(item["id"])}
+        for item in territories
+        if item.get("id")
+    ]
+    plans = client.all(
+        f"/v1/subscriptions/{subscription_id}/planAvailabilities",
+        params={"limit": 200},
+    )
+    plan = next(
+        (p for p in plans if (p.get("attributes") or {}).get("planType") == "UPFRONT"),
+        None,
+    )
+    created = False
+    if not plan:
+        payload = {
+            "data": {
+                "type": "subscriptionPlanAvailabilities",
+                "attributes": {
+                    "planType": "UPFRONT",
+                    "availableInNewTerritories": True,
+                },
+                "relationships": {
+                    "subscription": {
+                        "data": {"type": "subscriptions", "id": subscription_id}
+                    },
+                    "availableTerritories": {"data": territory_data},
+                },
+            }
+        }
+        plan = client.request(
+            "POST", "/v1/subscriptionPlanAvailabilities", payload=payload
+        )["data"]
+        created = True
+    else:
+        plan_id = str(plan["id"])
+        client.request(
+            "PATCH",
+            f"/v1/subscriptionPlanAvailabilities/{quote(plan_id, safe='')}/relationships/availableTerritories",
+            payload={"data": territory_data},
+            allow=(204,),
+        )
+        client.request(
+            "PATCH",
+            f"/v1/subscriptionPlanAvailabilities/{quote(plan_id, safe='')}",
+            payload={
+                "data": {
+                    "type": "subscriptionPlanAvailabilities",
+                    "id": plan_id,
+                    "attributes": {"availableInNewTerritories": True},
+                }
+            },
+        )
+
+    return {
+        "id": plan.get("id"),
+        "plan_type": "UPFRONT",
+        "created": created,
+        "available_in_new_territories": True,
+        "territories": len(territory_data),
+    }
+
+
 def find_usa_price_point(client: ASC, subscription_id: str, desired: Decimal) -> dict[str, Any]:
     # Apple documents include=territory for this endpoint, but the live API for
     # this app currently rejects that relationship. The price-point id itself
@@ -404,7 +475,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
         payload = {
             "data": {
                 "type": "subscriptionPrices",
-                "attributes": {"startDate": None, "preserveCurrentPrice": False},
+                "attributes": {"startDate": None, "planType": "UPFRONT"},
                 "relationships": {
                     "subscription": {"data": {"type": "subscriptions", "id": subscription_id}},
                     "subscriptionPricePoint": {"data": {"type": "subscriptionPricePoints", "id": point["id"]}},
@@ -441,7 +512,7 @@ def main() -> None:
 
     for product in PRODUCTS:
         pid = product["product_id"]
-        entry = {"created": False, "localized": False, "pricing": None, "introductory_offer": None, "state": None, "id": None}
+        entry = {"created": False, "localized": False, "plan_availability": None, "pricing": None, "introductory_offer": None, "state": None, "id": None}
         report["products"][pid] = entry
         try:
             sub = existing.get(pid)
@@ -455,6 +526,7 @@ def main() -> None:
             entry["group_id"] = sub.get("_group_id") or group_id
             ensure_localization(client, sid, product)
             entry["localized"] = True
+            entry["plan_availability"] = ensure_upfront_plan_availability(client, sid)
             try:
                 entry["pricing"] = ensure_prices(client, sid, product["usa_price"])
                 if entry["pricing"].get("price_failures"):
