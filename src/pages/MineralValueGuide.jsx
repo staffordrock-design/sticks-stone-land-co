@@ -1,137 +1,186 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Download, Gem, LockKeyhole, Search, Sparkles } from "lucide-react";
-import { useAuth } from "@/lib/AuthContext";
+import { ArrowLeft, ArrowRight, Database, Gem, Gauge, Landmark, Layers3, MapPin, Mountain, Search, ShieldCheck, TrendingUp } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
+import { calculateOpportunityScore } from "@/utils/opportunityScore";
 
-const MATERIALS = [
-  { name: "Limestone", group: "Carbonate", definition: "Sedimentary carbonate rock composed mainly of calcite; a core feedstock for crushed stone, cement, lime, agricultural lime and industrial fillers.", uses: "Aggregate, cement, lime, ag-lime, fillers", valueTier: "Moderate", value: "Value rises sharply with purity, chemistry, white color, low deleterious minerals, permitted reserves and proximity to market.", drivers: "CaCO₃ purity, Mg content, abrasion, soundness, color, bench thickness, stripping ratio, haul distance" },
-  { name: "Dolomite / Dolostone", group: "Carbonate", definition: "Carbonate rock rich in dolomite mineral; used where magnesium chemistry, hardness and durability are commercially useful.", uses: "Aggregate, asphalt stone, glass/flux, lime, agriculture", valueTier: "Moderate–High", value: "Industrial or chemical-grade dolomite can command more than ordinary construction aggregate.", drivers: "MgO/CaO chemistry, silica, hardness, sizing, market access" },
-  { name: "Granite", group: "Igneous", definition: "Coarse-grained intrusive igneous rock dominated by quartz and feldspar; valued for durability and appearance.", uses: "Dimension stone, monuments, architectural stone, aggregate", valueTier: "High", value: "Blocks with consistent color, low fracture density and good polishability can be far more valuable than crushed-stone feed.", drivers: "Block size, joint spacing, color, polish, strength, recovery rate, freight" },
-  { name: "Basalt", group: "Igneous", definition: "Fine-grained volcanic rock typically rich in pyroxene and plagioclase; commonly dense, strong and abrasion resistant.", uses: "Road stone, rail ballast, asphalt aggregate, rock wool", valueTier: "Moderate–High", value: "Premium applications depend on abrasion resistance, soundness and specification compliance.", drivers: "LA abrasion, absorption, soundness, skid resistance, location" },
-  { name: "Trap Rock", group: "Igneous", definition: "Commercial term for dense, dark igneous rocks such as basalt or diabase used as high-quality construction stone.", uses: "Rail ballast, high-spec aggregate, asphalt, concrete", valueTier: "High", value: "Often earns a premium where hard, durable aggregate is scarce near major transportation markets.", drivers: "Abrasion, polishing value, freeze-thaw durability, rail/highway access" },
-  { name: "Diabase / Dolerite", group: "Igneous", definition: "Medium-grained mafic intrusive rock compositionally similar to basalt.", uses: "High-strength aggregate, ballast, asphalt", valueTier: "High", value: "Commercial value is tied to mechanical performance and access to specification-driven markets.", drivers: "Strength, abrasion, polish resistance, deposit geometry, logistics" },
-  { name: "Rhyolite", group: "Igneous", definition: "Fine-grained felsic volcanic rock chemically similar to granite.", uses: "Aggregate, decorative stone, landscaping", valueTier: "Moderate", value: "Decorative colors and competent rock can increase value above ordinary aggregate uses.", drivers: "Color, durability, fracture pattern, local decorative market" },
-  { name: "Sandstone", group: "Sedimentary", definition: "Clastic sedimentary rock composed mainly of sand-sized mineral grains, commonly quartz.", uses: "Dimension stone, flagstone, aggregate, silica feed", valueTier: "Moderate–High", value: "Thin-bedded flagstone, premium color, or high-silica material may command more than ordinary crushed stone.", drivers: "Bed thickness, color, quartz purity, cementation, split quality, freight" },
-  { name: "Quartzite", group: "Metamorphic", definition: "Very hard metamorphic rock formed from quartz-rich sandstone.", uses: "High-spec aggregate, railroad ballast, decorative stone, silica", valueTier: "High", value: "High hardness and silica purity can support premium aggregate or industrial applications.", drivers: "SiO₂ purity, abrasion, fracture behavior, iron staining, processing cost" },
-  { name: "Marble", group: "Metamorphic", definition: "Recrystallized carbonate rock capable of taking a polish; commercial marble may include some polishable limestones.", uses: "Dimension stone, tile, monuments, fillers, landscaping", valueTier: "Premium", value: "Consistent color, veining, block recovery and polish quality are the main value multipliers.", drivers: "Color/vein pattern, block size, fractures, polish, quarry yield, brand recognition" },
-  { name: "Slate", group: "Metamorphic", definition: "Fine-grained metamorphic rock with strong cleavage that allows splitting into thin durable sheets.", uses: "Roofing, flooring, architectural panels, landscaping", valueTier: "High", value: "Roofing-grade slate with reliable cleavage and weather resistance can be a specialty high-value product.", drivers: "Cleavage, absorption, weathering, color stability, slab recovery" },
-  { name: "Gneiss", group: "Metamorphic", definition: "Banded high-grade metamorphic rock commonly composed of quartz, feldspar and mica.", uses: "Aggregate, dimension/landscape stone", valueTier: "Moderate–High", value: "Decorative banding and competent block structure can move material into higher-value architectural uses.", drivers: "Banding, fractures, strength, color, block yield" },
-  { name: "Schist", group: "Metamorphic", definition: "Foliated metamorphic rock rich in platy minerals such as mica.", uses: "Landscape stone, decorative stone, limited aggregate", valueTier: "Variable", value: "Value depends strongly on appearance and structural competency; foliation can limit engineering uses.", drivers: "Foliation, mica content, durability, appearance, splitting" },
-  { name: "Shale", group: "Sedimentary", definition: "Fine-grained sedimentary rock formed from compacted clay and silt.", uses: "Brick, lightweight aggregate, cement raw feed", valueTier: "Low–Moderate", value: "Usually a feedstock business; value improves where chemistry matches nearby cement or ceramic plants.", drivers: "Clay chemistry, bloating behavior, sulfur, overburden, plant proximity" },
-  { name: "Clay", group: "Industrial Mineral", definition: "Fine-grained natural material dominated by clay minerals; properties vary widely by mineralogy.", uses: "Brick, tile, ceramics, absorbents, fillers, drilling products", valueTier: "Variable–High", value: "Specialty clays can be much more valuable than common structural clay.", drivers: "Mineralogy, whiteness, plasticity, firing behavior, brightness, contaminants" },
-  { name: "Kaolin", group: "Industrial Mineral", definition: "White clay rich in kaolinite, prized for brightness, particle shape and chemical properties.", uses: "Paper/coatings, ceramics, paint, rubber, plastics", valueTier: "High", value: "Brightness, particle size and low iron/titania are major premium drivers.", drivers: "Brightness, Fe/Ti, particle size, viscosity, beneficiation recovery" },
-  { name: "Silica Sand", group: "Industrial Mineral", definition: "Sand with a high percentage of quartz; quality requirements vary sharply by end use.", uses: "Glass, foundry, filtration, industrial sand, specialty markets", valueTier: "Moderate–Premium", value: "High-purity, tightly sized, low-iron silica can be worth multiples of ordinary construction sand.", drivers: "SiO₂, Fe₂O₃, grain size/shape, washing yield, logistics" },
-  { name: "Gypsum", group: "Industrial Mineral", definition: "Soft sulfate mineral rock composed primarily of calcium sulfate dihydrate.", uses: "Wallboard, cement retarder, agriculture", valueTier: "Moderate", value: "Mine value is usually logistics-sensitive because processed products are relatively bulky.", drivers: "Purity, anhydrite/clay content, stripping ratio, plant proximity" },
-  { name: "Barite", group: "Industrial Mineral", definition: "Barium sulfate mineral notable for high specific gravity.", uses: "Oil and gas drilling mud, chemical products, fillers", valueTier: "High", value: "Drilling-grade material depends on specific gravity and contaminant limits.", drivers: "Specific gravity, BaSO₄ content, silica, sizing, API specification" },
-  { name: "Fluorite / Fluorspar", group: "Industrial Mineral", definition: "Calcium fluoride mineral used as a source of fluorine and as a metallurgical flux.", uses: "Chemical acids, aluminum, steel flux, specialty products", valueTier: "High–Premium", value: "Acid-grade purity carries substantially more value than lower-grade metallurgical material.", drivers: "CaF₂ grade, silica, sulfur, beneficiation recovery, market access" },
-  { name: "Feldspar", group: "Industrial Mineral", definition: "Group of aluminosilicate minerals used primarily for their alkali and alumina content.", uses: "Glass, ceramics, fillers", valueTier: "Moderate–High", value: "Low-iron, consistent chemistry and fine processing support higher-value ceramic and glass markets.", drivers: "K/Na chemistry, iron, particle size, consistency, processing" },
-  { name: "Mica", group: "Industrial Mineral", definition: "Sheet silicate minerals with perfect basal cleavage and useful electrical and thermal properties.", uses: "Joint compound, paint, plastics, electrical products", valueTier: "High", value: "Sheet mica and specialty ground products can command much higher prices than mine-run material.", drivers: "Flake size, color, purity, aspect ratio, processing" },
-  { name: "Talc", group: "Industrial Mineral", definition: "Very soft magnesium silicate mineral valued for softness, platy shape and chemical inertness.", uses: "Plastics, paint, ceramics, paper, specialty fillers", valueTier: "High", value: "Brightness, purity and particle morphology are key specialty-market value drivers.", drivers: "Brightness, mineral purity, asbestos-free verification, particle morphology" },
-  { name: "Phosphate Rock", group: "Industrial Mineral", definition: "Sedimentary or igneous rock enriched in phosphate minerals, principally apatite.", uses: "Fertilizer, phosphoric acid", valueTier: "High", value: "Value depends on P₂O₅ grade, impurities, beneficiation recovery and proximity to processing/export infrastructure.", drivers: "P₂O₅, MgO, Fe/Al, silica, recovery, logistics" },
-  { name: "Salt / Halite", group: "Industrial Mineral", definition: "Evaporite mineral composed of sodium chloride.", uses: "Deicing, chlor-alkali chemical feed, food/industrial salt", valueTier: "Moderate", value: "Purity and market channel matter, but transportation cost is often decisive for bulk salt.", drivers: "NaCl purity, moisture, insolubles, mine method, market distance" },
-  { name: "Sand & Gravel", group: "Aggregate", definition: "Unconsolidated natural granular deposits processed into construction sand and coarse aggregate.", uses: "Concrete, asphalt, road base, drainage, fill", valueTier: "Moderate", value: "A classic location-driven commodity: permitted reserves close to high-growth markets can carry exceptional land value.", drivers: "Gradation, deleterious material, reserve volume, water table, permits, haul distance" },
-  { name: "Crushed Stone", group: "Aggregate", definition: "Manufactured aggregate produced by crushing competent bedrock such as limestone, granite, dolomite or trap rock.", uses: "Concrete, asphalt, road base, railroad, drainage", valueTier: "Moderate", value: "Unit prices may be modest, but high-volume permitted reserves near demand centers can create very large enterprise value.", drivers: "Rock quality, permitted tons, stripping, plant efficiency, market radius, freight" },
-];
+const STATES = ["All Southeast", "TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
+const MATERIALS = ["All materials", "Limestone", "Crushed Stone", "Sand & Gravel", "Granite", "Dolomite", "Marble", "Quartz", "Clay", "Shale", "Slate"];
 
-function csvEscape(v) {
-  const s = String(v ?? "");
-  return `"${s.replace(/"/g, '""')}"`;
+function isQuarryRelevant(site) {
+  const text = `${site?.commodity || ""} ${site?.mine_name || ""}`.toLowerCase();
+  if (text.includes("coal")) return false;
+  return /stone|limestone|sand|gravel|aggregate|granite|marble|dolomite|quartz|clay|shale|slate|rock|lime/.test(text);
+}
+
+function materialMatch(site, material) {
+  if (material === "All materials") return true;
+  const text = `${site?.commodity || ""} ${site?.mine_name || ""}`.toLowerCase();
+  if (material === "Crushed Stone") return /crushed|broken|aggregate/.test(text);
+  if (material === "Sand & Gravel") return /sand|gravel/.test(text);
+  return text.includes(material.toLowerCase());
+}
+
+function statusBucket(status = "") {
+  const s = String(status).toLowerCase();
+  if (s.includes("active") && !s.includes("inactive")) return "Active";
+  if (/intermittent|idled|inactive|nonproducing|non-producing/.test(s)) return "Idled / Inactive";
+  if (/abandon|historical/.test(s)) return "Historical";
+  return "Potential / Other";
+}
+
+function compact(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n) : "—";
+}
+
+function Stat({ icon: Icon, label, value, note }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground"><Icon className="h-4 w-4 text-sky-700" />{label}</div>
+      <div className="mt-2 font-heading text-3xl font-bold text-foreground">{value}</div>
+      {note && <div className="mt-1 text-xs leading-5 text-muted-foreground">{note}</div>}
+    </div>
+  );
 }
 
 export default function MineralValueGuide() {
-  const { user } = useAuth();
+  const [state, setState] = useState("TN");
+  const [material, setMaterial] = useState("All materials");
   const [query, setQuery] = useState("");
-  const [group, setGroup] = useState("All");
-  const [allowed, setAllowed] = useState(user?.role === "admin");
-  const [checking, setChecking] = useState((Boolean(user?.id) || isNativeIOS()) && user?.role !== "admin");
+  const [sites, setSites] = useState([]);
+  const [geology, setGeology] = useState([]);
+  const [permits, setPermits] = useState([]);
+  const [environmental, setEnvironmental] = useState([]);
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
-    if (user?.role === "admin") return;
+  useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
+      setLoading(true);
       try {
-        let appleProfessional = false;
-        if (isNativeIOS()) {
-          const access = await currentAppleSubscriptionAccess();
-          appleProfessional = Boolean(access?.professional);
-        }
+        const states = state === "All Southeast" ? STATES.slice(1) : [state];
+        const siteRows = (await Promise.all(states.map((code) =>
+          base44.entities.MiningSite.filter({ state: code }, "-updated_date", state === "All Southeast" ? 120 : 400).catch(() => [])
+        ))).flat().filter(isQuarryRelevant);
 
-        if (!user?.id) {
-          if (!cancelled) setAllowed(appleProfessional);
-          return;
-        }
+        const mineIds = new Set(siteRows.map((s) => s.msha_mine_id).filter(Boolean));
+        const siteIds = new Set(siteRows.map((s) => s.id));
+        const parcelIds = new Set(siteRows.map((s) => s.parcel_id).filter(Boolean));
+        const permitNumbers = new Set(siteRows.map((s) => s.tdec_permit_number).filter(Boolean));
 
-        const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 10);
-        const accountProfessional = (rows || []).some((e) => ["active", "trial", "grace_period"].includes(e.status) && ["professional_monthly", "professional_annual"].includes(e.plan_code) && (!e.expires_at || new Date(e.expires_at).getTime() > Date.now()));
-        if (!cancelled) setAllowed(appleProfessional || accountProfessional);
-      } catch {
-        if (!cancelled) setAllowed(false);
+        const [geoRows, permitRows, envRows, profileRows] = await Promise.all([
+          base44.entities.GeologyRecord.list("-updated_date", 500).catch(() => []),
+          base44.entities.TDECPermit.list("-last_source_update", 500).catch(() => []),
+          base44.entities.EnvironmentalRecord.list("-last_source_update", 500).catch(() => []),
+          base44.entities.QuarryPotentialProfile.list("-updated_date", 500).catch(() => []),
+        ]);
+
+        if (cancelled) return;
+        setSites(siteRows);
+        setGeology((geoRows || []).filter((g) => siteIds.has(g.mining_site_id) || mineIds.has(g.msha_mine_id) || parcelIds.has(g.parcel_id)));
+        setPermits((permitRows || []).filter((p) => mineIds.has(p.msha_mine_id) || permitNumbers.has(p.permit_number)));
+        setEnvironmental((envRows || []).filter((e) => mineIds.has(e.msha_mine_id)));
+        setProfiles((profileRows || []).filter((p) => siteIds.has(p.mining_site_id) || mineIds.has(p.msha_mine_id)));
       } finally {
-        if (!cancelled) setChecking(false);
+        if (!cancelled) setLoading(false);
       }
-    })();
+    };
+    load();
     return () => { cancelled = true; };
-  }, [user?.id, user?.role]);
+  }, [state]);
 
-  const groups = useMemo(() => ["All", ...Array.from(new Set(MATERIALS.map((m) => m.group))).sort()], []);
-  const filtered = MATERIALS.filter((m) => {
+  const geologyFor = (s) => geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
+  const permitsFor = (s) => permits.filter((p) => (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id) || (s.tdec_permit_number && p.permit_number === s.tdec_permit_number));
+  const environmentalFor = (s) => environmental.filter((e) => s.msha_mine_id && e.msha_mine_id === s.msha_mine_id);
+  const profileFor = (s) => profiles.find((p) => p.mining_site_id === s.id || (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id));
+
+  const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return (group === "All" || m.group === group) && (!q || [m.name, m.group, m.definition, m.uses, m.drivers].join(" ").toLowerCase().includes(q));
-  });
+    return sites.filter((s) => materialMatch(s, material) && (!q || [s.mine_name, s.operator_name, s.county, s.commodity, s.msha_mine_id, s.tdec_permit_number].some((v) => String(v || "").toLowerCase().includes(q))));
+  }, [sites, material, query]);
 
-  const downloadCsv = () => {
-    if (!allowed) return;
-    const headers = ["Material", "Group", "Definition", "Commercial uses", "Indicative value tier", "Value profile", "Key value drivers"];
-    const rows = MATERIALS.map((m) => [m.name, m.group, m.definition, m.uses, m.valueTier, m.value, m.drivers]);
-    const csv = [headers, ...rows].map((r) => r.map(csvEscape).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `SS-Mineral-Rock-Value-Guide-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const enriched = useMemo(() => filtered.map((site) => {
+    const geo = geologyFor(site);
+    const sitePermits = permitsFor(site);
+    const env = environmentalFor(site);
+    const profile = profileFor(site);
+    const opportunity = calculateOpportunityScore({ site, geology: geo, permits: sitePermits, environmental: env, profile });
+    const permittedAcres = sitePermits.find((p) => Number(p.permitted_acres) > 0)?.permitted_acres ?? site.permitted_acres;
+    return { site, geo, permits: sitePermits, env, profile, opportunity, permittedAcres };
+  }).sort((a, b) => Number(b.opportunity?.score || 0) - Number(a.opportunity?.score || 0)), [filtered, geology, permits, environmental, profiles]);
+
+  const summary = useMemo(() => {
+    const active = enriched.filter((r) => statusBucket(r.site.mine_status) === "Active").length;
+    const idled = enriched.filter((r) => statusBucket(r.site.mine_status) === "Idled / Inactive").length;
+    const geologyLinked = enriched.filter((r) => r.geo).length;
+    const permittedKnown = enriched.filter((r) => Number(r.permittedAcres) > 0).length;
+    const totalPermittedAcres = enriched.reduce((sum, r) => sum + (Number(r.permittedAcres) || 0), 0);
+    const operators = new Set(enriched.map((r) => r.site.operator_name).filter(Boolean)).size;
+    return { active, idled, geologyLinked, permittedKnown, totalPermittedAcres, operators };
+  }, [enriched]);
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-slate-50">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/" className="font-heading font-bold text-foreground">S&amp;S Rock Holdings</Link>
-          <div className="text-sm text-muted-foreground">S&amp;S Mineral &amp; Rock Value Guide</div>
+      <header className="border-b border-border bg-slate-950 text-white" style={{ paddingTop: "env(safe-area-inset-top, 16px)" }}>
+        <div className="mx-auto max-w-7xl px-6 pb-8 pt-5">
+          <Link to="/intelligence" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white"><ArrowLeft className="h-4 w-4" /> Intelligence Center</Link>
+          <div className="mt-7 max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-sky-200"><Gem className="h-3.5 w-3.5" /> Material opportunity intelligence</div>
+            <h1 className="mt-4 font-heading text-4xl font-bold tracking-tight sm:text-5xl">Find where the valuable quarry material actually is.</h1>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">Screen the live S&amp;S quarry database by state and material, then see operating activity, permitted acreage coverage, geology confidence and the strongest targets instead of reading a generic mineral glossary.</p>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <div className="rounded-3xl bg-slate-950 p-8 text-white sm:p-10">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-sky-300"><Gem className="h-4 w-4" /> Professional intelligence</div>
-          <h1 className="mt-4 max-w-3xl font-heading text-3xl font-bold sm:text-5xl">Mineral &amp; Rock Value Guide</h1>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">A commercial screening guide to quarry stone, aggregates and industrial minerals—what each material is, where it is used, what makes it valuable, and the factors that move a deposit from ordinary rock to a premium resource.</p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <button onClick={downloadCsv} disabled={!allowed || checking} className="inline-flex items-center gap-2 rounded-xl bg-sky-400 px-4 py-2.5 text-sm font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"><Download className="h-4 w-4" /> Download full value guide</button>
-            {!allowed && !checking && <Link to="/subscribe" className="inline-flex items-center gap-2 rounded-xl border border-slate-600 px-4 py-2.5 text-sm font-bold"><LockKeyhole className="h-4 w-4" /> Unlock Professional</Link>}
+      <main className="mx-auto max-w-7xl px-6 py-10 pb-28">
+        <section className="rounded-3xl border border-border bg-card p-5 sm:p-6">
+          <div className="grid gap-4 lg:grid-cols-[180px_220px_1fr]">
+            <label className="block"><span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">State</span><select value={state} onChange={(e) => setState(e.target.value)} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm">{STATES.map((s) => <option key={s}>{s}</option>)}</select></label>
+            <label className="block"><span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Material</span><select value={material} onChange={(e) => setMaterial(e.target.value)} className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm">{MATERIALS.map((m) => <option key={m}>{m}</option>)}</select></label>
+            <label className="block"><span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Search targets</span><div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Mine, operator, county, MSHA ID, permit…" className="w-full rounded-xl border border-input bg-background py-3 pl-10 pr-4 text-sm" /></div></label>
           </div>
-        </div>
+        </section>
 
-        <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950"><strong>Value note:</strong> This guide uses commercial value tiers and value drivers rather than pretending there is one universal price per ton. Actual selling price and in-ground value vary by location, product specification, quality, processing, permits, reserve volume, contract structure and freight. Site-specific S&amp;S Intelligence Reports should use current source-backed market inputs before assigning dollar values.</div>
+        <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat icon={Database} label="Matching quarry records" value={loading ? "—" : enriched.length.toLocaleString()} note={`${state} · ${material}`} />
+          <Stat icon={Mountain} label="Active operations" value={loading ? "—" : summary.active.toLocaleString()} note={`${summary.idled.toLocaleString()} idled / inactive records`} />
+          <Stat icon={Layers3} label="Geology linked" value={loading ? "—" : `${summary.geologyLinked.toLocaleString()}/${enriched.length.toLocaleString()}`} note="Source-linked rock/geology records" />
+          <Stat icon={ShieldCheck} label="Known permitted acres" value={loading ? "—" : compact(summary.totalPermittedAcres)} note={`${summary.permittedKnown.toLocaleString()} records with permit acreage`} />
+        </section>
 
-        <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative max-w-xl flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search rock, mineral, use or value driver…" className="w-full rounded-xl border border-input bg-card py-3 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-ring" /></div>
-          <div className="flex flex-wrap gap-2">{groups.map((g) => <button key={g} onClick={() => setGroup(g)} className={`rounded-full px-3 py-1.5 text-xs font-semibold ${group === g ? "bg-slate-900 text-white" : "border border-border bg-card text-muted-foreground"}`}>{g}</button>)}</div>
-        </div>
+        <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+          <div>
+            <div className="flex items-end justify-between gap-4">
+              <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Target ranking</p><h2 className="mt-1 font-heading text-2xl font-bold">Highest-priority quarry records</h2></div>
+              <Link to="/compare" className="hidden text-sm font-bold text-sky-800 hover:underline sm:inline">Compare targets</Link>
+            </div>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((m) => (
-            <article key={m.name} className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-3"><div><div className="text-xs font-bold uppercase tracking-wider text-sky-700">{m.group}</div><h2 className="mt-1 font-heading text-xl font-bold text-foreground">{m.name}</h2></div><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-800">{m.valueTier}</span></div>
-              <p className="mt-4 text-sm leading-6 text-muted-foreground">{m.definition}</p>
-              <div className="mt-4 border-t border-border pt-4"><div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Commercial uses</div><p className="mt-1 text-sm text-foreground">{m.uses}</p></div>
-              {allowed ? <><div className="mt-4"><div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground"><Sparkles className="h-3.5 w-3.5" /> Value profile</div><p className="mt-1 text-sm leading-6 text-foreground">{m.value}</p></div><div className="mt-4"><div className="text-xs font-bold uppercase tracking-wider text-muted-foreground">What moves value</div><p className="mt-1 text-sm leading-6 text-foreground">{m.drivers}</p></div></> : <div className="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground"><LockKeyhole className="mb-2 h-4 w-4" />Professional members see the commercial value profile and key value drivers for every material.</div>}
-            </article>
-          ))}
-        </div>
+            <div className="mt-5 space-y-3">
+              {loading ? <div className="rounded-2xl border border-border p-8 text-sm text-muted-foreground">Loading material intelligence…</div> : enriched.length === 0 ? <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No quarry records match this material/state combination.</div> : enriched.slice(0, 20).map(({ site, geo, permittedAcres, opportunity }) => (
+                <Link key={site.id} to={`/mines/${site.id}`} className="group block rounded-2xl border border-border bg-card p-5 transition hover:-translate-y-0.5 hover:shadow-lg">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="font-heading text-lg font-bold text-foreground">{site.mine_name}</h3><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-700">{statusBucket(site.mine_status)}</span></div><div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{[site.county, site.state].filter(Boolean).join(", ")}</span>{site.msha_mine_id && <span>MSHA {site.msha_mine_id}</span>}</div></div>
+                    <div className="shrink-0 text-right"><div className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-sky-700"><Gauge className="h-3.5 w-3.5" />Score</div><div className="font-heading text-2xl font-bold">{Math.round(opportunity?.score || 0)}<span className="text-xs text-muted-foreground">/100</span></div></div>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl bg-muted/30 p-3"><div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Material / geology</div><div className="mt-1 text-sm font-semibold">{geo?.primary_rock || geo?.lithology || site.commodity || "Pending"}</div></div>
+                    <div className="rounded-xl bg-muted/30 p-3"><div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Operator</div><div className="mt-1 text-sm font-semibold">{site.operator_name || "Pending"}</div></div>
+                    <div className="rounded-xl bg-muted/30 p-3"><div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Permitted acres</div><div className="mt-1 text-sm font-semibold">{Number(permittedAcres) > 0 ? Number(permittedAcres).toLocaleString() : "Pending"}</div></div>
+                  </div>
+                  <div className="mt-4 flex items-center justify-end gap-1 text-xs font-bold text-sky-800">Open full quarry intelligence <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" /></div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <aside className="space-y-5">
+            <div className="rounded-2xl border border-border bg-card p-5"><div className="flex items-center gap-2 text-sky-700"><Landmark className="h-5 w-5" /><span className="text-xs font-bold uppercase tracking-[0.16em]">Market structure</span></div><div className="mt-3 font-heading text-3xl font-bold">{summary.operators.toLocaleString()}</div><div className="text-sm text-muted-foreground">distinct operators in the current result set</div></div>
+            <div className="rounded-2xl border border-slate-700 bg-slate-950 p-5 text-white"><div className="flex items-center gap-2 text-sky-300"><TrendingUp className="h-5 w-5" /><span className="text-xs font-bold uppercase tracking-[0.16em]">How to use this</span></div><div className="mt-4 space-y-3 text-sm leading-6 text-slate-300"><p><strong className="text-white">1.</strong> Pick the material and state you care about.</p><p><strong className="text-white">2.</strong> Use the ranking to find the best-connected quarry records.</p><p><strong className="text-white">3.</strong> Open a target for ownership, permits, geology, production, compliance and valuation context.</p><p><strong className="text-white">4.</strong> Compare the strongest targets before ordering deeper diligence.</p></div></div>
+            <Link to="/mineral-intelligence" className="group block rounded-2xl border border-border bg-card p-5"><div className="flex items-center gap-2 text-sky-700"><MapPin className="h-5 w-5" /><span className="font-bold">USGS Mineral Occurrence Map</span></div><p className="mt-2 text-sm leading-6 text-muted-foreground">Use the regional mineral map when you want to look beyond known quarry records and spot broader mineral clusters and historical producers.</p><div className="mt-3 inline-flex items-center gap-1 text-sm font-bold text-sky-800">Open map <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></div></Link>
+          </aside>
+        </section>
       </main>
     </div>
   );
