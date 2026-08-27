@@ -5,7 +5,7 @@ import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { ACCESS_TIERS, REPORT_PRODUCTS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
+import { ACCESS_TIERS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
 import { appleAccountTokenForUser, appleProductIds, currentAppleSubscriptionAccess, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
 import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
@@ -317,7 +317,7 @@ export default function Subscription() {
             </div>
           ) : null}
 
-          <h2 className="mt-9 font-heading text-xl font-bold">Membership plans</h2>
+          <h2 className="mt-9 font-heading text-xl font-bold">Membership</h2>
           <div className="mt-4 grid max-w-2xl gap-4">
             {ACCESS_TIERS.map((tier) => {
               const storeKey = isIOS ? "apple" : "google";
@@ -355,12 +355,7 @@ export default function Subscription() {
 
           {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button><button onClick={manageSubscriptions} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">Manage subscriptions</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
           <h2 className="mt-10 font-heading text-xl font-bold">Professional research services</h2>
-          {isNative && isIOS ? (
-            <div className="mt-3 rounded-2xl border border-border bg-muted/20 p-5 text-sm leading-6 text-muted-foreground">Custom due-diligence and research services are separate from App Store subscription access and do not unlock digital app features. Use Support for scope and availability information.</div>
-          ) : <>
-            <p className="mt-2 text-sm text-muted-foreground">Report services are separate from membership access. Transaction-grade professional services such as legal opinions, surveys, reserve studies and environmental assessments remain separate.</p>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">{REPORT_PRODUCTS.map((report) => <div key={report.code} className="rounded-2xl border border-border p-5"><div className="flex items-start justify-between gap-4"><div className="font-bold">{report.name}</div><div className="shrink-0 text-lg font-bold">{report.price}</div></div><p className="mt-2 text-sm leading-6 text-muted-foreground">{report.description}</p></div>)}</div>
-          </>}
+          <div className="mt-3 rounded-2xl border border-border bg-muted/20 p-5 text-sm leading-6 text-muted-foreground">Custom reports, due-diligence research, surveys, reserve studies and environmental work are separate professional services. Pricing is provided by S&amp;S Rock Holdings based on the scope of the request; these services are not additional app subscription tiers.</div>
 
           {user?.id && <div className="mt-8 border-t border-border pt-6">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Account</div>
