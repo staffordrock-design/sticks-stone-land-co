@@ -16,6 +16,7 @@ export default function Messages() {
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState("");
   const selectedId = params.get("user") || "";
+  const initialText = params.get("text") || "";
 
   const load = async () => {
     if (!user?.id) return;
@@ -31,6 +32,9 @@ export default function Messages() {
   };
 
   useEffect(() => { load(); }, [user?.id]);
+  useEffect(() => {
+    if (selectedId && initialText && !text.trim()) setText(initialText.slice(0, 1200));
+  }, [selectedId, initialText]);
 
   const selected = profiles.find((p) => p.user_id === selectedId) || null;
   const conversation = useMemo(() => {
