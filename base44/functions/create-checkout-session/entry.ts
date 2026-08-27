@@ -1,7 +1,7 @@
 // functions/create-checkout-session.js
 // Create a Stripe Checkout session with an optional 3-day trial. No authentication required for guest checkout.
 
-import Stripe from 'stripe';
+import Stripe from 'npm:stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
