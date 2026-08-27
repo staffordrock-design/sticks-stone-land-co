@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
-import { isReviewDemoAccount, isReviewDemoMode } from "@/lib/reviewDemo";
+import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 const EXEMPT_PATHS = new Set([
   "/",
@@ -55,7 +55,7 @@ export default function MembershipRequiredGate({ children }) {
       return () => { cancelled = true; };
     }
 
-    if (user?.role === "admin" || isReviewDemoMode()) {
+    if (user?.role === "admin") {
       setAccessState({ loading: false, active: true });
       return () => { cancelled = true; };
     }
