@@ -128,6 +128,8 @@ export default function Network() {
     setNotice("Post reported for review.");
   };
 
+  if (!user?.id) return <div className="min-h-screen bg-background px-6 py-16 text-center"><Users className="mx-auto h-9 w-9 text-muted-foreground"/><h1 className="mt-4 font-heading text-2xl font-bold">Sign in for the S&amp;S Quarry Network</h1><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">Your Apple Full Quarry Intelligence subscription remains active without an S&amp;S account. An account is only needed for profiles, connections, posts and messages.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><Link to="/login?returnTo=/network" className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Sign in</Link><Link to="/register?returnTo=/network" className="rounded-xl border border-border px-5 py-3 text-sm font-bold">Create account</Link></div></div>;
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-7 w-7 animate-spin text-slate-700" /></div>;
 
   return (
