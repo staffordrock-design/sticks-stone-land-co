@@ -1,175 +1,127 @@
-// functions/stripe-webhook.js
-// Stripe webhook handler for Base44 functions
-// - Verifies webhook signature using STRIPE_WEBHOOK_SECRET
-// - Maps Stripe price IDs to internal plan keys and upserts SubscriptionEntitlement
-// - Uses STRIPE_PRICE_ID_199 if set in environment, otherwise falls back to the provided price ID
-// - Does NOT include any secret values; keep STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in Base44 secrets
-
+import { createClientFromRequest } from 'npm:@base44/sdk';
 import Stripe from 'npm:stripe';
+import { secrets } from 'base44:runtime';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const FULL_PLAN_CODES = new Set(['professional_monthly', 'professional_annual', 'deal_monthly', 'deal_annual']);
 
-// Map Stripe price IDs to your internal plan keys (static mappings)
-const PRICE_MAP = {
-  'price_1U4vqOHBH3xrClLV9vFwHk8r': 'quarry.monthly',
-  'price_1U4vqYHBH3xrClLVmXss2arI': 'quarry.annual',
-  'price_1U4vqZHBH3xrClLVvnE0N1Le': 'professional.monthly',
-  'price_1U4vqaHBH3xrClLVJ5aUGec0': 'professional.annual',
-};
-
-// Dynamic $199 price: prefer env var, fall back to the price ID you provided
-const FALLBACK_PRICE_199 = 'price_1U8mh3HBH3xrClLVT3w37VcC';
-const PRICE_ID_199 = process.env.STRIPE_PRICE_ID_199 || FALLBACK_PRICE_199;
-PRICE_MAP[PRICE_ID_199] = 'premium.199';
-
-// Default webhook path: /functions/stripe-webhook
-// NOTE: Replace db.* calls with your Base44 DB client implementation.
-
-async function upsertSubscriptionEntitlement({ userId, plan, stripeSubscriptionId, stripePriceId, status, currentPeriodEnd, lastPaymentAt }) {
-  if (!userId) return null;
-
-  // TODO: Replace this pseudo-code with your actual Base44 DB client code.
-  // The function should upsert (insert or update) a SubscriptionEntitlement row for the given userId.
-  // Required columns we expect: user_id, plan, stripe_subscription_id, stripe_price_id, status, current_period_end, last_payment_at, updated_at
-  // Example (pseudo):
-  // return await db.upsert('SubscriptionEntitlement', { user_id: userId }, { plan, stripe_subscription_id: stripeSubscriptionId, ... });
-
-  // Example placeholder implementation that assumes a `db` global exists. Replace with real code.
-  if (typeof db !== 'undefined' && db.upsertSubscriptionEntitlement) {
-    return await db.upsertSubscriptionEntitlement({
-      user_id: userId,
-      plan,
-      stripe_subscription_id: stripeSubscriptionId,
-      stripe_price_id: stripePriceId,
-      status,
-      current_period_end: currentPeriodEnd,
-      last_payment_at: lastPaymentAt,
-      updated_at: new Date(),
-    });
+function entitlementStatus(stripeStatus: string) {
+  switch (stripeStatus) {
+    case 'trialing': return 'trial';
+    case 'active': return 'active';
+    case 'past_due': return 'grace_period';
+    case 'canceled': return 'cancelled';
+    case 'unpaid':
+    case 'incomplete_expired': return 'expired';
+    default: return 'inactive';
   }
-
-  // If no db client is present, log and return the prepared object for debugging.
-  console.warn('No DB client implemented for upsertSubscriptionEntitlement. Replace placeholder with your DB client.');
-  return { userId, plan, stripeSubscriptionId, stripePriceId, status, currentPeriodEnd, lastPaymentAt };
 }
 
-async function findUserIdByStripeCustomerId(stripeCustomerId) {
-  if (!stripeCustomerId) return null;
-  // TODO: Replace with actual DB lookup that returns the user id for a given stripe_customer_id
-  if (typeof db !== 'undefined' && db.findUserIdByStripeCustomerId) {
-    return await db.findUserIdByStripeCustomerId(stripeCustomerId);
-  }
-  console.warn('No DB client implemented for findUserIdByStripeCustomerId.');
-  return null;
+function isoFromSeconds(value: unknown) {
+  const n = Number(value || 0);
+  return Number.isFinite(n) && n > 0 ? new Date(n * 1000).toISOString() : '';
 }
 
-async function findUserIdByStripeSubscriptionId(stripeSubscriptionId) {
-  if (!stripeSubscriptionId) return null;
-  if (typeof db !== 'undefined' && db.findUserIdByStripeSubscriptionId) {
-    return await db.findUserIdByStripeSubscriptionId(stripeSubscriptionId);
-  }
-  console.warn('No DB client implemented for findUserIdByStripeSubscriptionId.');
-  return null;
+function subscriptionPeriodEnd(subscription: any) {
+  return subscription?.current_period_end || subscription?.items?.data?.[0]?.current_period_end || null;
 }
 
-export const config = { api: { bodyParser: false } };
+function subscriptionStart(subscription: any) {
+  return subscription?.start_date || subscription?.created || null;
+}
 
-export default async function handler(req, res) {
-  const sig = req.headers['stripe-signature'];
-  let rawBody;
+function subscriptionPriceId(subscription: any) {
+  return String(subscription?.items?.data?.[0]?.price?.id || '');
+}
 
-  try {
-    rawBody = new TextDecoder().decode(await req.arrayBuffer());
-  } catch (err) {
-    console.error('Failed to read raw request body', err);
-    return res.status(400).send('Invalid request body');
+async function upsertWebEntitlement(base44: any, subscription: any, fallbackMetadata: any = {}) {
+  const metadata = { ...(fallbackMetadata || {}), ...(subscription?.metadata || {}) };
+  const userId = String(metadata.user_id || '').trim();
+  const planCode = String(metadata.plan_code || '').trim();
+  if (!userId || !FULL_PLAN_CODES.has(planCode)) return null;
+
+  const subscriptionId = String(subscription?.id || '').trim();
+  if (!subscriptionId) throw new Error('Stripe subscription ID missing');
+
+  const status = entitlementStatus(String(subscription?.status || ''));
+  const now = new Date().toISOString();
+  const data = {
+    user_id: userId,
+    plan_code: planCode,
+    status,
+    platform: 'web',
+    product_id: subscriptionPriceId(subscription),
+    original_transaction_id: subscriptionId,
+    expires_at: isoFromSeconds(subscriptionPeriodEnd(subscription)),
+    started_at: isoFromSeconds(subscriptionStart(subscription)),
+    last_verified_at: now,
+    source: 'Stripe verified webhook',
+  };
+
+  const existing = await base44.asServiceRole.entities.SubscriptionEntitlement.filter(
+    { user_id: userId, platform: 'web', original_transaction_id: subscriptionId },
+    '-updated_date',
+    1,
+    0,
+  );
+
+  if (existing?.[0]) {
+    await base44.asServiceRole.entities.SubscriptionEntitlement.update(existing[0].id, data);
+  } else {
+    await base44.asServiceRole.entities.SubscriptionEntitlement.create(data);
   }
 
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.error('⚠️  Webhook signature verification failed.', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
+  return data;
+}
 
+async function subscriptionIdFromInvoice(invoice: any) {
+  return String(
+    invoice?.subscription ||
+    invoice?.parent?.subscription_details?.subscription ||
+    invoice?.lines?.data?.[0]?.parent?.subscription_item_details?.subscription ||
+    ''
+  );
+}
+
+export default async function(req: Request) {
   try {
-    const obj = event.data.object;
+    const stripeKey = secrets.get('STRIPE_SECRET_KEY');
+    const webhookSecret = secrets.get('STRIPE_WEBHOOK_SECRET');
+    if (!stripeKey || !webhookSecret) {
+      return Response.json({ error: 'Stripe webhook is not configured' }, { status: 503 });
+    }
+
+    const signature = req.headers.get('stripe-signature');
+    if (!signature) return Response.json({ error: 'Missing Stripe signature' }, { status: 400 });
+
+    const base44 = createClientFromRequest(req);
+    const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
+    const rawBody = await req.text();
+    const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    const object: any = event.data.object;
 
     if (event.type === 'checkout.session.completed') {
-      const session = obj;
-      const stripeCustomerId = session.customer;
-      let userId = null;
-
-      if (session.metadata && session.metadata.user_id) userId = session.metadata.user_id;
-      if (!userId && session.client_reference_id) userId = session.client_reference_id;
-      if (!userId && stripeCustomerId) userId = await findUserIdByStripeCustomerId(stripeCustomerId);
-
-      if (session.subscription && userId) {
-        const subscription = await stripe.subscriptions.retrieve(session.subscription);
-        const priceId = subscription.items.data[0]?.price?.id || null;
-        const plan = PRICE_MAP[priceId] || null;
-        await upsertSubscriptionEntitlement({
-          userId,
-          plan,
-          stripeSubscriptionId: subscription.id,
-          stripePriceId: priceId,
-          status: subscription.status,
-          currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
-          lastPaymentAt: null,
-        });
+      const subscriptionId = String(object?.subscription || '');
+      if (subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        await upsertWebEntitlement(base44, subscription, object?.metadata || {});
       }
-    } else if (event.type === 'customer.subscription.created' || event.type === 'customer.subscription.updated') {
-      const subscription = obj;
-      const stripeCustomerId = subscription.customer;
-      const userId = await findUserIdByStripeCustomerId(stripeCustomerId);
-      const priceId = subscription.items.data[0]?.price?.id || null;
-      const plan = PRICE_MAP[priceId] || null;
-      await upsertSubscriptionEntitlement({
-        userId,
-        plan,
-        stripeSubscriptionId: subscription.id,
-        stripePriceId: priceId,
-        status: subscription.status,
-        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
-        lastPaymentAt: null,
-      });
-    } else if (event.type === 'customer.subscription.deleted') {
-      const subscription = obj;
-      const stripeCustomerId = subscription.customer;
-      const userId = await findUserIdByStripeCustomerId(stripeCustomerId);
-      await upsertSubscriptionEntitlement({
-        userId,
-        plan: null,
-        stripeSubscriptionId: subscription.id,
-        stripePriceId: null,
-        status: 'canceled',
-        currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
-        lastPaymentAt: null,
-      });
-    } else if (event.type === 'invoice.payment_succeeded') {
-      const invoice = obj;
-      const stripeSubscriptionId = invoice.subscription;
-      const userId = await findUserIdByStripeSubscriptionId(stripeSubscriptionId);
-      if (stripeSubscriptionId && userId) {
-        const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
-        const priceId = subscription.items.data[0]?.price?.id || null;
-        const plan = PRICE_MAP[priceId] || null;
-        await upsertSubscriptionEntitlement({
-          userId,
-          plan,
-          stripeSubscriptionId,
-          stripePriceId: priceId,
-          status: subscription.status,
-          currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000) : null,
-          lastPaymentAt: invoice.status_transitions?.paid_at ? new Date(invoice.status_transitions.paid_at * 1000) : new Date(),
-        });
+    } else if (
+      event.type === 'customer.subscription.created' ||
+      event.type === 'customer.subscription.updated' ||
+      event.type === 'customer.subscription.deleted'
+    ) {
+      await upsertWebEntitlement(base44, object);
+    } else if (event.type === 'invoice.payment_succeeded' || event.type === 'invoice.payment_failed') {
+      const subscriptionId = await subscriptionIdFromInvoice(object);
+      if (subscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        await upsertWebEntitlement(base44, subscription);
       }
     }
 
-    res.json({ received: true });
-  } catch (err) {
-    console.error('Error handling webhook', err);
-    res.status(500).send('Server error');
+    return Response.json({ received: true });
+  } catch (error) {
+    console.error('stripe-webhook error:', error);
+    return Response.json({ error: error?.message || String(error) }, { status: 400 });
   }
 }
