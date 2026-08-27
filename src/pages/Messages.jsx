@@ -82,6 +82,8 @@ export default function Messages() {
     setParams({});
   };
 
+  if (!user?.id) return <div className="min-h-screen bg-background px-6 py-16 text-center"><Send className="mx-auto h-9 w-9 text-muted-foreground"/><h1 className="mt-4 font-heading text-2xl font-bold">Sign in to use messages</h1><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">Your Apple Full Quarry Intelligence subscription stays active without an S&amp;S account. Sign in or create one only to message other industry members.</p><div className="mt-6 flex flex-wrap justify-center gap-3"><Link to="/login?returnTo=/messages" className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Sign in</Link><Link to="/register?returnTo=/messages" className="rounded-xl border border-border px-5 py-3 text-sm font-bold">Create account</Link></div></div>;
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-7 w-7 animate-spin" /></div>;
 
   return <div className="min-h-screen bg-slate-50 pb-28 dark:bg-background">
