@@ -39,7 +39,9 @@ function loadingScreen() {
 }
 
 export default function MembershipRequiredGate({ children }) {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname, search } = location;
+  const returnTo = encodeURIComponent(`${pathname}${search || ""}`);
   const { user, isLoadingAuth, isLoadingPublicSettings, authChecked } = useAuth();
   const [accessState, setAccessState] = useState({ loading: true, active: false });
 
@@ -126,12 +128,12 @@ export default function MembershipRequiredGate({ children }) {
   if (accessState.loading) return loadingScreen();
 
   if (!user?.id && isNativeIOS()) {
-    if (!accessState.active) return <Navigate to="/subscribe" replace />;
+    if (!accessState.active) return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
     return children;
   }
 
   if (!accessState.active) {
-    return <Navigate to="/subscribe" replace />;
+    return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
   }
 
   return children;
