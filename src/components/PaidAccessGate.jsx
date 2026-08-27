@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Crown, Eye, Loader2, LockKeyhole, X } from "lucide-react";
+import { Crown, Loader2, LockKeyhole } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
-import { disableReviewDemoMode, enableReviewDemoMode, isReviewDemoMode, isReviewDemoAccount } from "@/lib/reviewDemo";
+import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 
 export default function PaidAccessGate({ children }) {
@@ -14,7 +14,6 @@ export default function PaidAccessGate({ children }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [appleStoreActive, setAppleStoreActive] = useState(false);
-  const [reviewDemo, setReviewDemo] = useState(isReviewDemoMode);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,22 +60,6 @@ export default function PaidAccessGate({ children }) {
   const accountActive = useMemo(() => findFullQuarryEntitlement(rows), [rows]);
   const active = appleStoreActive || Boolean(accountActive);
 
-  if (reviewDemo) {
-    return (
-      <div className="min-h-screen">
-        <div className="sticky top-0 z-[60] flex items-center justify-between gap-3 border-b border-sky-200 bg-sky-50 px-4 py-2 text-xs font-semibold text-sky-950">
-          <span className="inline-flex items-center gap-2"><Eye className="h-4 w-4" />Apple Review Demo · read-only access</span>
-          <button
-            type="button"
-            onClick={() => { disableReviewDemoMode(); setReviewDemo(false); }}
-            className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-sky-300 bg-white px-3 py-1.5"
-          ><X className="h-3.5 w-3.5" />Exit demo</button>
-        </div>
-        {children}
-      </div>
-    );
-  }
-
   if (user?.role === "admin") return children;
 
   if (loading) {
@@ -97,11 +80,10 @@ export default function PaidAccessGate({ children }) {
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
             <Link to={subscribeHref} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />Unlock full intelligence</Link>
             <Link to="/" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Keep browsing preview</Link>
-            {!user?.id && isNativeIOS() && <button type="button" onClick={() => { enableReviewDemoMode(); setReviewDemo(true); }} className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-5 py-3 text-sm font-bold text-sky-950"><Eye className="h-4 w-4" />Explore review demo</button>}
             {!user?.id && !isNativeIOS() && <Link to="/register" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Create account</Link>}
             {!user?.id && !isNativeIOS() && <Link to="/login" className="text-sm font-semibold text-sky-800 hover:underline">Sign in</Link>}
           </div>
-          <p className="mt-5 text-xs leading-5 text-muted-foreground">Downloadable intelligence reports and custom diligence remain separate products, including the $1,500 Deal Due-Diligence Report.</p>
+          <p className="mt-5 text-xs leading-5 text-muted-foreground">Custom reports and due-diligence research are separate professional services. S&S confirms scope and pricing directly.</p>
         </div>
       </div>
     );
