@@ -52,6 +52,17 @@ requireFields('base44/entities/CompanyWatch.jsonc', [
   'user_id', 'company_name', 'relationship_type', 'created_at',
 ]);
 
+requireFields('base44/entities/QuarryNetworkCompany.jsonc', [
+  'company_key', 'company_name', 'roles', 'site_count', 'active_site_count',
+  'states', 'counties', 'commodities', 'last_built_at',
+]);
+
+requireFields('base44/entities/QuarryNetworkLink.jsonc', [
+  'company_key', 'company_name', 'relationship_type', 'mining_site_id',
+  'mine_name', 'operator_name', 'controller_name', 'landowner_name',
+  'permittee_name', 'last_built_at',
+]);
+
 requireText('src/pages/Network.jsx', [
   'onClick={() => toggleLike(post)}',
   'listing_id: item.linked_listing_id || `network:${item.id}`',
@@ -71,6 +82,8 @@ requireText('src/pages/NetworkIntel.jsx', [
   'base44.entities.MiningSite.filter({ state }, "mine_name", 500)',
   'buildCompanyNetwork(sites)',
   'base44.entities.CompanyWatch.create({',
+  'base44.entities.QuarryNetworkCompany.list("-active_site_count", 500, offset)',
+  'base44.functions.invoke("build-quarry-network-index", {})',
   '/network/company/${companySlug(company.name)}?name=${encodeURIComponent(company.name)}',
   'Open company network',
   'Open full intelligence',
@@ -81,6 +94,7 @@ requireText('src/pages/NetworkIntel.jsx', [
 
 requireText('src/pages/CompanyNetworkDetail.jsx', [
   'Company Network Profile',
+  'base44.entities.QuarryNetworkLink.filter({ company_key: targetKey }',
   'base44.entities.TDECPermit.filter(byMsha',
   'base44.entities.GeologyRecord.filter(bySite',
   'base44.entities.EnvironmentalRecord.filter(byMsha',
@@ -102,6 +116,21 @@ requireText('src/pages/NetworkDeals.jsx', [
   'base44.entities.NetworkOpportunity.list("-created_at", 500)',
   'Linked quarry intelligence',
   "I'm interested",
+]);
+
+requireText('base44/functions/build-quarry-network-index/entry.ts', [
+  'allRows(base44.asServiceRole.entities.MiningSite',
+  'QuarryNetworkCompany.bulkCreate',
+  'QuarryNetworkCompany.bulkUpdate',
+  'QuarryNetworkLink.bulkCreate',
+  'QuarryNetworkLink.bulkUpdate',
+  'quarry_records_scanned',
+]);
+
+requireText('base44/workflows/Quarry Network Index Refresh.jsonc', [
+  'build-quarry-network-index',
+  'interval_value": 6',
+  'interval_unit": "hours"',
 ]);
 
 requireText('src/App.jsx', [
