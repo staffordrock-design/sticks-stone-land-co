@@ -1,0 +1,35 @@
+{
+  "actions": [
+    "Added subscriptionGroupVersion 5083b06f-5c38-4430-afc5-393bb39328b0 to review",
+    "Submitted build 45 + app version + $199 subscription + subscription group version"
+  ],
+  "app_id": "6801479135",
+  "app_store_version_id": "2529d759-049e-4622-87cb-8c63460f20ef",
+  "build": {
+    "id": "17d7a46b-719a-4be0-9aae-4a3d9712a421",
+    "processing_state": "VALID",
+    "uploaded_date": "2026-08-28T13:36:33-07:00",
+    "version": "45"
+  },
+  "bundle_id": "com.ssrockholdings.quarrymarketplace",
+  "errors": [],
+  "final": {
+    "app_version_linked": true,
+    "build_number": "45",
+    "review_id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+    "review_state": "WAITING_FOR_REVIEW",
+    "subscription_group_version_linked": true,
+    "subscription_version_linked": true
+  },
+  "key_id_used": "2A3958GU5F",
+  "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
+  "review_id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+  "review_state_before": "READY_FOR_REVIEW",
+  "subscription_group_id": "22320430",
+  "subscription_group_version_id": "5083b06f-5c38-4430-afc5-393bb39328b0",
+  "subscription_group_version_state": "DEVELOPER_REJECTED",
+  "subscription_id": "6805699765",
+  "subscription_version_id": "e8ec65bd-125d-48a6-b2e5-5cfce859f397",
+  "target_build": "45",
+  "target_version": "1.0"
+}
