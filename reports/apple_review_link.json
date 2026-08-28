@@ -17,7 +17,7 @@
   "authenticated": true,
   "bundle_id": "com.ssrockholdings.quarrymarketplace",
   "errors": [],
-  "generated_at": "2026-08-28T20:38:46.210001+00:00",
+  "generated_at": "2026-08-28T20:40:27.827927+00:00",
   "key_id_used": "2A3958GU5F",
   "products": {
     "com.ssrockholdings.quarryintelligence.monthly199": {
@@ -50,6 +50,148 @@
       "version_localizations": 1
     }
   },
+  "recent_builds": [
+    {
+      "expired": false,
+      "id": "17d7a46b-719a-4be0-9aae-4a3d9712a421",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-28T13:36:33-07:00",
+      "version": "45"
+    },
+    {
+      "expired": false,
+      "id": "29680b74-cdf8-42d4-b93a-e161234c2d62",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-28T12:48:42-07:00",
+      "version": "44"
+    },
+    {
+      "expired": false,
+      "id": "0e70c507-0c0c-45b2-99d4-3f549a3fdd18",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T23:30:05-07:00",
+      "version": "43"
+    },
+    {
+      "expired": false,
+      "id": "7eaa1a5a-9045-485d-be35-166d8c50dd20",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T23:18:45-07:00",
+      "version": "42"
+    },
+    {
+      "expired": false,
+      "id": "93a3c43f-8db4-4d82-aaa8-2301f0d707bf",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T23:00:58-07:00",
+      "version": "41"
+    },
+    {
+      "expired": false,
+      "id": "30266cea-3130-4416-9b5b-e9c75a49fd6b",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T22:45:18-07:00",
+      "version": "40"
+    },
+    {
+      "expired": false,
+      "id": "d7fed061-dcc9-46c7-ac38-98f2ce73cf87",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T22:20:01-07:00",
+      "version": "38"
+    },
+    {
+      "expired": false,
+      "id": "46e06904-e901-4464-be6c-d87e82dd431a",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T21:23:48-07:00",
+      "version": "37"
+    },
+    {
+      "expired": false,
+      "id": "095e5ea8-b1a5-40eb-87bf-ddec9e5cad8a",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T20:59:53-07:00",
+      "version": "36"
+    },
+    {
+      "expired": false,
+      "id": "7ec1e492-9a17-427d-86f2-1b064481f8cb",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T11:08:54-07:00",
+      "version": "35"
+    },
+    {
+      "expired": false,
+      "id": "68d9d41f-de7a-49a7-911b-f136a018942a",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T09:00:47-07:00",
+      "version": "34"
+    },
+    {
+      "expired": false,
+      "id": "ec256234-5fe5-4cd5-885f-8328e43511ab",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T07:03:17-07:00",
+      "version": "33"
+    },
+    {
+      "expired": false,
+      "id": "6cecd719-6782-46de-afe8-02056a492c16",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-26T16:58:22-07:00",
+      "version": "32"
+    },
+    {
+      "expired": false,
+      "id": "5d07f288-2455-43f1-a1e7-13c14e7b5580",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-26T13:58:33-07:00",
+      "version": "31"
+    },
+    {
+      "expired": false,
+      "id": "4e766433-f9af-44ff-9696-15a7986e775f",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-26T13:10:19-07:00",
+      "version": "30"
+    },
+    {
+      "expired": false,
+      "id": "b781b961-aaca-4509-8d54-03c27e5aef7b",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-25T19:51:12-07:00",
+      "version": "29"
+    },
+    {
+      "expired": false,
+      "id": "fcf11893-3189-490b-8043-7c7545988cbc",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-25T18:46:13-07:00",
+      "version": "28"
+    },
+    {
+      "expired": false,
+      "id": "76807c7e-b029-465e-a94f-815c1395fc84",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-25T18:26:46-07:00",
+      "version": "27"
+    },
+    {
+      "expired": false,
+      "id": "59eed0b2-1bb1-4d4c-9d5e-350fa4558de4",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-25T05:37:51-07:00",
+      "version": "26"
+    },
+    {
+      "expired": false,
+      "id": "702ea479-0096-44f2-b0b5-9352d96baf37",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-17T17:12:19-07:00",
+      "version": "1"
+    }
+  ],
   "review_submission": {
     "editable": false,
     "id": "8bb47c74-b213-4c3f-be06-fbe16fe9ab7e",
