@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Crown, Loader2, LockKeyhole } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
+import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 
@@ -21,7 +21,7 @@ export default function PaidAccessGate({ children }) {
       try {
         if (isNativeIOS()) {
           try {
-            const storeAccess = await currentAppleSubscriptionAccess();
+            const storeAccess = await stableAppleSubscriptionAccess({ attempts: 4 });
             if (!cancelled) setAppleStoreActive(Boolean(storeAccess?.active && storeAccess?.professional));
             if (user?.id) await syncCurrentAppleSubscriptions();
           } catch (error) {
