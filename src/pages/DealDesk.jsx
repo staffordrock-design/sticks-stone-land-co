@@ -53,7 +53,7 @@ export default function DealDesk() {
   useEffect(() => { if (user?.role === "admin") load(); }, [user?.role]);
 
   const opportunityById = useMemo(() => new Map(networkOpportunities.map((o) => [o.id, o])), [networkOpportunities]);
-  const openNetworkRequests = roomRequests.filter((r) => !["Declined", "Expired"].includes(r.status));
+  const openNetworkRequests = roomRequests.filter((r) => r.network_opportunity_id && !["Declined", "Expired"].includes(r.status));
 
   const createFromSeller = async (s) => {
     await base44.entities.DealPipeline.create({
@@ -63,7 +63,7 @@ export default function DealDesk() {
       seller_name: s.seller_name,
       seller_email: s.seller_email,
       stage: "Seller Review",
-      estimated_value: s.asking_price || null,
+      estimated_value: s.asking_price ? Number(s.asking_price) : undefined,
       next_action: "Review seller submission and verify property data",
       last_activity_at: new Date().toISOString(),
     });
