@@ -76,19 +76,42 @@ async function loadAllIndexedCompanies() {
   return rows;
 }
 
-async function loadQuarrySitesForState(state, target = 500) {
-  const quarryRows = [];
-  const seen = new Set();
-  for (let offset = 0; offset < 10000 && quarryRows.length < target; offset += 500) {
-    const page = await base44.entities.MiningSite.filter({ state }, "-updated_date", 500, offset).catch(() => []);
-    for (const site of page || []) {
-      if (!site?.id || seen.has(site.id) || !isQuarryRelevant(site)) continue;
-      seen.add(site.id);
-      quarryRows.push(site);
-    }
+async function loadAllIndexedLinks() {
+  const rows = [];
+  for (let offset = 0; offset < 10000; offset += 500) {
+    const page = await base44.entities.QuarryNetworkLink.list("-active_signal", 500, offset).catch(() => []);
+    rows.push(...(page || []));
     if (!page || page.length < 500) break;
   }
-  return quarryRows;
+  return rows;
+}
+
+function sitesFromIndexedLinks(rows) {
+  const bySite = new Map();
+  for (const link of rows || []) {
+    if (!link?.mining_site_id || !isQuarryRelevant(link)) continue;
+    const existing = bySite.get(link.mining_site_id) || {
+      id: link.mining_site_id,
+      msha_mine_id: link.msha_mine_id,
+      mine_name: link.mine_name,
+      mine_status: link.mine_status,
+      commodity: link.commodity,
+      state: link.state,
+      county: link.county,
+      operator_name: link.operator_name,
+      controller_name: link.controller_name,
+      parcel_owner: link.landowner_name,
+      permittee_name: link.permittee_name,
+      permitted_acres: link.permitted_acres,
+      acreage: link.parcel_acres,
+    };
+    if (!existing.operator_name && link.relationship_type === "Operator") existing.operator_name = link.company_name;
+    if (!existing.controller_name && link.relationship_type === "Controller") existing.controller_name = link.company_name;
+    if (!existing.parcel_owner && link.relationship_type === "Landowner") existing.parcel_owner = link.company_name;
+    if (!existing.permittee_name && link.relationship_type === "Permittee") existing.permittee_name = link.company_name;
+    bySite.set(link.mining_site_id, existing);
+  }
+  return Array.from(bySite.values());
 }
 
 function buildCompanyNetwork(sites) {
@@ -165,22 +188,22 @@ export default function NetworkIntel() {
   const [tab, setTab] = useState("companies");
   const [selectedCompanyKey, setSelectedCompanyKey] = useState("");
   const [watchBusy, setWatchBusy] = useState("");
+  const [relationshipCount, setRelationshipCount] = useState(0);
 
   const load = async () => {
     setLoading(true);
     setNotice("");
     try {
-      const stateLoads = STATES.map((state) => loadQuarrySitesForState(state, 500));
-      const indexedRows = await loadAllIndexedCompanies();
-      const [stateRows, dealRows, memberRows, watchRows] = await Promise.all([
-        Promise.all(stateLoads),
+      const [indexedRows, indexedLinks, dealRows, memberRows, watchRows] = await Promise.all([
+        loadAllIndexedCompanies(),
+        loadAllIndexedLinks(),
         base44.entities.NetworkOpportunity.list("-created_at", 300).catch(() => []),
         user?.id ? base44.entities.NetworkMemberProfile.list("-updated_at", 300).catch(() => []) : Promise.resolve([]),
         user?.id ? base44.entities.CompanyWatch.filter({ user_id: user.id }, "-created_at", 500).catch(() => []) : Promise.resolve([]),
       ]);
-      const unique = new Map();
-      stateRows.flat().forEach((site) => { if (site?.id) unique.set(site.id, site); });
-      setSites(Array.from(unique.values()));
+      const indexedSites = sitesFromIndexedLinks(indexedLinks);
+      setSites(indexedSites);
+      setRelationshipCount((indexedLinks || []).length);
       setCompanyIndex(indexedRows || []);
       setOpportunities((dealRows || []).filter((row) => row.status !== "Closed"));
       setMembers((memberRows || []).filter((row) => row.profile_visibility !== "Private"));
@@ -280,7 +303,8 @@ export default function NetworkIntel() {
     active: sites.filter((site) => activeStatus(site.mine_status)).length,
     companies: companies.length,
     deals: opportunities.length,
-  }), [sites, companies, opportunities]);
+    relationships: relationshipCount,
+  }), [sites, companies, opportunities, relationshipCount]);
 
   if (loading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-slate-700"/><div className="mt-3 text-sm font-semibold text-muted-foreground">Building live Quarry Network Intelligence…</div></div></div>;
 
@@ -292,7 +316,7 @@ export default function NetworkIntel() {
             <div className="max-w-3xl">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><Network className="h-4 w-4"/>S&amp;S Quarry Network Intelligence</div>
               <h1 className="mt-2 font-heading text-3xl font-bold sm:text-4xl">See who controls what — and where the deals are.</h1>
-              <p className="mt-3 text-sm leading-6 text-slate-300">Live quarry intelligence linking operators, controllers, landowners, quarry sites, commodities, counties and deal opportunities. This network is built from the quarry database; it does not depend on members posting first.</p>
+              <p className="mt-3 text-sm leading-6 text-slate-300">Live quarry-company graph linking operators, controllers, landowners, permittees and quarry sites. The network loads from the persistent relationship index first, so it works even when there are no member posts or deal listings yet.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Link to="/network/deals" className="rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-950">Deal Network</Link>
@@ -302,8 +326,8 @@ export default function NetworkIntel() {
             </div>
           </div>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat icon={Mountain} value={stats.sites.toLocaleString()} label="quarry / non-coal mine records loaded" />
-            <Stat icon={ShieldCheck} value={stats.active.toLocaleString()} label="active / operating signals" />
+            <Stat icon={Mountain} value={stats.sites.toLocaleString()} label="quarry / non-coal sites in graph" />
+            <Stat icon={Network} value={stats.relationships.toLocaleString()} label="company-to-quarry relationships" />
             <Stat icon={Building2} value={stats.companies.toLocaleString()} label="linked companies / owners / controllers" />
             <Stat icon={Handshake} value={stats.deals.toLocaleString()} label="open network opportunities" />
           </div>
