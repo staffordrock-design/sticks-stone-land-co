@@ -8,6 +8,18 @@
     "listing_title": {
       "type": "string"
     },
+    "network_opportunity_id": {
+      "type": "string"
+    },
+    "data_room_request_id": {
+      "type": "string"
+    },
+    "mining_site_id": {
+      "type": "string"
+    },
+    "opportunity_owner_user_id": {
+      "type": "string"
+    },
     "user_id": {
       "type": "string"
     },
@@ -23,6 +35,18 @@
     "paid": {
       "type": "boolean",
       "default": true
+    },
+    "access_status": {
+      "type": "string",
+      "enum": [
+        "Granted",
+        "Revoked",
+        "Expired"
+      ],
+      "default": "Granted"
+    },
+    "granted_at": {
+      "type": "string"
     }
   },
   "required": [
@@ -34,6 +58,9 @@
       "$or": [
         {
           "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.opportunity_owner_user_id": "{{user.id}}"
         },
         {
           "user_condition": {
