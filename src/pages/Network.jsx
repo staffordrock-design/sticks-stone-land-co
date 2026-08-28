@@ -125,6 +125,8 @@ export default function Network() {
   const [requestingRoomId, setRequestingRoomId] = useState("");
   const [connections, setConnections] = useState([]);
   const [blocks, setBlocks] = useState([]);
+  const [reactions, setReactions] = useState([]);
+  const [reactingPostId, setReactingPostId] = useState("");
   const [buyerProfile, setBuyerProfile] = useState(null);
   const [linkedMine, setLinkedMine] = useState(null);
   const [notice, setNotice] = useState("");
@@ -165,7 +167,7 @@ export default function Network() {
     if (!user?.id) { setLoading(false); return; }
     setLoading(true);
     try {
-      const [mineRows, publicMineRows, people, feed, opportunityRows, roomRequests, links, blocked, buyers] = await Promise.all([
+      const [mineRows, publicMineRows, people, feed, opportunityRows, roomRequests, links, blocked, reactionRows, buyers] = await Promise.all([
         base44.entities.UserProfile.filter({ user_id: user.id }, "-updated_date", 1),
         base44.entities.NetworkMemberProfile.filter({ user_id: user.id }, "-updated_at", 1).catch(() => []),
         base44.entities.NetworkMemberProfile.list("-updated_at", 300).catch(() => []),
@@ -174,6 +176,7 @@ export default function Network() {
         base44.entities.DataRoomRequest.list("-requested_at", 200).catch(() => []),
         base44.entities.ProfessionalConnection.list("-created_at", 500).catch(() => []),
         base44.entities.UserBlock.filter({ blocker_user_id: user.id }, "-created_at", 250).catch(() => []),
+        base44.entities.NetworkReaction.list("-created_at", 1000).catch(() => []),
         base44.entities.BuyerProfile.filter({ user_id: user.id }, "-updated_date", 1).catch(() => []),
       ]);
       const mine = mineRows?.[0] || null;
@@ -186,6 +189,7 @@ export default function Network() {
       setDataRoomRequests(roomRequests || []);
       setConnections(links || []);
       setBlocks(blocked || []);
+      setReactions(reactionRows || []);
       setBuyerProfile(buyers?.[0] || null);
     } catch (error) {
       console.error("Network load failed", error);
@@ -253,6 +257,8 @@ export default function Network() {
   }, [opportunities, myCriteria, user?.id]);
 
   const matchFor = (item) => matchesForMe.find((match) => match.item.id === item.id) || null;
+  const myReactionFor = (post) => reactions.find((reaction) => reaction.post_id === post.id && reaction.user_id === user?.id && reaction.reaction === "Like") || null;
+  const reactionCountFor = (post) => reactions.filter((reaction) => reaction.post_id === post.id && reaction.reaction === "Like").length;
   const roomRequestFor = (item) => dataRoomRequests.find((request) => request.network_opportunity_id === item.id && request.user_id === user?.id) || null;
   const incomingRoomRequestCount = (item) => dataRoomRequests.filter((request) => request.network_opportunity_id === item.id && request.opportunity_owner_user_id === user?.id).length;
 
@@ -384,20 +390,53 @@ export default function Network() {
       setBody("");
       setPostType("Update");
       await load();
+    } catch (error) {
+      console.error("Network post failed", error);
+      setNotice("Your post could not be published. Please try again.");
     } finally { setPosting(false); }
+  };
+
+  const toggleLike = async (post) => {
+    if (!user?.id || reactingPostId) return;
+    setReactingPostId(post.id);
+    try {
+      const existing = myReactionFor(post);
+      if (existing) {
+        await base44.entities.NetworkReaction.delete(existing.id);
+      } else {
+        await base44.entities.NetworkReaction.create({
+          post_id: post.id,
+          user_id: user.id,
+          reaction: "Like",
+          created_at: new Date().toISOString(),
+        });
+      }
+      await load();
+    } catch (error) {
+      console.error("Network reaction failed", error);
+      setNotice("That reaction did not save. Please try again.");
+    } finally {
+      setReactingPostId("");
+    }
   };
 
   const connect = async (person) => {
     if (!user?.id || relationFor(person.user_id)) return;
-    await base44.entities.ProfessionalConnection.create({
-      requester_user_id: user.id,
-      recipient_user_id: person.user_id,
-      requester_name: publicProfile?.full_name || privateProfile?.full_name || user.name || "Member",
-      recipient_name: person.full_name || "Member",
-      status: "Pending",
-      created_at: new Date().toISOString(),
-    });
-    await load();
+    try {
+      await base44.entities.ProfessionalConnection.create({
+        requester_user_id: user.id,
+        recipient_user_id: person.user_id,
+        requester_name: publicProfile?.full_name || privateProfile?.full_name || user.name || "Member",
+        recipient_name: person.full_name || "Member",
+        status: "Pending",
+        created_at: new Date().toISOString(),
+      });
+      setNotice(`Connection request sent to ${person.full_name || "member"}.`);
+      await load();
+    } catch (error) {
+      console.error("Network connection failed", error);
+      setNotice("The connection request did not send. Please try again.");
+    }
   };
 
   const accept = async (connection) => {
@@ -525,7 +564,7 @@ export default function Network() {
         {tab === "feed" && <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
           <aside className="hidden lg:block"><div className="sticky top-32 rounded-2xl border border-border bg-card p-5 shadow-sm"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white"><Mountain className="h-6 w-6" /></div><div className="mt-4 font-heading text-xl font-bold">{publicProfile?.full_name || privateProfile?.full_name}</div><div className="mt-1 text-sm text-muted-foreground">{publicProfile?.headline || privateProfile?.role_title || privateProfile?.account_type}</div>{(publicProfile?.company || privateProfile?.company) && <div className="mt-2 flex items-center gap-2 text-sm"><Building2 className="h-4 w-4" />{publicProfile?.company || privateProfile?.company}</div>}<Link to="/profile?returnTo=/network" className="mt-4 inline-block text-sm font-bold text-sky-800">Edit network profile</Link></div></aside>
           <section className="min-w-0 space-y-4"><form onSubmit={createPost} className="rounded-2xl border border-border bg-card p-4 shadow-sm"><div className="flex gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">{(publicProfile?.full_name || privateProfile?.full_name || user?.email || "S").slice(0,1).toUpperCase()}</div><div className="min-w-0 flex-1"><textarea value={body} onChange={(e) => setBody(e.target.value)} maxLength={1500} placeholder="Share an industry update, equipment need, project, hiring need or question…" className="min-h-24 w-full resize-none rounded-xl border border-border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-sky-300" /><div className="mt-3 flex items-center justify-between gap-3"><select value={postType} onChange={(e) => setPostType(e.target.value)} className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-bold">{POST_TYPES.map((type) => <option key={type}>{type}</option>)}</select><button disabled={posting || !body.trim()} className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white disabled:opacity-40">{posting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Post</button></div></div></div></form>
-            {visiblePosts.map((post) => <article key={post.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm"><div className="flex items-start justify-between gap-4"><div className="flex min-w-0 gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-white">{(post.author_name || "M").slice(0,1).toUpperCase()}</div><div className="min-w-0"><div className="truncate font-bold">{post.author_name || "Industry member"}</div><div className="truncate text-xs text-muted-foreground">{[post.author_headline, post.author_company].filter(Boolean).join(" · ")}</div><div className="mt-0.5 text-[11px] text-muted-foreground">{post.created_at ? new Date(post.created_at).toLocaleString() : ""}</div></div></div><span className="rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-800">{post.post_type}</span></div><p className="mt-4 whitespace-pre-wrap text-[15px] leading-6 text-foreground">{post.body}</p><div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-3"><button className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground"><Heart className="h-4 w-4" />Like</button>{post.author_user_id !== user?.id && <Link to={`/messages?user=${encodeURIComponent(post.author_user_id)}`} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground"><MessageCircle className="h-4 w-4" />Message</Link>}{post.author_user_id !== user?.id && <button onClick={() => reportPost(post)} className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground"><Flag className="h-4 w-4" />Report</button>}{post.author_user_id !== user?.id && <button onClick={() => blockUser(post.author_user_id)} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground"><ShieldBan className="h-4 w-4" />Block</button>}</div></article>)}
+            {visiblePosts.map((post) => <article key={post.id} className="rounded-2xl border border-border bg-card p-5 shadow-sm"><div className="flex items-start justify-between gap-4"><div className="flex min-w-0 gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-white">{(post.author_name || "M").slice(0,1).toUpperCase()}</div><div className="min-w-0"><div className="truncate font-bold">{post.author_name || "Industry member"}</div><div className="truncate text-xs text-muted-foreground">{[post.author_headline, post.author_company].filter(Boolean).join(" · ")}</div><div className="mt-0.5 text-[11px] text-muted-foreground">{post.created_at ? new Date(post.created_at).toLocaleString() : ""}</div></div></div><span className="rounded-full bg-sky-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-800">{post.post_type}</span></div><p className="mt-4 whitespace-pre-wrap text-[15px] leading-6 text-foreground">{post.body}</p><div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border pt-3"><button type="button" onClick={() => toggleLike(post)} disabled={reactingPostId === post.id} className={`inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold disabled:opacity-50 ${myReactionFor(post) ? "text-rose-700" : "text-muted-foreground"}`}><Heart className={`h-4 w-4 ${myReactionFor(post) ? "fill-current" : ""}`} />{myReactionFor(post) ? "Liked" : "Like"}{reactionCountFor(post) > 0 ? ` · ${reactionCountFor(post)}` : ""}</button>{post.author_user_id !== user?.id && <Link to={`/messages?user=${encodeURIComponent(post.author_user_id)}`} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground"><MessageCircle className="h-4 w-4" />Message</Link>}{post.author_user_id !== user?.id && <button onClick={() => reportPost(post)} className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground"><Flag className="h-4 w-4" />Report</button>}{post.author_user_id !== user?.id && <button onClick={() => blockUser(post.author_user_id)} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-semibold text-muted-foreground"><ShieldBan className="h-4 w-4" />Block</button>}</div></article>)}
             {visiblePosts.length === 0 && <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center"><Handshake className="mx-auto h-8 w-8 text-muted-foreground" /><div className="mt-3 font-bold">The industry feed starts here</div><p className="mt-1 text-sm text-muted-foreground">Share an update or question. Deal opportunities belong in the Opportunities tab.</p></div>}
           </section>
         </div>}
