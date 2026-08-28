@@ -84,9 +84,13 @@ requireText('src/pages/Messages.jsx', [
 
 requireText('src/pages/NetworkIntel.jsx', [
   'S&amp;S Quarry Network Intelligence',
-  'base44.entities.MiningSite.filter({ state }, "-updated_date", 500, offset)',
-  'loadQuarrySitesForState(state, 500)',
-  'buildCompanyNetwork(sites)',
+  'Live graph · build {BUILD_SHA}',
+  'base44.entities.QuarryNetworkCompany.list("-active_site_count", 500, 0)',
+  'base44.entities.QuarryNetworkLink.list("-active_signal", 500, 0)',
+  'base44.entities.QuarryNetworkLink.list("-active_signal", 500, 500)',
+  'loadAllIndexedCompanies()',
+  'loadAllIndexedLinks()',
+  'sitesFromIndexedLinks(initialLinks)',
   'base44.entities.CompanyWatch.create({',
   'base44.entities.QuarryNetworkCompany.list("-active_site_count", 500, offset)',
   '/network/company/${companySlug(company.name)}?name=${encodeURIComponent(company.name)}',
