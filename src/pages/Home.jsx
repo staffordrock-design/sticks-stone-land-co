@@ -355,30 +355,44 @@ export default function Home() {
 
       <ProfitabilityUpgradeBanner />
 
-      {/* Mobile-first intelligence command center */}
+      {/* Live quarry workspaces — real actions, not a promotional menu */}
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="rounded-3xl border border-slate-700 bg-slate-950 p-6 text-white sm:p-8">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><Database className="h-4 w-4" /> S&amp;S Intelligence Center</div>
-              <h2 className="mt-2 font-heading text-2xl font-bold sm:text-3xl">Use the full quarry intelligence toolkit.</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">The deeper tools are already built into this app. Compare targets, map mineral occurrences, monitor quarry opportunities and move serious prospects into diligence from one place.</p>
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><Database className="h-4 w-4" /> Live S&amp;S Workspaces</div>
+              <h2 className="mt-2 font-heading text-2xl font-bold sm:text-3xl">Work the quarry data from here.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Open the actual company network, deal workspace, ownership graph or comparison tool. These actions use the quarry records loaded in the app instead of sending you to another promotional page.</p>
             </div>
-            <Link to="/intelligence" className="inline-flex items-center gap-2 text-sm font-bold text-sky-200 hover:text-white">Open all intelligence <ArrowRight className="h-4 w-4" /></Link>
+            <button type="button" onClick={() => navigate("/network")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-950">Open Quarry Network <ArrowRight className="h-4 w-4" /></button>
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{quarrySites.length.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">quarry records in view</div></div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{activeCount.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">active records</div></div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{opportunityCount.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">potential / idled</div></div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{geologyLinked.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">geology linked</div></div>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              ["/compare", GitCompareArrows, "Compare quarries", "Side-by-side quarry decision intelligence"],
-              ["/mineral-intelligence", MapPinned, "Mineral map", "USGS occurrences and mineral clusters"],
-              ["/watchlist", Bell, "Watchlist & alerts", "Track acquisition targets and criteria"],
-              ["/intelligence", Layers, "All intelligence", "Ownership, permits, geology, production and more"],
+              ["/network", Building2, "Quarry Network", "Companies, operators, controllers, owners and linked sites"],
+              ["/network/deals", Handshake, "Deal Network", "Post, open and track quarry opportunities and buyer interest"],
+              ["/ownership-intelligence", Landmark, "Ownership & Control", "Rank operators, controllers and linked landowners"],
+              ["/compare", GitCompareArrows, "Compare Quarries", "Put quarry records side by side for a real decision"],
             ].map(([to, Icon, title, description]) => (
-              <Link key={to + title} to={to} className="group rounded-2xl border border-slate-800 bg-slate-900/70 p-4 transition hover:border-sky-700 hover:bg-slate-900">
+              <button key={to + title} type="button" onClick={() => navigate(to)} className="group min-h-32 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-left transition active:scale-[0.99] hover:border-sky-700 hover:bg-slate-900">
                 <div className="flex items-center justify-between"><Icon className="h-5 w-5 text-sky-300" /><ArrowRight className="h-4 w-4 text-slate-500 transition group-hover:translate-x-1 group-hover:text-sky-300" /></div>
                 <div className="mt-3 font-heading text-base font-bold">{title}</div>
                 <div className="mt-1 text-xs leading-5 text-slate-400">{description}</div>
-              </Link>
+              </button>
             ))}
+          </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            <button type="button" onClick={() => navigate("/network/watchlist")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><Bell className="h-4 w-4 text-sky-300"/>Network Watchlist</button>
+            <button type="button" onClick={() => navigate("/mineral-intelligence")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><MapPinned className="h-4 w-4 text-sky-300"/>Mineral Map</button>
+            <button type="button" onClick={() => navigate("/intelligence")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><Layers className="h-4 w-4 text-sky-300"/>All Intel Workspaces</button>
           </div>
         </div>
       </section>
