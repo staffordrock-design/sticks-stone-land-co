@@ -3,7 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { currentAppleSubscriptionAccess, isNativeIOS, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
+import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
@@ -67,7 +67,7 @@ export default function MembershipRequiredGate({ children }) {
 
         if (isNativeIOS()) {
           try {
-            const storeAccess = await currentAppleSubscriptionAccess();
+            const storeAccess = await stableAppleSubscriptionAccess({ attempts: 4 });
             storeActive = Boolean(storeAccess?.active && storeAccess?.professional);
             if (user?.id) await syncCurrentAppleSubscriptions();
           } catch (error) {
