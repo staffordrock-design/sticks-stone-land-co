@@ -71,13 +71,44 @@ requireText('src/pages/NetworkIntel.jsx', [
   'base44.entities.MiningSite.filter({ state }, "mine_name", 500)',
   'buildCompanyNetwork(sites)',
   'base44.entities.CompanyWatch.create({',
+  '/network/company/${companySlug(company.name)}?name=${encodeURIComponent(company.name)}',
   'Open company network',
   'Open full intelligence',
+  '/network/watchlist',
+  '/network/deals',
   '/network/community?tab=opportunities',
+]);
+
+requireText('src/pages/CompanyNetworkDetail.jsx', [
+  'Company Network Profile',
+  'base44.entities.TDECPermit.filter(byMsha',
+  'base44.entities.GeologyRecord.filter(bySite',
+  'base44.entities.EnvironmentalRecord.filter(byMsha',
+  'base44.entities.ProductionRecord.filter(bySite',
+  'base44.entities.ContractIntelligence.filter(bySite',
+  'Open quarry intelligence',
+]);
+
+requireText('src/pages/NetworkWatchlist.jsx', [
+  'Network Watchlist',
+  'base44.entities.CompanyWatch.filter({ user_id: user.id }',
+  'base44.entities.SavedOpportunity.filter({ user_id: user.id }',
+  'Open company network',
+  'Open full intelligence',
+]);
+
+requireText('src/pages/NetworkDeals.jsx', [
+  'Deal Network',
+  'base44.entities.NetworkOpportunity.list("-created_at", 500)',
+  'Linked quarry intelligence',
+  "I'm interested",
 ]);
 
 requireText('src/App.jsx', [
   '<Route path="/network" element={<NetworkIntel />} />',
+  '<Route path="/network/company/:companySlug" element={<CompanyNetworkDetail />} />',
+  '<Route path="/network/watchlist" element={<NetworkWatchlist />} />',
+  '<Route path="/network/deals" element={<NetworkDeals />} />',
   '<Route path="/network/community" element={<Network />} />',
   '<Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />',
   '<Route path="/messages" element={<Messages />} />',
