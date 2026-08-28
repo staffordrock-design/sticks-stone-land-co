@@ -11,6 +11,7 @@ import WatchQuarryButton from "@/components/WatchQuarryButton";
 
 const STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "MS", "VA"];
 const ROLE_OPTIONS = ["All", "Operator", "Controller", "Landowner"];
+const BUILD_SHA = String(import.meta.env.VITE_BUILD_SHA || "local").slice(0, 7);
 
 function activeStatus(value) {
   const v = String(value || "").toLowerCase();
@@ -326,7 +327,7 @@ export default function NetworkIntel() {
         <div className="mx-auto max-w-7xl px-4 pb-6 pt-4 sm:px-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-3xl">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><Network className="h-4 w-4"/>S&amp;S Quarry Network Intelligence</div>
+              <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><Network className="h-4 w-4"/>S&amp;S Quarry Network Intelligence <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 text-[9px] tracking-[0.12em] text-emerald-300">Live graph · build {BUILD_SHA}</span></div>
               <h1 className="mt-2 font-heading text-3xl font-bold sm:text-4xl">See who controls what — and where the deals are.</h1>
               <p className="mt-3 text-sm leading-6 text-slate-300">Live quarry-company graph linking operators, controllers, landowners, permittees and quarry sites. The network loads from the persistent relationship index first, so it works even when there are no member posts or deal listings yet.</p>
             </div>
