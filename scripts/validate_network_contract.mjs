@@ -67,7 +67,7 @@ requireText('src/pages/Messages.jsx', [
 ]);
 
 requireText('src/pages/NetworkIntel.jsx', [
-  'S&S Quarry Network Intelligence',
+  'S&amp;S Quarry Network Intelligence',
   'base44.entities.MiningSite.filter({ state }, "mine_name", 500)',
   'buildCompanyNetwork(sites)',
   'base44.entities.CompanyWatch.create({',
