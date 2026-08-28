@@ -1,0 +1,32 @@
+{
+  "actions": [
+    "Canceled review submission 8bb47c74-b213-4c3f-be06-fbe16fe9ab7e that was WAITING_FOR_REVIEW",
+    "Prior review submission reached COMPLETE",
+    "Version 1.0 became editable in state DEVELOPER_REJECTED",
+    "Attached build 45 to App Store version 1.0",
+    "Created new review submission bb09599f-d6d0-4298-9e27-7d8d298766c5",
+    "Added appStoreVersion to new review submission",
+    "Added subscriptionVersion to new review submission"
+  ],
+  "app_id": "6801479135",
+  "app_store_version_id": "2529d759-049e-4622-87cb-8c63460f20ef",
+  "authenticated": true,
+  "bundle_id": "com.ssrockholdings.quarrymarketplace",
+  "errors": [
+    "RuntimeError: PATCH https://api.appstoreconnect.apple.com/v1/reviewSubmissions/bb09599f-d6d0-4298-9e27-7d8d298766c5 -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"3b020d9f-612d-4407-ad74-73bf2ba7fbcb\",\n    \"status\" : \"409\",\n    \"code\" : \"STATE_ERROR.ENTITY_STATE_INVALID\",\n    \"title\" : \"subscriptionVersions with id 'e8ec65bd-125d-48a6-b2e5-5cfce859f397' is not in valid state.\",\n    \"detail\" : \"This resource cannot be reviewed, please check associated errors to see why.\",\n    \"meta\" : {\n      \"associatedErrors\" : {\n        \"/v1/subscriptionVersions/e8ec65bd-125d-48a6-b2e5-5cfce859f397\" : [ {\n          \"id\" : \"e7e0483b-edb9-4c2c-9b06-479b41ab802c\",\n          \"status\" : \"409\",\n          \"code\" : \"STATE_ERROR.SUBSCRIPTION_SUBMISSION_REQUIRES_GROUP_VERSION\",\n          \"title\" : \"A subscription must be submitted with its subscription group version when the group has no prior approved version.\",\n          \"detail\" : \"SubscriptionVersion 'e8ec65bd-125d-48a6-b2e5-5cfce859f397' must be submitted with its subscription group version when the group has no approved version.\"\n        } ]\n      }\n    }\n  } ]\n}"
+  ],
+  "final": {},
+  "generated_at": "2026-08-28T20:48:19.750811+00:00",
+  "key_id_used": "2A3958GU5F",
+  "new_review_submission_id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+  "previous_build": {
+    "id": "0e70c507-0c0c-45b2-99d4-3f549a3fdd18",
+    "version": "43"
+  },
+  "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
+  "subscription_id": "6805699765",
+  "subscription_version_id": "e8ec65bd-125d-48a6-b2e5-5cfce859f397",
+  "target_build": "45",
+  "target_build_id": "17d7a46b-719a-4be0-9aae-4a3d9712a421",
+  "target_version": "1.0"
+}
