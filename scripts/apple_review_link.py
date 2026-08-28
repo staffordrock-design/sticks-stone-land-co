@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Audit refresh after App Store 1.0 build 45 upload.
 """Audit S&S Rock Holdings Apple subscriptions and link them to an editable review submission.
 
 This script is intentionally conservative:
