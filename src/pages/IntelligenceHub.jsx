@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Bell,
@@ -87,6 +87,8 @@ const dataLayers = [
 ];
 
 export default function IntelligenceHub() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-slate-950 text-white" style={{ paddingTop: "env(safe-area-inset-top, 16px)" }}>
@@ -118,7 +120,7 @@ export default function IntelligenceHub() {
 
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tools.map(({ to, icon: Icon, eyebrow, title, description }) => (
-              <Link key={to} to={to} className="group rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
+              <button key={to} type="button" onClick={() => navigate(to)} className="group rounded-2xl border border-border bg-card p-5 text-left shadow-sm transition active:scale-[0.99] hover:-translate-y-0.5 hover:shadow-lg">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white">
                     <Icon className="h-5 w-5" />
@@ -128,7 +130,7 @@ export default function IntelligenceHub() {
                 <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.18em] text-sky-700">{eyebrow}</p>
                 <h3 className="mt-1 font-heading text-lg font-bold text-foreground">{title}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
-              </Link>
+              </button>
             ))}
           </div>
         </section>
