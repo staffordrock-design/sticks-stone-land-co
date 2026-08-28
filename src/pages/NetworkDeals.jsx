@@ -17,20 +17,27 @@ export default function NetworkDeals() {
   const [search, setSearch] = useState("");
   const [stateFilter, setStateFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
+  const [interests, setInterests] = useState([]);
+  const [interestBusy, setInterestBusy] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       try {
-        const rows = await base44.entities.NetworkOpportunity.list("-created_at", 500).catch(() => []);
+        const [rows, interestRows] = await Promise.all([
+          base44.entities.NetworkOpportunity.list("-created_at", 500).catch(() => []),
+          user?.id ? base44.entities.DealInterest.list("-submitted_at", 500).catch(() => []) : Promise.resolve([]),
+        ]);
         const open = (rows || []).filter((row) => row.status !== "Closed");
         setDeals(open);
+        setInterests(interestRows || []);
         const siteRows = await Promise.all(open.filter((row) => row.linked_mining_site_id).slice(0,200).map((row) => base44.entities.MiningSite.get(row.linked_mining_site_id).catch(() => null)));
         setSites(siteRows.filter(Boolean));
       } finally { setLoading(false); }
     })();
-  }, []);
+  }, [user?.id]);
 
   const siteById = useMemo(() => new Map(sites.map((site) => [site.id, site])), [sites]);
   const filtered = useMemo(() => {
@@ -44,6 +51,38 @@ export default function NetworkDeals() {
         .some((value) => String(value || "").toLowerCase().includes(q));
     });
   }, [deals, search, stateFilter, typeFilter, siteById]);
+
+  const myInterestFor = (item) => interests.find((row) => row.network_opportunity_id === item.id && row.user_id === user?.id);
+  const incomingCountFor = (item) => interests.filter((row) => row.network_opportunity_id === item.id && row.opportunity_owner_user_id === user?.id).length;
+
+  const sendInterest = async (item) => {
+    if (!user?.id || interestBusy) return;
+    setInterestBusy(item.id);
+    setNotice("");
+    try {
+      const created = await base44.entities.DealInterest.create({
+        user_id: user.id,
+        buyer_email: user.email || "",
+        buyer_company: "",
+        listing_id: item.linked_listing_id || "",
+        listing_title: item.title,
+        seller_submission_id: "",
+        network_opportunity_id: item.id,
+        mining_site_id: item.linked_mining_site_id || "",
+        opportunity_owner_user_id: item.author_user_id,
+        opportunity_title: item.title,
+        interest_type: "Request Information",
+        terms_summary: `Interested through S&S Quarry Network: ${item.title}`,
+        status: "New",
+        submitted_at: new Date().toISOString(),
+      });
+      setInterests((rows) => [created, ...rows]);
+      setNotice(`Interest sent for ${item.title}. The opportunity owner can now see it in the Deal Network.`);
+    } catch (error) {
+      console.error("Deal interest failed", error);
+      setNotice("Your interest did not send. Please try again.");
+    } finally { setInterestBusy(""); }
+  };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin"/></div>;
 
