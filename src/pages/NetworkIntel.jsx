@@ -76,6 +76,21 @@ async function loadAllIndexedCompanies() {
   return rows;
 }
 
+async function loadQuarrySitesForState(state, target = 500) {
+  const quarryRows = [];
+  const seen = new Set();
+  for (let offset = 0; offset < 10000 && quarryRows.length < target; offset += 500) {
+    const page = await base44.entities.MiningSite.filter({ state }, "-updated_date", 500, offset).catch(() => []);
+    for (const site of page || []) {
+      if (!site?.id || seen.has(site.id) || !isQuarryRelevant(site)) continue;
+      seen.add(site.id);
+      quarryRows.push(site);
+    }
+    if (!page || page.length < 500) break;
+  }
+  return quarryRows;
+}
+
 function buildCompanyNetwork(sites) {
   const map = new Map();
   const add = (rawName, role, site) => {
@@ -155,7 +170,7 @@ export default function NetworkIntel() {
     setLoading(true);
     setNotice("");
     try {
-      const stateLoads = STATES.map((state) => base44.entities.MiningSite.filter({ state }, "mine_name", 500).catch(() => []));
+      const stateLoads = STATES.map((state) => loadQuarrySitesForState(state, 500));
       const indexedRows = await loadAllIndexedCompanies();
       const [stateRows, dealRows, memberRows, watchRows] = await Promise.all([
         Promise.all(stateLoads),
@@ -164,7 +179,7 @@ export default function NetworkIntel() {
         user?.id ? base44.entities.CompanyWatch.filter({ user_id: user.id }, "-created_at", 500).catch(() => []) : Promise.resolve([]),
       ]);
       const unique = new Map();
-      stateRows.flat().forEach((site) => { if (site?.id && isQuarryRelevant(site)) unique.set(site.id, site); });
+      stateRows.flat().forEach((site) => { if (site?.id) unique.set(site.id, site); });
       setSites(Array.from(unique.values()));
       setCompanyIndex(indexedRows || []);
       setOpportunities((dealRows || []).filter((row) => row.status !== "Closed"));
