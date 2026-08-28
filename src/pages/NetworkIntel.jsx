@@ -248,7 +248,8 @@ export default function NetworkIntel() {
               <p className="mt-3 text-sm leading-6 text-slate-300">Live quarry intelligence linking operators, controllers, landowners, quarry sites, commodities, counties and deal opportunities. This network is built from the quarry database; it does not depend on members posting first.</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link to="/network/community?tab=opportunities" className="rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-950">Post a deal</Link>
+              <Link to="/network/deals" className="rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-950">Deal Network</Link>
+              <Link to="/network/watchlist" className="rounded-xl border border-slate-700 px-4 py-2.5 text-xs font-bold text-white">Network Watchlist</Link>
               <Link to="/network/community?tab=people" className="rounded-xl border border-slate-700 px-4 py-2.5 text-xs font-bold text-white">Industry people</Link>
             </div>
           </div>
