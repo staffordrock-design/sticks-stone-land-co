@@ -1,0 +1,81 @@
+{
+  "name": "QuarryNetworkCompany",
+  "type": "object",
+  "properties": {
+    "company_key": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "site_count": {
+      "type": "number"
+    },
+    "active_site_count": {
+      "type": "number"
+    },
+    "states": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "counties": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "commodities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "permitted_acres": {
+      "type": "number"
+    },
+    "parcel_acres": {
+      "type": "number"
+    },
+    "last_built_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_key",
+    "company_name",
+    "site_count",
+    "last_built_at"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

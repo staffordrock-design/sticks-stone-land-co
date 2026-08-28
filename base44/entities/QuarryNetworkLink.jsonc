@@ -1,0 +1,92 @@
+{
+  "name": "QuarryNetworkLink",
+  "type": "object",
+  "properties": {
+    "company_key": {
+      "type": "string"
+    },
+    "company_name": {
+      "type": "string"
+    },
+    "relationship_type": {
+      "type": "string",
+      "enum": [
+        "Operator",
+        "Controller",
+        "Landowner",
+        "Permittee"
+      ]
+    },
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "mine_status": {
+      "type": "string"
+    },
+    "active_signal": {
+      "type": "boolean"
+    },
+    "commodity": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "operator_name": {
+      "type": "string"
+    },
+    "controller_name": {
+      "type": "string"
+    },
+    "landowner_name": {
+      "type": "string"
+    },
+    "permittee_name": {
+      "type": "string"
+    },
+    "permitted_acres": {
+      "type": "number"
+    },
+    "parcel_acres": {
+      "type": "number"
+    },
+    "last_built_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_key",
+    "company_name",
+    "relationship_type",
+    "mining_site_id",
+    "mine_name",
+    "last_built_at"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
