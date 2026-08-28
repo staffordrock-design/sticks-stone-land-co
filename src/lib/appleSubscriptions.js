@@ -4,6 +4,9 @@ import { base44 } from '@/api/base44Client';
 import { ACCESS_TIERS, SUBSCRIPTION_PRODUCTS } from '@/lib/subscriptionPlans';
 
 const STOREKIT_TIMEOUT_MS = 12000;
+const APPLE_ACCESS_CACHE_MS = 5 * 60 * 1000;
+let lastConfirmedAppleAccess = null;
+let lastConfirmedAppleAccessAt = 0;
 
 function withStoreKitTimeout(promise, message = 'Apple did not respond. Please try again.') {
   return Promise.race([
@@ -34,7 +37,7 @@ export function applePlanCodeForProduct(productId) {
   return APPLE_PRODUCT_TO_PLAN[productId] || null;
 }
 
-export async function currentAppleSubscriptionAccess({ restore = false } = {}) {
+export async function currentAppleSubscriptionAccess({ restore = false, allowRecentConfirmedFallback = true } = {}) {
   if (!isNativeIOS()) return { active: false, professional: false, purchases: [], productIds: [], planCodes: [] };
   if (restore) await withStoreKitTimeout(
     NativePurchases.restorePurchases(),
@@ -52,14 +55,40 @@ export async function currentAppleSubscriptionAccess({ restore = false } = {}) {
   const productIds = current.map((tx) => tx.productIdentifier).filter(Boolean);
   const planCodes = productIds.map(applePlanCodeForProduct).filter(Boolean);
   const professional = planCodes.some((code) => code.startsWith('professional_') || code.startsWith('deal_investor_'));
-
-  return {
+  const access = {
     active: current.length > 0,
     professional,
     purchases: current,
     productIds,
     planCodes,
   };
+
+  if (access.active && access.professional) {
+    lastConfirmedAppleAccess = access;
+    lastConfirmedAppleAccessAt = Date.now();
+    return access;
+  }
+
+  if (
+    allowRecentConfirmedFallback &&
+    lastConfirmedAppleAccess?.active &&
+    lastConfirmedAppleAccess?.professional &&
+    Date.now() - lastConfirmedAppleAccessAt < APPLE_ACCESS_CACHE_MS
+  ) {
+    return { ...lastConfirmedAppleAccess, cached: true };
+  }
+
+  return access;
+}
+
+export async function stableAppleSubscriptionAccess({ attempts = 4, restore = false } = {}) {
+  let access = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    access = await currentAppleSubscriptionAccess({ restore: restore && attempt === 1 });
+    if (access?.active && access?.professional) return access;
+    if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, 450 * attempt));
+  }
+  return access || { active: false, professional: false, purchases: [], productIds: [], planCodes: [] };
 }
 
 async function sha256Hex(value) {
