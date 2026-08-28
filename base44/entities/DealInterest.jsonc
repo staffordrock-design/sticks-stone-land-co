@@ -20,6 +20,18 @@
     "seller_submission_id": {
       "type": "string"
     },
+    "network_opportunity_id": {
+      "type": "string"
+    },
+    "mining_site_id": {
+      "type": "string"
+    },
+    "opportunity_owner_user_id": {
+      "type": "string"
+    },
+    "opportunity_title": {
+      "type": "string"
+    },
     "interest_type": {
       "type": "string",
       "enum": [
@@ -79,6 +91,9 @@
           "data.user_id": "{{user.id}}"
         },
         {
+          "data.opportunity_owner_user_id": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -86,14 +101,28 @@
       ]
     },
     "update": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.opportunity_owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }
