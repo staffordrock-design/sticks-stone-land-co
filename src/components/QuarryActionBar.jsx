@@ -18,7 +18,7 @@ export default function QuarryActionBar({ site }) {
         Network intel
       </Link>
       <Link
-        to={`/network/community?tab=opportunities&shareMine=${encodeURIComponent(site.id)}`}
+        to={`/network/deals/new?site=${encodeURIComponent(site.id)}`}
         className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-bold transition hover:bg-muted"
       >
         <Share2 className="h-4 w-4 text-sky-700" />
