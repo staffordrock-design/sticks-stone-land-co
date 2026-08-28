@@ -67,12 +67,14 @@ export default function CompanyNetworkDetail() {
       const ids = matched.map((site) => site.id);
       const mshaIds = matched.map((site) => String(site.msha_mine_id || "")).filter(Boolean);
 
+      const byMsha = mshaIds.length ? { msha_mine_id: { $in: mshaIds } } : { msha_mine_id: "__none__" };
+      const bySite = ids.length ? { mining_site_id: { $in: ids } } : { mining_site_id: "__none__" };
       const [permitRows, geologyRows, envRows, productionRows, contractRows, opportunityRows, watchRows] = await Promise.all([
-        Promise.all(mshaIds.slice(0, 100).map((id) => base44.entities.TDECPermit.filter({ msha_mine_id: id }, "-last_source_update", 25).catch(() => []))).then((r) => r.flat()),
-        Promise.all(ids.slice(0, 100).map((id) => base44.entities.GeologyRecord.filter({ mining_site_id: id }, "-last_source_update", 10).catch(() => []))).then((r) => r.flat()),
-        Promise.all(mshaIds.slice(0, 100).map((id) => base44.entities.EnvironmentalRecord.filter({ msha_mine_id: id }, "-last_source_update", 20).catch(() => []))).then((r) => r.flat()),
-        Promise.all(ids.slice(0, 100).map((id) => base44.entities.ProductionRecord.filter({ mining_site_id: id }, "-year", 20).catch(() => []))).then((r) => r.flat()),
-        Promise.all(ids.slice(0, 100).map((id) => base44.entities.ContractIntelligence.filter({ mining_site_id: id }, "-last_source_update", 20).catch(() => []))).then((r) => r.flat()),
+        base44.entities.TDECPermit.filter(byMsha, "-last_source_update", 500).catch(() => []),
+        base44.entities.GeologyRecord.filter(bySite, "-last_source_update", 500).catch(() => []),
+        base44.entities.EnvironmentalRecord.filter(byMsha, "-last_source_update", 500).catch(() => []),
+        base44.entities.ProductionRecord.filter(bySite, "-year", 500).catch(() => []),
+        base44.entities.ContractIntelligence.filter(bySite, "-last_source_update", 500).catch(() => []),
         base44.entities.NetworkOpportunity.list("-created_at", 500).catch(() => []),
         user?.id ? base44.entities.CompanyWatch.filter({ user_id: user.id }, "-created_at", 500).catch(() => []) : Promise.resolve([]),
       ]);
