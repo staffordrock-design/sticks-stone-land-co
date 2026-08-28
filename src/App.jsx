@@ -50,6 +50,8 @@ const CompanyNetworkDetail = lazy(() => import('./pages/CompanyNetworkDetail'));
 const NetworkWatchlist = lazy(() => import('./pages/NetworkWatchlist'));
 const NetworkDeals = lazy(() => import('./pages/NetworkDeals'));
 const NetworkPostDeal = lazy(() => import('./pages/NetworkPostDeal'));
+const NetworkDealDetail = lazy(() => import('./pages/NetworkDealDetail'));
+const NetworkDealActivity = lazy(() => import('./pages/NetworkDealActivity'));
 const OwnershipIntelligence = lazy(() => import('./pages/OwnershipIntelligence'));
 const Messages = lazy(() => import('./pages/Messages'));
 const IntelligenceHub = lazy(() => import('./pages/IntelligenceHub'));
@@ -123,6 +125,8 @@ const AuthenticatedApp = () => {
       <Route path="/network/watchlist" element={<NetworkWatchlist />} />
       <Route path="/network/deals" element={<NetworkDeals />} />
       <Route path="/network/deals/new" element={<NetworkPostDeal />} />
+      <Route path="/network/deals/activity" element={<NetworkDealActivity />} />
+      <Route path="/network/deals/:id" element={<NetworkDealDetail />} />
       <Route path="/network/community" element={<Network />} />
       <Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />
       <Route path="/messages" element={<Messages />} />
