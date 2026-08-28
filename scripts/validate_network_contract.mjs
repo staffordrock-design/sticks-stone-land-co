@@ -88,7 +88,6 @@ requireText('src/pages/NetworkIntel.jsx', [
   'buildCompanyNetwork(sites)',
   'base44.entities.CompanyWatch.create({',
   'base44.entities.QuarryNetworkCompany.list("-active_site_count", 500, offset)',
-  'base44.functions.invoke("build-quarry-network-index", {})',
   '/network/company/${companySlug(company.name)}?name=${encodeURIComponent(company.name)}',
   'Open company network',
   'Open full intelligence',
