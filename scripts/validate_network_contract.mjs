@@ -35,7 +35,12 @@ requireFields('base44/entities/UserProfile.jsonc', [
 
 requireFields('base44/entities/DataRoomRequest.jsonc', [
   'network_opportunity_id', 'mining_site_id', 'opportunity_title',
-  'opportunity_owner_user_id', 'nda_agreed',
+  'opportunity_owner_user_id', 'buyer_company', 'purpose', 'nda_agreed',
+]);
+
+requireFields('base44/entities/DealInterest.jsonc', [
+  'network_opportunity_id', 'mining_site_id', 'opportunity_owner_user_id',
+  'opportunity_title', 'buyer_email', 'buyer_company', 'interest_type', 'status',
 ]);
 
 requireFields('base44/entities/DataRoomAccess.jsonc', [
@@ -89,7 +94,9 @@ requireText('src/pages/NetworkIntel.jsx', [
   'Open full intelligence',
   '/network/watchlist',
   '/network/deals',
-  '/network/community?tab=opportunities',
+  '/network/deals/new',
+  '/network/deals/activity',
+  '/network/deals/${item.id}',
 ]);
 
 requireText('src/pages/CompanyNetworkDetail.jsx', [
@@ -114,8 +121,37 @@ requireText('src/pages/NetworkWatchlist.jsx', [
 requireText('src/pages/NetworkDeals.jsx', [
   'Deal Network',
   'base44.entities.NetworkOpportunity.list("-created_at", 500)',
-  'Linked quarry intelligence',
+  'base44.entities.DealInterest.list("-submitted_at", 500)',
+  'Open deal workspace',
+  '/network/deals/new',
+  '/network/deals/activity',
+]);
+
+requireText('src/pages/NetworkPostDeal.jsx', [
+  'Post a quarry opportunity',
+  'base44.entities.NetworkOpportunity.create({',
+  'linked_mining_site_id: site?.id || ""',
+  'navigate("/network/deals?posted=1"',
+]);
+
+requireText('src/pages/NetworkDealDetail.jsx', [
+  'Deal Network',
+  'base44.entities.DealInterest.create({',
+  'base44.entities.DataRoomRequest.create({',
+  'base44.entities.DataRoomRequest.update(request.id',
+  'base44.entities.DealInterest.update(interest.id',
+  'base44.entities.NetworkOpportunity.update(deal.id',
   "I'm interested",
+  'Request Data Room / NDA',
+]);
+
+requireText('src/pages/NetworkDealActivity.jsx', [
+  'Deal Activity',
+  'Incoming buyer interest',
+  'Interest I sent',
+  'Data-room activity',
+  'base44.entities.DealInterest.list("-submitted_at", 500)',
+  'base44.entities.DataRoomRequest.list("-requested_at", 500)',
 ]);
 
 requireText('base44/functions/build-quarry-network-index/entry.ts', [
@@ -138,6 +174,9 @@ requireText('src/App.jsx', [
   '<Route path="/network/company/:companySlug" element={<CompanyNetworkDetail />} />',
   '<Route path="/network/watchlist" element={<NetworkWatchlist />} />',
   '<Route path="/network/deals" element={<NetworkDeals />} />',
+  '<Route path="/network/deals/new" element={<NetworkPostDeal />} />',
+  '<Route path="/network/deals/activity" element={<NetworkDealActivity />} />',
+  '<Route path="/network/deals/:id" element={<NetworkDealDetail />} />',
   '<Route path="/network/community" element={<Network />} />',
   '<Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />',
   '<Route path="/messages" element={<Messages />} />',
@@ -147,6 +186,13 @@ requireText('src/App.jsx', [
 requireText('src/components/BottomNav.jsx', [
   '{ to: "/network", label: "Network", icon: Users',
   'const alwaysOpenRoot = tab.to === "/network";',
+]);
+
+requireText('src/components/QuarryActionBar.jsx', [
+  '/network?site=',
+  '/network/deals/new?site=',
+  'Network intel',
+  'Post deal',
 ]);
 
 requireText('src/components/AccountProfileGate.jsx', [
