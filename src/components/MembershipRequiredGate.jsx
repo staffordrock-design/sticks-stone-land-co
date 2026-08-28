@@ -38,7 +38,7 @@ export default function MembershipRequiredGate({ children }) {
   const { pathname, search } = location;
   const returnTo = encodeURIComponent(`${pathname}${search || ""}`);
   const { user, isLoadingAuth, isLoadingPublicSettings, authChecked } = useAuth();
-  const [accessState, setAccessState] = useState({ loading: true, active: false });
+  const [accessState, setAccessState] = useState({ loading: true, active: false, checkedPath: null });
 
   const exempt = EXEMPT_PATHS.has(pathname);
 
@@ -46,21 +46,21 @@ export default function MembershipRequiredGate({ children }) {
     let cancelled = false;
 
     if (exempt) {
-      setAccessState({ loading: false, active: false });
+      setAccessState({ loading: false, active: false, checkedPath: pathname });
       return () => { cancelled = true; };
     }
 
     if (!user?.id && !isNativeIOS()) {
-      setAccessState({ loading: false, active: false });
+      setAccessState({ loading: false, active: false, checkedPath: pathname });
       return () => { cancelled = true; };
     }
 
     if (user?.role === "admin") {
-      setAccessState({ loading: false, active: true });
+      setAccessState({ loading: false, active: true, checkedPath: pathname });
       return () => { cancelled = true; };
     }
 
-    setAccessState((current) => ({ ...current, loading: true }));
+    setAccessState((current) => ({ ...current, loading: true, checkedPath: null }));
     (async () => {
       try {
         let storeActive = false;
@@ -75,7 +75,7 @@ export default function MembershipRequiredGate({ children }) {
           }
 
           if (!user?.id) {
-            if (!cancelled) setAccessState({ loading: false, active: storeActive });
+            if (!cancelled) setAccessState({ loading: false, active: storeActive, checkedPath: pathname });
             return;
           }
         }
@@ -102,10 +102,10 @@ export default function MembershipRequiredGate({ children }) {
           20
         );
         const accountActive = hasFullQuarryEntitlement(rows || []);
-        if (!cancelled) setAccessState({ loading: false, active: storeActive || accountActive || isReviewDemoAccount(user?.email) });
+        if (!cancelled) setAccessState({ loading: false, active: storeActive || accountActive || isReviewDemoAccount(user?.email), checkedPath: pathname });
       } catch (error) {
         console.error("Membership access check failed", error);
-        if (!cancelled) setAccessState({ loading: false, active: false });
+        if (!cancelled) setAccessState({ loading: false, active: false, checkedPath: pathname });
       }
     })();
 
@@ -121,7 +121,9 @@ export default function MembershipRequiredGate({ children }) {
     return <Navigate to={`/login?returnTo=${encodeURIComponent(subscribeReturn)}`} replace />;
   }
 
-  if (accessState.loading) return loadingScreen();
+  // Never redirect from a protected route using access state that was computed for a different path.
+  // This is especially important when leaving /subscribe: that exempt route intentionally stores active:false.
+  if (accessState.loading || accessState.checkedPath !== pathname) return loadingScreen();
 
   if (!user?.id && isNativeIOS()) {
     if (!accessState.active) return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
