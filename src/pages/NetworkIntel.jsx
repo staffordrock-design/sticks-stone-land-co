@@ -47,6 +47,35 @@ function companySlug(value) {
   return cleanName(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "company";
 }
 
+function indexedCompanyRows(rows) {
+  return (rows || []).map((row) => ({
+    key: row.company_key,
+    name: row.company_name,
+    aliases: new Set(row.aliases || [row.company_name]),
+    roles: new Set(row.roles || []),
+    siteIds: new Set(),
+    sites: [],
+    activeSiteIds: new Set(),
+    states: new Set(row.states || []),
+    counties: new Set(row.counties || []),
+    commodities: new Set(row.commodities || []),
+    permittedAcres: Number(row.permitted_acres || 0),
+    parcelAcres: Number(row.parcel_acres || 0),
+    siteCount: Number(row.site_count || 0),
+    activeCount: Number(row.active_site_count || 0),
+  }));
+}
+
+async function loadAllIndexedCompanies() {
+  const rows = [];
+  for (let offset = 0; offset < 5000; offset += 500) {
+    const page = await base44.entities.QuarryNetworkCompany.list("-active_site_count", 500, offset).catch(() => []);
+    rows.push(...(page || []));
+    if (!page || page.length < 500) break;
+  }
+  return rows;
+}
+
 function buildCompanyNetwork(sites) {
   const map = new Map();
   const add = (rawName, role, site) => {
@@ -109,6 +138,7 @@ export default function NetworkIntel() {
   const { user } = useAuth();
   const [params] = useSearchParams();
   const [sites, setSites] = useState([]);
+  const [companyIndex, setCompanyIndex] = useState([]);
   const [opportunities, setOpportunities] = useState([]);
   const [members, setMembers] = useState([]);
   const [watches, setWatches] = useState([]);
@@ -126,6 +156,15 @@ export default function NetworkIntel() {
     setNotice("");
     try {
       const stateLoads = STATES.map((state) => base44.entities.MiningSite.filter({ state }, "mine_name", 500).catch(() => []));
+      let indexedRows = await loadAllIndexedCompanies();
+      if (!indexedRows.length && user?.role === "admin") {
+        try {
+          await base44.functions.invoke("build-quarry-network-index", {});
+          indexedRows = await loadAllIndexedCompanies();
+        } catch (error) {
+          console.warn("Quarry network index rebuild fell back to live MiningSite data", error);
+        }
+      }
       const [stateRows, dealRows, memberRows, watchRows] = await Promise.all([
         Promise.all(stateLoads),
         base44.entities.NetworkOpportunity.list("-created_at", 300).catch(() => []),
@@ -135,6 +174,7 @@ export default function NetworkIntel() {
       const unique = new Map();
       stateRows.flat().forEach((site) => { if (site?.id && isQuarryRelevant(site)) unique.set(site.id, site); });
       setSites(Array.from(unique.values()));
+      setCompanyIndex(indexedRows || []);
       setOpportunities((dealRows || []).filter((row) => row.status !== "Closed"));
       setMembers((memberRows || []).filter((row) => row.profile_visibility !== "Private"));
       setWatches(watchRows || []);
@@ -165,7 +205,7 @@ export default function NetworkIntel() {
     }
   }, [params]);
 
-  const companies = useMemo(() => buildCompanyNetwork(sites), [sites]);
+  const companies = useMemo(() => companyIndex.length ? indexedCompanyRows(companyIndex) : buildCompanyNetwork(sites), [companyIndex, sites]);
   const selectedCompany = useMemo(() => companies.find((c) => c.key === selectedCompanyKey) || null, [companies, selectedCompanyKey]);
 
   const filteredCompanies = useMemo(() => {
