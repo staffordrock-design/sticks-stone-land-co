@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowRight, Bell, BellRing, Building2, Handshake, Landmark, Layers3,
-  Loader2, MapPin, Mountain, Network, Search, ShieldCheck,
+  Loader2, MapPin, Mountain, Network, Search,
   Target, Users, X
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
