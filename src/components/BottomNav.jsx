@@ -56,7 +56,7 @@ export default function BottomNav() {
     }
 
     const saved = state[tab.to];
-    const alwaysOpenRoot = tab.to === "/network";
+    const alwaysOpenRoot = tab.to === "/network" || tab.to === "/intelligence";
     const targetPath = alwaysOpenRoot ? tab.to : (saved?.path && tab.match(saved.path) ? saved.path : tab.to);
     pendingRestore.current = { path: targetPath, scroll: alwaysOpenRoot ? 0 : Number(saved?.scroll || 0) };
     navigate(targetPath);
