@@ -43,6 +43,10 @@ function displayNumber(value, digits = 0) {
   return n.toLocaleString(undefined, { maximumFractionDigits: digits });
 }
 
+function companySlug(value) {
+  return cleanName(value).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "company";
+}
+
 function buildCompanyNetwork(sites) {
   const map = new Map();
   const add = (rawName, role, site) => {
