@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  ArrowRight, Bell, BellRing, Building2, Factory, Handshake, Landmark, Layers3,
+  ArrowRight, Bell, BellRing, Building2, Handshake, Landmark, Layers3,
   Loader2, MapPin, MessageCircle, Mountain, Network, Search, ShieldCheck,
   Target, Users, X
 } from "lucide-react";
@@ -154,6 +154,10 @@ export default function NetworkIntel() {
     if (siteId) {
       setSearch(siteId);
       setTab("sites");
+      base44.entities.MiningSite.get(siteId).then((site) => {
+        if (!site || !isQuarryRelevant(site)) return;
+        setSites((current) => current.some((row) => row.id === site.id) ? current : [...current, site]);
+      }).catch(() => {});
     }
   }, [params]);
 
