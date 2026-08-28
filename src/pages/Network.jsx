@@ -34,7 +34,9 @@ function money(value) {
 }
 
 function numeric(value) {
-  return value === "" || value == null ? null : Number(value);
+  if (value === "" || value == null) return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
 }
 
 function opportunitySummary(o) {
@@ -149,7 +151,7 @@ export default function Network() {
       states_of_interest: privateRow.states_of_interest || "",
       commodities_of_interest: privateRow.commodities_of_interest || "",
       skills: privateRow.skills || "",
-      industry_years: privateRow.industry_years ?? null,
+      industry_years: privateRow.industry_years ?? undefined,
       open_to_opportunities: privateRow.open_to_opportunities !== false,
       profile_visibility: privateRow.profile_visibility || "Network",
       updated_at: new Date().toISOString(),
@@ -336,8 +338,14 @@ export default function Network() {
   };
 
   const setOpportunityStatus = async (item, status) => {
-    await base44.entities.NetworkOpportunity.update(item.id, { ...item, status, updated_at: new Date().toISOString() });
-    await load();
+    try {
+      await base44.entities.NetworkOpportunity.update(item.id, { status, updated_at: new Date().toISOString() });
+      setNotice(`Opportunity ${status === "Closed" ? "closed" : "reopened"}.`);
+      await load();
+    } catch (error) {
+      console.error("Opportunity status update failed", error);
+      setNotice("The opportunity status did not update. Please try again.");
+    }
   };
 
   const requestDataRoom = async (item) => {
@@ -352,7 +360,7 @@ export default function Network() {
       const needsNda = item.confidentiality === "NDA / Confidential";
       await base44.entities.DataRoomRequest.create({
         user_id: user.id,
-        listing_id: item.linked_listing_id || "",
+        listing_id: item.linked_listing_id || `network:${item.id}`,
         seller_submission_id: "",
         network_opportunity_id: item.id,
         mining_site_id: item.linked_mining_site_id || "",
@@ -440,8 +448,14 @@ export default function Network() {
   };
 
   const accept = async (connection) => {
-    await base44.entities.ProfessionalConnection.update(connection.id, { ...connection, status: "Accepted", responded_at: new Date().toISOString() });
-    await load();
+    try {
+      await base44.entities.ProfessionalConnection.update(connection.id, { status: "Accepted", responded_at: new Date().toISOString() });
+      setNotice("Connection accepted.");
+      await load();
+    } catch (error) {
+      console.error("Network connection accept failed", error);
+      setNotice("The connection could not be accepted. Please try again.");
+    }
   };
 
   const blockUser = async (targetUserId) => {
