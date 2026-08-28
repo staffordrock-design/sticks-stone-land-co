@@ -1,0 +1,45 @@
+{
+  "name": "Quarry Network Index Refresh",
+  "description": "Rebuilds the persistent quarry-company relationship graph so operators, controllers, landowners, permittees and linked quarry records stay synchronized with the current MiningSite database.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "quarry_network_index_refresh",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "rebuild_network": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "build-quarry-network-index",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Rebuild Quarry Network Intelligence",
+            "description": "Re-index all non-coal quarry records into persistent company and relationship nodes"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "interval_value": 6,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-08-28T05:00:00Z",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "events": []
+    }
+  }
+}
