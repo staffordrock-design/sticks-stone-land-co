@@ -391,6 +391,28 @@ def main() -> None:
         else:
             report["warnings"].append("No active iOS review submission was found for this app.")
 
+        version_id = ((report.get("app_store_version") or {}).get("id"))
+        if version_id:
+            try:
+                build_body = c.request(
+                    "GET",
+                    f"/v1/appStoreVersions/{version_id}/build",
+                    params={"fields[builds]": "version,uploadedDate,processingState,expired"},
+                )
+                build = build_body.get("data") or {}
+                if build:
+                    report["app_store_version"]["build"] = {
+                        "id": build.get("id"),
+                        "version": (build.get("attributes") or {}).get("version"),
+                        "uploaded_date": (build.get("attributes") or {}).get("uploadedDate"),
+                        "processing_state": (build.get("attributes") or {}).get("processingState"),
+                        "expired": (build.get("attributes") or {}).get("expired"),
+                    }
+                else:
+                    report["app_store_version"]["build"] = None
+            except Exception as build_exc:
+                report["app_store_version"]["build_audit_error"] = f"{type(build_exc).__name__}: {str(build_exc)[:500]}"
+
         items: list[dict[str, Any]] = []
         linked: set[str] = set()
         if review_id:
