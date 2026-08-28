@@ -83,11 +83,24 @@ export async function currentAppleSubscriptionAccess({ restore = false, allowRec
 
 export async function stableAppleSubscriptionAccess({ attempts = 4, restore = false } = {}) {
   let access = null;
+  let lastError = null;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    access = await currentAppleSubscriptionAccess({ restore: restore && attempt === 1 });
-    if (access?.active && access?.professional) return access;
+    try {
+      access = await currentAppleSubscriptionAccess({ restore: restore && attempt === 1 });
+      if (access?.active && access?.professional) return access;
+    } catch (error) {
+      lastError = error;
+      if (
+        lastConfirmedAppleAccess?.active &&
+        lastConfirmedAppleAccess?.professional &&
+        Date.now() - lastConfirmedAppleAccessAt < APPLE_ACCESS_CACHE_MS
+      ) {
+        return { ...lastConfirmedAppleAccess, cached: true, storeCheckError: true };
+      }
+    }
     if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, 450 * attempt));
   }
+  if (lastError && !access) throw lastError;
   return access || { active: false, professional: false, purchases: [], productIds: [], planCodes: [] };
 }
 
