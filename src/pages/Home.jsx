@@ -26,6 +26,7 @@ const INITIAL_PER_STATE = 45;
 const SELECTED_STATE_LIMIT = 300;
 const MAP_RENDER_LIMIT = 240;
 const CARD_RENDER_LIMIT = 90;
+const BUILD_SHA = String(import.meta.env.VITE_BUILD_SHA || "local").slice(0, 7);
 
 function statusGroup(status = "") {
   const s = String(status).toLowerCase();
@@ -394,6 +395,7 @@ export default function Home() {
             <button type="button" onClick={() => navigate("/mineral-intelligence")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><MapPinned className="h-4 w-4 text-sky-300"/>Mineral Map</button>
             <button type="button" onClick={() => navigate("/intelligence")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><Layers className="h-4 w-4 text-sky-300"/>All Intel Workspaces</button>
           </div>
+          <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">App build {BUILD_SHA}</div>
         </div>
       </section>
 
