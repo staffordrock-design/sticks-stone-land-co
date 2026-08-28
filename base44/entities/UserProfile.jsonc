@@ -43,6 +43,33 @@
     "commodities_of_interest": {
       "type": "string"
     },
+    "headline": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "skills": {
+      "type": "string"
+    },
+    "industry_years": {
+      "type": "number"
+    },
+    "open_to_opportunities": {
+      "type": "boolean",
+      "default": true
+    },
+    "profile_visibility": {
+      "type": "string",
+      "enum": [
+        "Network",
+        "Private"
+      ],
+      "default": "Network"
+    },
     "profile_complete": {
       "type": "boolean",
       "default": false
