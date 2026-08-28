@@ -1,11 +1,11 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { ArrowRight, Bell, Database, GitCompareArrows, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, Bell, Building2, Database, GitCompareArrows, Handshake, Landmark, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
@@ -53,6 +53,7 @@ function isQuarryRelevant(site) {
 
 export default function Home() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState([]);
