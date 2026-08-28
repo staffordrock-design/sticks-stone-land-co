@@ -11,11 +11,27 @@
     "seller_submission_id": {
       "type": "string"
     },
+    "network_opportunity_id": {
+      "type": "string"
+    },
+    "mining_site_id": {
+      "type": "string"
+    },
+    "opportunity_title": {
+      "type": "string"
+    },
+    "opportunity_owner_user_id": {
+      "type": "string"
+    },
     "buyer_company": {
       "type": "string"
     },
     "purpose": {
       "type": "string"
+    },
+    "nda_agreed": {
+      "type": "boolean",
+      "default": false
     },
     "status": {
       "type": "string",
@@ -49,6 +65,9 @@
       "$or": [
         {
           "data.user_id": "{{user.id}}"
+        },
+        {
+          "data.opportunity_owner_user_id": "{{user.id}}"
         },
         {
           "user_condition": {
