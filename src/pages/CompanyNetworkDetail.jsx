@@ -48,6 +48,7 @@ export default function CompanyNetworkDetail() {
   const targetKey = companyKey(requestedName);
 
   const [sites, setSites] = useState([]);
+  const [networkLinks, setNetworkLinks] = useState([]);
   const [permits, setPermits] = useState([]);
   const [geology, setGeology] = useState([]);
   const [environmental, setEnvironmental] = useState([]);
@@ -62,8 +63,37 @@ export default function CompanyNetworkDetail() {
   const load = async () => {
     setLoading(true);
     try {
-      const stateRows = await Promise.all(STATES.map((state) => base44.entities.MiningSite.filter({ state }, "mine_name", 500).catch(() => [])));
-      const matched = stateRows.flat().filter((site) => isQuarryRelevant(site) && [site.operator_name, site.controller_name, site.parcel_owner, site.permittee_name].some((name) => companyKey(name) === targetKey));
+      const indexedLinks = [];
+      for (let offset = 0; offset < 5000; offset += 500) {
+        const page = await base44.entities.QuarryNetworkLink.filter({ company_key: targetKey }, "mine_name", 500, offset).catch(() => []);
+        indexedLinks.push(...(page || []));
+        if (!page || page.length < 500) break;
+      }
+      let matched = [];
+      if (indexedLinks.length) {
+        const bySite = new Map();
+        indexedLinks.forEach((link) => {
+          if (!bySite.has(link.mining_site_id)) bySite.set(link.mining_site_id, {
+            id: link.mining_site_id,
+            msha_mine_id: link.msha_mine_id,
+            mine_name: link.mine_name,
+            mine_status: link.mine_status,
+            commodity: link.commodity,
+            state: link.state,
+            county: link.county,
+            operator_name: link.operator_name,
+            controller_name: link.controller_name,
+            parcel_owner: link.landowner_name,
+            permittee_name: link.permittee_name,
+            permitted_acres: link.permitted_acres,
+            acreage: link.parcel_acres,
+          });
+        });
+        matched = Array.from(bySite.values());
+      } else {
+        const stateRows = await Promise.all(STATES.map((state) => base44.entities.MiningSite.filter({ state }, "mine_name", 500).catch(() => [])));
+        matched = stateRows.flat().filter((site) => isQuarryRelevant(site) && [site.operator_name, site.controller_name, site.parcel_owner, site.permittee_name].some((name) => companyKey(name) === targetKey));
+      }
       const ids = matched.map((site) => site.id);
       const mshaIds = matched.map((site) => String(site.msha_mine_id || "")).filter(Boolean);
 
@@ -80,6 +110,7 @@ export default function CompanyNetworkDetail() {
       ]);
 
       setSites(matched);
+      setNetworkLinks(indexedLinks || []);
       setPermits(permitRows || []);
       setGeology(geologyRows || []);
       setEnvironmental(envRows || []);
@@ -105,6 +136,7 @@ export default function CompanyNetworkDetail() {
     const commodities = new Set();
     let permittedAcres = 0;
     let parcelAcres = 0;
+    networkLinks.forEach((link) => { if (link.relationship_type) roles.add(link.relationship_type); if (link.company_name) aliases.add(cleanName(link.company_name)); });
     sites.forEach((site) => {
       [[site.operator_name, "Operator"], [site.controller_name, "Controller"], [site.parcel_owner, "Landowner"], [site.permittee_name, "Permittee"]].forEach(([name, role]) => {
         if (companyKey(name) === targetKey) { roles.add(role); if (name) aliases.add(cleanName(name)); }
@@ -126,7 +158,7 @@ export default function CompanyNetworkDetail() {
       permittedAcres,
       parcelAcres,
     };
-  }, [sites, targetKey, requestedName]);
+  }, [sites, networkLinks, targetKey, requestedName]);
 
   const toggleWatch = async () => {
     if (!user?.id) return;
