@@ -391,6 +391,30 @@ def main() -> None:
         else:
             report["warnings"].append("No active iOS review submission was found for this app.")
 
+        try:
+            builds = c.all(
+                "/v1/builds",
+                params={
+                    "filter[app]": app_id,
+                    "fields[builds]": "version,uploadedDate,processingState,expired",
+                    "limit": 200,
+                },
+            )
+            recent_builds = []
+            for build in builds:
+                attrs = build.get("attributes") or {}
+                recent_builds.append({
+                    "id": build.get("id"),
+                    "version": attrs.get("version"),
+                    "uploaded_date": attrs.get("uploadedDate"),
+                    "processing_state": attrs.get("processingState"),
+                    "expired": attrs.get("expired"),
+                })
+            recent_builds.sort(key=lambda x: (x.get("uploaded_date") or ""), reverse=True)
+            report["recent_builds"] = recent_builds[:20]
+        except Exception as builds_exc:
+            report["recent_builds_error"] = f"{type(builds_exc).__name__}: {str(builds_exc)[:500]}"
+
         version_id = ((report.get("app_store_version") or {}).get("id"))
         if version_id:
             try:
