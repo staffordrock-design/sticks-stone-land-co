@@ -32,6 +32,21 @@ function isQuarryRelevant(site) {
   return !String(site?.commodity || "").toLowerCase().includes("coal");
 }
 
+async function loadQuarrySitesForState(state) {
+  const rows = [];
+  const seen = new Set();
+  for (let offset = 0; offset < 10000; offset += 500) {
+    const page = await base44.entities.MiningSite.filter({ state }, "-updated_date", 500, offset).catch(() => []);
+    for (const site of page || []) {
+      if (!site?.id || seen.has(site.id) || !isQuarryRelevant(site)) continue;
+      seen.add(site.id);
+      rows.push(site);
+    }
+    if (!page || page.length < 500) break;
+  }
+  return rows;
+}
+
 function Pill({ children }) {
   return <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold text-muted-foreground">{children}</span>;
 }
@@ -91,8 +106,19 @@ export default function CompanyNetworkDetail() {
         });
         matched = Array.from(bySite.values());
       } else {
-        const stateRows = await Promise.all(STATES.map((state) => base44.entities.MiningSite.filter({ state }, "mine_name", 500).catch(() => [])));
-        matched = stateRows.flat().filter((site) => isQuarryRelevant(site) && [site.operator_name, site.controller_name, site.parcel_owner, site.permittee_name].some((name) => companyKey(name) === targetKey));
+        const exactRows = await base44.entities.MiningSite.filter({
+          $or: [
+            { operator_name: requestedName },
+            { controller_name: requestedName },
+            { parcel_owner: requestedName },
+            { permittee_name: requestedName },
+          ],
+        }, "-updated_date", 500).catch(() => []);
+        matched = (exactRows || []).filter((site) => isQuarryRelevant(site) && [site.operator_name, site.controller_name, site.parcel_owner, site.permittee_name].some((name) => companyKey(name) === targetKey));
+        if (!matched.length) {
+          const stateRows = await Promise.all(STATES.map((state) => loadQuarrySitesForState(state)));
+          matched = stateRows.flat().filter((site) => [site.operator_name, site.controller_name, site.parcel_owner, site.permittee_name].some((name) => companyKey(name) === targetKey));
+        }
       }
       const ids = matched.map((site) => site.id);
       const mshaIds = matched.map((site) => String(site.msha_mine_id || "")).filter(Boolean);
