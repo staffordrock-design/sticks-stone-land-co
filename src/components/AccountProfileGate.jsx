@@ -28,7 +28,7 @@ const PROFILE_REQUIRED_PATHS = new Set([
   "/buyer-profile",
   "/sell",
   "/seller-portal",
-  "/network",
+  "/network/community",
   "/messages",
 ]);
 
