@@ -156,15 +156,7 @@ export default function NetworkIntel() {
     setNotice("");
     try {
       const stateLoads = STATES.map((state) => base44.entities.MiningSite.filter({ state }, "mine_name", 500).catch(() => []));
-      let indexedRows = await loadAllIndexedCompanies();
-      if (!indexedRows.length && user?.role === "admin") {
-        try {
-          await base44.functions.invoke("build-quarry-network-index", {});
-          indexedRows = await loadAllIndexedCompanies();
-        } catch (error) {
-          console.warn("Quarry network index rebuild fell back to live MiningSite data", error);
-        }
-      }
+      const indexedRows = await loadAllIndexedCompanies();
       const [stateRows, dealRows, memberRows, watchRows] = await Promise.all([
         Promise.all(stateLoads),
         base44.entities.NetworkOpportunity.list("-created_at", 300).catch(() => []),
