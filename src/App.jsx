@@ -49,6 +49,7 @@ const NetworkIntel = lazy(() => import('./pages/NetworkIntel'));
 const CompanyNetworkDetail = lazy(() => import('./pages/CompanyNetworkDetail'));
 const NetworkWatchlist = lazy(() => import('./pages/NetworkWatchlist'));
 const NetworkDeals = lazy(() => import('./pages/NetworkDeals'));
+const NetworkPostDeal = lazy(() => import('./pages/NetworkPostDeal'));
 const OwnershipIntelligence = lazy(() => import('./pages/OwnershipIntelligence'));
 const Messages = lazy(() => import('./pages/Messages'));
 const IntelligenceHub = lazy(() => import('./pages/IntelligenceHub'));
