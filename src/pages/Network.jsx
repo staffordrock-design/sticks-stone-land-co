@@ -265,8 +265,10 @@ export default function Network() {
   const incomingRoomRequestCount = (item) => dataRoomRequests.filter((request) => request.network_opportunity_id === item.id && request.opportunity_owner_user_id === user?.id).length;
 
   const relationFor = (otherId) => connections.find((c) =>
-    (c.requester_user_id === user?.id && c.recipient_user_id === otherId) ||
-    (c.recipient_user_id === user?.id && c.requester_user_id === otherId)
+    ["Pending", "Accepted"].includes(c.status) && (
+      (c.requester_user_id === user?.id && c.recipient_user_id === otherId) ||
+      (c.recipient_user_id === user?.id && c.requester_user_id === otherId)
+    )
   );
 
   const changeTab = (next) => {
@@ -374,6 +376,9 @@ export default function Network() {
       });
       setNotice(needsNda ? "Data-room request sent. S&S will qualify the request and the NDA is required before confidential access." : "Data-room request sent for S&S qualification review.");
       await load();
+    } catch (error) {
+      console.error("Data-room request failed", error);
+      setNotice("The data-room request did not send. Please try again.");
     } finally {
       setRequestingRoomId("");
     }
