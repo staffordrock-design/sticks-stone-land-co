@@ -133,7 +133,7 @@ export default function Profile() {
         bio: form.bio.trim(),
         website: form.website.trim(),
         skills: form.skills.trim(),
-        industry_years: form.industry_years === "" ? null : Number(form.industry_years),
+        industry_years: form.industry_years === "" ? undefined : Number(form.industry_years),
         open_to_opportunities: Boolean(form.open_to_opportunities),
         profile_visibility: form.profile_visibility,
         profile_complete: true,
