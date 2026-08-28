@@ -11,10 +11,25 @@
     "seller_submission_id": {
       "type": "string"
     },
+    "network_opportunity_id": {
+      "type": "string"
+    },
+    "data_room_request_id": {
+      "type": "string"
+    },
+    "mining_site_id": {
+      "type": "string"
+    },
+    "seller_user_id": {
+      "type": "string"
+    },
     "seller_name": {
       "type": "string"
     },
     "seller_email": {
+      "type": "string"
+    },
+    "buyer_user_id": {
       "type": "string"
     },
     "buyer_name": {
