@@ -4,13 +4,20 @@
   "app_store_version": {
     "app_store_state": "WAITING_FOR_REVIEW",
     "app_version_state": "WAITING_FOR_REVIEW",
+    "build": {
+      "expired": false,
+      "id": "0e70c507-0c0c-45b2-99d4-3f549a3fdd18",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-27T23:30:05-07:00",
+      "version": "43"
+    },
     "id": "2529d759-049e-4622-87cb-8c63460f20ef",
     "version_string": "1.0"
   },
   "authenticated": true,
   "bundle_id": "com.ssrockholdings.quarrymarketplace",
   "errors": [],
-  "generated_at": "2026-08-28T20:37:44.700182+00:00",
+  "generated_at": "2026-08-28T20:38:46.210001+00:00",
   "key_id_used": "2A3958GU5F",
   "products": {
     "com.ssrockholdings.quarryintelligence.monthly199": {
