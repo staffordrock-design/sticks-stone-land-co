@@ -194,24 +194,36 @@ export default function NetworkIntel() {
     setLoading(true);
     setNotice("");
     try {
-      const [indexedRows, indexedLinks, dealRows, memberRows, watchRows] = await Promise.all([
-        loadAllIndexedCompanies(),
-        loadAllIndexedLinks(),
+      const [initialCompanies, firstLinks, secondLinks, dealRows, memberRows, watchRows] = await Promise.all([
+        base44.entities.QuarryNetworkCompany.list("-active_site_count", 500, 0).catch(() => []),
+        base44.entities.QuarryNetworkLink.list("-active_signal", 500, 0).catch(() => []),
+        base44.entities.QuarryNetworkLink.list("-active_signal", 500, 500).catch(() => []),
         base44.entities.NetworkOpportunity.list("-created_at", 300).catch(() => []),
         user?.id ? base44.entities.NetworkMemberProfile.list("-updated_at", 300).catch(() => []) : Promise.resolve([]),
         user?.id ? base44.entities.CompanyWatch.filter({ user_id: user.id }, "-created_at", 500).catch(() => []) : Promise.resolve([]),
       ]);
-      const indexedSites = sitesFromIndexedLinks(indexedLinks);
-      setSites(indexedSites);
-      setRelationshipCount((indexedLinks || []).length);
-      setCompanyIndex(indexedRows || []);
+      const initialLinks = [...(firstLinks || []), ...(secondLinks || [])];
+      setSites(sitesFromIndexedLinks(initialLinks));
+      setRelationshipCount(initialLinks.length);
+      setCompanyIndex(initialCompanies || []);
       setOpportunities((dealRows || []).filter((row) => row.status !== "Closed"));
       setMembers((memberRows || []).filter((row) => row.profile_visibility !== "Private"));
       setWatches(watchRows || []);
+      setLoading(false);
+
+      // Fill out the complete graph after the first useful screen is already visible.
+      Promise.all([loadAllIndexedCompanies(), loadAllIndexedLinks()])
+        .then(([allCompanies, allLinks]) => {
+          if (allCompanies?.length) setCompanyIndex(allCompanies);
+          if (allLinks?.length) {
+            setSites(sitesFromIndexedLinks(allLinks));
+            setRelationshipCount(allLinks.length);
+          }
+        })
+        .catch((error) => console.warn("Full Network graph background load failed", error));
     } catch (error) {
       console.error("Network intelligence load failed", error);
       setNotice("Network intelligence could not load. Pull to refresh or try again.");
-    } finally {
       setLoading(false);
     }
   };
