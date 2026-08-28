@@ -124,6 +124,11 @@ jobs:
           console.log('Full Quarry Intelligence entitlement rules passed.');
           NODE
 
+      - name: Validate Quarry Network contract
+        run: |
+          set -Eeuo pipefail
+          node scripts/validate_network_contract.mjs
+
       - name: Smoke test public quarry inventory
         run: |
           set -Eeuo pipefail
