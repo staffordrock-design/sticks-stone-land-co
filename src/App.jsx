@@ -45,6 +45,8 @@ const BuyerProfile = lazy(() => import('./pages/BuyerProfile'));
 const MyOpportunities = lazy(() => import('./pages/MyOpportunities'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Network = lazy(() => import('./pages/Network'));
+const NetworkIntel = lazy(() => import('./pages/NetworkIntel'));
+const OwnershipIntelligence = lazy(() => import('./pages/OwnershipIntelligence'));
 const Messages = lazy(() => import('./pages/Messages'));
 const IntelligenceHub = lazy(() => import('./pages/IntelligenceHub'));
 
@@ -112,7 +114,9 @@ const AuthenticatedApp = () => {
       <Route path="/seller-portal" element={<SellerPortal />} />
       <Route path="/buyer-profile" element={<BuyerProfile />} />
       <Route path="/profile" element={<Profile />} />
-      <Route path="/network" element={<Network />} />
+      <Route path="/network" element={<NetworkIntel />} />
+      <Route path="/network/community" element={<Network />} />
+      <Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />
       <Route path="/messages" element={<Messages />} />
       <Route path="/opportunities" element={<MyOpportunities />} />
       <Route path="/subscribe" element={<Subscription />} />
