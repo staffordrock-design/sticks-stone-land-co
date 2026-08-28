@@ -118,12 +118,24 @@ jobs:
           }
           console.log('Single-tier client subscription catalog passed.');
           NODE
+          grep -q 'stableAppleSubscriptionAccess({ attempts: 4 })' src/components/MembershipRequiredGate.jsx || {
+            echo "::error title=Unstable membership gate::The iPhone membership gate must retry StoreKit before redirecting an active subscriber";
+            exit 1;
+          }
           grep -q 'storeAccess?.active && storeAccess?.professional' src/components/MembershipRequiredGate.jsx || {
             echo "::error title=Membership gate mismatch::Quarry routes are not tied to Full Quarry Intelligence";
             exit 1;
           }
+          grep -q 'stableAppleSubscriptionAccess({ attempts: 4 })' src/components/PaidAccessGate.jsx || {
+            echo "::error title=Unstable paid-record gate::Detailed quarry pages must retry StoreKit before showing a paywall";
+            exit 1;
+          }
           grep -q 'storeAccess?.active && storeAccess?.professional' src/components/PaidAccessGate.jsx || {
             echo "::error title=Paid record gate mismatch::Detailed quarry pages are not tied to Full Quarry Intelligence";
+            exit 1;
+          }
+          grep -q 'APPLE_ACCESS_CACHE_MS' src/lib/appleSubscriptions.js || {
+            echo "::error title=Apple entitlement cache missing::A recently confirmed StoreKit entitlement must survive transient navigation checks";
             exit 1;
           }
           node --input-type=module <<'NODE'
