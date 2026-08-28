@@ -48,6 +48,10 @@ requireFields('base44/entities/DealPipeline.jsonc', [
   'seller_user_id', 'buyer_user_id',
 ]);
 
+requireFields('base44/entities/CompanyWatch.jsonc', [
+  'user_id', 'company_name', 'relationship_type', 'created_at',
+]);
+
 requireText('src/pages/Network.jsx', [
   'onClick={() => toggleLike(post)}',
   'listing_id: item.linked_listing_id || `network:${item.id}`',
@@ -62,14 +66,31 @@ requireText('src/pages/Messages.jsx', [
   'setNotice("Message sent.")',
 ]);
 
+requireText('src/pages/NetworkIntel.jsx', [
+  'S&S Quarry Network Intelligence',
+  'base44.entities.MiningSite.filter({ state }, "mine_name", 500)',
+  'buildCompanyNetwork(sites)',
+  'base44.entities.CompanyWatch.create({',
+  'Open company network',
+  'Open full intelligence',
+  '/network/community?tab=opportunities',
+]);
+
 requireText('src/App.jsx', [
-  '<Route path="/network" element={<Network />} />',
+  '<Route path="/network" element={<NetworkIntel />} />',
+  '<Route path="/network/community" element={<Network />} />',
+  '<Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />',
   '<Route path="/messages" element={<Messages />} />',
   '<Route path="/profile" element={<Profile />} />',
 ]);
 
 requireText('src/components/BottomNav.jsx', [
   '{ to: "/network", label: "Network", icon: Users',
+  'const alwaysOpenRoot = tab.to === "/network";',
+]);
+
+requireText('src/components/AccountProfileGate.jsx', [
+  '"/network/community"',
 ]);
 
 console.log('Quarry Network contract validation passed.');
