@@ -26,7 +26,7 @@ export default function Messages() {
         base44.entities.NetworkMemberProfile.list("full_name", 250),
         base44.entities.MarketplaceMessage.list("-sent_at", 500),
       ]);
-      setProfiles((people || []).filter((p) => p.user_id !== user.id && p.profile_visibility !== "Private"));
+      setProfiles((people || []).filter((p) => p.user_id !== user.id));
       setMessages(rows || []);
     } finally { setLoading(false); }
   };
@@ -60,7 +60,11 @@ export default function Messages() {
         status: "Sent",
       });
       setText("");
+      setNotice("Message sent.");
       await load();
+    } catch (error) {
+      console.error("Message send failed", error);
+      setNotice("Your message did not send. Please try again.");
     } finally { setSending(false); }
   };
 
@@ -97,7 +101,7 @@ export default function Messages() {
     <main className="mx-auto grid max-w-5xl gap-4 px-4 py-5 sm:px-6 md:grid-cols-[280px_1fr]">
       <aside className="rounded-2xl border border-border bg-card p-3 shadow-sm">
         <div className="px-2 pb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Industry members</div>
-        <div className="max-h-[65vh] space-y-1 overflow-auto">{profiles.map((p) => <button key={p.id} onClick={() => setParams({user:p.user_id})} className={`w-full rounded-xl px-3 py-3 text-left ${selectedId === p.user_id ? "bg-sky-50 text-sky-950" : "hover:bg-muted"}`}><div className="font-bold">{p.full_name}</div><div className="truncate text-xs text-muted-foreground">{p.headline || p.role_title || p.company || p.account_type}</div></button>)}</div>
+        <div className="max-h-[65vh] space-y-1 overflow-auto">{profiles.filter((p) => p.profile_visibility !== "Private").map((p) => <button key={p.id} onClick={() => setParams({user:p.user_id})} className={`w-full rounded-xl px-3 py-3 text-left ${selectedId === p.user_id ? "bg-sky-50 text-sky-950" : "hover:bg-muted"}`}><div className="font-bold">{p.full_name}</div><div className="truncate text-xs text-muted-foreground">{p.headline || p.role_title || p.company || p.account_type}</div></button>)}</div>
       </aside>
       <section className="flex min-h-[60vh] flex-col rounded-2xl border border-border bg-card shadow-sm">
         {!selected ? <div className="flex flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">Choose an industry member to start a private conversation.</div> : <>
