@@ -122,6 +122,10 @@ jobs:
             echo "::error title=Unstable membership gate::The iPhone membership gate must retry StoreKit before redirecting an active subscriber";
             exit 1;
           }
+          grep -q 'accessState.checkedPath !== pathname' src/components/MembershipRequiredGate.jsx || {
+            echo "::error title=Membership route race returned::Protected routes must wait for an entitlement check for the current path before redirecting";
+            exit 1;
+          }
           grep -q 'storeAccess?.active && storeAccess?.professional' src/components/MembershipRequiredGate.jsx || {
             echo "::error title=Membership gate mismatch::Quarry routes are not tied to Full Quarry Intelligence";
             exit 1;
