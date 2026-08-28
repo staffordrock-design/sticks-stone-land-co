@@ -122,6 +122,7 @@ const AuthenticatedApp = () => {
       <Route path="/network/company/:companySlug" element={<CompanyNetworkDetail />} />
       <Route path="/network/watchlist" element={<NetworkWatchlist />} />
       <Route path="/network/deals" element={<NetworkDeals />} />
+      <Route path="/network/deals/new" element={<NetworkPostDeal />} />
       <Route path="/network/community" element={<Network />} />
       <Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />
       <Route path="/messages" element={<Messages />} />
