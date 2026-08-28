@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Bell,
   BriefcaseBusiness,
+  Building2,
   Database,
   FileSearch,
   Gem,
@@ -15,6 +16,20 @@ import {
 } from "lucide-react";
 
 const tools = [
+  {
+    to: "/network",
+    icon: Building2,
+    eyebrow: "Ownership + control graph",
+    title: "Quarry Network Intelligence",
+    description: "Link operators, controllers, landowners and quarry sites across the Southeast, then move directly into deal opportunities and company watchlists.",
+  },
+  {
+    to: "/ownership-intelligence",
+    icon: Database,
+    eyebrow: "Company concentration",
+    title: "Ownership & Control Rankings",
+    description: "Rank operators, controllers and linked landowners by quarry count, active footprint, county coverage and available acreage data.",
+  },
   {
     to: "/mineral-intelligence",
     icon: MapPinned,
