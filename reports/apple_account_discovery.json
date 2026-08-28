@@ -3,11 +3,11 @@
     {
       "app_id": "6801479135",
       "bundle_id": "com.ssrockholdings.quarrymarketplace",
-      "id": "6a071b06-2bd8-4214-948a-affda721f5cf",
+      "id": "bdc35f69-a04e-41da-b3a0-e4eb309ceb71",
       "name": "S&S Quarry Intelligence",
       "platform": "IOS",
-      "state": "READY_FOR_REVIEW",
-      "submitted_date": null
+      "state": "WAITING_FOR_REVIEW",
+      "submitted_date": "2026-08-27T18:19:31.286Z"
     },
     {
       "app_id": "6802014287",
@@ -32,18 +32,18 @@
     {
       "active_reviews": [
         {
-          "id": "6a071b06-2bd8-4214-948a-affda721f5cf",
+          "id": "bdc35f69-a04e-41da-b3a0-e4eb309ceb71",
           "platform": "IOS",
-          "state": "READY_FOR_REVIEW",
-          "submitted_date": null
+          "state": "WAITING_FOR_REVIEW",
+          "submitted_date": "2026-08-27T18:19:31.286Z"
         }
       ],
       "bundle_id": "com.ssrockholdings.quarrymarketplace",
       "id": "6801479135",
       "ios_versions": [
         {
-          "app_store_state": "READY_FOR_REVIEW",
-          "app_version_state": "READY_FOR_REVIEW",
+          "app_store_state": "WAITING_FOR_REVIEW",
+          "app_version_state": "WAITING_FOR_REVIEW",
           "created_date": "2026-08-14T02:28:29-07:00",
           "id": "2529d759-049e-4622-87cb-8c63460f20ef",
           "version_string": "1.0"
@@ -190,7 +190,7 @@
   ],
   "authenticated": true,
   "errors": [],
-  "generated_at": "2026-08-27T18:01:27.454648+00:00",
+  "generated_at": "2026-08-28T03:52:37.967795+00:00",
   "key_id_used": "2A3958GU5F",
   "target_product_locations": {
     "com.ssrockholdings.marketplace.annual": {
