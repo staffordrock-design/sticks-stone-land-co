@@ -266,7 +266,7 @@ def ensure_localization(client: ASC, subscription_id: str, product: dict[str, An
 
 
 def ensure_three_day_free_trial(client: ASC, subscription_id: str) -> dict[str, Any]:
-    """Ensure a 3-day FREE_TRIAL introductory offer in every App Store territory."""
+    """Ensure the launch 3-day FREE_TRIAL introductory offer in the USA storefront."""
     offers = client.all(
         f"/v1/subscriptions/{subscription_id}/introductoryOffers",
         params={"include": "territory", "limit": 200},
@@ -280,7 +280,11 @@ def ensure_three_day_free_trial(client: ASC, subscription_id: str) -> dict[str, 
         if territory_rel.get("id"):
             existing_territories.add(str(territory_rel["id"]))
 
-    territories = client.all("/v1/territories", params={"limit": 200})
+    territories = [
+        territory
+        for territory in client.all("/v1/territories", params={"limit": 200})
+        if str(territory.get("id") or "") == "USA"
+    ]
     created = 0
     failures: list[str] = []
     for territory in territories:
