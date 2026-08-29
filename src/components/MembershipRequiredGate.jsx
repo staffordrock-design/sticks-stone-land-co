@@ -50,7 +50,7 @@ export default function MembershipRequiredGate({ children }) {
       return () => { cancelled = true; };
     }
 
-    if (!user?.id && !isNativeIOS()) {
+    if (!user?.id) {
       setAccessState({ loading: false, active: false, checkedPath: pathname });
       return () => { cancelled = true; };
     }
@@ -77,10 +77,6 @@ export default function MembershipRequiredGate({ children }) {
             console.error("Apple membership sync failed", error);
           }
 
-          if (!user?.id) {
-            if (!cancelled) setAccessState({ loading: false, active: storeActive, checkedPath: pathname });
-            return;
-          }
         }
 
         if (isNativeAndroid()) {
@@ -119,7 +115,7 @@ export default function MembershipRequiredGate({ children }) {
 
   if (isLoadingPublicSettings || isLoadingAuth || !authChecked) return loadingScreen();
 
-  if (!user?.id && !isNativeIOS()) {
+  if (!user?.id) {
     const subscribeReturn = `/subscribe?returnTo=${returnTo}`;
     return <Navigate to={`/login?returnTo=${encodeURIComponent(subscribeReturn)}`} replace />;
   }
@@ -127,11 +123,6 @@ export default function MembershipRequiredGate({ children }) {
   // Never redirect from a protected route using access state that was computed for a different path.
   // This is especially important when leaving /subscribe: that exempt route intentionally stores active:false.
   if (accessState.loading || accessState.checkedPath !== pathname) return loadingScreen();
-
-  if (!user?.id && isNativeIOS()) {
-    if (!accessState.active) return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
-    return children;
-  }
 
   if (!accessState.active) {
     return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
