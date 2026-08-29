@@ -1,7 +1,7 @@
 import { SignedDataVerifier, Environment } from 'npm:@apple/app-store-server-library@3.1.0';
 import { Buffer } from 'node:buffer';
 
-export const BUNDLE_ID = 'com.ssrockholdings.quarrymarketplace';
+export const BUNDLE_ID = 'com.base6a78376a454093ba2f431acd.app';
 
 const APPLE_ROOT_CERT_URLS = [
   'https://www.apple.com/appleca/AppleIncRootCertificate.cer',
