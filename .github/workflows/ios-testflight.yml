@@ -101,7 +101,7 @@ jobs:
             echo "::error title=Legacy preview gate returned::The retired 60-second gate is back in the app source";
             exit 1;
           }
-          grep -q "com.ssrockholdings.quarryintelligence.monthly199" src/lib/subscriptionPlans.js || {
+          grep -q "com.ssrockholdings.mobile.quarryintelligence.monthly199" src/lib/subscriptionPlans.js || {
             echo "::error title=Apple product disconnected::The $199 Full Quarry Intelligence product ID is missing from the app";
             exit 1;
           }
@@ -109,7 +109,7 @@ jobs:
             echo "::error title=Wrong membership price::The current $199/month membership definition is missing";
             exit 1;
           }
-          grep -Rqs "com.ssrockholdings.quarryintelligence.monthly199" dist || {
+          grep -Rqs "com.ssrockholdings.mobile.quarryintelligence.monthly199" dist || {
             echo "::error title=Apple product missing from iOS web bundle::The built app cannot recognize the current Apple subscription";
             exit 1;
           }
@@ -126,7 +126,7 @@ jobs:
           if (ACCESS_TIERS.length !== 1 || ACCESS_TIERS[0]?.code !== 'professional') {
             throw new Error(`Expected exactly one client membership tier, got ${ACCESS_TIERS.length}`);
           }
-          if (SUBSCRIPTION_PRODUCTS.apple?.professional?.monthly !== 'com.ssrockholdings.quarryintelligence.monthly199') {
+          if (SUBSCRIPTION_PRODUCTS.apple?.professional?.monthly !== 'com.ssrockholdings.mobile.quarryintelligence.monthly199') {
             throw new Error('Current Apple Full Quarry Intelligence product ID is not the only client monthly product');
           }
           if (SUBSCRIPTION_PRODUCTS.apple?.professional?.annual) {
@@ -237,28 +237,28 @@ jobs:
       - name: Pin iOS bundle to the App Store app under review
         run: |
           set -Eeuo pipefail
-          IOS_BUNDLE_ID="com.ssrockholdings.quarrymarketplace"
+          IOS_BUNDLE_ID="com.base6a78376a454093ba2f431acd.app"
           python - <<'PY'
           from pathlib import Path
           import os, re
           p = Path('ios/App/App.xcodeproj/project.pbxproj')
           s = p.read_text()
-          old = 'PRODUCT_BUNDLE_IDENTIFIER = com.base6a78376a454093ba2f431acd.app;'
-          new = 'PRODUCT_BUNDLE_IDENTIFIER = com.ssrockholdings.quarrymarketplace;'
+          bundle = 'com.base6a78376a454093ba2f431acd.app'
           build_number = os.environ['GITHUB_RUN_NUMBER']
           if not build_number.isdigit():
               raise SystemExit(f'Invalid GitHub run number for iOS build: {build_number!r}')
-          s = s.replace(old, new)
-          s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.2;', s)
+          s = re.sub(r'PRODUCT_BUNDLE_IDENTIFIER = [^;]+;', f'PRODUCT_BUNDLE_IDENTIFIER = {bundle};', s)
+          s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.1;', s)
           s = re.sub(r'CURRENT_PROJECT_VERSION = [^;]+;', f'CURRENT_PROJECT_VERSION = {build_number};', s)
           p.write_text(s)
-          if new not in s:
-              raise SystemExit('Expected App Store bundle identifier was not present after Capacitor sync')
-          if 'MARKETING_VERSION = 2.130297.2;' not in s:
-              raise SystemExit('Expected App Store marketing version was not present after Capacitor sync')
+          expected_bundle_line = f'PRODUCT_BUNDLE_IDENTIFIER = {bundle};'
+          if expected_bundle_line not in s:
+              raise SystemExit('Expected SS Mobile bundle identifier was not present after Capacitor sync')
+          if 'MARKETING_VERSION = 2.130297.1;' not in s:
+              raise SystemExit('Expected SS Mobile App Store marketing version was not present after Capacitor sync')
           if f'CURRENT_PROJECT_VERSION = {build_number};' not in s:
               raise SystemExit('Expected explicit iOS build number was not present after update')
-          print(f'Pinned bundle identifier, App Store version 2.130297.2, and build {build_number}')
+          print(f'Pinned SS Mobile bundle identifier, App Store version 2.130297.1, and build {build_number}')
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f'IOS_BUILD_NUMBER={build_number}\n')
           PY
@@ -286,18 +286,18 @@ jobs:
           report = json.loads(pathlib.Path("reports/apple_subscription_sync.json").read_text())
           key_id = report.get("key_id_used")
           products = report.get("products", {})
-          required = {"com.ssrockholdings.quarryintelligence.monthly199"}
+          required = {"com.ssrockholdings.mobile.quarryintelligence.monthly199"}
           missing = [pid for pid in sorted(required) if not products.get(pid, {}).get("id")]
           product_errors = [products.get(pid, {}).get("error") for pid in sorted(required) if products.get(pid, {}).get("error")]
           if not report.get("authenticated") or not key_id:
               raise SystemExit("App Store Connect authentication did not succeed")
-          if report.get("bundle_id") != "com.ssrockholdings.quarrymarketplace":
+          if report.get("bundle_id") != "com.base6a78376a454093ba2f431acd.app":
               raise SystemExit("Apple subscription sync targeted the wrong iOS app")
           if missing:
               raise SystemExit("Required Apple subscription is missing: " + ", ".join(missing))
           if product_errors or report.get("errors"):
               raise SystemExit("Apple subscription sync contains errors: " + " | ".join(product_errors + report.get("errors", [])))
-          product = products["com.ssrockholdings.quarryintelligence.monthly199"]
+          product = products["com.ssrockholdings.mobile.quarryintelligence.monthly199"]
           offer = product.get("introductory_offer") or {}
           if offer.get("offer_mode") != "FREE_TRIAL" or offer.get("duration") != "THREE_DAYS":
               raise SystemExit("Required 3-day Apple free trial was not verified")
@@ -396,7 +396,7 @@ jobs:
           ARCHIVE_BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")
           echo "Archive version: $ARCHIVE_VERSION"
           echo "Archive build: $ARCHIVE_BUILD"
-          test "$ARCHIVE_VERSION" = "2.130297.2" || { echo "::error title=Wrong App Store version::Expected 2.130297.2, got $ARCHIVE_VERSION"; exit 1; }
+          test "$ARCHIVE_VERSION" = "2.130297.1" || { echo "::error title=Wrong App Store version::Expected 2.130297.1, got $ARCHIVE_VERSION"; exit 1; }
           test "$ARCHIVE_BUILD" = "$IOS_BUILD_NUMBER" || { echo "::error title=Wrong iOS build number::Expected $IOS_BUILD_NUMBER, got $ARCHIVE_BUILD"; exit 1; }
 
       - name: Create App Store Connect export options
