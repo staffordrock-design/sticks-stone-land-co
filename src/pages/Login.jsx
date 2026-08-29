@@ -37,7 +37,10 @@ export default function Login() {
   };
 
   const handleApple = () => {
-    base44.auth.loginWithProvider("apple", returnTo);
+    // Hosted social OAuth does not reliably hand its session back to the iOS
+    // WebView in the native/TestFlight wrapper. Keep users inside the app and
+    // use the Base44 email account flow for durable subscription linking.
+    window.location.href = `/forgot-password?returnTo=${encodeURIComponent(returnTo)}`;
   };
 
   return (
@@ -72,7 +75,7 @@ export default function Login() {
         onClick={handleApple}
       >
         <Apple className="w-5 h-5 mr-2" />
-        Continue with Apple
+        Set up / reset S&S password
       </Button>
 
       <div className="relative mb-6">
