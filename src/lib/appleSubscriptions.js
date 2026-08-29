@@ -5,8 +5,25 @@ import { ACCESS_TIERS, SUBSCRIPTION_PRODUCTS } from '@/lib/subscriptionPlans';
 
 const STOREKIT_TIMEOUT_MS = 12000;
 const APPLE_ACCESS_CACHE_MS = 5 * 60 * 1000;
+const APPLE_ACCESS_STORAGE_KEY = 'ss-apple-full-quarry-access-v1';
 let lastConfirmedAppleAccess = null;
 let lastConfirmedAppleAccessAt = 0;
+
+function rememberConfirmedAppleAccess(access) {
+  lastConfirmedAppleAccess = access;
+  lastConfirmedAppleAccessAt = Date.now();
+  try {
+    localStorage.setItem(APPLE_ACCESS_STORAGE_KEY, JSON.stringify({ access, confirmedAt: lastConfirmedAppleAccessAt }));
+  } catch {}
+}
+
+function persistedConfirmedAppleAccess() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(APPLE_ACCESS_STORAGE_KEY) || 'null');
+    if (saved?.access?.active && saved?.access?.professional && Number(saved?.confirmedAt) > 0) return saved.access;
+  } catch {}
+  return null;
+}
 
 function withStoreKitTimeout(promise, message = 'Apple did not respond. Please try again.') {
   return Promise.race([
@@ -64,8 +81,7 @@ export async function currentAppleSubscriptionAccess({ restore = false, allowRec
   };
 
   if (access.active && access.professional) {
-    lastConfirmedAppleAccess = access;
-    lastConfirmedAppleAccessAt = Date.now();
+    rememberConfirmedAppleAccess(access);
     return access;
   }
 
@@ -77,6 +93,13 @@ export async function currentAppleSubscriptionAccess({ restore = false, allowRec
   ) {
     return { ...lastConfirmedAppleAccess, cached: true };
   }
+
+  // Once this installed app has positively confirmed the Full Quarry Intelligence
+  // Apple entitlement, do not relock paid screens merely because StoreKit returns an
+  // empty current-entitlements snapshot during launch/navigation. A later explicit
+  // restore or server reconciliation can refresh the entitlement.
+  const persisted = allowRecentConfirmedFallback ? persistedConfirmedAppleAccess() : null;
+  if (persisted) return { ...persisted, persisted: true };
 
   return access;
 }
