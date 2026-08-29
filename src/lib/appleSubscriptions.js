@@ -8,6 +8,7 @@ const APPLE_ACCESS_CACHE_MS = 5 * 60 * 1000;
 const APPLE_ACCESS_STORAGE_KEY = 'ss-apple-full-quarry-access-v1';
 let lastConfirmedAppleAccess = null;
 let lastConfirmedAppleAccessAt = 0;
+let autoRestoreAttempted = false;
 
 function rememberConfirmedAppleAccess(access) {
   lastConfirmedAppleAccess = access;
@@ -123,6 +124,20 @@ export async function stableAppleSubscriptionAccess({ attempts = 4, restore = fa
     }
     if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, 450 * attempt));
   }
+  // TestFlight/Sandbox can occasionally return an empty current-entitlements
+  // snapshot until StoreKit restore is requested. Recover once per app process
+  // before deciding a paying iPhone subscriber is inactive.
+  if (!restore && !autoRestoreAttempted && !access?.active) {
+    autoRestoreAttempted = true;
+    try {
+      const restored = await currentAppleSubscriptionAccess({ restore: true });
+      if (restored?.active && restored?.professional) return restored;
+      access = restored || access;
+    } catch (error) {
+      lastError = lastError || error;
+    }
+  }
+
   if (lastError && !access) throw lastError;
   return access || { active: false, professional: false, purchases: [], productIds: [], planCodes: [] };
 }
