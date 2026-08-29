@@ -69,7 +69,10 @@ export default function MembershipRequiredGate({ children }) {
           try {
             const storeAccess = await stableAppleSubscriptionAccess({ attempts: 4 });
             storeActive = Boolean(storeAccess?.active && storeAccess?.professional);
-            if (user?.id) await syncCurrentAppleSubscriptions();
+            // Only reconcile the backend when StoreKit actually returned a verified
+            // current entitlement. An empty TestFlight/Sandbox snapshot must never
+            // erase an already verified paid account entitlement.
+            if (user?.id && storeActive && storeAccess?.purchases?.length) await syncCurrentAppleSubscriptions();
           } catch (error) {
             console.error("Apple membership sync failed", error);
           }
