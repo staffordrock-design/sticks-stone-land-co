@@ -120,23 +120,13 @@ export default async function(req) {
       });
     }
 
-    if (reconcile) {
-      const appleEntitlements = await base44.asServiceRole.entities.SubscriptionEntitlement.filter(
-        { user_id: user.id, platform: 'apple' },
-        '-updated_date',
-        50,
-        0,
-      );
-      for (const entitlement of appleEntitlements || []) {
-        if (entitlement.original_transaction_id && !verifiedOriginalIds.has(entitlement.original_transaction_id) && ['active', 'trial', 'grace_period'].includes(entitlement.status)) {
-          await base44.asServiceRole.entities.SubscriptionEntitlement.update(entitlement.id, {
-            status: 'expired',
-            last_verified_at: new Date().toISOString(),
-            source: 'Apple StoreKit current-entitlement reconciliation',
-          });
-        }
-      }
-    }
+    // Do not expire a previously verified backend entitlement merely because one
+    // client-side StoreKit snapshot omitted it. TestFlight runs IAP in Apple's
+    // sandbox and current-entitlement snapshots can change between launches or
+    // test accounts. Verified signed transactions create/update the entitlement;
+    // revocation or expiry from a verified transaction changes its status.
+    // Server notifications / a verified later transaction are authoritative for
+    // removing access, not absence from this single client reconciliation call.
 
     return Response.json({ verified: true, entitlements: results });
   } catch (error) {
