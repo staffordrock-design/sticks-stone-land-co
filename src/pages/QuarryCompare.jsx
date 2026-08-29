@@ -5,7 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
-import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
+import { stableAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 
 const MAX_COMPARE = 5;
@@ -46,9 +46,9 @@ export default function QuarryCompare() {
           user?.id ? base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 20) : Promise.resolve([]),
         ]);
         setSites(siteRows || []);
-        const appleAccess = isNativeIOS() ? await currentAppleSubscriptionAccess().catch(() => null) : null;
+        const appleAccess = isNativeIOS() ? await stableAppleSubscriptionAccess({ attempts: 4 }).catch(() => null) : null;
         const entitlementProfessional = hasFullQuarryEntitlement(entitlements || []);
-        setHasProfessional(user?.role === "admin" || Boolean(appleAccess?.professional) || entitlementProfessional);
+        setHasProfessional(user?.role === "admin" || Boolean(appleAccess?.active && appleAccess?.professional) || entitlementProfessional);
         const ids = String(params.get("ids") || "").split(",").filter(Boolean).slice(0, MAX_COMPARE);
         const initial = ids.map((id) => (siteRows || []).find((s) => s.id === id)).filter(Boolean);
         setSelected(initial);
