@@ -1,10 +1,10 @@
-# App Review Notes — S&S Rock Holdings
+# App Review Notes — S&S Rock Holdings Mobile
 
 ## 1. Current subscription model
-S&S Rock Holdings now offers one auto-renewing iOS subscription:
+S&S Rock Holdings Mobile now offers one auto-renewing iOS subscription:
 
 - Full Quarry Intelligence Monthly
-- Product ID: com.ssrockholdings.quarryintelligence.monthly199
+- Product ID: com.ssrockholdings.mobile.quarryintelligence.monthly199
 - Price: $199.00 USD per month
 - Introductory offer: 3-day free trial for eligible new subscribers
 - Billing period: 1 month, auto-renewing
