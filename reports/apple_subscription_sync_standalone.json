@@ -1,43 +1,43 @@
 {
-  "app_id": "6801479135",
+  "app_id": "6802014287",
   "authenticated": true,
-  "bundle_id": "com.ssrockholdings.quarrymarketplace",
+  "bundle_id": "com.base6a78376a454093ba2f431acd.app",
   "errors": [],
-  "generated_at": "2026-08-27T01:08:49.456986+00:00",
+  "generated_at": "2026-08-29T16:01:45.920233+00:00",
   "group": {
     "created": false,
-    "id": "22320430",
-    "reference_name": "S&S Rock Holdings Access"
+    "id": "22312976",
+    "reference_name": "S&S Quarry Intelligence Membership"
   },
   "key_id_used": "2A3958GU5F",
   "products": {
-    "com.ssrockholdings.quarryintelligence.monthly199": {
+    "com.ssrockholdings.mobile.quarryintelligence.monthly199": {
       "created": false,
-      "group_id": "22320430",
-      "id": "6805699765",
+      "group_id": "22312976",
+      "id": "6806611685",
       "introductory_offer": {
-        "created": true,
+        "created": false,
         "duration": "THREE_DAYS",
         "end_date": null,
-        "existing_territories": 0,
+        "existing_territories": 175,
         "number_of_periods": 1,
         "offer_mode": "FREE_TRIAL",
-        "start_date": "2026-08-27",
-        "territories_created": 175,
-        "territories_total": 175
+        "start_date": "2026-08-29",
+        "territories_created": 0,
+        "territories_total": 1
       },
       "localized": true,
       "plan_availability": {
         "available_in_new_territories": true,
-        "created": true,
-        "id": "eyJhIjoiNjgwNTY5OTc2NSIsInAiOiIwIn0",
+        "created": false,
+        "id": "eyJhIjoiNjgwNjYxMTY4NSIsInAiOiIwIn0",
         "plan_type": "UPFRONT",
         "territories": 175
       },
       "pricing": {
-        "existing_price_territories": 0,
+        "existing_price_territories": 175,
         "price_failures": [],
-        "prices_created": 175,
+        "prices_created": 0,
         "territories_available_from_equalization": 175,
         "usa_price": "199.00"
       },
