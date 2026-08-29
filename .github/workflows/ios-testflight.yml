@@ -443,19 +443,37 @@ jobs:
           set -e
 
           if [ "$XCODE_STATUS" -ne 0 ]; then
-            DETAILS=$(grep -Ei 'error:|exportArchive|provision|certificate|profile|App Store Connect|authentication|authorization|agreement|failed|not available|does not support|No Accounts' "$UPLOAD_LOG" | tail -n 40 || true)
+            DETAILS=$(grep -Ei 'error:|exportArchive|provision|certificate|profile|App Store Connect|authentication|authorization|agreement|failed|not available|does not support|No Accounts|ITMS|Asset validation|distribution|upload' "$UPLOAD_LOG" | tail -n 60 || true)
             if [ -z "$DETAILS" ]; then
-              DETAILS=$(tail -n 100 "$UPLOAD_LOG")
+              DETAILS=$(tail -n 120 "$UPLOAD_LOG")
             fi
+
+            # Keep only the useful Apple/Xcode failure excerpt and remove API-key identifiers/paths
+            # before persisting diagnostics to the repository.
+            SAFE_DETAILS="$DETAILS"
+            SAFE_DETAILS="${SAFE_DETAILS//$ASC_KEY_ID/[REDACTED_KEY_ID]}"
+            SAFE_DETAILS="${SAFE_DETAILS//7097918c-2758-4720-b0fa-938914c24b36/[REDACTED_ISSUER_ID]}"
+            SAFE_DETAILS="${SAFE_DETAILS//$ASC_KEY_PATH/[REDACTED_KEY_PATH]}"
 
             {
               echo "### Apple signing/upload diagnostic"
               echo '```text'
-              printf '%s\n' "$DETAILS"
+              printf '%s\n' "$SAFE_DETAILS"
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
 
-            ANNOTATION=$(printf '%s\n' "$DETAILS" | tail -n 12 | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g' | cut -c1-4000)
+            printf '%s\n' "$SAFE_DETAILS" > testflight-upload-error.txt
+
+            # Persist the sanitized failure excerpt where the connected repo tools can read it.
+            # This file is outside the workflow's push trigger path, so this commit will not
+            # recursively start another TestFlight build.
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add --force testflight-upload-error.txt
+            git commit -m "chore: save TestFlight upload diagnostic [skip ci]" || true
+            git push origin HEAD:main || echo "::warning title=Diagnostic push failed::Could not persist testflight-upload-error.txt"
+
+            ANNOTATION=$(printf '%s\n' "$SAFE_DETAILS" | tail -n 12 | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g' | cut -c1-4000)
             echo "::error title=Apple signing/upload details::$ANNOTATION"
             exit "$XCODE_STATUS"
           fi
