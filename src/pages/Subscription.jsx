@@ -6,7 +6,7 @@ import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ACCESS_TIERS, SUBSCRIPTION_PRODUCTS } from "@/lib/subscriptionPlans";
-import { appleAccountTokenForUser, appleProductIds, currentAppleSubscriptionAccess, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
+import { appleAccountTokenForUser, appleProductIds, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptions, verifyAppleTransactions } from "@/lib/appleSubscriptions";
 import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
@@ -21,13 +21,7 @@ function withStoreTimeout(promise, message = "The store did not respond. Please 
 }
 
 async function waitForAppleStoreAccess(attempts = 4) {
-  let access = { active: false, professional: false, purchases: [], planCodes: [] };
-  for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    access = await currentAppleSubscriptionAccess();
-    if (access?.active && access?.professional) return access;
-    if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, 650 * attempt));
-  }
-  return access;
+  return stableAppleSubscriptionAccess({ attempts });
 }
 
 export default function Subscription() {
@@ -75,11 +69,15 @@ export default function Subscription() {
     }
 
     if (isNative && isIOS) {
-      syncCurrentAppleSubscriptions()
-        .then((access) => {
+      stableAppleSubscriptionAccess({ attempts: 4 })
+        .then(async (access) => {
+          if (access?.active && access?.professional && user?.id && access?.purchases?.length) {
+            try { await syncCurrentAppleSubscriptions(); } catch (error) { console.error("Apple backend entitlement sync failed", error); }
+          }
           if (!cancelled) setAppleStoreAccess(access || { active: false, professional: false, purchases: [], planCodes: [] });
+          if (!cancelled && access?.active && access?.professional) navigate(returnTo, { replace: true });
         })
-        .catch((error) => console.error("Apple entitlement sync failed", error));
+        .catch((error) => console.error("Apple entitlement recovery failed", error));
     }
 
     if (isAndroid && user?.id) {
