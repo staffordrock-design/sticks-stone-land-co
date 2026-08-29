@@ -68,6 +68,22 @@ jobs:
             echo "::error title=Current Home workspace missing::The built bundle does not contain the new live quarry workspace";
             exit 1;
           }
+          grep -Rqs "S&S Intelligence Center" dist || {
+            echo "::error title=Intelligence Center missing::The built bundle does not contain the full S&S Intelligence Center";
+            exit 1;
+          }
+          grep -Rqs "S&S Quarry Network Intelligence" dist || {
+            echo "::error title=Quarry Network Intelligence missing::The built bundle does not contain the full company/quarry network intelligence workspace";
+            exit 1;
+          }
+          grep -Rqs 'label:"Intel"' dist || grep -Rqs 'label: "Intel"' dist || {
+            echo "::error title=Mobile Intel tab missing::The native web bundle does not expose Intelligence in the mobile tab bar";
+            exit 1;
+          }
+          grep -Rqs 'label:"Network"' dist || grep -Rqs 'label: "Network"' dist || {
+            echo "::error title=Mobile Network tab missing::The native web bundle does not expose Quarry Network in the mobile tab bar";
+            exit 1;
+          }
           if grep -Rqs "Use the full quarry intelligence toolkit" dist; then
             echo "::error title=Stale Home screen detected::The old promotional Intelligence Center is still present in the web bundle";
             exit 1;
@@ -197,6 +213,14 @@ jobs:
           set -Eeuo pipefail
           grep -Rqs "Work the quarry data from here" ios/App/App/public || {
             echo "::error title=Capacitor copied stale web assets::The iOS public bundle does not contain the new live quarry workspace";
+            exit 1;
+          }
+          grep -Rqs "S&S Intelligence Center" ios/App/App/public || {
+            echo "::error title=iOS Intelligence Center missing::The iPhone bundle does not contain the full S&S Intelligence Center";
+            exit 1;
+          }
+          grep -Rqs "S&S Quarry Network Intelligence" ios/App/App/public || {
+            echo "::error title=iOS Quarry Network missing::The iPhone bundle does not contain the full Quarry Network Intelligence workspace";
             exit 1;
           }
           if grep -Rqs "Use the full quarry intelligence toolkit" ios/App/App/public; then
