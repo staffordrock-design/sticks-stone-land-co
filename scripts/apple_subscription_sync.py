@@ -22,9 +22,9 @@ import jwt
 import requests
 
 API = "https://api.appstoreconnect.apple.com"
-BUNDLE_ID = "com.ssrockholdings.quarrymarketplace"
-GROUP_REFERENCE = "S&S Rock Holdings Access"
-GROUP_DISPLAY_NAME = "S&S Rock Holdings Access"
+BUNDLE_ID = "com.base6a78376a454093ba2f431acd.app"
+GROUP_REFERENCE = "S&S Quarry Intelligence Membership"
+GROUP_DISPLAY_NAME = "S&S Quarry Intelligence Membership"
 ISSUER_ID = os.getenv("ASC_ISSUER_ID", "7097918c-2758-4720-b0fa-938914c24b36")
 KEY_IDS = [x.strip() for x in os.getenv("ASC_KEY_IDS", "").split(",") if x.strip()]
 PRIVATE_KEY = os.getenv("ASC_PRIVATE_KEY", "")
@@ -33,7 +33,7 @@ TODAY = dt.datetime.now(dt.timezone.utc).date().isoformat()
 
 PRODUCTS = [
     {
-        "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
+        "product_id": "com.ssrockholdings.mobile.quarryintelligence.monthly199",
         "internal_name": "Full Quarry Intelligence Monthly",
         "display_name": "Full Quarry Intelligence Monthly",
         "description": "Full monthly access to S&S quarry intelligence.",
