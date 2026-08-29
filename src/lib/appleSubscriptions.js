@@ -44,12 +44,19 @@ export function appleProductIds() {
   ]).filter(Boolean);
 }
 
-const APPLE_PRODUCT_TO_PLAN = Object.fromEntries(
-  ACCESS_TIERS.flatMap((tier) => [
-    [SUBSCRIPTION_PRODUCTS.apple[tier.code]?.monthly, `${tier.code}_monthly`],
-    [SUBSCRIPTION_PRODUCTS.apple[tier.code]?.annual, `${tier.code}_annual`],
-  ]).filter(([productId]) => Boolean(productId))
-);
+const APPLE_PRODUCT_TO_PLAN = {
+  ...Object.fromEntries(
+    ACCESS_TIERS.flatMap((tier) => [
+      [SUBSCRIPTION_PRODUCTS.apple[tier.code]?.monthly, `${tier.code}_monthly`],
+      [SUBSCRIPTION_PRODUCTS.apple[tier.code]?.annual, `${tier.code}_annual`],
+    ]).filter(([productId]) => Boolean(productId))
+  ),
+  // Legacy S&S Quarry Intelligence subscription. If StoreKit surfaces this
+  // transaction, treat it as the same Full Quarry Intelligence membership.
+  'com.ssrockholdings.quarryintelligence.monthly199': 'professional_monthly',
+};
+
+const APPLE_RECOGNIZED_PRODUCT_IDS = Object.keys(APPLE_PRODUCT_TO_PLAN);
 
 export function applePlanCodeForProduct(productId) {
   return APPLE_PRODUCT_TO_PLAN[productId] || null;
@@ -69,7 +76,7 @@ export async function currentAppleSubscriptionAccess({ restore = false, allowRec
     }),
     'Apple subscription check did not respond. You can still browse the preview and try again.'
   );
-  const current = (purchases || []).filter((tx) => appleProductIds().includes(tx?.productIdentifier));
+  const current = (purchases || []).filter((tx) => APPLE_RECOGNIZED_PRODUCT_IDS.includes(tx?.productIdentifier));
   const productIds = current.map((tx) => tx.productIdentifier).filter(Boolean);
   const planCodes = productIds.map(applePlanCodeForProduct).filter(Boolean);
   const professional = planCodes.some((code) => code.startsWith('professional_') || code.startsWith('deal_investor_'));
@@ -171,7 +178,7 @@ async function signedAppTransaction() {
 
 export async function verifyAppleTransactions(transactions, { reconcile = false } = {}) {
   const signedTransactions = (transactions || [])
-    .filter((tx) => appleProductIds().includes(tx?.productIdentifier))
+    .filter((tx) => APPLE_RECOGNIZED_PRODUCT_IDS.includes(tx?.productIdentifier))
     .map((tx) => tx?.jwsRepresentation)
     .filter(Boolean);
 
