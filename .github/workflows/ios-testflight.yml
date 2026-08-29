@@ -425,8 +425,10 @@ jobs:
       - name: Cloud sign and upload to App Store Connect
         run: |
           set -Eeuo pipefail
-          trap 'echo "::error title=TestFlight upload failed::Xcode could not export/upload the archive to App Store Connect"' ERR
           mkdir -p "$RUNNER_TEMP/export"
+          UPLOAD_LOG="$RUNNER_TEMP/app-store-connect-upload.log"
+
+          set +e
           xcodebuild \
             -exportArchive \
             -archivePath "$RUNNER_TEMP/SSRockHoldings.xcarchive" \
@@ -435,4 +437,25 @@ jobs:
             -allowProvisioningUpdates \
             -authenticationKeyPath "$ASC_KEY_PATH" \
             -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID 7097918c-2758-4720-b0fa-938914c24b36
+            -authenticationKeyIssuerID 7097918c-2758-4720-b0fa-938914c24b36 \
+            2>&1 | tee "$UPLOAD_LOG"
+          XCODE_STATUS=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$XCODE_STATUS" -ne 0 ]; then
+            DETAILS=$(grep -Ei 'error:|exportArchive|provision|certificate|profile|App Store Connect|authentication|authorization|agreement|failed|not available|does not support|No Accounts' "$UPLOAD_LOG" | tail -n 40 || true)
+            if [ -z "$DETAILS" ]; then
+              DETAILS=$(tail -n 100 "$UPLOAD_LOG")
+            fi
+
+            {
+              echo "### Apple signing/upload diagnostic"
+              echo '```text'
+              printf '%s\n' "$DETAILS"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+
+            ANNOTATION=$(printf '%s\n' "$DETAILS" | tail -n 12 | tr '\n' ' ' | sed 's/%/%25/g; s/\r/%0D/g; s/\n/%0A/g' | cut -c1-4000)
+            echo "::error title=Apple signing/upload details::$ANNOTATION"
+            exit "$XCODE_STATUS"
+          fi
