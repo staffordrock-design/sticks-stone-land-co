@@ -9,7 +9,7 @@ import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
-import { currentAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
+import { stableAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
@@ -122,8 +122,8 @@ export default function MineSiteDetail() {
         let appleProfessional = false;
         if (isNativeIOS()) {
           try {
-            const access = await currentAppleSubscriptionAccess();
-            appleProfessional = Boolean(access?.professional);
+            const access = await stableAppleSubscriptionAccess({ attempts: 4 });
+            appleProfessional = Boolean(access?.active && access?.professional);
           } catch (error) {
             console.error("Apple professional entitlement check failed", error);
           }
