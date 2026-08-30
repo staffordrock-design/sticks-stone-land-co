@@ -507,13 +507,19 @@ export default function Network() {
       <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="mx-auto max-w-6xl px-4 pb-4 pt-3 sm:px-6">
           <div className="flex items-center justify-between gap-3">
-            <div><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-700">S&amp;S Quarry Network</p><h1 className="font-heading text-2xl font-bold">Quarry Opportunity Network</h1></div>
+            <div><p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky-700">S&amp;S Quarry Network</p><h1 className="font-heading text-2xl font-bold">Quarry Network</h1><p className="mt-0.5 text-xs text-muted-foreground">People · companies · quarries · opportunities</p></div>
             <Link to="/messages" className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-bold"><MessageCircle className="h-4 w-4" />Messages</Link>
           </div>
           <div className="mt-4 grid grid-cols-3 rounded-xl bg-muted p-1">
             <button onClick={() => changeTab("opportunities")} className={`rounded-lg px-2 py-2.5 text-xs font-bold sm:text-sm ${tab === "opportunities" ? "bg-card shadow-sm" : "text-muted-foreground"}`}>Opportunities</button>
             <button onClick={() => changeTab("feed")} className={`rounded-lg px-2 py-2.5 text-xs font-bold sm:text-sm ${tab === "feed" ? "bg-card shadow-sm" : "text-muted-foreground"}`}>Industry Feed</button>
             <button onClick={() => changeTab("people")} className={`rounded-lg px-2 py-2.5 text-xs font-bold sm:text-sm ${tab === "people" ? "bg-card shadow-sm" : "text-muted-foreground"}`}>People</button>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <Link to="/network/intelligence?tab=companies" className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-bold"><Building2 className="h-4 w-4 text-sky-700" />Companies</Link>
+            <Link to="/network/intelligence?tab=sites" className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-bold"><Mountain className="h-4 w-4 text-sky-700" />Quarries</Link>
+            <Link to="/network/intelligence?tab=deals" className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-bold"><Handshake className="h-4 w-4 text-sky-700" />Deal Graph</Link>
+            <Link to="/profile?returnTo=/network" className="flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-bold"><Users className="h-4 w-4 text-sky-700" />My Profile</Link>
           </div>
         </div>
       </header>
