@@ -174,7 +174,8 @@ requireText('base44/workflows/Quarry Network Index Refresh.jsonc', [
 ]);
 
 requireText('src/App.jsx', [
-  '<Route path="/network" element={<NetworkIntel />} />',
+  '<Route path="/network" element={<Network />} />',
+  '<Route path="/network/intelligence" element={<NetworkIntel />} />',
   '<Route path="/network/company/:companySlug" element={<CompanyNetworkDetail />} />',
   '<Route path="/network/watchlist" element={<NetworkWatchlist />} />',
   '<Route path="/network/deals" element={<NetworkDeals />} />',
@@ -193,13 +194,14 @@ requireText('src/components/BottomNav.jsx', [
 ]);
 
 requireText('src/components/QuarryActionBar.jsx', [
-  '/network?site=',
+  '/network/intelligence?site=',
   '/network/deals/new?site=',
   'Network intel',
   'Post deal',
 ]);
 
 requireText('src/components/AccountProfileGate.jsx', [
+  '"/network"',
   '"/network/community"',
 ]);
 
