@@ -11,7 +11,7 @@ export default function QuarryActionBar({ site }) {
       <WatchQuarryButton site={site} />
       <CompareQuarryButton site={site} />
       <Link
-        to={`/network?site=${encodeURIComponent(site.id)}`}
+        to={`/network/intelligence?site=${encodeURIComponent(site.id)}&tab=sites`}
         className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-bold transition hover:bg-muted"
       >
         <Network className="h-4 w-4 text-sky-700" />
