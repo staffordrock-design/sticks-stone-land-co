@@ -120,7 +120,8 @@ const AuthenticatedApp = () => {
       <Route path="/seller-portal" element={<SellerPortal />} />
       <Route path="/buyer-profile" element={<BuyerProfile />} />
       <Route path="/profile" element={<Profile />} />
-      <Route path="/network" element={<NetworkIntel />} />
+      <Route path="/network" element={<Network />} />
+      <Route path="/network/intelligence" element={<NetworkIntel />} />
       <Route path="/network/company/:companySlug" element={<CompanyNetworkDetail />} />
       <Route path="/network/watchlist" element={<NetworkWatchlist />} />
       <Route path="/network/deals" element={<NetworkDeals />} />
