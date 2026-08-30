@@ -232,8 +232,10 @@ export default function NetworkIntel() {
   useEffect(() => { load(); }, [user?.id]);
 
   useEffect(() => {
+    const requestedTab = params.get("tab");
     const company = params.get("company");
     const siteId = params.get("site");
+    if (["companies", "sites", "deals"].includes(requestedTab)) setTab(requestedTab);
     if (company) {
       setSearch(company);
       setTab("companies");
