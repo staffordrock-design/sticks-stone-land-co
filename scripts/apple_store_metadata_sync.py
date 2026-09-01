@@ -48,6 +48,7 @@ report: dict[str, Any] = {
     "version_id": None,
     "version_created": False,
     "app_info_localizations_updated": [],
+    "app_info_update_errors": [],
     "version_localization_updated": False,
     "errors": [],
 }
@@ -150,10 +151,15 @@ def ensure_target_version(client: ASC, app_id: str) -> dict[str, Any]:
 
 
 def update_app_info(client: ASC, app_id: str) -> None:
-    app_infos = client.all(f"/v1/apps/{app_id}/appInfos", params={"limit": 50})
+    app_infos = client.all(
+        f"/v1/apps/{app_id}/appInfos",
+        params={"fields[appInfos]": "appStoreState,state", "limit": 50},
+    )
     updated = []
+    failures = []
     for info in app_infos:
         info_id = info["id"]
+        state = info.get("attributes") or {}
         localizations = client.all(f"/v1/appInfos/{info_id}/appInfoLocalizations", params={"limit": 50})
         for loc in localizations:
             attrs = loc.get("attributes") or {}
@@ -166,12 +172,23 @@ def update_app_info(client: ASC, app_id: str) -> None:
                     "attributes": {"name": APP_NAME, "subtitle": SUBTITLE},
                 }
             }
-            client.request("PATCH", f"/v1/appInfoLocalizations/{loc['id']}", payload=payload)
-            updated.append(loc["id"])
-    if not updated:
-        raise RuntimeError("No existing en-US App Info localization was found to update")
+            try:
+                client.request("PATCH", f"/v1/appInfoLocalizations/{loc['id']}", payload=payload)
+                updated.append(loc["id"])
+            except Exception as exc:
+                failures.append({
+                    "app_info_id": info_id,
+                    "localization_id": loc["id"],
+                    "app_store_state": state.get("appStoreState"),
+                    "state": state.get("state"),
+                    "error": f"{type(exc).__name__}: {str(exc)[:900]}",
+                })
     report["app_info_localizations_updated"] = updated
-    print(f"Updated App Store name/subtitle on {len(updated)} en-US localization(s).")
+    report["app_info_update_errors"] = failures
+    if updated:
+        print(f"Updated App Store name/subtitle on {len(updated)} en-US localization(s).")
+    else:
+        print("Apple is not allowing the App Store name/subtitle to change in the current state; recorded for retry after the new build upload.")
 
 
 def get_version_localizations(client: ASC, version_id: str) -> list[dict[str, Any]]:
@@ -247,9 +264,9 @@ def main() -> None:
         report["version_id"] = version["id"]
         save()
 
-        update_app_info(client, app["id"])
-        save()
         update_version_keywords(client, app["id"], version["id"])
+        save()
+        update_app_info(client, app["id"])
         save()
         print("S&S App Store search metadata sync completed.")
     except Exception as exc:
