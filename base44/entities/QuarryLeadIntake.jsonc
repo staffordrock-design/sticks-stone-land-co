@@ -1,0 +1,159 @@
+{
+  "name": "QuarryLeadIntake",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "lead_type": {
+      "type": "string",
+      "enum": [
+        "Buyer",
+        "Seller",
+        "Link My Quarry"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "role_title": {
+      "type": "string"
+    },
+    "target_states": {
+      "type": "string"
+    },
+    "target_counties": {
+      "type": "string"
+    },
+    "target_commodities": {
+      "type": "string"
+    },
+    "min_acres": {
+      "type": "number"
+    },
+    "max_acres": {
+      "type": "number"
+    },
+    "min_budget": {
+      "type": "number"
+    },
+    "max_budget": {
+      "type": "number"
+    },
+    "asset_preferences": {
+      "type": "string"
+    },
+    "acquisition_timing": {
+      "type": "string"
+    },
+    "property_name": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "asking_price": {
+      "type": "number"
+    },
+    "asset_type": {
+      "type": "string"
+    },
+    "commodity": {
+      "type": "string"
+    },
+    "ownership_summary": {
+      "type": "string"
+    },
+    "seller_timing": {
+      "type": "string"
+    },
+    "mining_site_id": {
+      "type": "string"
+    },
+    "msha_mine_id": {
+      "type": "string"
+    },
+    "mine_name": {
+      "type": "string"
+    },
+    "relationship_to_site": {
+      "type": "string"
+    },
+    "link_notes": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "default": "App Intake"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Reviewing",
+        "Qualified",
+        "Connected",
+        "Closed"
+      ],
+      "default": "New"
+    },
+    "created_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "lead_type",
+    "email",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
