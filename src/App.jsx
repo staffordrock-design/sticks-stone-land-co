@@ -22,6 +22,7 @@ const MineSiteDetail = lazy(() => import('./pages/MineSiteDetail'));
 const AdminActivity = lazy(() => import('./pages/AdminActivity'));
 const AdminDataSync = lazy(() => import('./pages/AdminDataSync'));
 const AdminReports = lazy(() => import('./pages/AdminReports'));
+const AdminLeadInbox = lazy(() => import('./pages/AdminLeadInbox'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 const TermsOfUse = lazy(() => import('./pages/TermsOfUse'));
 const AccountDeletion = lazy(() => import('./pages/AccountDeletion'));
@@ -104,6 +105,7 @@ const AuthenticatedApp = () => {
       <Route path="/admin/activity" element={<AdminActivity />} />
       <Route path="/admin/data-sync" element={<AdminDataSync />} />
       <Route path="/admin/reports" element={<AdminReports />} />
+      <Route path="/admin/leads" element={<AdminLeadInbox />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
