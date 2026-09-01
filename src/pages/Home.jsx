@@ -282,6 +282,7 @@ export default function Home() {
             <Link to="/watchlist" className="hover:text-foreground">Watchlist</Link>
             <Link to="/subscribe" className="hover:text-foreground">Access</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
+            {user?.role === "admin" && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
@@ -317,6 +318,7 @@ export default function Home() {
               <Link to="/get-started" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Buy / Sell / Link Your Quarry</Link>
               <a href="#quarry-intelligence" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Explore Quarry Data</a>
               <Link to="/subscribe" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">View Membership</Link>
+              {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
             <p className="mt-4 max-w-xl text-sm text-slate-300">Browse the quarry marketplace preview with no countdown. Full owner/operator intelligence, permitted acreage, detailed geology, production context, compliance history and opportunity analysis unlock with the $199/month membership. Eligible new Apple subscribers receive a 3-day free trial through the App Store subscription.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
