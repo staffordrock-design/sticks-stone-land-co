@@ -248,17 +248,17 @@ jobs:
           if not build_number.isdigit():
               raise SystemExit(f'Invalid GitHub run number for iOS build: {build_number!r}')
           s = re.sub(r'PRODUCT_BUNDLE_IDENTIFIER = [^;]+;', f'PRODUCT_BUNDLE_IDENTIFIER = {bundle};', s)
-          s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.2;', s)
+          s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.3;', s)
           s = re.sub(r'CURRENT_PROJECT_VERSION = [^;]+;', f'CURRENT_PROJECT_VERSION = {build_number};', s)
           p.write_text(s)
           expected_bundle_line = f'PRODUCT_BUNDLE_IDENTIFIER = {bundle};'
           if expected_bundle_line not in s:
               raise SystemExit('Expected SS Mobile bundle identifier was not present after Capacitor sync')
-          if 'MARKETING_VERSION = 2.130297.2;' not in s:
+          if 'MARKETING_VERSION = 2.130297.3;' not in s:
               raise SystemExit('Expected SS Mobile App Store marketing version was not present after Capacitor sync')
           if f'CURRENT_PROJECT_VERSION = {build_number};' not in s:
               raise SystemExit('Expected explicit iOS build number was not present after update')
-          print(f'Pinned SS Mobile bundle identifier, App Store version 2.130297.2, and build {build_number}')
+          print(f'Pinned SS Mobile bundle identifier, App Store version 2.130297.3, and build {build_number}')
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f'IOS_BUILD_NUMBER={build_number}\n')
           PY
@@ -396,7 +396,7 @@ jobs:
           ARCHIVE_BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")
           echo "Archive version: $ARCHIVE_VERSION"
           echo "Archive build: $ARCHIVE_BUILD"
-          test "$ARCHIVE_VERSION" = "2.130297.2" || { echo "::error title=Wrong App Store version::Expected 2.130297.2, got $ARCHIVE_VERSION"; exit 1; }
+          test "$ARCHIVE_VERSION" = "2.130297.3" || { echo "::error title=Wrong App Store version::Expected 2.130297.3, got $ARCHIVE_VERSION"; exit 1; }
           test "$ARCHIVE_BUILD" = "$IOS_BUILD_NUMBER" || { echo "::error title=Wrong iOS build number::Expected $IOS_BUILD_NUMBER, got $ARCHIVE_BUILD"; exit 1; }
 
       - name: Create App Store Connect export options
