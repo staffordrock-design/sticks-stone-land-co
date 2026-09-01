@@ -23,16 +23,10 @@ const PUBLIC_PATHS = new Set([
 
 // A completed profile is useful for account/workspace features, but it must never
 // stand between a paid subscriber and the quarry intelligence they purchased.
-const PROFILE_REQUIRED_PATHS = new Set([
-  "/watchlist",
-  "/opportunities",
-  "/buyer-profile",
-  "/sell",
-  "/seller-portal",
-  "/network",
-  "/network/community",
-  "/messages",
-]);
+// Profile/contact details are optional for browsing. Users should be able to
+// explore S&S first and complete their profile only when they choose to use a
+// workflow that needs it. Never hard-gate navigation behind contact setup.
+const PROFILE_REQUIRED_PATHS = new Set([]);
 
 function loadingScreen() {
   return (
