@@ -19,6 +19,8 @@ import requests
 
 API = "https://api.appstoreconnect.apple.com"
 BUNDLE_ID = "com.base6a78376a454093ba2f431acd.app"
+BLOCKING_BUNDLE_ID = "com.ssrockholdings.app"
+BLOCKING_APP_RENAME = "S&S Rock Holdings Archive"
 TARGET_VERSION = os.getenv("ASC_TARGET_VERSION", "2.130297.3")
 APP_NAME = "S&S Rock Holdings"
 SUBTITLE = "Quarry Data & Marketplace"
@@ -49,6 +51,8 @@ report: dict[str, Any] = {
     "version_created": False,
     "app_info_localizations_updated": [],
     "app_info_update_errors": [],
+    "blocking_app_renamed": False,
+    "blocking_app_id": None,
     "version_localization_updated": False,
     "errors": [],
 }
@@ -150,6 +154,39 @@ def ensure_target_version(client: ASC, app_id: str) -> dict[str, Any]:
     return created
 
 
+def rename_blocking_app(client: ASC) -> None:
+    blockers = client.all("/v1/apps", params={"filter[bundleId]": BLOCKING_BUNDLE_ID, "limit": 10})
+    if not blockers:
+        print("No blocking legacy S&S app record found; continuing.")
+        return
+    blocker = blockers[0]
+    report["blocking_app_id"] = blocker["id"]
+    app_infos = client.all(
+        f"/v1/apps/{blocker['id']}/appInfos",
+        params={"fields[appInfos]": "appStoreState,state", "limit": 50},
+    )
+    for info in app_infos:
+        state = info.get("attributes") or {}
+        if state.get("appStoreState") not in {"PREPARE_FOR_SUBMISSION"} and state.get("state") not in {"PREPARE_FOR_SUBMISSION"}:
+            continue
+        locs = client.all(f"/v1/appInfos/{info['id']}/appInfoLocalizations", params={"limit": 50})
+        for loc in locs:
+            if (loc.get("attributes") or {}).get("locale") != "en-US":
+                continue
+            payload = {
+                "data": {
+                    "type": "appInfoLocalizations",
+                    "id": loc["id"],
+                    "attributes": {"name": BLOCKING_APP_RENAME},
+                }
+            }
+            client.request("PATCH", f"/v1/appInfoLocalizations/{loc['id']}", payload=payload)
+            report["blocking_app_renamed"] = True
+            print(f"Renamed unpublished blocking app to {BLOCKING_APP_RENAME}.")
+            return
+    raise RuntimeError("Blocking S&S app exists but no editable en-US app-info localization was found")
+
+
 def update_app_info(client: ASC, app_id: str) -> None:
     app_infos = client.all(
         f"/v1/apps/{app_id}/appInfos",
@@ -160,6 +197,8 @@ def update_app_info(client: ASC, app_id: str) -> None:
     for info in app_infos:
         info_id = info["id"]
         state = info.get("attributes") or {}
+        if state.get("appStoreState") not in {"PREPARE_FOR_SUBMISSION"} and state.get("state") not in {"PREPARE_FOR_SUBMISSION"}:
+            continue
         localizations = client.all(f"/v1/appInfos/{info_id}/appInfoLocalizations", params={"limit": 50})
         for loc in localizations:
             attrs = loc.get("attributes") or {}
@@ -186,9 +225,9 @@ def update_app_info(client: ASC, app_id: str) -> None:
     report["app_info_localizations_updated"] = updated
     report["app_info_update_errors"] = failures
     if updated:
-        print(f"Updated App Store name/subtitle on {len(updated)} en-US localization(s).")
+        print(f"Updated App Store name/subtitle on {len(updated)} editable en-US localization(s).")
     else:
-        print("Apple is not allowing the App Store name/subtitle to change in the current state; recorded for retry after the new build upload.")
+        print("Apple is not allowing the App Store name/subtitle to change in the current editable app info; recorded for retry.")
 
 
 def get_version_localizations(client: ASC, version_id: str) -> list[dict[str, Any]]:
@@ -265,6 +304,8 @@ def main() -> None:
         save()
 
         update_version_keywords(client, app["id"], version["id"])
+        save()
+        rename_blocking_app(client)
         save()
         update_app_info(client, app["id"])
         save()
