@@ -55,6 +55,7 @@ const NetworkDealActivity = lazy(() => import('./pages/NetworkDealActivity'));
 const OwnershipIntelligence = lazy(() => import('./pages/OwnershipIntelligence'));
 const Messages = lazy(() => import('./pages/Messages'));
 const IntelligenceHub = lazy(() => import('./pages/IntelligenceHub'));
+const LeadSetup = lazy(() => import('./pages/LeadSetup'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -109,6 +110,7 @@ const AuthenticatedApp = () => {
       <Route path="/account-deletion" element={<AccountDeletion />} />
       <Route path="/support" element={<Support />} />
       <Route path="/intelligence" element={<IntelligenceHub />} />
+      <Route path="/get-started" element={<LeadSetup />} />
       <Route path="/mineral-value-guide" element={<PaidAccessGate><MineralValueGuide /></PaidAccessGate>} />
       <Route path="/mineral-intelligence" element={<MineralIntelligence />} />
       <Route path="/admin/seller-review" element={<AdminSellerReview />} />
