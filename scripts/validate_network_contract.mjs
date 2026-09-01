@@ -201,8 +201,8 @@ requireText('src/components/QuarryActionBar.jsx', [
 ]);
 
 requireText('src/components/AccountProfileGate.jsx', [
-  '"/network"',
-  '"/network/community"',
+  'const PROFILE_REQUIRED_PATHS = new Set([]);',
+  'Never hard-gate navigation behind contact setup.',
 ]);
 
 console.log('Quarry Network contract validation passed.');
