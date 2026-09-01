@@ -20,6 +20,7 @@ const EXEMPT_PATHS = new Set([
   "/account/delete",
   "/account-deletion",
   "/subscribe",
+  "/get-started",
 ]);
 
 function loadingScreen() {
