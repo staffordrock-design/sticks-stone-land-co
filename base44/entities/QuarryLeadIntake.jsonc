@@ -106,7 +106,9 @@
       "enum": [
         "New",
         "Reviewing",
+        "Contacted",
         "Qualified",
+        "Deal",
         "Connected",
         "Closed"
       ],
