@@ -1,18 +1,32 @@
 {
   "app_id": "6802014287",
   "app_info_localizations_updated": [],
+  "app_info_update_errors": [
+    {
+      "app_info_id": "55cf93c7-dda0-4b6e-aff0-291e42a7c11c",
+      "app_store_state": "READY_FOR_SALE",
+      "error": "RuntimeError: PATCH https://api.appstoreconnect.apple.com/v1/appInfoLocalizations/ccb99242-e5e6-4ac3-9bfa-2eaa610f04fa -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"7f8af1c2-a9c8-4d65-8170-c13d80cb8306\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.INVALID_STATE\",\n    \"title\" : \"There is a problem with the request entity\",\n    \"detail\" : \"The field 'name' can not be modified in the current state.\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/name\"\n    }\n  }, {\n    \"id\" : \"39e35d34-a7ef-4be0-8bf5-53c8795f89ed\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.INVALID_STATE\",\n    \"title\" : \"There is a problem with the request entity\",\n    \"detail\" : \"The field 'subtitle' can not be modified in the current state.\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/subtitle\"\n    }\n  } ]\n}",
+      "localization_id": "ccb99242-e5e6-4ac3-9bfa-2eaa610f04fa",
+      "state": "READY_FOR_DISTRIBUTION"
+    },
+    {
+      "app_info_id": "8e02efc6-ee3b-4ec6-bffa-ca7286623831",
+      "app_store_state": "PREPARE_FOR_SUBMISSION",
+      "error": "RuntimeError: PATCH https://api.appstoreconnect.apple.com/v1/appInfoLocalizations/bf2470e1-d3ac-43b2-b6b3-9e38f230dd50 -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"67b016de-e39a-4aa3-82ef-1d28bbb8dd85\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE.SAME_ACCOUNT\",\n    \"title\" : \"The provided entity includes an attribute with a value that has already been used on this account.\",\n    \"detail\" : \"The app name you entered is already being used for another app in your account. If you would like to use the name for this app you will need to submit an update to your other app to change the name, or remove it from App Store Connect.\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/name\"\n    }\n  } ]\n}",
+      "localization_id": "bf2470e1-d3ac-43b2-b6b3-9e38f230dd50",
+      "state": "PREPARE_FOR_SUBMISSION"
+    }
+  ],
   "authenticated": true,
   "bundle_id": "com.base6a78376a454093ba2f431acd.app",
-  "errors": [
-    "RuntimeError: PATCH https://api.appstoreconnect.apple.com/v1/appInfoLocalizations/ccb99242-e5e6-4ac3-9bfa-2eaa610f04fa -> 409: {\n  \"errors\" : [ {\n    \"id\" : \"5407e271-2485-41bd-b4d7-d7249844bb92\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.INVALID_STATE\",\n    \"title\" : \"There is a problem with the request entity\",\n    \"detail\" : \"The field 'name' can not be modified in the current state.\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/name\"\n    }\n  }, {\n    \"id\" : \"748ab6ec-26ef-45a1-b3b4-65ed0caa24b1\",\n    \"status\" : \"409\",\n    \"code\" : \"ENTITY_ERROR.ATTRIBUTE.INVALID.INVALID_STATE\",\n    \"title\" : \"There is a problem with the request entity\",\n    \"detail\" : \"The field 'subtitle' can not be modified in the current state.\",\n    \"source\" : {\n      \"pointer\" : \"/data/attributes/subtitle\"\n    }\n  } ]\n}"
-  ],
-  "generated_at": "2026-09-01T16:10:53.735989+00:00",
+  "errors": [],
+  "generated_at": "2026-09-01T16:12:22.812990+00:00",
   "key_id_used": "2A3958GU5F",
   "keywords": "quarry,mine,aggregate,mineral,land,geology,MSHA,TDEC,buyer,seller,property,permit,reserves",
   "name": "S&S Rock Holdings",
   "subtitle": "Quarry Data & Marketplace",
   "target_version": "2.130297.3",
-  "version_created": true,
+  "version_created": false,
   "version_id": "f0464739-e7ee-470a-8d85-c9908ea56393",
-  "version_localization_updated": false
+  "version_localization_updated": true
 }
