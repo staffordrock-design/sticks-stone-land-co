@@ -12,7 +12,7 @@ const SOUTHEAST_CENTER = [34.6, -85.4];
 // showing what rock formation is underground across the US.
 const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
 
-export default function TennesseeMineMap({ sites = [], geologyMap = {}, height = 520, previewMode = false }) {
+export default function TennesseeMineMap({ sites = [], geologyMap = {}, height = 520, previewMode = false, loading = false, unavailable = false, onRetry }) {
   const mappedSites = useMemo(
     () => sites.filter((site) => isPlausibleSoutheastCoordinate(site.latitude, site.longitude, site.state)),
     [sites]
@@ -26,13 +26,24 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
             Southeast Quarry Intelligence Map
           </p>
           <p className="mt-1 text-sm text-foreground">
-            {mappedSites.length.toLocaleString()} mapped mine and quarry records{previewMode ? " · detailed geology available with membership" : " · markers colored by rock type"}
+            {loading
+              ? "Loading mapped mine and quarry records…"
+              : unavailable
+                ? "Mapped records temporarily unavailable"
+                : `${mappedSites.length.toLocaleString()} mapped mine and quarry records${previewMode ? " · detailed geology available with membership" : " · markers colored by rock type"}`}
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
           {previewMode ? "Free map preview · open a record to unlock deeper intelligence" : <span>Toggle the <strong>Bedrock Geology</strong> layer to see what rock is underground</span>}
         </p>
       </div>
+      {unavailable && !loading ? (
+        <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 bg-muted/20 px-6 text-center" style={{ height }}>
+          <p className="font-semibold text-foreground">The quarry map could not load its records.</p>
+          <p className="max-w-md text-sm text-muted-foreground">The database is still intact. Check the connection and try again.</p>
+          {onRetry && <button type="button" onClick={onRetry} className="min-h-11 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white">Try again</button>}
+        </div>
+      ) : (
       <div className="relative">
         <MapContainer
           center={SOUTHEAST_CENTER}
@@ -127,6 +138,7 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
           <GeologyMapLegend compact />
         </div>
       </div>
+      )}
     </div>
   );
 }
