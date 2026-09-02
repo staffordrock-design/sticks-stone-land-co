@@ -57,6 +57,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [inventoryUnavailable, setInventoryUnavailable] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [parcels, setParcels] = useState([]);
   const [geology, setGeology] = useState([]);
@@ -71,6 +72,7 @@ export default function Home() {
 
   const loadData = async () => {
     setLoading(true);
+    setInventoryUnavailable(false);
     try {
       const limit = 80;
       const safeLoad = async (label, request) => {
@@ -138,13 +140,15 @@ export default function Home() {
       const geoRecords = geologyData || [];
 
       setSites(siteList);
+      setInventoryUnavailable(siteList.length === 0);
       setProfiles(profileData || []);
       setParcels(parcelData || []);
       setGeology(geoRecords);
       setPermits(permitData || []);
       setEnvironmental(environmentalData || []);
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.error("Home quarry inventory load failed", error);
+      setInventoryUnavailable(true);
     } finally {
       setLoading(false);
     }
@@ -247,6 +251,7 @@ export default function Home() {
   const opportunityCount = quarrySites.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).length;
   const statesCovered = new Set(quarrySites.map((s) => String(s.state || "").trim().toUpperCase()).filter(Boolean)).size;
   const geologyLinked = new Set(geology.map((g) => g.mining_site_id || g.msha_mine_id).filter(Boolean)).size;
+  const metricValue = (value) => loading ? "…" : inventoryUnavailable ? "—" : Number(value || 0).toLocaleString();
 
   const geologyLookup = React.useMemo(() => {
     const map = {};
@@ -343,9 +348,9 @@ export default function Home() {
       <section className="border-b border-border bg-slate-50/80">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
           {[
-            [quarrySites.length.toLocaleString(), "Quarry records loaded"],
-            [opportunityCount.toLocaleString(), "Potential / idled opportunities"],
-            [activeCount.toLocaleString(), "Active mine records"],
+            [metricValue(quarrySites.length), loading ? "Loading quarry records" : inventoryUnavailable ? "Records temporarily unavailable" : "Quarry records loaded"],
+            [metricValue(opportunityCount), "Potential / idled opportunities"],
+            [metricValue(activeCount), "Active mine records"],
             [Math.max(statesCovered, SOUTHEAST_STATES.length).toLocaleString(), "Southeast states in scope"],
           ].map(([value, label]) => (
             <div key={label} className="bg-background px-5 py-5 sm:px-6">
@@ -372,10 +377,10 @@ export default function Home() {
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{quarrySites.length.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">quarry records in view</div></div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{activeCount.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">active records</div></div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{opportunityCount.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">potential / idled</div></div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{geologyLinked.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">geology linked</div></div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{metricValue(quarrySites.length)}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">quarry records in view</div></div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{metricValue(activeCount)}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">active records</div></div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{metricValue(opportunityCount)}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">potential / idled</div></div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{loading ? "…" : geologyLinked.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">geology linked</div></div>
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -493,6 +498,9 @@ export default function Home() {
             sites={ranked.slice(0, MAP_RENDER_LIMIT)}
             geologyMap={geologyLookup}
             height={560}
+            loading={loading}
+            unavailable={inventoryUnavailable}
+            onRetry={loadData}
             previewMode
           />
         </Suspense>
@@ -505,7 +513,7 @@ export default function Home() {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Intelligence</h2>
-              <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{ranked.length.toLocaleString()} results</span>
+              <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{loading ? "Loading results…" : inventoryUnavailable ? "Records temporarily unavailable" : `${ranked.length.toLocaleString()} results`}</span>
               {filtersActive && <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">The app loads a fast working set instead of thousands of records at once. Search by mine name, MSHA Mine ID, state, county or commodity to query the larger quarry database. Open a record for owner/operator, permitted acreage, geology, permits, compliance, production context and opportunity analysis.</p>
@@ -557,6 +565,12 @@ export default function Home() {
                 className="h-72 animate-pulse rounded-2xl border border-border bg-muted/40"
               />
             ))}
+          </div>
+        ) : inventoryUnavailable ? (
+          <div className="rounded-2xl border border-dashed border-border p-10 text-center">
+            <p className="font-semibold text-foreground">Quarry records could not load.</p>
+            <p className="mt-2 text-sm text-muted-foreground">The database is still intact. Check the connection and try again.</p>
+            <button type="button" onClick={loadData} className="mt-4 min-h-11 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white">Try again</button>
           </div>
         ) : filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">
