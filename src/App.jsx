@@ -2,7 +2,7 @@ import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import BottomNav from "./components/BottomNav";
 import PageTransition from "./components/PageTransition";
 import PageNotFound from './lib/PageNotFound';
@@ -64,6 +64,26 @@ const PageLoader = () => (
   </div>
 );
 
+const RequireSignedIn = ({ children }) => {
+  const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
+  const location = useLocation();
+
+  if (isLoadingAuth || isLoadingPublicSettings) return <PageLoader />;
+  if (!user?.id) {
+    const returnTo = `${location.pathname}${location.search || ""}`;
+    return <Navigate to={`/login?returnTo=${encodeURIComponent(returnTo)}`} replace />;
+  }
+  return children;
+};
+
+const RequireAdmin = ({ children }) => {
+  const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
+
+  if (isLoadingAuth || isLoadingPublicSettings) return <PageLoader />;
+  if (!user?.id || user.role !== "admin") return <Navigate to="/" replace />;
+  return children;
+};
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const { pathname } = useLocation();
@@ -102,10 +122,10 @@ const AuthenticatedApp = () => {
       <Route path="/" element={<Home />} />
       <Route path="/listings/:id" element={<PageTransition><PaidAccessGate><ListingDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/mines/:id" element={<PageTransition><PaidAccessGate><MineSiteDetail /></PaidAccessGate></PageTransition>} />
-      <Route path="/admin/activity" element={<AdminActivity />} />
-      <Route path="/admin/data-sync" element={<AdminDataSync />} />
-      <Route path="/admin/reports" element={<AdminReports />} />
-      <Route path="/admin/leads" element={<AdminLeadInbox />} />
+      <Route path="/admin/activity" element={<RequireAdmin><AdminActivity /></RequireAdmin>} />
+      <Route path="/admin/data-sync" element={<RequireAdmin><AdminDataSync /></RequireAdmin>} />
+      <Route path="/admin/reports" element={<RequireAdmin><AdminReports /></RequireAdmin>} />
+      <Route path="/admin/leads" element={<RequireAdmin><AdminLeadInbox /></RequireAdmin>} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
@@ -115,15 +135,15 @@ const AuthenticatedApp = () => {
       <Route path="/get-started" element={<LeadSetup />} />
       <Route path="/mineral-value-guide" element={<PaidAccessGate><MineralValueGuide /></PaidAccessGate>} />
       <Route path="/mineral-intelligence" element={<MineralIntelligence />} />
-      <Route path="/admin/seller-review" element={<AdminSellerReview />} />
-      <Route path="/admin/deals" element={<DealDesk />} />
+      <Route path="/admin/seller-review" element={<RequireAdmin><AdminSellerReview /></RequireAdmin>} />
+      <Route path="/admin/deals" element={<RequireAdmin><DealDesk /></RequireAdmin>} />
       <Route path="/compare" element={<QuarryCompare />} />
       <Route path="/watchlist" element={<QuarryWatchlist />} />
       <Route path="/deal-investor" element={<DealInvestor />} />
       <Route path="/sell" element={<SellProperty />} />
-      <Route path="/seller-portal" element={<SellerPortal />} />
-      <Route path="/buyer-profile" element={<BuyerProfile />} />
-      <Route path="/profile" element={<Profile />} />
+      <Route path="/seller-portal" element={<RequireSignedIn><SellerPortal /></RequireSignedIn>} />
+      <Route path="/buyer-profile" element={<RequireSignedIn><BuyerProfile /></RequireSignedIn>} />
+      <Route path="/profile" element={<RequireSignedIn><Profile /></RequireSignedIn>} />
       <Route path="/network" element={<Network />} />
       <Route path="/network/intelligence" element={<NetworkIntel />} />
       <Route path="/network/company/:companySlug" element={<CompanyNetworkDetail />} />
@@ -134,8 +154,8 @@ const AuthenticatedApp = () => {
       <Route path="/network/deals/:id" element={<NetworkDealDetail />} />
       <Route path="/network/community" element={<Network />} />
       <Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />
-      <Route path="/messages" element={<Messages />} />
-      <Route path="/opportunities" element={<MyOpportunities />} />
+      <Route path="/messages" element={<RequireSignedIn><Messages /></RequireSignedIn>} />
+      <Route path="/opportunities" element={<RequireSignedIn><MyOpportunities /></RequireSignedIn>} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
