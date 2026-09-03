@@ -3,25 +3,74 @@
   "type": "object",
   "properties": {
     "thread_key": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "sender_user_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "recipient_user_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "deal_pipeline_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "listing_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "message": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "sent_at": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "read_at": {
       "type": "string"
