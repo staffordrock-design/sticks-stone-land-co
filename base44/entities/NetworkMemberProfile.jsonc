@@ -81,9 +81,19 @@
     "read": {
       "$or": [
         {
-          "user_condition": {
-            "role": "user"
-          }
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "$and": [
+            {
+              "data.profile_visibility": "Network"
+            },
+            {
+              "user_condition": {
+                "role": "user"
+              }
+            }
+          ]
         },
         {
           "user_condition": {
