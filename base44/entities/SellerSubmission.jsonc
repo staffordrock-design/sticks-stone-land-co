@@ -3,7 +3,14 @@
   "type": "object",
   "properties": {
     "user_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "seller_name": {
       "type": "string"
@@ -63,7 +70,14 @@
         "Closed",
         "Declined"
       ],
-      "default": "Submitted"
+      "default": "Submitted",
+      "rls": {
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "submitted_at": {
       "type": "string"
