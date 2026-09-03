@@ -184,8 +184,8 @@ requireText('src/App.jsx', [
   '<Route path="/network/deals/:id" element={<NetworkDealDetail />} />',
   '<Route path="/network/community" element={<Network />} />',
   '<Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />',
-  '<Route path="/messages" element={<Messages />} />',
-  '<Route path="/profile" element={<Profile />} />',
+  '<Route path="/messages" element={<RequireSignedIn><Messages /></RequireSignedIn>} />',
+  '<Route path="/profile" element={<RequireSignedIn><Profile /></RequireSignedIn>} />',
 ]);
 
 requireText('src/components/BottomNav.jsx', [
