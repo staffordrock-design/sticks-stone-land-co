@@ -208,6 +208,17 @@ jobs:
           trap 'echo "::error title=Capacitor sync failed::npx cap sync ios failed"' ERR
           npx cap sync ios
 
+      - name: Verify custom S&S app icon
+        run: |
+          set -Eeuo pipefail
+          ICON_PATH="ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+          test -f "$ICON_PATH" || { echo "::error title=App icon missing::Custom S&S app icon was not found"; exit 1; }
+          ICON_SIZE=$(sips -g pixelWidth -g pixelHeight "$ICON_PATH" | awk '/pixelWidth:/{w=$2}/pixelHeight:/{h=$2}END{print w "x" h}')
+          test "$ICON_SIZE" = "1024x1024" || { echo "::error title=Wrong app icon size::Expected 1024x1024, got $ICON_SIZE"; exit 1; }
+          ICON_SHA=$(shasum -a 256 "$ICON_PATH" | awk '{print $1}')
+          test "$ICON_SHA" = "1e8ff9e9cd636c537a5a62d60bf4d7a0b12bcc7875e4322265ff95ed603717e8" || { echo "::error title=Generic or unexpected icon detected::The iOS icon does not match the approved custom S&S quarry icon"; exit 1; }
+          echo "Verified custom S&S quarry icon: $ICON_SIZE"
+
       - name: Verify current web bundle reached iOS
         run: |
           set -Eeuo pipefail
