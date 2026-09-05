@@ -17,7 +17,7 @@
   "authenticated": true,
   "bundle_id": "com.ssrockholdings.quarrymarketplace",
   "errors": [],
-  "generated_at": "2026-09-05T03:54:18.621935+00:00",
+  "generated_at": "2026-09-05T03:55:09.526074+00:00",
   "key_id_used": "2A3958GU5F",
   "products": {
     "com.ssrockholdings.quarryintelligence.monthly199": {
@@ -190,6 +190,29 @@
       "processing_state": "VALID",
       "uploaded_date": "2026-08-25T18:26:46-07:00",
       "version": "27"
+    }
+  ],
+  "review_items": [
+    {
+      "item_id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDE4fGU4ZWM2NWJkLTEyNWQtNDhhNi1iMmU1LTVjZmNlODU5ZjM5Nw",
+      "item_state": "READY_FOR_REVIEW",
+      "resource_id": "e8ec65bd-125d-48a6-b2e5-5cfce859f397",
+      "resource_state": "READY_FOR_REVIEW",
+      "resource_type": "subscriptionVersion"
+    },
+    {
+      "item_id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDE5fDUwODNiMDZmLTVjMzgtNDQzMC1hZmM1LTM5M2JiMzkzMjhiMA",
+      "item_state": "READY_FOR_REVIEW",
+      "resource_id": "5083b06f-5c38-4430-afc5-393bb39328b0",
+      "resource_state": "READY_FOR_REVIEW",
+      "resource_type": "subscriptionGroupVersion"
+    },
+    {
+      "item_id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDZ8ODg5NzYwNTUw",
+      "item_state": "REMOVED",
+      "resource_id": "2529d759-049e-4622-87cb-8c63460f20ef",
+      "resource_state": null,
+      "resource_type": "appStoreVersion"
     }
   ],
   "review_submission": {
