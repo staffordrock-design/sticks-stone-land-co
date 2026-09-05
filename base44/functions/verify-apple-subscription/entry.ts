@@ -58,8 +58,11 @@ export default async function(req) {
       const revoked = Boolean(transaction.revocationDate);
       const expiresMs = Number(transaction.expiresDate || 0);
       const expired = expiresMs > 0 && expiresMs <= now;
+      const offerDiscountType = String(transaction.offerDiscountType || '').toUpperCase();
+      const transactionPriceMilliunits = Number(transaction.price);
+      const freeTrial = offerDiscountType === 'FREE_TRIAL' || (Number(transaction.offerType) === 1 && transactionPriceMilliunits === 0);
       const active = !revoked && !expired;
-      const status = revoked ? 'cancelled' : expired ? 'expired' : 'active';
+      const status = revoked ? 'cancelled' : expired ? 'expired' : freeTrial ? 'trial' : 'active';
       const receiptStatus = revoked ? 'Refunded' : expired ? 'Expired' : 'Verified';
       const verifiedAt = new Date().toISOString();
       const purchaseDate = isoFromMillis(transaction.purchaseDate);
@@ -109,6 +112,39 @@ export default async function(req) {
         await base44.asServiceRole.entities.SubscriptionEntitlement.update(sameSubscription.id, entitlementData);
       } else {
         await base44.asServiceRole.entities.SubscriptionEntitlement.create(entitlementData);
+      }
+
+      // Keep the owner revenue dashboard synchronized with verified StoreKit activity.
+      // A 3-day Apple free trial is a real subscription entitlement but is not paid revenue yet.
+      const amountFromApple = Number.isFinite(transactionPriceMilliunits) && transactionPriceMilliunits >= 0
+        ? transactionPriceMilliunits / 1000
+        : (productId === 'com.ssrockholdings.mobile.quarryintelligence.monthly199' || productId === 'com.ssrockholdings.quarryintelligence.monthly199' ? 199 : 0);
+      const billingStatus = revoked ? 'Refunded' : expired ? 'Cancelled' : freeTrial ? 'Pending' : 'Paid';
+      const billingData = {
+        user_id: user.id,
+        customer_email: user.email || '',
+        revenue_type: 'Subscription',
+        plan_or_product: planCode,
+        amount: amountFromApple,
+        currency: String(transaction.currency || 'USD').toUpperCase(),
+        platform: 'Apple',
+        status: billingStatus,
+        external_transaction_id: transactionId,
+        occurred_at: purchaseDate || verifiedAt,
+        notes: freeTrial
+          ? 'Apple verified 3-day introductory free trial; payment is due when the trial converts.'
+          : 'Apple StoreKit verified subscription transaction.',
+      };
+      const existingBilling = await base44.asServiceRole.entities.BillingEvent.filter(
+        { platform: 'Apple', external_transaction_id: transactionId },
+        '-created_date',
+        1,
+        0,
+      );
+      if (existingBilling?.[0]) {
+        await base44.asServiceRole.entities.BillingEvent.update(existingBilling[0].id, billingData);
+      } else {
+        await base44.asServiceRole.entities.BillingEvent.create(billingData);
       }
 
       results.push({
