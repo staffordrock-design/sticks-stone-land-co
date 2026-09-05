@@ -10,11 +10,38 @@
   },
   "bundle_id": "com.ssrockholdings.quarrymarketplace",
   "errors": [
-    "RuntimeError: No READY_FOR_REVIEW Apple submission was found to finish"
+    "RuntimeError: No review submission is currently ready or waiting. States found: COMPLETE, UNRESOLVED_ISSUES"
   ],
   "final": {},
   "key_id_used": "2A3958GU5F",
   "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
+  "review_states": [
+    {
+      "id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+      "state": "UNRESOLVED_ISSUES",
+      "submitted_date": "2026-08-28T20:51:25.649Z"
+    },
+    {
+      "id": "8bb47c74-b213-4c3f-be06-fbe16fe9ab7e",
+      "state": "COMPLETE",
+      "submitted_date": "2026-08-28T18:03:40.534Z"
+    },
+    {
+      "id": "386281f7-a69e-44a4-bfc6-112c573b28da",
+      "state": "COMPLETE",
+      "submitted_date": "2026-08-28T07:08:45.147Z"
+    },
+    {
+      "id": "bdc35f69-a04e-41da-b3a0-e4eb309ceb71",
+      "state": "COMPLETE",
+      "submitted_date": "2026-08-27T18:19:31.286Z"
+    },
+    {
+      "id": "f0692310-17cc-4968-b3c7-13554d61e85d",
+      "state": "COMPLETE",
+      "submitted_date": "2026-08-26T21:57:02.871Z"
+    }
+  ],
   "target_build": "48",
   "target_version": "1.0"
 }
