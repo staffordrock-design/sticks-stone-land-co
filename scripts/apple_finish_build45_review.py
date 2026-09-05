@@ -13,7 +13,6 @@ import requests
 
 API = "https://api.appstoreconnect.apple.com"
 BUNDLE_ID = "com.ssrockholdings.quarrymarketplace"
-TARGET_BUILD = "45"
 TARGET_VERSION = "1.0"
 PRODUCT_ID = "com.ssrockholdings.quarryintelligence.monthly199"
 ISSUER_ID = os.getenv("ASC_ISSUER_ID", "7097918c-2758-4720-b0fa-938914c24b36")
@@ -23,7 +22,6 @@ REPORT_PATH = Path("reports/apple_finish_build45_review.json")
 
 report: dict[str, Any] = {
     "bundle_id": BUNDLE_ID,
-    "target_build": TARGET_BUILD,
     "target_version": TARGET_VERSION,
     "product_id": PRODUCT_ID,
     "actions": [],
@@ -107,15 +105,16 @@ def find_version(c: ASC, app_id: str) -> dict[str, Any]:
     return rows[0]
 
 
-def verify_build45_attached(c: ASC, version_id: str) -> dict[str, Any]:
+def verify_attached_build(c: ASC, version_id: str) -> dict[str, Any]:
     build = c.request(
         "GET",
         f"/v1/appStoreVersions/{version_id}/build",
         params={"fields[builds]": "version,uploadedDate,processingState,expired"},
     ).get("data") or {}
     attrs = build.get("attributes") or {}
-    if attrs.get("version") != TARGET_BUILD or attrs.get("processingState") != "VALID" or attrs.get("expired"):
-        raise RuntimeError(f"Build 45 is not the valid build attached to version 1.0; found {attrs.get('version')}")
+    if attrs.get("processingState") != "VALID" or attrs.get("expired"):
+        raise RuntimeError(f"The build attached to version 1.0 is not valid; found build {attrs.get('version')} with state {attrs.get('processingState')}")
+    report["target_build"] = attrs.get("version")
     report["build"] = {
         "id": build.get("id"),
         "version": attrs.get("version"),
@@ -246,7 +245,7 @@ def submit(c: ASC, review_id: str) -> None:
         }
     }
     c.request("PATCH", f"/v1/reviewSubmissions/{review_id}", payload=payload)
-    report["actions"].append("Submitted build 45 + app version + $199 subscription + subscription group version")
+    report["actions"].append("Submitted current attached build + app version + $199 subscription + subscription group version")
     save()
 
 
@@ -254,7 +253,7 @@ def verify(c: ASC, review_id: str, version_id: str, sub_version_id: str, group_v
     review = c.request("GET", f"/v1/reviewSubmissions/{review_id}").get("data") or {}
     state = (review.get("attributes") or {}).get("state")
     apps, subs, groups = current_items(c, review_id)
-    build = verify_build45_attached(c, version_id)
+    build = verify_attached_build(c, version_id)
     report["final"] = {
         "review_id": review_id,
         "review_state": state,
@@ -278,7 +277,7 @@ def main() -> None:
         version = find_version(c, app_id)
         version_id = version["id"]
         report["app_store_version_id"] = version_id
-        verify_build45_attached(c, version_id)
+        verify_attached_build(c, version_id)
 
         review = find_ready_review(c, app_id)
         review_id = review["id"]
@@ -307,7 +306,7 @@ def main() -> None:
         submit(c, review_id)
         time.sleep(3)
         verify(c, review_id, version_id, sub_version_id, group_version_id)
-        print("SUCCESS: Build 45 review submission is complete and waiting for Apple review.")
+        print(f"SUCCESS: Build {report.get('target_build')} review submission is complete and waiting for Apple review.")
     except Exception as exc:
         report["errors"].append(f"{type(exc).__name__}: {str(exc)[:1800]}")
         save()
