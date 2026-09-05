@@ -25,6 +25,7 @@ TARGET_PRODUCTS = {
     "com.ssrockholdings.professional.annual",
 }
 ACTIVE_STATES = {"READY_FOR_REVIEW", "WAITING_FOR_REVIEW", "IN_REVIEW", "UNRESOLVED_ISSUES", "CANCELING", "COMPLETING"}
+SS_ROCK_BUNDLE_ID = "com.base6a78376a454093ba2f431acd.app"
 
 report: dict[str, Any] = {
     "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -117,15 +118,59 @@ def main() -> None:
                 )
                 for v in versions:
                     va = v.get("attributes") or {}
-                    entry["ios_versions"].append({
+                    ventry = {
                         "id": v.get("id"),
                         "version_string": va.get("versionString"),
                         "app_store_state": va.get("appStoreState"),
                         "app_version_state": va.get("appVersionState"),
                         "created_date": va.get("createdDate"),
-                    })
+                        "attached_build": None,
+                    }
+                    try:
+                        build = c.request(
+                            "GET",
+                            f"/v1/appStoreVersions/{v.get('id')}/build",
+                            params={"fields[builds]": "version,uploadedDate,processingState,expired"},
+                        ).get("data") or {}
+                        if build:
+                            ba = build.get("attributes") or {}
+                            ventry["attached_build"] = {
+                                "id": build.get("id"),
+                                "version": ba.get("version"),
+                                "uploaded_date": ba.get("uploadedDate"),
+                                "processing_state": ba.get("processingState"),
+                                "expired": ba.get("expired"),
+                            }
+                    except Exception as build_exc:
+                        ventry["attached_build_error"] = f"{type(build_exc).__name__}: {str(build_exc)[:300]}"
+                    entry["ios_versions"].append(ventry)
             except Exception as exc:
                 entry["ios_versions_error"] = f"{type(exc).__name__}: {str(exc)[:300]}"
+
+            if attrs.get("bundleId") == SS_ROCK_BUNDLE_ID:
+                try:
+                    builds = c.all(
+                        "/v1/builds",
+                        params={
+                            "filter[app]": aid,
+                            "fields[builds]": "version,uploadedDate,processingState,expired",
+                            "limit": 200,
+                        },
+                    )
+                    recent_builds = []
+                    for build in builds:
+                        ba = build.get("attributes") or {}
+                        recent_builds.append({
+                            "id": build.get("id"),
+                            "version": ba.get("version"),
+                            "uploaded_date": ba.get("uploadedDate"),
+                            "processing_state": ba.get("processingState"),
+                            "expired": ba.get("expired"),
+                        })
+                    recent_builds.sort(key=lambda row: row.get("uploaded_date") or "", reverse=True)
+                    entry["recent_builds"] = recent_builds[:12]
+                except Exception as builds_exc:
+                    entry["recent_builds_error"] = f"{type(builds_exc).__name__}: {str(builds_exc)[:300]}"
 
             try:
                 reviews = c.all(
