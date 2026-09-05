@@ -248,7 +248,10 @@ export default function Subscription() {
   };
 
   const startWebCheckout = async (planCode) => {
-    if (!user?.id) { window.location.href = "/login?returnTo=/subscribe"; return; }
+    if (!user?.id) {
+      window.location.href = `/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`;
+      return;
+    }
     setPurchaseMessage("");
     setBuyingId(planCode);
     try {
