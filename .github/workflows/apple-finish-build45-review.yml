@@ -1,5 +1,5 @@
 name: Finish Apple Review - S&S Quarry Intelligence
-# Uses whichever valid build is currently attached to App Store version 1.0.
+# Uses whichever valid build is currently attached to App Store version 1.0 and records the live review state.
 
 on:
   push:
