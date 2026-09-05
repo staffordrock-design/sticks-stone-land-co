@@ -1,4 +1,5 @@
 name: Audit Apple Review Subscription Linkage
+# Refresh live S&S Quarry Intelligence review/subscription state.
 
 on:
   workflow_dispatch:
