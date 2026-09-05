@@ -1,4 +1,5 @@
 name: Finish Apple Review Build 45
+# Refreshed after custom Quarry Intelligence app-icon update.
 
 on:
   push:
