@@ -1,0 +1,20 @@
+{
+  "actions": [],
+  "active_reviews_before": [],
+  "app_id": "6802014287",
+  "app_store_version_id": "98de6dc0-3fab-4945-bef2-b8e0ddea0713",
+  "authenticated": true,
+  "bundle_id": "com.base6a78376a454093ba2f431acd.app",
+  "errors": [],
+  "final": {},
+  "generated_at": "2026-09-05T04:09:42.626647+00:00",
+  "key_id_used": "2A3958GU5F",
+  "previous_build": {
+    "id": "6047f241-0763-4476-8f0c-fe886db21575",
+    "version": "70"
+  },
+  "product_id": "com.ssrockholdings.mobile.quarryintelligence.monthly199",
+  "target_build": "70",
+  "target_build_id": "6047f241-0763-4476-8f0c-fe886db21575",
+  "target_version": "2.130297.4"
+}
