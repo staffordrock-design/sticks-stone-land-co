@@ -4,6 +4,43 @@
       "app_id": "6802014287",
       "bundle_id": "com.base6a78376a454093ba2f431acd.app",
       "id": "50dd2648-eb34-477d-af1c-6b571432f3ea",
+      "items": [
+        {
+          "id": "NTBkZDI2NDgtZWIzNC00NzdkLWFmMWMtNmI1NzE0MzJmM2VhfDE4fDg5MTExZDdkLTMxNjEtNDZjMi1iOWU0LTBmY2M0MDhhMTE5Mw",
+          "resource_attributes": {
+            "state": "WAITING_FOR_REVIEW",
+            "version": 1
+          },
+          "resource_id": "89111d7d-3161-46c2-b9e4-0fcc408a1193",
+          "resource_state": "WAITING_FOR_REVIEW",
+          "resource_type": "subscriptionVersion",
+          "state": "READY_FOR_REVIEW"
+        },
+        {
+          "id": "NTBkZDI2NDgtZWIzNC00NzdkLWFmMWMtNmI1NzE0MzJmM2VhfDZ8ODkwNzc2OTIw",
+          "resource_attributes": {
+            "appStoreState": "WAITING_FOR_REVIEW",
+            "appVersionState": "WAITING_FOR_REVIEW",
+            "platform": "IOS",
+            "versionString": "2.130297.4"
+          },
+          "resource_id": "98de6dc0-3fab-4945-bef2-b8e0ddea0713",
+          "resource_state": null,
+          "resource_type": "appStoreVersion",
+          "state": "READY_FOR_REVIEW"
+        },
+        {
+          "id": "NTBkZDI2NDgtZWIzNC00NzdkLWFmMWMtNmI1NzE0MzJmM2VhfDE5fDc3NmYxZTJiLTVkZDAtNGJlOC1iNjFkLTVmOTY4MzJiZWU2NA",
+          "resource_attributes": {
+            "state": "WAITING_FOR_REVIEW",
+            "version": 1
+          },
+          "resource_id": "776f1e2b-5dd0-4be8-b61d-5f96832bee64",
+          "resource_state": "WAITING_FOR_REVIEW",
+          "resource_type": "subscriptionGroupVersion",
+          "state": "READY_FOR_REVIEW"
+        }
+      ],
       "name": "S&S Rock Holdings",
       "platform": "IOS",
       "state": "WAITING_FOR_REVIEW",
@@ -13,6 +50,43 @@
       "app_id": "6801479135",
       "bundle_id": "com.ssrockholdings.quarrymarketplace",
       "id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+      "items": [
+        {
+          "id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDE4fGU4ZWM2NWJkLTEyNWQtNDhhNi1iMmU1LTVjZmNlODU5ZjM5Nw",
+          "resource_attributes": {
+            "state": "READY_FOR_REVIEW",
+            "version": 1
+          },
+          "resource_id": "e8ec65bd-125d-48a6-b2e5-5cfce859f397",
+          "resource_state": "READY_FOR_REVIEW",
+          "resource_type": "subscriptionVersion",
+          "state": "READY_FOR_REVIEW"
+        },
+        {
+          "id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDE5fDUwODNiMDZmLTVjMzgtNDQzMC1hZmM1LTM5M2JiMzkzMjhiMA",
+          "resource_attributes": {
+            "state": "READY_FOR_REVIEW",
+            "version": 1
+          },
+          "resource_id": "5083b06f-5c38-4430-afc5-393bb39328b0",
+          "resource_state": "READY_FOR_REVIEW",
+          "resource_type": "subscriptionGroupVersion",
+          "state": "READY_FOR_REVIEW"
+        },
+        {
+          "id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDZ8ODg5NzYwNTUw",
+          "resource_attributes": {
+            "appStoreState": "PREPARE_FOR_SUBMISSION",
+            "appVersionState": "PREPARE_FOR_SUBMISSION",
+            "platform": "IOS",
+            "versionString": "1.0"
+          },
+          "resource_id": "2529d759-049e-4622-87cb-8c63460f20ef",
+          "resource_state": null,
+          "resource_type": "appStoreVersion",
+          "state": "REMOVED"
+        }
+      ],
       "name": "S&S Quarry Intelligence",
       "platform": "IOS",
       "state": "UNRESOLVED_ISSUES",
@@ -22,6 +96,19 @@
       "app_id": "6801486748",
       "bundle_id": "com.ssrockholdings.app",
       "id": "8d6ebc18-2909-4fe3-86aa-52a209a8d564",
+      "items": [
+        {
+          "id": "OGQ2ZWJjMTgtMjkwOS00ZmUzLTg2YWEtNTJhMjA5YThkNTY0fDE4fDIyNGVhOWU3LWQyYjMtNDQ5Yi04ZDY1LTMzYTk2ZGQ4ODU3Yw",
+          "resource_attributes": {
+            "state": "READY_FOR_REVIEW",
+            "version": 1
+          },
+          "resource_id": "224ea9e7-d2b3-449b-8d65-33a96dd8857c",
+          "resource_state": "READY_FOR_REVIEW",
+          "resource_type": "subscriptionVersion",
+          "state": "READY_FOR_REVIEW"
+        }
+      ],
       "name": "S&S Rock Holdings Archive",
       "platform": null,
       "state": "READY_FOR_REVIEW",
@@ -33,6 +120,43 @@
       "active_reviews": [
         {
           "id": "50dd2648-eb34-477d-af1c-6b571432f3ea",
+          "items": [
+            {
+              "id": "NTBkZDI2NDgtZWIzNC00NzdkLWFmMWMtNmI1NzE0MzJmM2VhfDE4fDg5MTExZDdkLTMxNjEtNDZjMi1iOWU0LTBmY2M0MDhhMTE5Mw",
+              "resource_attributes": {
+                "state": "WAITING_FOR_REVIEW",
+                "version": 1
+              },
+              "resource_id": "89111d7d-3161-46c2-b9e4-0fcc408a1193",
+              "resource_state": "WAITING_FOR_REVIEW",
+              "resource_type": "subscriptionVersion",
+              "state": "READY_FOR_REVIEW"
+            },
+            {
+              "id": "NTBkZDI2NDgtZWIzNC00NzdkLWFmMWMtNmI1NzE0MzJmM2VhfDZ8ODkwNzc2OTIw",
+              "resource_attributes": {
+                "appStoreState": "WAITING_FOR_REVIEW",
+                "appVersionState": "WAITING_FOR_REVIEW",
+                "platform": "IOS",
+                "versionString": "2.130297.4"
+              },
+              "resource_id": "98de6dc0-3fab-4945-bef2-b8e0ddea0713",
+              "resource_state": null,
+              "resource_type": "appStoreVersion",
+              "state": "READY_FOR_REVIEW"
+            },
+            {
+              "id": "NTBkZDI2NDgtZWIzNC00NzdkLWFmMWMtNmI1NzE0MzJmM2VhfDE5fDc3NmYxZTJiLTVkZDAtNGJlOC1iNjFkLTVmOTY4MzJiZWU2NA",
+              "resource_attributes": {
+                "state": "WAITING_FOR_REVIEW",
+                "version": 1
+              },
+              "resource_id": "776f1e2b-5dd0-4be8-b61d-5f96832bee64",
+              "resource_state": "WAITING_FOR_REVIEW",
+              "resource_type": "subscriptionGroupVersion",
+              "state": "READY_FOR_REVIEW"
+            }
+          ],
           "platform": "IOS",
           "state": "WAITING_FOR_REVIEW",
           "submitted_date": "2026-09-04T15:42:35.237Z"
@@ -234,6 +358,43 @@
       "active_reviews": [
         {
           "id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+          "items": [
+            {
+              "id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDE4fGU4ZWM2NWJkLTEyNWQtNDhhNi1iMmU1LTVjZmNlODU5ZjM5Nw",
+              "resource_attributes": {
+                "state": "READY_FOR_REVIEW",
+                "version": 1
+              },
+              "resource_id": "e8ec65bd-125d-48a6-b2e5-5cfce859f397",
+              "resource_state": "READY_FOR_REVIEW",
+              "resource_type": "subscriptionVersion",
+              "state": "READY_FOR_REVIEW"
+            },
+            {
+              "id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDE5fDUwODNiMDZmLTVjMzgtNDQzMC1hZmM1LTM5M2JiMzkzMjhiMA",
+              "resource_attributes": {
+                "state": "READY_FOR_REVIEW",
+                "version": 1
+              },
+              "resource_id": "5083b06f-5c38-4430-afc5-393bb39328b0",
+              "resource_state": "READY_FOR_REVIEW",
+              "resource_type": "subscriptionGroupVersion",
+              "state": "READY_FOR_REVIEW"
+            },
+            {
+              "id": "YmIwOTU5OWYtZDZkMC00Mjk4LTllMjctN2Q4ZDI5ODc2NmM1fDZ8ODg5NzYwNTUw",
+              "resource_attributes": {
+                "appStoreState": "PREPARE_FOR_SUBMISSION",
+                "appVersionState": "PREPARE_FOR_SUBMISSION",
+                "platform": "IOS",
+                "versionString": "1.0"
+              },
+              "resource_id": "2529d759-049e-4622-87cb-8c63460f20ef",
+              "resource_state": null,
+              "resource_type": "appStoreVersion",
+              "state": "REMOVED"
+            }
+          ],
           "platform": "IOS",
           "state": "UNRESOLVED_ISSUES",
           "submitted_date": "2026-08-28T20:51:25.649Z"
@@ -279,6 +440,19 @@
       "active_reviews": [
         {
           "id": "8d6ebc18-2909-4fe3-86aa-52a209a8d564",
+          "items": [
+            {
+              "id": "OGQ2ZWJjMTgtMjkwOS00ZmUzLTg2YWEtNTJhMjA5YThkNTY0fDE4fDIyNGVhOWU3LWQyYjMtNDQ5Yi04ZDY1LTMzYTk2ZGQ4ODU3Yw",
+              "resource_attributes": {
+                "state": "READY_FOR_REVIEW",
+                "version": 1
+              },
+              "resource_id": "224ea9e7-d2b3-449b-8d65-33a96dd8857c",
+              "resource_state": "READY_FOR_REVIEW",
+              "resource_type": "subscriptionVersion",
+              "state": "READY_FOR_REVIEW"
+            }
+          ],
           "platform": null,
           "state": "READY_FOR_REVIEW",
           "submitted_date": null
@@ -341,7 +515,7 @@
   ],
   "authenticated": true,
   "errors": [],
-  "generated_at": "2026-09-05T04:06:38.336560+00:00",
+  "generated_at": "2026-09-05T04:07:37.545821+00:00",
   "key_id_used": "2A3958GU5F",
   "target_product_locations": {
     "com.ssrockholdings.marketplace.annual": {
