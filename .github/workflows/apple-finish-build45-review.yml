@@ -1,5 +1,5 @@
-name: Finish Apple Review Build 45
-# Refreshed after custom Quarry Intelligence app-icon update.
+name: Finish Apple Review - S&S Quarry Intelligence
+# Uses whichever valid build is currently attached to App Store version 1.0.
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install --quiet PyJWT cryptography requests
 
-      - name: Add subscription group version and submit build 45
+      - name: Verify current attached build and finish Apple review
         env:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
           ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
