@@ -181,7 +181,38 @@ def main() -> None:
                     ra = rv.get("attributes") or {}
                     state = ra.get("state")
                     if state in ACTIVE_STATES:
-                        rentry = {"id": rv.get("id"), "state": state, "submitted_date": ra.get("submittedDate"), "platform": ra.get("platform")}
+                        rentry = {"id": rv.get("id"), "state": state, "submitted_date": ra.get("submittedDate"), "platform": ra.get("platform"), "items": []}
+                        try:
+                            item_body = c.request(
+                                "GET",
+                                f"/v1/reviewSubmissions/{rv.get('id')}/items",
+                                params={
+                                    "include": "appStoreVersion,subscriptionVersion,subscriptionGroupVersion",
+                                    "fields[reviewSubmissionItems]": "state,appStoreVersion,subscriptionVersion,subscriptionGroupVersion",
+                                    "fields[appStoreVersions]": "platform,versionString,appStoreState,appVersionState",
+                                    "fields[subscriptionVersions]": "version,state,subscription",
+                                    "fields[subscriptionGroupVersions]": "version,state,subscriptionGroup",
+                                    "limit": 200,
+                                },
+                            )
+                            included = {x.get("id"): x for x in item_body.get("included", [])}
+                            for item in item_body.get("data", []):
+                                rels = item.get("relationships") or {}
+                                ientry = {"id": item.get("id"), "state": (item.get("attributes") or {}).get("state")}
+                                for rel_name in ("appStoreVersion", "subscriptionVersion", "subscriptionGroupVersion"):
+                                    rel = ((rels.get(rel_name) or {}).get("data") or {})
+                                    if rel.get("id"):
+                                        resource = included.get(rel.get("id"), {})
+                                        ientry.update({
+                                            "resource_type": rel_name,
+                                            "resource_id": rel.get("id"),
+                                            "resource_state": (resource.get("attributes") or {}).get("state"),
+                                            "resource_attributes": resource.get("attributes") or {},
+                                        })
+                                        break
+                                rentry["items"].append(ientry)
+                        except Exception as items_exc:
+                            rentry["items_error"] = f"{type(items_exc).__name__}: {str(items_exc)[:300]}"
                         entry["active_reviews"].append(rentry)
                         report["active_review_apps"].append({"app_id": aid, "name": attrs.get("name"), "bundle_id": attrs.get("bundleId"), **rentry})
             except Exception as exc:
