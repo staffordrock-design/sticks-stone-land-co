@@ -52,7 +52,27 @@ export default function MembershipRequiredGate({ children }) {
     }
 
     if (!user?.id) {
-      setAccessState({ loading: false, active: false, checkedPath: pathname });
+      if (!isNativeIOS()) {
+        setAccessState({ loading: false, active: false, checkedPath: pathname });
+        return () => { cancelled = true; };
+      }
+
+      setAccessState((current) => ({ ...current, loading: true, checkedPath: null }));
+      (async () => {
+        try {
+          const storeAccess = await stableAppleSubscriptionAccess({ attempts: 4 });
+          if (!cancelled) {
+            setAccessState({
+              loading: false,
+              active: Boolean(storeAccess?.active && storeAccess?.professional),
+              checkedPath: pathname,
+            });
+          }
+        } catch (error) {
+          console.error("Anonymous Apple membership check failed", error);
+          if (!cancelled) setAccessState({ loading: false, active: false, checkedPath: pathname });
+        }
+      })();
       return () => { cancelled = true; };
     }
 
@@ -117,8 +137,14 @@ export default function MembershipRequiredGate({ children }) {
   if (isLoadingPublicSettings || isLoadingAuth || !authChecked) return loadingScreen();
 
   if (!user?.id) {
-    const subscribeReturn = `/subscribe?returnTo=${returnTo}`;
-    return <Navigate to={`/login?returnTo=${encodeURIComponent(subscribeReturn)}`} replace />;
+    // iPhone subscriptions belong to the Apple ID and do not require an S&S account.
+    // Let StoreKit-authorized anonymous subscribers into paid screens; everyone else
+    // goes straight to the paywall instead of being bounced through Login first.
+    if (isNativeIOS()) {
+      if (accessState.loading || accessState.checkedPath !== pathname) return loadingScreen();
+      if (accessState.active) return children;
+    }
+    return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
   }
 
   // Never redirect from a protected route using access state that was computed for a different path.
