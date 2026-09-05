@@ -15,8 +15,12 @@ const PRODUCT_TO_PLAN = {
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user?.id) return Response.json({ error: 'Sign in required' }, { status: 401 });
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      user = null;
+    }
 
     const body = await req.json();
     const signedTransactions = Array.isArray(body?.signed_transactions)
@@ -32,7 +36,7 @@ export default async function(req) {
     const { verified } = await verifyApplePurchases({
       signedTransactions,
       signedAppTransaction,
-      expectedUserId: user.id,
+      expectedUserId: user?.id,
     });
 
     const now = Date.now();
@@ -51,9 +55,13 @@ export default async function(req) {
         1,
         0,
       );
-      if (existingReceipt?.[0] && existingReceipt[0].user_id !== user.id) {
+      const anonymousUserId = `apple-anonymous:${(await sha256Hex(originalTransactionId)).slice(0, 32)}`;
+      const existingUserId = String(existingReceipt?.[0]?.user_id || '');
+      const existingIsAnonymous = existingUserId.startsWith('apple-anonymous:');
+      if (user?.id && existingReceipt?.[0] && existingUserId !== user.id && !existingIsAnonymous) {
         return Response.json({ error: 'This Apple subscription is already linked to another account' }, { status: 409 });
       }
+      const recordUserId = user?.id || existingUserId || anonymousUserId;
 
       const revoked = Boolean(transaction.revocationDate);
       const expiresMs = Number(transaction.expiresDate || 0);
@@ -70,7 +78,7 @@ export default async function(req) {
       const payloadHash = await sha256Hex(signedTransaction);
 
       const receiptData = {
-        user_id: user.id,
+        user_id: recordUserId,
         platform: 'Apple',
         product_id: productId,
         transaction_id: transactionId,
@@ -88,30 +96,32 @@ export default async function(req) {
         await base44.asServiceRole.entities.StoreReceipt.create(receiptData);
       }
 
-      const entitlements = await base44.asServiceRole.entities.SubscriptionEntitlement.filter(
-        { user_id: user.id, platform: 'apple' },
-        '-updated_date',
-        20,
-        0,
-      );
-      const sameSubscription = entitlements.find((row) => row.original_transaction_id === originalTransactionId);
-      const entitlementData = {
-        user_id: user.id,
-        plan_code: planCode,
-        status,
-        platform: 'apple',
-        product_id: productId,
-        original_transaction_id: originalTransactionId,
-        expires_at: expiresAt,
-        started_at: purchaseDate,
-        last_verified_at: verifiedAt,
-        source: 'Apple StoreKit verified JWS',
-      };
+      if (user?.id) {
+        const entitlements = await base44.asServiceRole.entities.SubscriptionEntitlement.filter(
+          { user_id: user.id, platform: 'apple' },
+          '-updated_date',
+          20,
+          0,
+        );
+        const sameSubscription = entitlements.find((row) => row.original_transaction_id === originalTransactionId);
+        const entitlementData = {
+          user_id: user.id,
+          plan_code: planCode,
+          status,
+          platform: 'apple',
+          product_id: productId,
+          original_transaction_id: originalTransactionId,
+          expires_at: expiresAt,
+          started_at: purchaseDate,
+          last_verified_at: verifiedAt,
+          source: 'Apple StoreKit verified JWS',
+        };
 
-      if (sameSubscription) {
-        await base44.asServiceRole.entities.SubscriptionEntitlement.update(sameSubscription.id, entitlementData);
-      } else {
-        await base44.asServiceRole.entities.SubscriptionEntitlement.create(entitlementData);
+        if (sameSubscription) {
+          await base44.asServiceRole.entities.SubscriptionEntitlement.update(sameSubscription.id, entitlementData);
+        } else {
+          await base44.asServiceRole.entities.SubscriptionEntitlement.create(entitlementData);
+        }
       }
 
       // Keep the owner revenue dashboard synchronized with verified StoreKit activity.
@@ -121,8 +131,8 @@ export default async function(req) {
         : (productId === 'com.ssrockholdings.mobile.quarryintelligence.monthly199' || productId === 'com.ssrockholdings.quarryintelligence.monthly199' ? 199 : 0);
       const billingStatus = revoked ? 'Refunded' : expired ? 'Cancelled' : freeTrial ? 'Pending' : 'Paid';
       const billingData = {
-        user_id: user.id,
-        customer_email: user.email || '',
+        user_id: recordUserId,
+        customer_email: user?.email || '',
         revenue_type: 'Subscription',
         plan_or_product: planCode,
         amount: amountFromApple,
@@ -132,8 +142,8 @@ export default async function(req) {
         external_transaction_id: transactionId,
         occurred_at: purchaseDate || verifiedAt,
         notes: freeTrial
-          ? 'Apple verified 3-day introductory free trial; payment is due when the trial converts.'
-          : 'Apple StoreKit verified subscription transaction.',
+          ? `Apple verified 3-day introductory free trial; payment is due when the trial converts.${user?.id ? '' : ' Purchased without an S&S login; StoreKit access is active and the subscription can be linked later.'}`
+          : `Apple StoreKit verified subscription transaction.${user?.id ? '' : ' Purchased without an S&S login; StoreKit access is active and the subscription can be linked later.'}`,
       };
       const existingBilling = await base44.asServiceRole.entities.BillingEvent.filter(
         { platform: 'Apple', external_transaction_id: transactionId },
@@ -164,7 +174,7 @@ export default async function(req) {
     // Server notifications / a verified later transaction are authoritative for
     // removing access, not absence from this single client reconciliation call.
 
-    return Response.json({ verified: true, entitlements: results });
+    return Response.json({ verified: true, anonymous: !user?.id, entitlements: results });
   } catch (error) {
     console.error('verify-apple-subscription error:', error);
     return Response.json({ error: error?.message || String(error) }, { status: 400 });
