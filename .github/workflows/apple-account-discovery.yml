@@ -1,5 +1,5 @@
 name: Discover Apple App Records
-# Refresh current S&S Rock Holdings review state before icon build upload.
+# Refresh current S&S Rock Holdings review state after the build-70 icon review swap.
 
 on:
   workflow_dispatch:
