@@ -440,8 +440,31 @@ def main() -> None:
         items: list[dict[str, Any]] = []
         linked: set[str] = set()
         if review_id:
-            items, _ = review_items(c, review_id)
+            items, included_items = review_items(c, review_id)
             linked = linked_subscription_version_ids(items)
+            included_by_id = {x.get("id"): x for x in included_items}
+            review_item_audit = []
+            for item in items:
+                rels = item.get("relationships") or {}
+                resource_type = "other"
+                resource_id = None
+                resource_state = None
+                for rel_name in ("appStoreVersion", "subscriptionVersion", "subscriptionGroupVersion"):
+                    rel_data = ((rels.get(rel_name) or {}).get("data") or {})
+                    if rel_data.get("id"):
+                        resource_type = rel_name
+                        resource_id = rel_data.get("id")
+                        resource_state = (included_by_id.get(resource_id, {}).get("attributes") or {}).get("state")
+                        break
+                review_item_audit.append({
+                    "item_id": item.get("id"),
+                    "item_state": (item.get("attributes") or {}).get("state"),
+                    "resource_type": resource_type,
+                    "resource_id": resource_id,
+                    "resource_state": resource_state,
+                })
+            report["review_items"] = review_item_audit
+            save()
 
         for pid, desired in PRODUCTS.items():
             audit: dict[str, Any] = {
