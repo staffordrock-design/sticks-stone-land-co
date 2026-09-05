@@ -206,8 +206,20 @@ export async function syncCurrentAppleSubscriptions({ restore = false } = {}) {
 
   // Apple requires registration to remain optional for StoreKit purchases.
   // Anonymous subscribers are authorized directly from StoreKit currentEntitlements.
-  // If they later sign in, the same signed transactions are linked to their S&S account.
-  if (!user?.id) return { ...access, anonymous: true };
+  // Still verify their signed StoreKit transactions server-side so owner billing
+  // reporting sees the trial/purchase immediately. If they later sign in, the
+  // temporary Apple receipt is migrated to their S&S account.
+  if (!user?.id) {
+    if (access?.purchases?.length) {
+      try {
+        const verified = await verifyAppleTransactions(access.purchases, { reconcile: true });
+        return { ...verified, ...access, anonymous: true };
+      } catch (error) {
+        console.error('Anonymous Apple backend verification failed', error);
+      }
+    }
+    return { ...access, anonymous: true };
+  }
 
   const verified = await verifyAppleTransactions(access.purchases, { reconcile: true });
   return { ...verified, ...access, anonymous: false };
