@@ -2,13 +2,19 @@
   "actions": [],
   "app_id": "6801479135",
   "app_store_version_id": "2529d759-049e-4622-87cb-8c63460f20ef",
+  "build": {
+    "id": "b3767b9f-3fff-4a0d-8032-873619cb5a17",
+    "processing_state": "VALID",
+    "uploaded_date": "2026-08-29T06:05:28-07:00",
+    "version": "48"
+  },
   "bundle_id": "com.ssrockholdings.quarrymarketplace",
   "errors": [
-    "RuntimeError: Build 45 is not the valid build attached to version 1.0; found 48"
+    "RuntimeError: No READY_FOR_REVIEW Apple submission was found to finish"
   ],
   "final": {},
   "key_id_used": "2A3958GU5F",
   "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
-  "target_build": "45",
+  "target_build": "48",
   "target_version": "1.0"
 }
