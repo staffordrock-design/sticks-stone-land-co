@@ -166,7 +166,10 @@ export default function Subscription() {
 
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
-    if (!user?.id && (isIOS || isAndroid)) {
+    // Apple StoreKit subscriptions are tied to the Apple ID and must remain
+    // purchasable without forcing an S&S account first. Android still requires
+    // an account so the Google Play purchase can be linked to backend access.
+    if (!user?.id && isAndroid) {
       window.location.href = `/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`;
       return;
     }
@@ -205,6 +208,9 @@ export default function Subscription() {
         // Do not put a short JavaScript timeout around StoreKit's purchase sheet.
         // The user may need time for Face ID, password entry, or Apple's confirmation UI.
         const transaction = await NativePurchases.purchaseProduct(options);
+        // Signed backend verification links the purchase to an S&S account when
+        // one exists. Anonymous iPhone buyers still receive immediate access
+        // from StoreKit currentEntitlements and can link the purchase later.
         if (user?.id) await verifyAppleTransactions([transaction]);
 
         const storeAccess = await waitForAppleStoreAccess();
@@ -267,7 +273,7 @@ export default function Subscription() {
 
   const restore = async () => {
     if (!isIOS && !isAndroid) return;
-    if (!user?.id && (isIOS || isAndroid)) {
+    if (!user?.id && isAndroid) {
       window.location.href = `/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`;
       return;
     }
@@ -303,7 +309,7 @@ export default function Subscription() {
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Quarry intelligence access</h1></div></div>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">One membership unlocks the full quarry intelligence platform for $199 per month. On iPhone, eligible new Apple subscribers receive a 3-day free trial before the monthly charge begins. Custom research and due-diligence engagements are handled separately by S&S Rock Holdings.</p>
-          {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Sign in to your S&amp;S account before subscribing or restoring.</strong> This securely links your Apple subscription to one S&amp;S membership so paid access carries across S&amp;S apps and devices. <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">Sign in</Link> · <Link to={`/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">Create account</Link></div>}
+          {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to start your Apple subscription.</strong> Tap Subscribe below and Apple will show the 3-day trial and final price before you confirm. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> to link the subscription to saved opportunities, messages and cross-device account features.</div>}
           {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Create your S&amp;S account first.</strong> Sign in or create an account before subscribing so web or Google Play access can be attached to your account. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
 
