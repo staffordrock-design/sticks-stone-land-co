@@ -1,15 +1,91 @@
 {
-  "actions": [],
+  "actions": [
+    "Canceled S&S Rock Holdings review 6f650b92-4fd7-4e7c-971b-6fe4c2e25ceb from state WAITING_FOR_REVIEW",
+    "Prior S&S Rock Holdings review reached COMPLETE",
+    "Version 2.130297.4 became editable in state DEVELOPER_REJECTED",
+    "Attached custom-icon build 71 to S&S Rock Holdings 2.130297.4",
+    "Created replacement S&S Rock Holdings review 64822169-17d5-432f-84f1-eaf6c8142d9c",
+    "Added appStoreVersion 98de6dc0-3fab-4945-bef2-b8e0ddea0713 to replacement review",
+    "Added subscriptionVersion 89111d7d-3161-46c2-b9e4-0fcc408a1193 to replacement review",
+    "Added subscriptionGroupVersion 776f1e2b-5dd0-4be8-b61d-5f96832bee64 to replacement review",
+    "Submitted build 71 + app version + $199 subscription + subscription group version"
+  ],
+  "active_reviews_before": [
+    {
+      "id": "6f650b92-4fd7-4e7c-971b-6fe4c2e25ceb",
+      "items": [
+        {
+          "item_id": "NmY2NTBiOTItNGZkNy00ZTdjLTk3MWItNmZlNGMyZTI1Y2VifDZ8ODkwNzc2OTIw",
+          "item_state": "READY_FOR_REVIEW",
+          "resource_id": "98de6dc0-3fab-4945-bef2-b8e0ddea0713",
+          "resource_type": "appStoreVersion"
+        },
+        {
+          "item_id": "NmY2NTBiOTItNGZkNy00ZTdjLTk3MWItNmZlNGMyZTI1Y2VifDE4fDg5MTExZDdkLTMxNjEtNDZjMi1iOWU0LTBmY2M0MDhhMTE5Mw",
+          "item_state": "READY_FOR_REVIEW",
+          "resource_id": "89111d7d-3161-46c2-b9e4-0fcc408a1193",
+          "resource_type": "subscriptionVersion"
+        },
+        {
+          "item_id": "NmY2NTBiOTItNGZkNy00ZTdjLTk3MWItNmZlNGMyZTI1Y2VifDE5fDc3NmYxZTJiLTVkZDAtNGJlOC1iNjFkLTVmOTY4MzJiZWU2NA",
+          "item_state": "READY_FOR_REVIEW",
+          "resource_id": "776f1e2b-5dd0-4be8-b61d-5f96832bee64",
+          "resource_type": "subscriptionGroupVersion"
+        }
+      ],
+      "state": "WAITING_FOR_REVIEW"
+    }
+  ],
   "app_id": "6802014287",
+  "app_store_version_id": "98de6dc0-3fab-4945-bef2-b8e0ddea0713",
   "authenticated": true,
   "bundle_id": "com.base6a78376a454093ba2f431acd.app",
-  "errors": [
-    "RuntimeError: Build 71 is not VALID in App Store Connect"
-  ],
-  "final": {},
-  "generated_at": "2026-09-05T15:12:06.880142+00:00",
+  "errors": [],
+  "final": {
+    "app_version_linked": true,
+    "attached_build_id": "36a68d84-36ed-4954-b8c5-dbfca3b1203c",
+    "attached_build_number": "71",
+    "attached_build_processing_state": "VALID",
+    "review_id": "64822169-17d5-432f-84f1-eaf6c8142d9c",
+    "review_items": [
+      {
+        "item_id": "NjQ4MjIxNjktMTdkNS00MzJmLTg0ZjEtZWFmNmM4MTQyZDljfDZ8ODkwNzc2OTIw",
+        "item_state": "READY_FOR_REVIEW",
+        "resource_id": "98de6dc0-3fab-4945-bef2-b8e0ddea0713",
+        "resource_type": "appStoreVersion"
+      },
+      {
+        "item_id": "NjQ4MjIxNjktMTdkNS00MzJmLTg0ZjEtZWFmNmM4MTQyZDljfDE4fDg5MTExZDdkLTMxNjEtNDZjMi1iOWU0LTBmY2M0MDhhMTE5Mw",
+        "item_state": "READY_FOR_REVIEW",
+        "resource_id": "89111d7d-3161-46c2-b9e4-0fcc408a1193",
+        "resource_type": "subscriptionVersion"
+      },
+      {
+        "item_id": "NjQ4MjIxNjktMTdkNS00MzJmLTg0ZjEtZWFmNmM4MTQyZDljfDE5fDc3NmYxZTJiLTVkZDAtNGJlOC1iNjFkLTVmOTY4MzJiZWU2NA",
+        "item_state": "READY_FOR_REVIEW",
+        "resource_id": "776f1e2b-5dd0-4be8-b61d-5f96832bee64",
+        "resource_type": "subscriptionGroupVersion"
+      }
+    ],
+    "review_state": "WAITING_FOR_REVIEW",
+    "subscription_group_version_linked": true,
+    "subscription_version_linked": true
+  },
+  "generated_at": "2026-09-05T15:13:15.022071+00:00",
   "key_id_used": "2A3958GU5F",
+  "new_review_submission_id": "64822169-17d5-432f-84f1-eaf6c8142d9c",
+  "previous_build": {
+    "id": "6047f241-0763-4476-8f0c-fe886db21575",
+    "version": "70"
+  },
   "product_id": "com.ssrockholdings.mobile.quarryintelligence.monthly199",
+  "subscription_group_id": "22312976",
+  "subscription_group_version_id": "776f1e2b-5dd0-4be8-b61d-5f96832bee64",
+  "subscription_group_version_state": "DEVELOPER_REJECTED",
+  "subscription_id": "6806611685",
+  "subscription_version_id": "89111d7d-3161-46c2-b9e4-0fcc408a1193",
+  "subscription_version_state": "DEVELOPER_REJECTED",
   "target_build": "71",
+  "target_build_id": "36a68d84-36ed-4954-b8c5-dbfca3b1203c",
   "target_version": "2.130297.4"
 }
