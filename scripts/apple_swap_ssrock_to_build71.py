@@ -121,21 +121,38 @@ def find_app_version(c: ASC, app_id: str) -> dict[str, Any]:
     return rows[0]
 
 
-def find_target_build(c: ASC, app_id: str) -> dict[str, Any]:
-    rows = c.all(
-        "/v1/builds",
-        params={
-            "filter[app]": app_id,
-            "filter[version]": TARGET_BUILD,
-            "fields[builds]": "version,uploadedDate,processingState,expired",
-            "limit": 50,
-        },
-    )
-    valid = [r for r in rows if (r.get("attributes") or {}).get("processingState") == "VALID" and not (r.get("attributes") or {}).get("expired")]
-    if not valid:
-        raise RuntimeError(f"Build {TARGET_BUILD} is not VALID in App Store Connect")
-    valid.sort(key=lambda r: (r.get("attributes") or {}).get("uploadedDate") or "", reverse=True)
-    return valid[0]
+def find_target_build(c: ASC, app_id: str, timeout=600) -> dict[str, Any]:
+    deadline = time.time() + timeout
+    last_states: list[tuple[str, str, bool]] = []
+    while time.time() < deadline:
+        rows = c.all(
+            "/v1/builds",
+            params={
+                "filter[app]": app_id,
+                "filter[version]": TARGET_BUILD,
+                "fields[builds]": "version,uploadedDate,processingState,expired",
+                "limit": 50,
+            },
+        )
+        valid = [r for r in rows if (r.get("attributes") or {}).get("processingState") == "VALID" and not (r.get("attributes") or {}).get("expired")]
+        if valid:
+            valid.sort(key=lambda r: (r.get("attributes") or {}).get("uploadedDate") or "", reverse=True)
+            return valid[0]
+        last_states = [
+            (
+                str((r.get("attributes") or {}).get("version") or ""),
+                str((r.get("attributes") or {}).get("processingState") or ""),
+                bool((r.get("attributes") or {}).get("expired")),
+            )
+            for r in rows
+        ]
+        if not rows:
+            report["actions"].append(f"Waiting for build {TARGET_BUILD} to appear in App Store Connect")
+        else:
+            report["actions"].append(f"Waiting for build {TARGET_BUILD} processing: {last_states}")
+        save()
+        time.sleep(10)
+    raise RuntimeError(f"Build {TARGET_BUILD} did not become VALID in App Store Connect. Last states: {last_states}")
 
 
 def active_reviews(c: ASC, app_id: str) -> list[dict[str, Any]]:
