@@ -208,10 +208,14 @@ export default function Subscription() {
         // Do not put a short JavaScript timeout around StoreKit's purchase sheet.
         // The user may need time for Face ID, password entry, or Apple's confirmation UI.
         const transaction = await NativePurchases.purchaseProduct(options);
-        // Signed backend verification links the purchase to an S&S account when
-        // one exists. Anonymous iPhone buyers still receive immediate access
-        // from StoreKit currentEntitlements and can link the purchase later.
-        if (user?.id) await verifyAppleTransactions([transaction]);
+        // Record every verified Apple purchase for owner reporting. When the buyer
+        // is anonymous, the backend stores it against a temporary Apple purchase
+        // identity; signing in later migrates that receipt to the S&S account.
+        try {
+          await verifyAppleTransactions([transaction]);
+        } catch (verificationError) {
+          console.error("Apple backend reporting verification failed", verificationError);
+        }
 
         const storeAccess = await waitForAppleStoreAccess();
         if (!storeAccess?.active || !storeAccess?.professional) {
