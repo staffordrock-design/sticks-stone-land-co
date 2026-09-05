@@ -1,15 +1,6 @@
 {
   "active_review_apps": [
     {
-      "app_id": "6801479135",
-      "bundle_id": "com.ssrockholdings.quarrymarketplace",
-      "id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
-      "name": "S&S Quarry Intelligence",
-      "platform": "IOS",
-      "state": "UNRESOLVED_ISSUES",
-      "submitted_date": "2026-08-28T20:51:25.649Z"
-    },
-    {
       "app_id": "6802014287",
       "bundle_id": "com.base6a78376a454093ba2f431acd.app",
       "id": "50dd2648-eb34-477d-af1c-6b571432f3ea",
@@ -17,6 +8,15 @@
       "platform": "IOS",
       "state": "WAITING_FOR_REVIEW",
       "submitted_date": "2026-09-04T15:42:35.237Z"
+    },
+    {
+      "app_id": "6801479135",
+      "bundle_id": "com.ssrockholdings.quarrymarketplace",
+      "id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+      "name": "S&S Quarry Intelligence",
+      "platform": "IOS",
+      "state": "UNRESOLVED_ISSUES",
+      "submitted_date": "2026-08-28T20:51:25.649Z"
     },
     {
       "app_id": "6801486748",
@@ -32,44 +32,6 @@
     {
       "active_reviews": [
         {
-          "id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
-          "platform": "IOS",
-          "state": "UNRESOLVED_ISSUES",
-          "submitted_date": "2026-08-28T20:51:25.649Z"
-        }
-      ],
-      "bundle_id": "com.ssrockholdings.quarrymarketplace",
-      "id": "6801479135",
-      "ios_versions": [
-        {
-          "app_store_state": "PREPARE_FOR_SUBMISSION",
-          "app_version_state": "PREPARE_FOR_SUBMISSION",
-          "created_date": "2026-08-14T02:28:29-07:00",
-          "id": "2529d759-049e-4622-87cb-8c63460f20ef",
-          "version_string": "1.0"
-        }
-      ],
-      "name": "S&S Quarry Intelligence",
-      "sku": "SSQI-IOS-001",
-      "subscription_groups": [
-        {
-          "id": "22320430",
-          "reference_name": "S&S Rock Holdings Access",
-          "subscriptions": [
-            {
-              "id": "6805699765",
-              "name": "Full Quarry Intelligence Monthly",
-              "period": "ONE_MONTH",
-              "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
-              "state": "READY_TO_SUBMIT"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "active_reviews": [
-        {
           "id": "50dd2648-eb34-477d-af1c-6b571432f3ea",
           "platform": "IOS",
           "state": "WAITING_FOR_REVIEW",
@@ -82,6 +44,13 @@
         {
           "app_store_state": "WAITING_FOR_REVIEW",
           "app_version_state": "WAITING_FOR_REVIEW",
+          "attached_build": {
+            "expired": false,
+            "id": "3f041975-bf46-4c5d-a840-a322138bfc8a",
+            "processing_state": "VALID",
+            "uploaded_date": "2026-09-03T09:01:58-07:00",
+            "version": "69"
+          },
           "created_date": "2026-09-03T08:57:04-07:00",
           "id": "98de6dc0-3fab-4945-bef2-b8e0ddea0713",
           "version_string": "2.130297.4"
@@ -89,6 +58,13 @@
         {
           "app_store_state": "READY_FOR_SALE",
           "app_version_state": "READY_FOR_DISTRIBUTION",
+          "attached_build": {
+            "expired": false,
+            "id": "2c09395b-986e-44e7-958a-1ab5a6d578f2",
+            "processing_state": "VALID",
+            "uploaded_date": "2026-09-01T09:18:07-07:00",
+            "version": "66"
+          },
           "created_date": "2026-09-01T09:10:54-07:00",
           "id": "f0464739-e7ee-470a-8d85-c9908ea56393",
           "version_string": "2.130297.3"
@@ -96,6 +72,13 @@
         {
           "app_store_state": "READY_FOR_SALE",
           "app_version_state": "READY_FOR_DISTRIBUTION",
+          "attached_build": {
+            "expired": false,
+            "id": "e473392e-506c-4fb9-bd38-a76495b95e74",
+            "processing_state": "VALID",
+            "uploaded_date": "2026-08-29T13:05:21-07:00",
+            "version": "61"
+          },
           "created_date": "2026-08-28T12:14:20-07:00",
           "id": "e5406655-7c03-460a-a33a-0075f8908a27",
           "version_string": "2.130297.2"
@@ -103,12 +86,105 @@
         {
           "app_store_state": "READY_FOR_SALE",
           "app_version_state": "READY_FOR_DISTRIBUTION",
+          "attached_build": {
+            "expired": false,
+            "id": "4c9478e2-7efd-47ce-980a-c7828bef60d7",
+            "processing_state": "VALID",
+            "uploaded_date": "2026-08-23T13:12:36-07:00",
+            "version": "20"
+          },
           "created_date": "2026-08-16T03:26:11-07:00",
           "id": "094ac4b1-2b6f-4858-a46a-4871a3bc69d2",
           "version_string": "2.130297.1"
         }
       ],
       "name": "S&S Rock Holdings",
+      "recent_builds": [
+        {
+          "expired": false,
+          "id": "6047f241-0763-4476-8f0c-fe886db21575",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-09-04T21:05:26-07:00",
+          "version": "70"
+        },
+        {
+          "expired": false,
+          "id": "3f041975-bf46-4c5d-a840-a322138bfc8a",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-09-03T09:01:58-07:00",
+          "version": "69"
+        },
+        {
+          "expired": false,
+          "id": "2c09395b-986e-44e7-958a-1ab5a6d578f2",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-09-01T09:18:07-07:00",
+          "version": "66"
+        },
+        {
+          "expired": false,
+          "id": "620862eb-1013-41c4-b5ba-bd50a9526339",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-09-01T09:11:49-07:00",
+          "version": "65"
+        },
+        {
+          "expired": false,
+          "id": "be057289-32f8-420c-921f-139ca2cbb67c",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-09-01T09:03:35-07:00",
+          "version": "63"
+        },
+        {
+          "expired": false,
+          "id": "e473392e-506c-4fb9-bd38-a76495b95e74",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-08-29T13:05:21-07:00",
+          "version": "61"
+        },
+        {
+          "expired": false,
+          "id": "65768679-18d0-4e7c-b0e0-60a9a813e21b",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-08-29T12:58:17-07:00",
+          "version": "60"
+        },
+        {
+          "expired": false,
+          "id": "c35f3de2-e8b6-4f73-ad4e-f3302292c450",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-08-29T12:38:44-07:00",
+          "version": "59"
+        },
+        {
+          "expired": false,
+          "id": "5ce2e70b-f7ca-4b9d-ac51-bf30b1e590c8",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-08-29T12:27:25-07:00",
+          "version": "58"
+        },
+        {
+          "expired": false,
+          "id": "52d7dc8b-8dae-40af-a40f-518986f44180",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-08-29T12:13:36-07:00",
+          "version": "57"
+        },
+        {
+          "expired": false,
+          "id": "c60a1210-cccd-4dae-ae7c-4ce5da2385b1",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-08-29T11:59:46-07:00",
+          "version": "56"
+        },
+        {
+          "expired": false,
+          "id": "68ad7a57-ca59-45b7-bab4-a72ef17a7f42",
+          "processing_state": "VALID",
+          "uploaded_date": "2026-08-29T11:51:19-07:00",
+          "version": "55"
+        }
+      ],
       "sku": "SSROCK-BASE44-IOS-2026",
       "subscription_groups": [
         {
@@ -157,6 +233,51 @@
     {
       "active_reviews": [
         {
+          "id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+          "platform": "IOS",
+          "state": "UNRESOLVED_ISSUES",
+          "submitted_date": "2026-08-28T20:51:25.649Z"
+        }
+      ],
+      "bundle_id": "com.ssrockholdings.quarrymarketplace",
+      "id": "6801479135",
+      "ios_versions": [
+        {
+          "app_store_state": "PREPARE_FOR_SUBMISSION",
+          "app_version_state": "PREPARE_FOR_SUBMISSION",
+          "attached_build": {
+            "expired": false,
+            "id": "b3767b9f-3fff-4a0d-8032-873619cb5a17",
+            "processing_state": "VALID",
+            "uploaded_date": "2026-08-29T06:05:28-07:00",
+            "version": "48"
+          },
+          "created_date": "2026-08-14T02:28:29-07:00",
+          "id": "2529d759-049e-4622-87cb-8c63460f20ef",
+          "version_string": "1.0"
+        }
+      ],
+      "name": "S&S Quarry Intelligence",
+      "sku": "SSQI-IOS-001",
+      "subscription_groups": [
+        {
+          "id": "22320430",
+          "reference_name": "S&S Rock Holdings Access",
+          "subscriptions": [
+            {
+              "id": "6805699765",
+              "name": "Full Quarry Intelligence Monthly",
+              "period": "ONE_MONTH",
+              "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
+              "state": "READY_TO_SUBMIT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "active_reviews": [
+        {
           "id": "8d6ebc18-2909-4fe3-86aa-52a209a8d564",
           "platform": null,
           "state": "READY_FOR_REVIEW",
@@ -169,6 +290,7 @@
         {
           "app_store_state": "PREPARE_FOR_SUBMISSION",
           "app_version_state": "PREPARE_FOR_SUBMISSION",
+          "attached_build": null,
           "created_date": "2026-08-14T02:59:10-07:00",
           "id": "c8c8221f-0503-4e7a-87f4-0c238a20c329",
           "version_string": "1.0"
@@ -200,6 +322,7 @@
         {
           "app_store_state": "PREPARE_FOR_SUBMISSION",
           "app_version_state": "PREPARE_FOR_SUBMISSION",
+          "attached_build": null,
           "created_date": "2026-08-25T05:13:29-07:00",
           "id": "a61a7ec7-3085-4151-a739-ab9e2f329239",
           "version_string": "1.0"
@@ -218,7 +341,7 @@
   ],
   "authenticated": true,
   "errors": [],
-  "generated_at": "2026-09-05T04:00:32.112339+00:00",
+  "generated_at": "2026-09-05T04:06:38.336560+00:00",
   "key_id_used": "2A3958GU5F",
   "target_product_locations": {
     "com.ssrockholdings.marketplace.annual": {
