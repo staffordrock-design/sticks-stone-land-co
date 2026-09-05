@@ -2,14 +2,14 @@
   "actions": [],
   "app_id": "6801479135",
   "app_store_version": {
-    "app_store_state": "WAITING_FOR_REVIEW",
-    "app_version_state": "WAITING_FOR_REVIEW",
+    "app_store_state": "PREPARE_FOR_SUBMISSION",
+    "app_version_state": "PREPARE_FOR_SUBMISSION",
     "build": {
       "expired": false,
-      "id": "0e70c507-0c0c-45b2-99d4-3f549a3fdd18",
+      "id": "b3767b9f-3fff-4a0d-8032-873619cb5a17",
       "processing_state": "VALID",
-      "uploaded_date": "2026-08-27T23:30:05-07:00",
-      "version": "43"
+      "uploaded_date": "2026-08-29T06:05:28-07:00",
+      "version": "48"
     },
     "id": "2529d759-049e-4622-87cb-8c63460f20ef",
     "version_string": "1.0"
@@ -17,7 +17,7 @@
   "authenticated": true,
   "bundle_id": "com.ssrockholdings.quarrymarketplace",
   "errors": [],
-  "generated_at": "2026-08-28T20:40:27.827927+00:00",
+  "generated_at": "2026-09-05T03:54:18.621935+00:00",
   "key_id_used": "2A3958GU5F",
   "products": {
     "com.ssrockholdings.quarryintelligence.monthly199": {
@@ -27,9 +27,9 @@
       "price_status": "MATCHES_EXPECTED",
       "product_id": "com.ssrockholdings.quarryintelligence.monthly199",
       "subscription_id": "6805699765",
-      "subscription_state": "WAITING_FOR_REVIEW",
+      "subscription_state": "READY_TO_SUBMIT",
       "subscription_version_id": "e8ec65bd-125d-48a6-b2e5-5cfce859f397",
-      "subscription_version_state": "WAITING_FOR_REVIEW",
+      "subscription_version_state": "READY_FOR_REVIEW",
       "usa_pricing": {
         "current": {
           "customer_price": "199.0",
@@ -51,6 +51,20 @@
     }
   },
   "recent_builds": [
+    {
+      "expired": false,
+      "id": "b3767b9f-3fff-4a0d-8032-873619cb5a17",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-29T06:05:28-07:00",
+      "version": "48"
+    },
+    {
+      "expired": false,
+      "id": "5ef6643a-8040-46c5-8a6b-60f8922c4097",
+      "processing_state": "VALID",
+      "uploaded_date": "2026-08-29T05:36:36-07:00",
+      "version": "46"
+    },
     {
       "expired": false,
       "id": "17d7a46b-719a-4be0-9aae-4a3d9712a421",
@@ -176,27 +190,13 @@
       "processing_state": "VALID",
       "uploaded_date": "2026-08-25T18:26:46-07:00",
       "version": "27"
-    },
-    {
-      "expired": false,
-      "id": "59eed0b2-1bb1-4d4c-9d5e-350fa4558de4",
-      "processing_state": "VALID",
-      "uploaded_date": "2026-08-25T05:37:51-07:00",
-      "version": "26"
-    },
-    {
-      "expired": false,
-      "id": "702ea479-0096-44f2-b0b5-9352d96baf37",
-      "processing_state": "VALID",
-      "uploaded_date": "2026-08-17T17:12:19-07:00",
-      "version": "1"
     }
   ],
   "review_submission": {
     "editable": false,
-    "id": "8bb47c74-b213-4c3f-be06-fbe16fe9ab7e",
-    "state": "WAITING_FOR_REVIEW",
-    "submitted_date": "2026-08-28T18:03:40.534Z",
+    "id": "bb09599f-d6d0-4298-9e27-7d8d298766c5",
+    "state": "UNRESOLVED_ISSUES",
+    "submitted_date": "2026-08-28T20:51:25.649Z",
     "subscription_version_item_count": 1
   },
   "warnings": []
