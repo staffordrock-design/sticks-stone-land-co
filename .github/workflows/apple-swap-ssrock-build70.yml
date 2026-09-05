@@ -1,4 +1,5 @@
 name: Swap S&S Rock Holdings Review to Build 70
+# Move the live 2.130297.4 review to the verified custom-icon build.
 
 on:
   workflow_dispatch:
