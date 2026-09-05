@@ -130,6 +130,15 @@ def find_ready_review(c: ASC, app_id: str) -> dict[str, Any]:
         f"/v1/apps/{app_id}/reviewSubmissions",
         params={"filter[platform]": "IOS", "limit": 200},
     )
+    report["review_states"] = [
+        {
+            "id": r.get("id"),
+            "state": (r.get("attributes") or {}).get("state"),
+            "submitted_date": (r.get("attributes") or {}).get("submittedDate"),
+        }
+        for r in reviews
+    ]
+    save()
     ready = [r for r in reviews if (r.get("attributes") or {}).get("state") == "READY_FOR_REVIEW"]
     if not ready:
         waiting = [r for r in reviews if (r.get("attributes") or {}).get("state") in {"WAITING_FOR_REVIEW", "IN_REVIEW"}]
@@ -138,7 +147,8 @@ def find_ready_review(c: ASC, app_id: str) -> dict[str, Any]:
             report["final"]["review_id"] = waiting[0].get("id")
             save()
             return waiting[0]
-        raise RuntimeError("No READY_FOR_REVIEW Apple submission was found to finish")
+        states = sorted({str((r.get("attributes") or {}).get("state")) for r in reviews})
+        raise RuntimeError("No review submission is currently ready or waiting. States found: " + ", ".join(states))
     ready.sort(key=lambda r: r.get("id") or "", reverse=True)
     review = ready[0]
     report["review_id"] = review["id"]
