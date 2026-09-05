@@ -1,0 +1,15 @@
+{
+  "actions": [],
+  "app_id": "6802014287",
+  "authenticated": true,
+  "bundle_id": "com.base6a78376a454093ba2f431acd.app",
+  "errors": [
+    "RuntimeError: Build 71 is not VALID in App Store Connect"
+  ],
+  "final": {},
+  "generated_at": "2026-09-05T15:12:06.880142+00:00",
+  "key_id_used": "2A3958GU5F",
+  "product_id": "com.ssrockholdings.mobile.quarryintelligence.monthly199",
+  "target_build": "71",
+  "target_version": "2.130297.4"
+}
