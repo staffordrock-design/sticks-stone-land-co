@@ -367,9 +367,9 @@ export default function Subscription() {
         <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Unlock Full Quarry Intelligence</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Full Quarry Intelligence is $199 per month. On iPhone, Apple shows the subscription price before you confirm and charges your Apple ID when you approve the subscription. The subscription renews automatically until canceled.</p>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Full Quarry Intelligence is $199 per month. On iPhone, Apple shows the exact subscription terms before you confirm. The subscription renews automatically until canceled.</p>
           {!active && <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Subscribe for $199/Month</a>}
-          {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, confirm the $199/month subscription with Apple, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
+          {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, review Apple&apos;s purchase terms, confirm, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
           {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Full access is $199/month.</strong> On the web, create a free S&amp;S account or sign in so the subscription can be attached to your account. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create free account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
 
@@ -406,7 +406,7 @@ export default function Subscription() {
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
                     <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : "Subscribe for $199/Month"}</button>
-                    <div className="text-[11px] leading-4 text-muted-foreground">Apple shows the subscription price before you approve. Your Apple ID is charged when you confirm, and the subscription renews automatically until canceled.</div>
+                    <div className="text-[11px] leading-4 text-muted-foreground">Apple shows the exact purchase terms before you approve. The subscription renews automatically until canceled.</div>
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
@@ -418,7 +418,7 @@ export default function Subscription() {
 
           <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5 text-xs leading-5 text-muted-foreground">
             <p className="font-semibold text-foreground">Subscription terms</p>
-            <p className="mt-2">The $199 monthly subscription is charged when you confirm the purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} settings at any time.</p>
+            <p className="mt-2">{isIOS ? "Apple shows the exact purchase terms before confirmation. " : "The $199 monthly subscription is charged when you confirm the purchase. "}Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} settings at any time.</p>
             <p className="mt-3">By continuing you agree to the S&amp;S Rock Holdings <Link to="/terms" className="underline">Terms of Use</Link>{isIOS && <> and Apple&apos;s <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" className="underline" target="_blank" rel="noreferrer">standard EULA</a></>}, and <Link to="/privacy" className="underline">Privacy Policy</Link>.</p>
           </div>
 
