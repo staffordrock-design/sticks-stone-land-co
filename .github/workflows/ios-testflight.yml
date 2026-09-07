@@ -113,8 +113,8 @@ jobs:
             echo "::error title=Apple product missing from iOS web bundle::The built app cannot recognize the current Apple subscription";
             exit 1;
           }
-          if grep -RqsE '\$69|\$139|\$690|\$89|\$189|\$389|\$1,500|\$2,500|60-second preview|Your 60-second preview|ss-quarry-preview-start|Explore review demo|ss-apple-review-demo' src dist; then
-            echo "::error title=Retired access model found::Old pricing, a retired preview gate, or the public review-demo bypass is present in the build";
+          if grep -RqsE '\$69|\$139|\$690|\$89|\$189|\$389|\$1,500|\$2,500|60-second preview|Your 60-second preview|ss-quarry-preview-start|Explore review demo|ss-apple-review-demo|3-day free trial|Start 3-Day Free Trial' src dist; then
+            echo "::error title=Retired access model found::Old pricing, trial copy, a retired preview gate, or the public review-demo bypass is present in the build";
             exit 1;
           fi
           if grep -qE 'com\.ssrockholdings\.(marketplace|deal)\.(monthly|annual)|com\.ssrockholdings\.professional\.(monthly|annual)' src/lib/subscriptionPlans.js; then
@@ -259,17 +259,17 @@ jobs:
           if not build_number.isdigit():
               raise SystemExit(f'Invalid GitHub run number for iOS build: {build_number!r}')
           s = re.sub(r'PRODUCT_BUNDLE_IDENTIFIER = [^;]+;', f'PRODUCT_BUNDLE_IDENTIFIER = {bundle};', s)
-          s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.4;', s)
+          s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.5;', s)
           s = re.sub(r'CURRENT_PROJECT_VERSION = [^;]+;', f'CURRENT_PROJECT_VERSION = {build_number};', s)
           p.write_text(s)
           expected_bundle_line = f'PRODUCT_BUNDLE_IDENTIFIER = {bundle};'
           if expected_bundle_line not in s:
               raise SystemExit('Expected SS Mobile bundle identifier was not present after Capacitor sync')
-          if 'MARKETING_VERSION = 2.130297.4;' not in s:
-              raise SystemExit('Expected SS Mobile App Store marketing version was not present after Capacitor sync')
+          if 'MARKETING_VERSION = 2.130297.5;' not in s:
+              raise SystemExit('Expected S&S Rock Holdings App Store marketing version was not present after Capacitor sync')
           if f'CURRENT_PROJECT_VERSION = {build_number};' not in s:
               raise SystemExit('Expected explicit iOS build number was not present after update')
-          print(f'Pinned SS Mobile bundle identifier, App Store version 2.130297.4, and build {build_number}')
+          print(f'Pinned S&S Rock Holdings bundle identifier, App Store version 2.130297.5, and build {build_number}')
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f'IOS_BUILD_NUMBER={build_number}\n')
           PY
@@ -310,8 +310,8 @@ jobs:
               raise SystemExit("Apple subscription sync contains errors: " + " | ".join(product_errors + report.get("errors", [])))
           product = products["com.ssrockholdings.mobile.quarryintelligence.monthly199"]
           offer = product.get("introductory_offer") or {}
-          if offer.get("offer_mode") != "FREE_TRIAL" or offer.get("duration") != "THREE_DAYS":
-              raise SystemExit("Required 3-day Apple free trial was not verified")
+          if offer.get("status") != "UNCHANGED_UNTIL_NO_TRIAL_RELEASE":
+              raise SystemExit("Apple introductory-offer audit did not enter the safe transition mode")
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"ASC_KEY_ID={key_id}\n")
           print("Apple subscription sync check completed; continuing to build upload.")
@@ -407,7 +407,7 @@ jobs:
           ARCHIVE_BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")
           echo "Archive version: $ARCHIVE_VERSION"
           echo "Archive build: $ARCHIVE_BUILD"
-          test "$ARCHIVE_VERSION" = "2.130297.4" || { echo "::error title=Wrong App Store version::Expected 2.130297.4, got $ARCHIVE_VERSION"; exit 1; }
+          test "$ARCHIVE_VERSION" = "2.130297.5" || { echo "::error title=Wrong App Store version::Expected 2.130297.5, got $ARCHIVE_VERSION"; exit 1; }
           test "$ARCHIVE_BUILD" = "$IOS_BUILD_NUMBER" || { echo "::error title=Wrong iOS build number::Expected $IOS_BUILD_NUMBER, got $ARCHIVE_BUILD"; exit 1; }
 
       - name: Create App Store Connect export options
