@@ -125,7 +125,7 @@ export default async function(req) {
       }
 
       // Keep the owner revenue dashboard synchronized with verified StoreKit activity.
-      // A 3-day Apple free trial is a real subscription entitlement but is not paid revenue yet.
+      // Legacy introductory-offer transactions are still recognized correctly if Apple returns one.
       const amountFromApple = Number.isFinite(transactionPriceMilliunits) && transactionPriceMilliunits >= 0
         ? transactionPriceMilliunits / 1000
         : (productId === 'com.ssrockholdings.mobile.quarryintelligence.monthly199' || productId === 'com.ssrockholdings.quarryintelligence.monthly199' ? 199 : 0);
@@ -142,7 +142,7 @@ export default async function(req) {
         external_transaction_id: transactionId,
         occurred_at: purchaseDate || verifiedAt,
         notes: freeTrial
-          ? `Apple verified 3-day introductory free trial; payment is due when the trial converts.${user?.id ? '' : ' Purchased without an S&S login; StoreKit access is active and the subscription can be linked later.'}`
+          ? `Apple verified a legacy introductory-offer entitlement.${user?.id ? '' : ' Purchased without an S&S login; StoreKit access is active and the subscription can be linked later.'}`
           : `Apple StoreKit verified subscription transaction.${user?.id ? '' : ' Purchased without an S&S login; StoreKit access is active and the subscription can be linked later.'}`,
       };
       const existingBilling = await base44.asServiceRole.entities.BillingEvent.filter(
