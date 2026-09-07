@@ -317,6 +317,26 @@ jobs:
           print("Apple subscription sync check completed; continuing to build upload.")
           PY
 
+      - name: Prepare App Store version 2.130297.5 metadata
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
+          ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
+          ASC_TARGET_VERSION: "2.130297.5"
+          ASC_METADATA_REPORT_PATH: "reports/apple_store_metadata_sync.json"
+        run: |
+          set -Eeuo pipefail
+          python scripts/apple_store_metadata_sync.py
+          python - <<'PY'
+          import json, pathlib
+          report = json.loads(pathlib.Path("reports/apple_store_metadata_sync.json").read_text())
+          if report.get("errors"):
+              raise SystemExit("App Store metadata sync contains errors: " + " | ".join(report["errors"]))
+          if report.get("target_version") != "2.130297.5" or not report.get("version_id"):
+              raise SystemExit("App Store version 2.130297.5 was not prepared correctly")
+          print("App Store version 2.130297.5 is prepared for the no-trial update.")
+          PY
+
       - name: Preserve Apple subscription sync result
         if: always()
         run: |
