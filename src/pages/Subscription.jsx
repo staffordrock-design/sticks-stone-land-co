@@ -24,6 +24,41 @@ async function waitForAppleStoreAccess(attempts = 4) {
   return stableAppleSubscriptionAccess({ attempts });
 }
 
+function subscriptionSessionId() {
+  try {
+    const key = "ss_view_session";
+    let id = sessionStorage.getItem(key);
+    if (!id) {
+      id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+      sessionStorage.setItem(key, id);
+    }
+    return id;
+  } catch {
+    return `subscription-${Date.now()}`;
+  }
+}
+
+function trackSubscriptionAction(user, action, platform, detail = "") {
+  try {
+    void base44.entities.ViewerActivity.create({
+      user_id: user?.id || "anonymous",
+      user_name: user?.name || "Anonymous visitor",
+      user_email: user?.email || "",
+      user_role: user?.role || "anonymous",
+      path: `/subscribe?action=${encodeURIComponent(action)}`,
+      page_type: "subscription_action",
+      resource_id: action,
+      resource_name: [platform, detail].filter(Boolean).join(" · ").slice(0, 180),
+      referrer: document.referrer || "",
+      session_id: subscriptionSessionId(),
+      user_agent: navigator.userAgent || "",
+      viewed_at: new Date().toISOString(),
+    });
+  } catch {
+    // Conversion tracking must never block a purchase.
+  }
+}
+
 export default function Subscription() {
   const { user } = useAuth();
   const location = useLocation();
@@ -88,6 +123,12 @@ export default function Subscription() {
 
     return () => { cancelled = true; };
   }, [user?.id, isNative, isIOS, isAndroid]);
+
+  useEffect(() => {
+    if (checkoutStatus !== "cancelled") return;
+    setPurchaseMessage("Checkout canceled — your free trial did not start and you were not charged.");
+    trackSubscriptionAction(user, "checkout_cancelled", isIOS ? "apple" : isAndroid ? "google" : "web");
+  }, [checkoutStatus, user?.id, isIOS, isAndroid]);
 
   useEffect(() => {
     if (isNative || !user?.id || checkoutStatus !== "success" || !stripeSessionId) return;
@@ -166,6 +207,7 @@ export default function Subscription() {
 
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
+    trackSubscriptionAction(user, "trial_cta_clicked", isIOS ? "apple" : "google", productId);
     // Apple StoreKit subscriptions are tied to the Apple ID and must remain
     // purchasable without forcing an S&S account first. Android still requires
     // an account so the Google Play purchase can be linked to backend access.
@@ -208,6 +250,7 @@ export default function Subscription() {
         // Do not put a short JavaScript timeout around StoreKit's purchase sheet.
         // The user may need time for Face ID, password entry, or Apple's confirmation UI.
         const transaction = await NativePurchases.purchaseProduct(options);
+        trackSubscriptionAction(user, "store_confirmation_returned", "apple", productId);
         // Record every verified Apple purchase for owner reporting. When the buyer
         // is anonymous, the backend stores it against a temporary Apple purchase
         // identity; signing in later migrates that receipt to the S&S account.
@@ -241,15 +284,21 @@ export default function Subscription() {
       }
     } catch (error) {
       const message = String(error?.message || error || "Purchase was not completed.");
-      if (!/cancel/i.test(message)) setPurchaseMessage(message);
+      if (/cancel/i.test(message)) {
+        trackSubscriptionAction(user, "store_purchase_cancelled", isIOS ? "apple" : "google", productId);
+      } else {
+        trackSubscriptionAction(user, "store_purchase_error", isIOS ? "apple" : "google", message);
+        setPurchaseMessage(message);
+      }
     } finally {
       setBuyingId("");
     }
   };
 
   const startWebCheckout = async (planCode) => {
+    trackSubscriptionAction(user, "trial_cta_clicked", "web", planCode);
     if (!user?.id) {
-      window.location.href = `/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`;
+      window.location.href = `/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`;
       return;
     }
     setPurchaseMessage("");
@@ -258,9 +307,12 @@ export default function Subscription() {
       const response = await base44.functions.invoke("create-subscription-checkout", { plan_code: planCode, return_to: returnTo });
       const payload = response?.data || response || {};
       if (!payload?.url) throw new Error(payload?.error || "Could not start checkout.");
+      trackSubscriptionAction(user, "checkout_created", "web", planCode);
       window.location.assign(payload.url);
     } catch (error) {
-      setPurchaseMessage(error?.message || "Could not start checkout.");
+      const message = error?.message || "Could not start checkout.";
+      trackSubscriptionAction(user, "checkout_error", "web", message);
+      setPurchaseMessage(message);
       setBuyingId("");
     }
   };
@@ -314,8 +366,9 @@ export default function Subscription() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
-          <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Quarry intelligence access</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">One membership unlocks the full quarry intelligence platform. Start with a 3-day free trial, then $199 per month. Web checkout includes the 3-day trial; on iPhone, eligible new subscribers receive Apple’s 3-day introductory free trial. You can keep browsing the free preview without entering payment information.</p>
+          <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Try Full Quarry Intelligence free for 3 days</h1></div></div>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Unlock the complete quarry intelligence platform for 3 days, then $199 per month unless canceled. Web checkout includes the 3-day trial; on iPhone, eligible new subscribers receive Apple’s 3-day introductory free trial. Apple shows trial eligibility and the final price before confirmation. You can keep browsing the free preview without entering payment information.</p>
+          {!active && <a href="#trial-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Start 3-Day Free Trial</a>}
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to start your Apple subscription.</strong> Tap Subscribe below and Apple will show the 3-day trial and final price before you confirm. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> to link the subscription to saved opportunities, messages and cross-device account features.</div>}
           {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Browsing is free — no card required.</strong> When you are ready for the full quarry intelligence, create a free S&amp;S account or sign in to start the 3-day trial and attach access to your account. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create free account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
@@ -328,7 +381,7 @@ export default function Subscription() {
             </div>
           ) : null}
 
-          <h2 className="mt-9 font-heading text-xl font-bold">Membership</h2>
+          <h2 id="trial-options" className="mt-9 scroll-mt-6 font-heading text-xl font-bold">Start your 3-day trial</h2>
           <div className="mt-4 grid max-w-2xl gap-4">
             {ACCESS_TIERS.map((tier) => {
               const storeKey = isIOS ? "apple" : "google";
@@ -343,12 +396,16 @@ export default function Subscription() {
                 <div className="mt-1 text-xs font-semibold text-muted-foreground">{isIOS ? "3-day free trial for eligible new subscribers · then $199/month · auto-renewing" : isAndroid ? "Monthly subscription · full app access" : "3-day free trial · then $199/month · cancel anytime"}</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
-                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Start 3-Day Free Trial"}</button>
-                  <div className="text-[11px] leading-4 text-muted-foreground">Payment method required to start the trial. No subscription charge until the 3-day trial ends.</div>
+                  {user?.id ? (
+                    <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Start 3-Day Free Trial"}</button>
+                  ) : (
+                    <Link to={`/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} onClick={() => trackSubscriptionAction(user, "trial_cta_clicked", "web", `${tier.code}_monthly`)} className="rounded-xl bg-sky-700 px-4 py-2.5 text-center text-sm font-bold text-white hover:bg-sky-800">Create Free Account & Start Trial</Link>
+                  )}
+                  <div className="text-[11px] leading-4 text-muted-foreground">Payment method required to start the trial. No $199 subscription charge until the 3-day trial ends. Already have an account? <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-semibold text-sky-800 underline">Sign in</Link>.</div>
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
-                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : "Start 3-Day Free Trial"}</button>
+                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : "Start 3-Day Free Trial"}</button>
                     <div className="text-[11px] leading-4 text-muted-foreground">Apple confirms your trial eligibility and final subscription price before you approve. If you are not eligible for the introductory trial, Apple will show that before purchase.</div>
                   </div>
                 )}
@@ -361,7 +418,7 @@ export default function Subscription() {
 
           <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5 text-xs leading-5 text-muted-foreground">
             <p className="font-semibold text-foreground">Subscription terms</p>
-            <p className="mt-2">Payment will be charged to your {isIOS ? "Apple ID" : isAndroid ? "Google Play" : "payment"} account at confirmation of purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. Your account will be charged for renewal within 24 hours prior to the end of the current period at the then-current price. You can manage and cancel your subscriptions in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} account settings at any time. Any unused portion of a free trial, if offered, is forfeited when a subscription is purchased.</p>
+            <p className="mt-2">If a 3-day free trial is shown and accepted, the $199 subscription price is charged when the trial ends unless you cancel first. If you are not eligible for a trial, the store shows the price before you confirm. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} settings at any time.</p>
             <p className="mt-3">By continuing you agree to the S&amp;S Rock Holdings <Link to="/terms" className="underline">Terms of Use</Link>{isIOS && <> and Apple&apos;s <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" className="underline" target="_blank" rel="noreferrer">standard EULA</a></>}, and <Link to="/privacy" className="underline">Privacy Policy</Link>.</p>
           </div>
 
