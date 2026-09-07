@@ -1,0 +1,55 @@
+name: Submit S&S Rock Build 72
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".submit-build72-trigger"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  submit-build72:
+    name: Attach build 72 and submit for App Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install App Store API dependencies
+        run: python -m pip install --disable-pip-version-check requests PyJWT cryptography
+
+      - name: Submit build 72
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
+          ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
+          ASC_TARGET_VERSION: "2.130297.5"
+          ASC_TARGET_BUILD: "72"
+        run: |
+          set -Eeuo pipefail
+          python scripts/apple_submit_no_trial_update.py
+
+      - name: Show sanitized submission report
+        if: always()
+        run: |
+          if [ -f reports/apple_submit_no_trial_update.json ]; then
+            python - <<'PY'
+import json
+from pathlib import Path
+p = Path('reports/apple_submit_no_trial_update.json')
+obj = json.loads(p.read_text())
+for k in ('key_id_used',):
+    obj.pop(k, None)
+print(json.dumps(obj, indent=2, sort_keys=True))
+PY
+          fi
