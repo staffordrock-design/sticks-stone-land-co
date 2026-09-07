@@ -315,7 +315,7 @@ export default function Subscription() {
         <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Quarry intelligence access</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">One membership unlocks the full quarry intelligence platform for $199 per month. On iPhone, eligible new Apple subscribers receive a 3-day free trial before the monthly charge begins. Custom research and due-diligence engagements are handled separately by S&S Rock Holdings.</p>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">One membership unlocks the full quarry intelligence platform. Start with a 3-day free trial, then $199 per month. Web checkout includes the 3-day trial; on iPhone, eligible new subscribers receive Apple’s 3-day introductory free trial. You can keep browsing the free preview without entering payment information.</p>
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to start your Apple subscription.</strong> Tap Subscribe below and Apple will show the 3-day trial and final price before you confirm. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> to link the subscription to saved opportunities, messages and cross-device account features.</div>}
           {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Create your S&amp;S account first.</strong> Sign in or create an account before subscribing so web or Google Play access can be attached to your account. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
@@ -340,15 +340,16 @@ export default function Subscription() {
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
                 <div className="mt-3 flex items-end gap-2"><div className="text-3xl font-bold">{monthlyPriceLabel}</div><span className="pb-1 text-xs text-muted-foreground">monthly</span></div>
-                <div className="mt-1 text-xs font-semibold text-muted-foreground">{isIOS ? "3-day free trial for eligible new subscribers · then $199/month · auto-renewing" : "1 month · auto-renewing · full app access"}</div>
+                <div className="mt-1 text-xs font-semibold text-muted-foreground">{isIOS ? "3-day free trial for eligible new subscribers · then $199/month · auto-renewing" : isAndroid ? "Monthly subscription · full app access" : "3-day free trial · then $199/month · cancel anytime"}</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
-                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Subscribe · $199/month"}</button>
+                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Start 3-Day Free Trial"}</button>
+                  <div className="text-[11px] leading-4 text-muted-foreground">Payment method required to start the trial. No subscription charge until the 3-day trial ends.</div>
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
-                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : `Subscribe monthly${monthlyStore?.priceString ? ` · ${monthlyStore.priceString}` : ` · ${tier.monthly}`}`}</button>
-                    {!monthlyStore && <div className="text-[11px] leading-4 text-muted-foreground">Tap Subscribe to connect directly to Apple. Apple shows the final subscription price before you confirm.</div>}
+                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : "Start 3-Day Free Trial"}</button>
+                    <div className="text-[11px] leading-4 text-muted-foreground">Apple confirms your trial eligibility and final subscription price before you approve. If you are not eligible for the introductory trial, Apple will show that before purchase.</div>
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
@@ -377,8 +378,8 @@ export default function Subscription() {
           </div>}
 
           {!isNative && !active && <div className="mt-8 rounded-2xl border border-stone-300 bg-stone-50 p-5">
-            <div className="font-semibold text-foreground">Ready to subscribe?</div>
-            <p className="mt-1 text-sm text-muted-foreground">{user?.email ? "Choose a plan above to start secure checkout with Stripe." : "Create an account or sign in, then choose a plan above to start secure checkout with Stripe."}</p>
+            <div className="font-semibold text-foreground">Ready to try the full quarry intelligence?</div>
+            <p className="mt-1 text-sm text-muted-foreground">{user?.email ? "Start the 3-day free trial above. Your card is not charged the $199 subscription price until the trial ends." : "Create an account or sign in, then start the 3-day free trial. Browsing the free preview does not require payment information."}</p>
             {!user?.email && (
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <Link to="/register" className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white">Create account</Link>
