@@ -126,7 +126,7 @@ export default function Subscription() {
 
   useEffect(() => {
     if (checkoutStatus !== "cancelled") return;
-    setPurchaseMessage("Checkout canceled — your free trial did not start and you were not charged.");
+    setPurchaseMessage("Checkout canceled — your subscription was not started and you were not charged.");
     trackSubscriptionAction(user, "checkout_cancelled", isIOS ? "apple" : isAndroid ? "google" : "web");
   }, [checkoutStatus, user?.id, isIOS, isAndroid]);
 
@@ -207,7 +207,7 @@ export default function Subscription() {
 
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
-    trackSubscriptionAction(user, "trial_cta_clicked", isIOS ? "apple" : "google", productId);
+    trackSubscriptionAction(user, "subscribe_cta_clicked", isIOS ? "apple" : "google", productId);
     // Apple StoreKit subscriptions are tied to the Apple ID and must remain
     // purchasable without forcing an S&S account first. Android still requires
     // an account so the Google Play purchase can be linked to backend access.
@@ -296,7 +296,7 @@ export default function Subscription() {
   };
 
   const startWebCheckout = async (planCode) => {
-    trackSubscriptionAction(user, "trial_cta_clicked", "web", planCode);
+    trackSubscriptionAction(user, "subscribe_cta_clicked", "web", planCode);
     if (!user?.id) {
       window.location.href = `/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`;
       return;
@@ -366,11 +366,11 @@ export default function Subscription() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
-          <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Try Full Quarry Intelligence free for 3 days</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Unlock the complete quarry intelligence platform for 3 days, then $199 per month unless canceled. Web checkout includes the 3-day trial; on iPhone, eligible new subscribers receive Apple’s 3-day introductory free trial. Apple shows trial eligibility and the final price before confirmation. You can keep browsing the free preview without entering payment information.</p>
-          {!active && <a href="#trial-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Start 3-Day Free Trial</a>}
-          {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to start your Apple subscription.</strong> Tap Subscribe below and Apple will show the 3-day trial and final price before you confirm. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> to link the subscription to saved opportunities, messages and cross-device account features.</div>}
-          {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Browsing is free — no card required.</strong> When you are ready for the full quarry intelligence, create a free S&amp;S account or sign in to start the 3-day trial and attach access to your account. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create free account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
+          <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Unlock Full Quarry Intelligence</h1></div></div>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Full Quarry Intelligence is $199 per month. On iPhone, Apple shows the subscription price before you confirm and charges your Apple ID when you approve the subscription. The subscription renews automatically until canceled.</p>
+          {!active && <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Subscribe for $199/Month</a>}
+          {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, confirm the $199/month subscription with Apple, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
+          {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Full access is $199/month.</strong> On the web, create a free S&amp;S account or sign in so the subscription can be attached to your account. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create free account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
@@ -381,7 +381,7 @@ export default function Subscription() {
             </div>
           ) : null}
 
-          <h2 id="trial-options" className="mt-9 scroll-mt-6 font-heading text-xl font-bold">Start your 3-day trial</h2>
+          <h2 id="subscription-options" className="mt-9 scroll-mt-6 font-heading text-xl font-bold">Subscription</h2>
           <div className="mt-4 grid max-w-2xl gap-4">
             {ACCESS_TIERS.map((tier) => {
               const storeKey = isIOS ? "apple" : "google";
@@ -393,20 +393,20 @@ export default function Subscription() {
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
                 <div className="mt-3 flex items-end gap-2"><div className="text-3xl font-bold">{monthlyPriceLabel}</div><span className="pb-1 text-xs text-muted-foreground">monthly</span></div>
-                <div className="mt-1 text-xs font-semibold text-muted-foreground">{isIOS ? "3-day free trial for eligible new subscribers · then $199/month · auto-renewing" : isAndroid ? "Monthly subscription · full app access" : "3-day free trial · then $199/month · cancel anytime"}</div>
+                <div className="mt-1 text-xs font-semibold text-muted-foreground">$199/month · full app access · auto-renewing until canceled</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
                   {user?.id ? (
-                    <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Start 3-Day Free Trial"}</button>
+                    <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Subscribe for $199/Month"}</button>
                   ) : (
-                    <Link to={`/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} onClick={() => trackSubscriptionAction(user, "trial_cta_clicked", "web", `${tier.code}_monthly`)} className="rounded-xl bg-sky-700 px-4 py-2.5 text-center text-sm font-bold text-white hover:bg-sky-800">Create Free Account & Start Trial</Link>
+                    <Link to={`/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} onClick={() => trackSubscriptionAction(user, "subscribe_cta_clicked", "web", `${tier.code}_monthly`)} className="rounded-xl bg-sky-700 px-4 py-2.5 text-center text-sm font-bold text-white hover:bg-sky-800">Create Account & Subscribe</Link>
                   )}
-                  <div className="text-[11px] leading-4 text-muted-foreground">Payment method required to start the trial. No $199 subscription charge until the 3-day trial ends. Already have an account? <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-semibold text-sky-800 underline">Sign in</Link>.</div>
+                  <div className="text-[11px] leading-4 text-muted-foreground">The $199 monthly subscription is charged when checkout is confirmed and renews automatically until canceled. Already have an account? <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-semibold text-sky-800 underline">Sign in</Link>.</div>
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
-                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : "Start 3-Day Free Trial"}</button>
-                    <div className="text-[11px] leading-4 text-muted-foreground">Apple confirms your trial eligibility and final subscription price before you approve. If you are not eligible for the introductory trial, Apple will show that before purchase.</div>
+                    <button onClick={() => purchase(monthlyId)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : "Subscribe for $199/Month"}</button>
+                    <div className="text-[11px] leading-4 text-muted-foreground">Apple shows the subscription price before you approve. Your Apple ID is charged when you confirm, and the subscription renews automatically until canceled.</div>
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
@@ -418,7 +418,7 @@ export default function Subscription() {
 
           <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5 text-xs leading-5 text-muted-foreground">
             <p className="font-semibold text-foreground">Subscription terms</p>
-            <p className="mt-2">If a 3-day free trial is shown and accepted, the $199 subscription price is charged when the trial ends unless you cancel first. If you are not eligible for a trial, the store shows the price before you confirm. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} settings at any time.</p>
+            <p className="mt-2">The $199 monthly subscription is charged when you confirm the purchase. Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} settings at any time.</p>
             <p className="mt-3">By continuing you agree to the S&amp;S Rock Holdings <Link to="/terms" className="underline">Terms of Use</Link>{isIOS && <> and Apple&apos;s <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" className="underline" target="_blank" rel="noreferrer">standard EULA</a></>}, and <Link to="/privacy" className="underline">Privacy Policy</Link>.</p>
           </div>
 
@@ -435,8 +435,8 @@ export default function Subscription() {
           </div>}
 
           {!isNative && !active && <div className="mt-8 rounded-2xl border border-stone-300 bg-stone-50 p-5">
-            <div className="font-semibold text-foreground">Ready to try the full quarry intelligence?</div>
-            <p className="mt-1 text-sm text-muted-foreground">{user?.email ? "Start the 3-day free trial above. Your card is not charged the $199 subscription price until the trial ends." : "Create an account or sign in, then start the 3-day free trial. Browsing the free preview does not require payment information."}</p>
+            <div className="font-semibold text-foreground">Ready to unlock Full Quarry Intelligence?</div>
+            <p className="mt-1 text-sm text-muted-foreground">{user?.email ? "Subscribe above for $199/month. Your payment method is charged when checkout is confirmed." : "Create an account or sign in, then subscribe for $199/month."}</p>
             {!user?.email && (
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 <Link to="/register" className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white">Create account</Link>
