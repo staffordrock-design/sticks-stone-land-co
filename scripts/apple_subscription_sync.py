@@ -265,68 +265,38 @@ def ensure_localization(client: ASC, subscription_id: str, product: dict[str, An
     client.request("POST", "/v1/subscriptionLocalizations", payload=payload)
 
 
-def ensure_three_day_free_trial(client: ASC, subscription_id: str) -> dict[str, Any]:
-    """Ensure the launch 3-day FREE_TRIAL introductory offer in the USA storefront."""
+def audit_introductory_offers(client: ASC, subscription_id: str) -> dict[str, Any]:
+    """Report any existing Apple introductory offers without creating new ones.
+
+    The app is moving to immediate paid access. Existing live-build offers are
+    left untouched during build upload so the currently released binary never
+    promises a trial that Apple has already removed. A separate release-finalize
+    step removes all introductory offers when the no-trial app version is ready
+    for distribution.
+    """
     offers = client.all(
         f"/v1/subscriptions/{subscription_id}/introductoryOffers",
         params={"include": "territory", "limit": 200},
     )
-    existing_territories: set[str] = set()
+    summarized = []
     for offer in offers:
         attrs = offer.get("attributes") or {}
-        if attrs.get("offerMode") != "FREE_TRIAL" or attrs.get("duration") != "THREE_DAYS":
-            continue
         territory_rel = ((offer.get("relationships") or {}).get("territory") or {}).get("data") or {}
-        if territory_rel.get("id"):
-            existing_territories.add(str(territory_rel["id"]))
-
-    territories = [
-        territory
-        for territory in client.all("/v1/territories", params={"limit": 200})
-        if str(territory.get("id") or "") == "USA"
-    ]
-    created = 0
-    failures: list[str] = []
-    for territory in territories:
-        territory_id = str(territory.get("id") or "")
-        if not territory_id or territory_id in existing_territories:
-            continue
-        payload = {
-            "data": {
-                "type": "subscriptionIntroductoryOffers",
-                "attributes": {
-                    "startDate": TODAY,
-                    "endDate": None,
-                    "duration": "THREE_DAYS",
-                    "offerMode": "FREE_TRIAL",
-                    "numberOfPeriods": 1,
-                },
-                "relationships": {
-                    "subscription": {"data": {"type": "subscriptions", "id": subscription_id}},
-                    "territory": {"data": {"type": "territories", "id": territory_id}},
-                },
-            }
-        }
-        try:
-            client.request("POST", "/v1/subscriptionIntroductoryOffers", payload=payload)
-            created += 1
-            time.sleep(0.03)
-        except Exception as exc:
-            failures.append(f"{territory_id}:{type(exc).__name__}:{str(exc)[:250]}")
-
-    if failures:
-        raise RuntimeError("Apple 3-day trial creation failed for: " + " | ".join(failures[:10]))
-
+        summarized.append({
+            "id": offer.get("id"),
+            "offer_mode": attrs.get("offerMode"),
+            "duration": attrs.get("duration"),
+            "number_of_periods": attrs.get("numberOfPeriods"),
+            "territory": territory_rel.get("id"),
+            "start_date": attrs.get("startDate"),
+            "end_date": attrs.get("endDate"),
+        })
     return {
-        "created": created > 0,
-        "offer_mode": "FREE_TRIAL",
-        "duration": "THREE_DAYS",
-        "number_of_periods": 1,
-        "existing_territories": len(existing_territories),
-        "territories_created": created,
-        "territories_total": len(territories),
-        "start_date": TODAY,
-        "end_date": None,
+        "created": False,
+        "removed": False,
+        "existing_offer_count": len(offers),
+        "offers": summarized,
+        "status": "UNCHANGED_UNTIL_NO_TRIAL_RELEASE",
     }
 
 
@@ -550,7 +520,7 @@ def main() -> None:
                 }
                 entry["pricing_warning"] = str(price_exc)[:700]
                 print(f"WARNING {pid}: {price_exc}")
-            entry["introductory_offer"] = ensure_three_day_free_trial(client, sid)
+            entry["introductory_offer"] = audit_introductory_offers(client, sid)
             entry["state"] = read_subscription_state(client, sid)
         except Exception as exc:
             message = f"{pid}: {type(exc).__name__}: {str(exc)[:700]}"
