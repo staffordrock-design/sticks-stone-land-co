@@ -259,7 +259,7 @@ def submit_review(c: ASC, review_id: str) -> None:
         f"/v1/reviewSubmissions/{review_id}",
         payload={"data": {"type": "reviewSubmissions", "id": review_id, "attributes": {"submitted": True}}},
     )
-    report["actions"].append(f"Submitted version {TARGET_VERSION} build {TARGET_BUILD} + $199 subscription for App Review")
+    report["actions"].append(f"Submitted version {TARGET_VERSION} build {TARGET_BUILD} for App Review")
     save()
 
 
@@ -272,29 +272,30 @@ def main() -> None:
         state = (version.get("attributes") or {}).get("appVersionState") or (version.get("attributes") or {}).get("appStoreState")
         report["version_id"] = version_id
         report["version_state_before"] = state
-        if state not in {"PREPARE_FOR_SUBMISSION", "READY_FOR_REVIEW", "DEVELOPER_REJECTED", "REJECTED"}:
-            raise RuntimeError(f"Version {TARGET_VERSION} is not editable for a new submission; state={state}")
 
         build = find_build(c, app_id)
         build_id = str(build["id"])
         report["build_id"] = build_id
-        attach_build(c, version_id, build_id)
 
-        sub_version, group_id = find_subscription_version_and_group(c, app_id)
-        group_version = find_group_version(c, group_id)
-        sub_version_id = str(sub_version["id"])
-        group_version_id = str(group_version["id"])
+        # If Apple already has this version in review, do not try to edit it.
+        if state not in {"WAITING_FOR_REVIEW", "IN_REVIEW"}:
+            if state not in {"PREPARE_FOR_SUBMISSION", "READY_FOR_REVIEW", "DEVELOPER_REJECTED", "REJECTED"}:
+                raise RuntimeError(f"Version {TARGET_VERSION} is not editable for a new submission; state={state}")
+            attach_build(c, version_id, build_id)
 
         reviews = active_reviews(c, app_id)
         review_id = ""
-        # A failed prior attempt can leave an unsubmitted READY_FOR_REVIEW shell.
-        # Reuse it when possible instead of creating duplicate review submissions.
+        review_state_before = ""
+
+        # Reuse a matching review shell left by an earlier attempt. Never disturb
+        # an unrelated active review for another app version.
         for row in reviews:
             rid = str(row.get("id") or "")
             items = audit_review_items(c, rid) if rid else []
             if any(x.get("resource_type") == "appStoreVersion" and x.get("resource_id") == version_id for x in items):
                 review_id = rid
-                report["actions"].append(f"Reusing existing review {rid} for version {TARGET_VERSION}")
+                review_state_before = str((row.get("attributes") or {}).get("state") or "")
+                report["actions"].append(f"Reusing existing review {rid} for version {TARGET_VERSION} in state {review_state_before}")
                 save()
                 break
 
@@ -302,14 +303,13 @@ def main() -> None:
             if reviews:
                 states = [(r.get("id"), (r.get("attributes") or {}).get("state")) for r in reviews]
                 raise RuntimeError(f"An unrelated active iOS review exists; refusing to disturb it: {states}")
+            if state in {"WAITING_FOR_REVIEW", "IN_REVIEW"}:
+                raise RuntimeError(f"Version {TARGET_VERSION} reports {state} but no matching active review submission was found")
             review_id = create_review(c, app_id)
+            review_state_before = "READY_FOR_REVIEW"
 
-        review_before = c.request("GET", f"/v1/reviewSubmissions/{review_id}").get("data") or {}
-        review_state_before = (review_before.get("attributes") or {}).get("state")
         if review_state_before == "READY_FOR_REVIEW":
             add_item(c, review_id, "appStoreVersion", "appStoreVersions", version_id)
-            add_item(c, review_id, "subscriptionVersion", "subscriptionVersions", sub_version_id)
-            add_item(c, review_id, "subscriptionGroupVersion", "subscriptionGroupVersions", group_version_id)
             submit_review(c, review_id)
         elif review_state_before not in {"WAITING_FOR_REVIEW", "IN_REVIEW"}:
             raise RuntimeError(f"Review {review_id} is not submit-ready; state={review_state_before}")
@@ -326,18 +326,16 @@ def main() -> None:
             "attached_build": (attached.get("attributes") or {}).get("version"),
             "attached_build_state": (attached.get("attributes") or {}).get("processingState"),
             "app_version_linked": ("appStoreVersion", version_id) in resource_pairs,
-            "subscription_version_linked": ("subscriptionVersion", sub_version_id) in resource_pairs,
-            "subscription_group_version_linked": ("subscriptionGroupVersion", group_version_id) in resource_pairs,
             "review_items": items,
         }
         save()
         if report["final"]["attached_build"] != TARGET_BUILD or report["final"]["attached_build_state"] != "VALID":
             raise RuntimeError("Final verification failed: expected VALID target build is not attached")
-        if not all([report["final"]["app_version_linked"], report["final"]["subscription_version_linked"], report["final"]["subscription_group_version_linked"]]):
-            raise RuntimeError("Final verification failed: app/subscription/group review linkage is incomplete")
+        if not report["final"]["app_version_linked"]:
+            raise RuntimeError("Final verification failed: app version review linkage is incomplete")
         if review_state not in {"WAITING_FOR_REVIEW", "IN_REVIEW"}:
             raise RuntimeError(f"Final verification failed: review state is {review_state}")
-        print(f"SUCCESS: version {TARGET_VERSION} build {TARGET_BUILD} submitted for App Review with the $199 subscription.")
+        print(f"SUCCESS: version {TARGET_VERSION} build {TARGET_BUILD} submitted for App Review.")
     except Exception as exc:
         report["errors"].append(f"{type(exc).__name__}: {str(exc)[:1800]}")
         save()
