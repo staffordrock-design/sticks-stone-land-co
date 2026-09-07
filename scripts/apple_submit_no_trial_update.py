@@ -150,6 +150,37 @@ def active_reviews(c: ASC, app_id: str) -> list[dict[str, Any]]:
     return [r for r in rows if (r.get("attributes") or {}).get("state") in ACTIVE_REVIEW_STATES]
 
 
+def ensure_whats_new(c: ASC, version_id: str) -> None:
+    locs = c.all(
+        f"/v1/appStoreVersions/{version_id}/appStoreVersionLocalizations",
+        params={"limit": 50},
+    )
+    if not locs:
+        raise RuntimeError("Version has no App Store localization to update")
+    text = "Updated subscription access for a simpler iPhone experience, plus performance and stability improvements."
+    updated = []
+    for loc in locs:
+        attrs = loc.get("attributes") or {}
+        if attrs.get("whatsNew") not in (None, ""):
+            continue
+        loc_id = str(loc["id"])
+        c.request(
+            "PATCH",
+            f"/v1/appStoreVersionLocalizations/{loc_id}",
+            payload={
+                "data": {
+                    "type": "appStoreVersionLocalizations",
+                    "id": loc_id,
+                    "attributes": {"whatsNew": text},
+                }
+            },
+        )
+        updated.append({"id": loc_id, "locale": attrs.get("locale")})
+    if updated:
+        report["actions"].append(f"Added required What's New text to {updated}")
+        save()
+
+
 def audit_review_items(c: ASC, review_id: str) -> list[dict[str, Any]]:
     body = c.request(
         "GET",
@@ -283,6 +314,7 @@ def main() -> None:
                 raise RuntimeError(f"Version {TARGET_VERSION} is not editable for a new submission; state={state}")
             attach_build(c, version_id, build_id)
 
+        ensure_whats_new(c, version_id)
         reviews = active_reviews(c, app_id)
         review_id = ""
         review_state_before = ""
