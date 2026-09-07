@@ -286,12 +286,14 @@ def main() -> None:
         reviews = active_reviews(c, app_id)
         review_id = ""
         review_state_before = ""
+        review_snapshots: list[tuple[dict[str, Any], list[dict[str, Any]]]] = []
 
         # Reuse a matching review shell left by an earlier attempt. Never disturb
         # an unrelated active review for another app version.
         for row in reviews:
             rid = str(row.get("id") or "")
             items = audit_review_items(c, rid) if rid else []
+            review_snapshots.append((row, items))
             if any(x.get("resource_type") == "appStoreVersion" and x.get("resource_id") == version_id for x in items):
                 review_id = rid
                 review_state_before = str((row.get("attributes") or {}).get("state") or "")
@@ -299,10 +301,30 @@ def main() -> None:
                 save()
                 break
 
+        # Apple can leave an empty READY_FOR_REVIEW shell when item creation fails.
+        # It is safe to reuse only when it has no review items at all.
+        if not review_id:
+            empty_ready = [
+                row for row, items in review_snapshots
+                if (row.get("attributes") or {}).get("state") == "READY_FOR_REVIEW" and not items
+            ]
+            if len(reviews) == 1 and len(empty_ready) == 1:
+                review_id = str(empty_ready[0]["id"])
+                review_state_before = "READY_FOR_REVIEW"
+                report["actions"].append(f"Reusing empty READY_FOR_REVIEW shell {review_id} for version {TARGET_VERSION}")
+                save()
+
         if not review_id:
             if reviews:
-                states = [(r.get("id"), (r.get("attributes") or {}).get("state")) for r in reviews]
-                raise RuntimeError(f"An unrelated active iOS review exists; refusing to disturb it: {states}")
+                details = [
+                    {
+                        "id": row.get("id"),
+                        "state": (row.get("attributes") or {}).get("state"),
+                        "items": items,
+                    }
+                    for row, items in review_snapshots
+                ]
+                raise RuntimeError(f"An unrelated active iOS review exists; refusing to disturb it: {details}")
             if state in {"WAITING_FOR_REVIEW", "IN_REVIEW"}:
                 raise RuntimeError(f"Version {TARGET_VERSION} reports {state} but no matching active review submission was found")
             review_id = create_review(c, app_id)
