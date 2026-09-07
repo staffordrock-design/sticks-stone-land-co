@@ -320,12 +320,12 @@ export default function Home() {
               geology, permits, production context, ownership signals and downloadable S&S intelligence reports.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/get-started" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Buy / Sell / Link Your Quarry</Link>
-              <a href="#quarry-intelligence" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Explore Quarry Data</a>
-              <Link to="/subscribe" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">View Membership</Link>
+              <Link to="/subscribe" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Start 3-Day Free Trial</Link>
+              <a href="#quarry-intelligence" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Browse Free Preview</a>
+              <Link to="/get-started" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Buy / Sell / Link Your Quarry</Link>
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
-            <p className="mt-4 max-w-xl text-sm text-slate-300">Browse the quarry marketplace preview with no countdown. Full owner/operator intelligence, permitted acreage, detailed geology, production context, compliance history and opportunity analysis unlock with the $199/month membership. Eligible new Apple subscribers receive a 3-day free trial through the App Store subscription.</p>
+            <p className="mt-4 max-w-xl text-sm text-slate-300"><strong className="text-white">Just looking? Browse the free preview — no payment information required.</strong> Full owner/operator intelligence, permitted acreage, detailed geology, production context, compliance history and opportunity analysis unlock with Full Quarry Intelligence. Start with a 3-day free trial, then $199/month. Payment details are only required when you choose to start the trial.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
