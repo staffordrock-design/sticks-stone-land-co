@@ -1,5 +1,5 @@
 // functions/create-checkout-session.js
-// Create a Stripe Checkout session with an optional 3-day trial. No authentication required for guest checkout.
+// Create a Stripe Checkout session for the $199/month subscription. No authentication required for guest checkout.
 
 import Stripe from 'npm:stripe';
 
@@ -14,7 +14,6 @@ export default async function handler(req, res) {
       payment_method_types: ['card'],
       line_items: [{ price: process.env.STRIPE_PRICE_ID_199, quantity: 1 }],
       subscription_data: {
-        trial_period_days: 3,
         metadata: {
           client_reference_id: client_reference_id || '',
         },
