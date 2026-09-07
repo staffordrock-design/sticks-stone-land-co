@@ -508,3 +508,14 @@ jobs:
             echo "::error title=Apple signing/upload details::$ANNOTATION"
             exit "$XCODE_STATUS"
           fi
+
+      - name: Submit update for App Review
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
+          ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
+          ASC_TARGET_VERSION: "2.130297.5"
+        run: |
+          set -Eeuo pipefail
+          export ASC_TARGET_BUILD="$IOS_BUILD_NUMBER"
+          python scripts/apple_submit_no_trial_update.py
