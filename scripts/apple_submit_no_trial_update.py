@@ -21,6 +21,7 @@ KEY_IDS = [x.strip() for x in os.getenv("ASC_KEY_IDS", "").split(",") if x.strip
 PRIVATE_KEY = os.getenv("ASC_PRIVATE_KEY", "")
 REPORT_PATH = Path(os.getenv("ASC_SUBMIT_REPORT_PATH", "reports/apple_submit_no_trial_update.json"))
 PRODUCT_ID = "com.ssrockholdings.mobile.quarryintelligence.monthly199"
+WHATS_NEW = "This update improves subscription access, quarry data and maps, and overall performance and stability."
 ACTIVE_REVIEW_STATES = {"READY_FOR_REVIEW", "WAITING_FOR_REVIEW", "IN_REVIEW", "UNRESOLVED_ISSUES", "CANCELING", "COMPLETING"}
 REVIEWABLE_VERSION_STATES = {"PREPARE_FOR_SUBMISSION", "READY_FOR_REVIEW", "DEVELOPER_REJECTED", "DEVELOPER_ACTION_NEEDED", "WAITING_FOR_REVIEW", "IN_REVIEW", "REJECTED"}
 
@@ -142,6 +143,30 @@ def attach_build(c: ASC, version_id: str, build_id: str) -> None:
         allow=(204,),
     )
     report["actions"].append(f"Attached build {TARGET_BUILD} to version {TARGET_VERSION}")
+    save()
+
+
+def ensure_whats_new(c: ASC, version_id: str) -> None:
+    localizations = c.all(f"/v1/appStoreVersions/{version_id}/appStoreVersionLocalizations", params={"limit": 50})
+    target = next((x for x in localizations if (x.get("attributes") or {}).get("locale") == "en-US"), None)
+    if not target:
+        raise RuntimeError("No en-US App Store version localization exists for the target version")
+    attrs = target.get("attributes") or {}
+    if str(attrs.get("whatsNew") or "").strip():
+        return
+    loc_id = str(target["id"])
+    c.request(
+        "PATCH",
+        f"/v1/appStoreVersionLocalizations/{loc_id}",
+        payload={
+            "data": {
+                "type": "appStoreVersionLocalizations",
+                "id": loc_id,
+                "attributes": {"whatsNew": WHATS_NEW},
+            }
+        },
+    )
+    report["actions"].append("Filled required What's New text for the App Store version")
     save()
 
 
@@ -363,6 +388,7 @@ def main() -> None:
             review_state_before = "READY_FOR_REVIEW"
 
         if review_state_before == "READY_FOR_REVIEW":
+            ensure_whats_new(c, version_id)
             add_item(c, review_id, "appStoreVersion", "appStoreVersions", version_id)
             submit_review(c, review_id)
         elif review_state_before not in {"WAITING_FOR_REVIEW", "IN_REVIEW"}:
