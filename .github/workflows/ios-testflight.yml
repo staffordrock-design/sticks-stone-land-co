@@ -105,10 +105,10 @@ jobs:
             echo "::error title=Apple product disconnected::The Full Quarry Intelligence product ID is missing from the app";
             exit 1;
           }
-          grep -q 'monthly: "$39/mo"' src/lib/subscriptionPlans.js || {
-            echo "::error title=Wrong membership price::The current $39/month membership definition is missing";
+          if grep -qE '\$[0-9]+([.,][0-9]+)?(/mo|/month)?' src/lib/subscriptionPlans.js; then
+            echo "::error title=Hard-coded membership price::The client subscription catalog must not display a hard-coded dollar amount; Apple/store checkout shows the live price";
             exit 1;
-          }
+          fi
           grep -Rqs "com.ssrockholdings.mobile.quarryintelligence.monthly199" dist || {
             echo "::error title=Apple product missing from iOS web bundle::The built app cannot recognize the current Apple subscription";
             exit 1;
@@ -310,10 +310,10 @@ jobs:
               raise SystemExit("Apple subscription sync contains errors: " + " | ".join(product_errors + report.get("errors", [])))
           product = products["com.ssrockholdings.mobile.quarryintelligence.monthly199"]
           pricing = product.get("pricing") or {}
-          if pricing.get("usa_price") != "39.00":
-              raise SystemExit(f"Apple USA subscription price is not $39.00: {pricing}")
+          if pricing.get("usa_price") != "49.00":
+              raise SystemExit(f"Apple USA subscription price is not $49.00: {pricing}")
           if pricing.get("price_failures"):
-              raise SystemExit("Apple $39 price update contains territory failures")
+              raise SystemExit("Apple $49 price update contains territory failures")
           offer = product.get("introductory_offer") or {}
           if offer.get("status") != "NO_TRIAL" or offer.get("remaining_offer_count") != 0:
               raise SystemExit(f"Apple introductory offers were not fully removed: {offer}")
