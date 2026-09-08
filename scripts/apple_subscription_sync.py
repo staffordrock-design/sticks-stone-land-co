@@ -421,13 +421,24 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
         params={"include": "territory,subscriptionPricePoint", "limit": 200},
     )
     current_points_by_territory: dict[str, set[str]] = {}
+    future_prices_by_territory: dict[str, list[dict[str, Any]]] = {}
+    today = dt.datetime.now(dt.timezone.utc).date()
     for item in current:
         territory_rel = ((item.get("relationships") or {}).get("territory") or {}).get("data") or {}
         point_rel = ((item.get("relationships") or {}).get("subscriptionPricePoint") or {}).get("data") or {}
         territory = territory_rel.get("id")
         point_id = point_rel.get("id")
         if territory and point_id:
-            current_points_by_territory.setdefault(str(territory), set()).add(str(point_id))
+            territory = str(territory)
+            point_id = str(point_id)
+            current_points_by_territory.setdefault(territory, set()).add(point_id)
+            start_date = ((item.get("attributes") or {}).get("startDate") or "")[:10]
+            try:
+                parsed_start = dt.date.fromisoformat(start_date) if start_date else None
+            except ValueError:
+                parsed_start = None
+            if parsed_start and parsed_start > today:
+                future_prices_by_territory.setdefault(territory, []).append(item)
 
     usa_point = find_usa_price_point(client, subscription_id, desired)
     points = [usa_point]
@@ -447,12 +458,32 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
 
     created = 0
     unchanged = 0
+    removed_future = 0
     failed: list[str] = []
     for territory, point in by_territory.items():
         desired_point_id = str(point["id"])
         if desired_point_id in current_points_by_territory.get(territory, set()):
             unchanged += 1
             continue
+
+        replacement_start_date = (today + dt.timedelta(days=2)).isoformat()
+        obsolete_future = future_prices_by_territory.get(territory, [])
+        if obsolete_future:
+            candidate_dates: list[dt.date] = []
+            for future_item in obsolete_future:
+                future_start = (((future_item.get("attributes") or {}).get("startDate") or "")[:10])
+                try:
+                    candidate_dates.append(dt.date.fromisoformat(future_start))
+                except ValueError:
+                    pass
+                future_id = future_item.get("id")
+                if future_id:
+                    client.request("DELETE", f"/v1/subscriptionPrices/{quote(str(future_id), safe='')}", allow=(204,))
+                    removed_future += 1
+                    time.sleep(0.03)
+            if candidate_dates:
+                replacement_start_date = max(min(candidate_dates), today + dt.timedelta(days=2)).isoformat()
+
         payload = {
             "data": {
                 "type": "subscriptionPrices",
@@ -475,9 +506,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
             # lower price point as a scheduled change starting tomorrow.
             if "Initial price cannot be created again after subscription is approved" in message:
                 change_payload = json.loads(json.dumps(payload))
-                change_payload["data"]["attributes"]["startDate"] = (
-                    dt.datetime.now(dt.timezone.utc).date() + dt.timedelta(days=2)
-                ).isoformat()
+                change_payload["data"]["attributes"]["startDate"] = replacement_start_date
                 try:
                     client.request("POST", "/v1/subscriptionPrices", payload=change_payload)
                     created += 1
@@ -494,6 +523,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
         "existing_price_territories": len(current_points_by_territory),
         "prices_created": created,
         "prices_already_at_target": unchanged,
+        "obsolete_future_prices_removed": removed_future,
         "price_failures": failed[:20],
     }
 
