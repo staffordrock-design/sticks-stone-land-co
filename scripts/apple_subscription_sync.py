@@ -39,7 +39,7 @@ PRODUCTS = [
         "description": "Full monthly access to S&S quarry intelligence.",
         "period": "ONE_MONTH",
         "group_level": 1,
-        "usa_price": Decimal("49.00"),
+        "usa_price": Decimal("39.00"),
     },
 ]
 
