@@ -22,8 +22,8 @@ const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abando
 const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
 const QUARRY_COMMODITY_REGEX = "stone|limestone|sand|gravel|aggregate|marble|granite|slate|shale|quartz|clay|dolomite|rock|lime";
-const INITIAL_PER_STATE = 45;
-const SELECTED_STATE_LIMIT = 300;
+const INITIAL_PER_STATE = 220;
+const SELECTED_STATE_LIMIT = 500;
 const MAP_RENDER_LIMIT = 240;
 const CARD_RENDER_LIMIT = 90;
 const BUILD_SHA = String(import.meta.env.VITE_BUILD_SHA || "local").slice(0, 7);
@@ -89,29 +89,14 @@ export default function Home() {
         const perStateLimit = stateFilter === "All Southeast" ? INITIAL_PER_STATE : SELECTED_STATE_LIMIT;
 
         const stateRows = await Promise.all(statesToLoad.map(async (state) => {
-          const quarryRows = await safeLoad(
-            `MiningSite quarry inventory ${state}`,
-            base44.entities.MiningSite.filter({
-              state,
-              commodity: { $regex: QUARRY_COMMODITY_REGEX, $options: "i" },
-            }, "-updated_date", perStateLimit)
+          // Load the full state inventory first, then decide quarry relevance locally.
+          // Filtering commodity in the API was hiding valid MSHA/TDEC records whose
+          // commodity is blank, abbreviated, or described differently.
+          const rows = await safeLoad(
+            `MiningSite inventory ${state}`,
+            base44.entities.MiningSite.filter({ state }, "-updated_date", perStateLimit)
           );
-
-          // Avoid 16 extra requests on the Southeast overview. Blank-commodity
-          // records remain searchable and are included when a single state is selected.
-          if (stateFilter === "All Southeast") return quarryRows || [];
-
-          const [blankCommodity, missingCommodity] = await Promise.all([
-            safeLoad(
-              `MiningSite blank commodity ${state}`,
-              base44.entities.MiningSite.filter({ state, commodity: "" }, "-updated_date", 20)
-            ),
-            safeLoad(
-              `MiningSite missing commodity ${state}`,
-              base44.entities.MiningSite.filter({ state, commodity: null }, "-updated_date", 20)
-            ),
-          ]);
-          return [...(quarryRows || []), ...(blankCommodity || []), ...(missingCommodity || [])];
+          return rows || [];
         }));
 
         const seen = new Set();
@@ -320,12 +305,11 @@ export default function Home() {
               geology, permits, production context, ownership signals and downloadable S&S intelligence reports.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/subscribe" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Subscribe $39/Month</Link>
-              <a href="#quarry-intelligence" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Explore Quarry Intelligence</a>
+              <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Explore Quarry Intelligence</a>
               <Link to="/get-started" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Buy / Sell / Link Your Quarry</Link>
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
-            <p className="mt-4 max-w-xl text-sm text-slate-300"><strong className="text-white">Full Quarry Intelligence is $39/month.</strong> On iPhone, Apple confirms the subscription price before purchase and unlocks the app immediately after payment. No S&amp;S account is required for the Apple subscription.</p>
+            <p className="mt-4 max-w-xl text-sm text-slate-300">Browse the quarry marketplace first. When you choose to unlock full intelligence on iPhone, Apple handles the subscription and shows the purchase terms before confirmation.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
