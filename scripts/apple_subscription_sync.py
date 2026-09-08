@@ -476,7 +476,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
             if "Initial price cannot be created again after subscription is approved" in message:
                 change_payload = json.loads(json.dumps(payload))
                 change_payload["data"]["attributes"]["startDate"] = (
-                    dt.datetime.now(dt.timezone.utc).date() + dt.timedelta(days=1)
+                    dt.datetime.now(dt.timezone.utc).date() + dt.timedelta(days=2)
                 ).isoformat()
                 try:
                     client.request("POST", "/v1/subscriptionPrices", payload=change_payload)
