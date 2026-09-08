@@ -54,6 +54,7 @@ report: dict[str, Any] = {
     "blocking_app_renamed": False,
     "blocking_app_id": None,
     "version_localization_updated": False,
+    "warnings": [],
     "errors": [],
 }
 
@@ -264,9 +265,17 @@ def update_version_keywords(client: ASC, app_id: str, version_id: str) -> None:
                 "attributes": {"keywords": KEYWORDS},
             }
         }
-        client.request("PATCH", f"/v1/appStoreVersionLocalizations/{target_loc['id']}", payload=payload)
-        report["version_localization_updated"] = True
-        print("Updated App Store search keywords on existing en-US version localization.")
+        try:
+            client.request("PATCH", f"/v1/appStoreVersionLocalizations/{target_loc['id']}", payload=payload)
+            report["version_localization_updated"] = True
+            print("Updated App Store search keywords on existing en-US version localization.")
+        except RuntimeError as exc:
+            message = str(exc)
+            if "Attribute 'keywords' cannot be edited at this time" in message or "STATE_ERROR" in message:
+                report["warnings"].append("Apple currently locks keyword edits for this App Store version; build upload can continue with the existing keywords.")
+                print("Apple currently locks keyword edits for this version; keeping existing keywords and continuing build upload.")
+            else:
+                raise
         return
 
     source = find_source_localization(client, app_id, version_id)
