@@ -39,7 +39,7 @@ PRODUCTS = [
         "description": "Full monthly access to S&S quarry intelligence.",
         "period": "ONE_MONTH",
         "group_level": 1,
-        "usa_price": Decimal("199.00"),
+        "usa_price": Decimal("39.00"),
     },
 ]
 
@@ -266,37 +266,39 @@ def ensure_localization(client: ASC, subscription_id: str, product: dict[str, An
 
 
 def audit_introductory_offers(client: ASC, subscription_id: str) -> dict[str, Any]:
-    """Report any existing Apple introductory offers without creating new ones.
-
-    The app is moving to immediate paid access. Existing live-build offers are
-    left untouched during build upload so the currently released binary never
-    promises a trial that Apple has already removed. A separate release-finalize
-    step removes all introductory offers when the no-trial app version is ready
-    for distribution.
-    """
+    """Remove Apple introductory offers so every new purchase starts paid."""
     offers = client.all(
         f"/v1/subscriptions/{subscription_id}/introductoryOffers",
         params={"include": "territory", "limit": 200},
     )
-    summarized = []
+    removed = 0
+    failures: list[str] = []
     for offer in offers:
-        attrs = offer.get("attributes") or {}
-        territory_rel = ((offer.get("relationships") or {}).get("territory") or {}).get("data") or {}
-        summarized.append({
-            "id": offer.get("id"),
-            "offer_mode": attrs.get("offerMode"),
-            "duration": attrs.get("duration"),
-            "number_of_periods": attrs.get("numberOfPeriods"),
-            "territory": territory_rel.get("id"),
-            "start_date": attrs.get("startDate"),
-            "end_date": attrs.get("endDate"),
-        })
+        offer_id = str(offer.get("id") or "")
+        if not offer_id:
+            continue
+        try:
+            client.request(
+                "DELETE",
+                f"/v1/subscriptionIntroductoryOffers/{quote(offer_id, safe='')}",
+                allow=(204,),
+            )
+            removed += 1
+        except Exception as exc:
+            failures.append(f"{offer_id}:{type(exc).__name__}:{str(exc)[:800]}")
+
+    remaining = client.all(
+        f"/v1/subscriptions/{subscription_id}/introductoryOffers",
+        params={"include": "territory", "limit": 200},
+    )
     return {
         "created": False,
-        "removed": False,
+        "removed": removed > 0,
         "existing_offer_count": len(offers),
-        "offers": summarized,
-        "status": "UNCHANGED_UNTIL_NO_TRIAL_RELEASE",
+        "offers_removed": removed,
+        "remaining_offer_count": len(remaining),
+        "removal_failures": failures[:20],
+        "status": "NO_TRIAL" if not remaining else "INTRO_OFFERS_STILL_PRESENT",
     }
 
 
@@ -418,17 +420,19 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
         f"/v1/subscriptions/{subscription_id}/prices",
         params={"include": "territory,subscriptionPricePoint", "limit": 200},
     )
-    current_territories = set()
+    current_points_by_territory: dict[str, set[str]] = {}
     for item in current:
-        rel = ((item.get("relationships") or {}).get("territory") or {}).get("data") or {}
-        if rel.get("id"):
-            current_territories.add(rel["id"])
+        territory_rel = ((item.get("relationships") or {}).get("territory") or {}).get("data") or {}
+        point_rel = ((item.get("relationships") or {}).get("subscriptionPricePoint") or {}).get("data") or {}
+        territory = territory_rel.get("id")
+        point_id = point_rel.get("id")
+        if territory and point_id:
+            current_points_by_territory.setdefault(str(territory), set()).add(str(point_id))
 
     usa_point = find_usa_price_point(client, subscription_id, desired)
     points = [usa_point]
-    # Standard equalizations are sufficient for configuring the matching Apple
-    # price tier in each territory. Decode territory from the opaque IDs rather
-    # than relying on included relationship objects.
+    # Use Apple's equalized tier so the $39 USA price maps consistently across
+    # all storefronts while retaining the existing product identifier.
     equalized = client.all(
         f"/v1/subscriptionPricePoints/{quote(usa_point['id'], safe='')}/equalizations",
         params={"limit": 8000},
@@ -442,9 +446,12 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
             by_territory[territory] = point
 
     created = 0
+    unchanged = 0
     failed: list[str] = []
     for territory, point in by_territory.items():
-        if territory in current_territories:
+        desired_point_id = str(point["id"])
+        if desired_point_id in current_points_by_territory.get(territory, set()):
+            unchanged += 1
             continue
         payload = {
             "data": {
@@ -452,7 +459,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
                 "attributes": {"startDate": None, "planType": "UPFRONT"},
                 "relationships": {
                     "subscription": {"data": {"type": "subscriptions", "id": subscription_id}},
-                    "subscriptionPricePoint": {"data": {"type": "subscriptionPricePoints", "id": point["id"]}},
+                    "subscriptionPricePoint": {"data": {"type": "subscriptionPricePoints", "id": desired_point_id}},
                 },
             }
         }
@@ -466,8 +473,9 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
     return {
         "usa_price": str(desired),
         "territories_available_from_equalization": len(by_territory),
-        "existing_price_territories": len(current_territories),
+        "existing_price_territories": len(current_points_by_territory),
         "prices_created": created,
+        "prices_already_at_target": unchanged,
         "price_failures": failed[:20],
     }
 
