@@ -309,9 +309,14 @@ jobs:
           if product_errors or report.get("errors"):
               raise SystemExit("Apple subscription sync contains errors: " + " | ".join(product_errors + report.get("errors", [])))
           product = products["com.ssrockholdings.mobile.quarryintelligence.monthly199"]
+          pricing = product.get("pricing") or {}
+          if pricing.get("usa_price") != "39.00":
+              raise SystemExit(f"Apple USA subscription price is not $39.00: {pricing}")
+          if pricing.get("price_failures"):
+              raise SystemExit("Apple $39 price update contains territory failures")
           offer = product.get("introductory_offer") or {}
-          if offer.get("status") != "UNCHANGED_UNTIL_NO_TRIAL_RELEASE":
-              raise SystemExit("Apple introductory-offer audit did not enter the safe transition mode")
+          if offer.get("status") != "NO_TRIAL" or offer.get("remaining_offer_count") != 0:
+              raise SystemExit(f"Apple introductory offers were not fully removed: {offer}")
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"ASC_KEY_ID={key_id}\n")
           print("Apple subscription sync check completed; continuing to build upload.")
