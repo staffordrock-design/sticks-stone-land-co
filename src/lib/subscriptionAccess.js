@@ -1,6 +1,6 @@
 export const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trial", "grace_period"]);
 
-// S&S now sells one digital membership: Full Quarry Intelligence ($39/month), with no free trial.
+// S&S sells one digital membership: Full Quarry Intelligence, with no free trial. Storefront pricing is managed by the purchase provider.
 // Keep legacy Deal entitlements honored for existing customers, but do not let the
 // retired Marketplace tier unlock professional quarry intelligence.
 export const FULL_QUARRY_PLAN_CODES = new Set([
