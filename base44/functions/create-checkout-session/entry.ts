@@ -1,5 +1,5 @@
 // functions/create-checkout-session.js
-// Create a Stripe Checkout session for the $199/month subscription. No authentication required for guest checkout.
+// Create a Stripe Checkout session for the $39/month subscription. No authentication required for guest checkout.
 
 import Stripe from 'npm:stripe';
 
@@ -12,7 +12,15 @@ export default async function handler(req, res) {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price: process.env.STRIPE_PRICE_ID_199, quantity: 1 }],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          unit_amount: 3900,
+          recurring: { interval: 'month' },
+          product_data: { name: 'S&S Rock Holdings — Full Quarry Intelligence' },
+        },
+        quantity: 1,
+      }],
       subscription_data: {
         metadata: {
           client_reference_id: client_reference_id || '',
