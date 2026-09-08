@@ -442,7 +442,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
 
     usa_point = find_usa_price_point(client, subscription_id, desired)
     points = [usa_point]
-    # Use Apple's equalized tier so the $49 USA price maps consistently across
+    # Use Apple's equalized tier so the $39 USA price maps consistently across
     # all storefronts while retaining the existing product identifier.
     equalized = client.all(
         f"/v1/subscriptionPricePoints/{quote(usa_point['id'], safe='')}/equalizations",
@@ -478,7 +478,9 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
                     pass
                 future_id = future_item.get("id")
                 if future_id:
-                    client.request("DELETE", f"/v1/subscriptionPrices/{quote(str(future_id), safe='')}", allow=(204,))
+                    # Apple can return a stale future-price row that disappears between
+                    # listing and deletion. Treat 404 as already removed and continue.
+                    client.request("DELETE", f"/v1/subscriptionPrices/{quote(str(future_id), safe='')}", allow=(204, 404))
                     removed_future += 1
                     time.sleep(0.03)
             if candidate_dates:
