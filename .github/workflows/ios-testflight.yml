@@ -102,11 +102,11 @@ jobs:
             exit 1;
           }
           grep -q "com.ssrockholdings.mobile.quarryintelligence.monthly199" src/lib/subscriptionPlans.js || {
-            echo "::error title=Apple product disconnected::The $199 Full Quarry Intelligence product ID is missing from the app";
+            echo "::error title=Apple product disconnected::The Full Quarry Intelligence product ID is missing from the app";
             exit 1;
           }
-          grep -q 'monthly: "$199/mo"' src/lib/subscriptionPlans.js || {
-            echo "::error title=Wrong membership price::The current $199/month membership definition is missing";
+          grep -q 'monthly: "$39/mo"' src/lib/subscriptionPlans.js || {
+            echo "::error title=Wrong membership price::The current $39/month membership definition is missing";
             exit 1;
           }
           grep -Rqs "com.ssrockholdings.mobile.quarryintelligence.monthly199" dist || {
