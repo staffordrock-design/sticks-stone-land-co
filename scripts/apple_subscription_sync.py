@@ -468,7 +468,25 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
             created += 1
             time.sleep(0.03)
         except Exception as exc:
-            failed.append(f"{territory}:{type(exc).__name__}:{str(exc)[:1200]}")
+            message = str(exc)
+            # Once Apple has approved a subscription, startDate=null is treated
+            # as an attempt to create the initial price again. Apple requires a
+            # dated subscription price change instead. Retry the exact same
+            # lower price point as a scheduled change starting tomorrow.
+            if "Initial price cannot be created again after subscription is approved" in message:
+                change_payload = json.loads(json.dumps(payload))
+                change_payload["data"]["attributes"]["startDate"] = (
+                    dt.datetime.now(dt.timezone.utc).date() + dt.timedelta(days=1)
+                ).isoformat()
+                try:
+                    client.request("POST", "/v1/subscriptionPrices", payload=change_payload)
+                    created += 1
+                    time.sleep(0.03)
+                    continue
+                except Exception as change_exc:
+                    failed.append(f"{territory}:{type(change_exc).__name__}:{str(change_exc)[:1200]}")
+                    continue
+            failed.append(f"{territory}:{type(exc).__name__}:{message[:1200]}")
 
     return {
         "usa_price": str(desired),
