@@ -76,15 +76,15 @@ export default function PaidAccessGate({ children }) {
           <h1 className="mt-2 font-heading text-3xl font-bold">Detailed mine intelligence is locked</h1>
           <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-muted-foreground">Full Quarry Intelligence unlocks the complete record behind every site: mapped parcel and ownership intelligence, geology and rock type, permits and compliance history, production context, opportunity screening and premium analysis.</p>
           <div className="mx-auto mt-6 max-w-md text-left">
-            <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5"><div className="text-xs font-bold uppercase tracking-wider text-sky-700">Full Quarry Intelligence</div><div className="mt-1 text-2xl font-bold">$39<span className="text-xs font-semibold text-muted-foreground">/mo</span></div><div className="mt-2 text-xs leading-5 text-muted-foreground">Full app access to quarry records, mapping, ownership, geology, regulatory, production and advanced screening.</div></div>
+            <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5"><div className="text-xs font-bold uppercase tracking-wider text-sky-700">Full Quarry Intelligence</div><div className="mt-2 text-xs leading-5 text-muted-foreground">Full app access to quarry records, mapping, ownership, geology, regulatory, production and advanced screening.</div></div>
           </div>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <Link to={subscribeHref} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />Subscribe for $39/Month</Link>
+            <Link to={subscribeHref} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />Unlock Full Access</Link>
             {!isNativeIOS() && <Link to="/" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Back to marketplace</Link>}
             {!user?.id && !isNativeIOS() && <Link to="/register" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Create account</Link>}
             {!user?.id && !isNativeIOS() && <Link to="/login" className="text-sm font-semibold text-sky-800 hover:underline">Sign in</Link>}
           </div>
-          <p className="mt-5 text-xs leading-5 text-muted-foreground">The membership is $39/month and renews automatically until canceled. On iPhone, Apple confirms the price before purchase and no S&amp;S account is required. Custom reports and due-diligence research are separate professional services.</p>
+          <p className="mt-5 text-xs leading-5 text-muted-foreground">On iPhone, Apple shows the subscription price and purchase terms before confirmation. The subscription renews automatically until canceled. Custom reports and due-diligence research are separate professional services.</p>
         </div>
       </div>
     );
