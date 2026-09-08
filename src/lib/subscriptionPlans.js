@@ -20,7 +20,7 @@ export const ACCESS_TIERS = [
   {
     code: "professional",
     name: "Full Quarry Intelligence",
-    monthly: "$199/mo",
+    monthly: "$39/mo",
     featured: true,
     features: [
       "Full access to S&S quarry intelligence",
@@ -37,7 +37,7 @@ export const ACCESS_TIERS = [
 
 
 export const PLAN_DISPLAY = {
-  monthly: { name: "Full Quarry Intelligence", price: "$199/mo" },
+  monthly: { name: "Full Quarry Intelligence", price: "$39/mo" },
 };
 
 export const PROFESSIONAL_FEATURES = ACCESS_TIERS[0].features;
