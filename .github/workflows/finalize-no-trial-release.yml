@@ -29,7 +29,7 @@ jobs:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
           ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
           ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
-          ASC_TARGET_VERSION: "2.130297.5"
+          ASC_TARGET_VERSION: "2.130297.6"
         run: |
           set -Eeuo pipefail
           python scripts/apple_finalize_no_trial_release.py
