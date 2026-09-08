@@ -1,21 +1,22 @@
 {
   "app_id": "6802014287",
-  "app_info_localizations_updated": [
-    "aaa879d3-a1b5-4267-b405-e158b7470db7"
-  ],
+  "app_info_localizations_updated": [],
   "app_info_update_errors": [],
   "authenticated": true,
   "blocking_app_id": "6801486748",
   "blocking_app_renamed": true,
   "bundle_id": "com.base6a78376a454093ba2f431acd.app",
   "errors": [],
-  "generated_at": "2026-09-03T15:57:03.385209+00:00",
+  "generated_at": "2026-09-08T21:50:39.936267+00:00",
   "key_id_used": "2A3958GU5F",
   "keywords": "quarry,mine,aggregate,mineral,land,geology,MSHA,TDEC,buyer,seller,property,permit,reserves",
   "name": "S&S Rock Holdings",
   "subtitle": "Quarry Data & Marketplace",
   "target_version": "2.130297.4",
-  "version_created": true,
+  "version_created": false,
   "version_id": "98de6dc0-3fab-4945-bef2-b8e0ddea0713",
-  "version_localization_updated": true
+  "version_localization_updated": false,
+  "warnings": [
+    "Apple currently locks keyword edits for this App Store version; build upload can continue with the existing keywords."
+  ]
 }
