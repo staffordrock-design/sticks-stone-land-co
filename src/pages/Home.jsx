@@ -21,8 +21,6 @@ const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Othe
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
 const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
-const INITIAL_PER_STATE = 220;
-const SELECTED_STATE_LIMIT = 500;
 const MAP_RENDER_LIMIT = 240;
 const CARD_RENDER_LIMIT = 90;
 const BUILD_SHA = String(import.meta.env.VITE_BUILD_SHA || "local").slice(0, 7);
@@ -85,23 +83,32 @@ export default function Home() {
 
       const loadMiningSiteInventory = async () => {
         const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
-        const perStateLimit = stateFilter === "All Southeast" ? INITIAL_PER_STATE : SELECTED_STATE_LIMIT;
 
-        const stateRows = await Promise.all(statesToLoad.map(async (state) => {
-          // Load the full state inventory first, then decide quarry relevance locally.
-          // Filtering commodity in the API was hiding valid MSHA/TDEC records whose
-          // commodity is blank, abbreviated, or described differently.
-          const rows = await safeLoad(
-            `MiningSite inventory ${state}`,
-            base44.entities.MiningSite.filter({ state }, "-updated_date", perStateLimit)
-          );
-          return rows || [];
-        }));
+        const loadStateInventory = async (state) => {
+          const rows = [];
+          const seen = new Set();
+          for (let offset = 0; offset < 10000; offset += 500) {
+            // Page through the whole state inventory. The old single-page query
+            // silently dropped older MSHA/TDEC records when a state had >500 rows.
+            const page = await safeLoad(
+              `MiningSite inventory ${state} offset ${offset}`,
+              base44.entities.MiningSite.filter({ state }, "-updated_date", 500, offset)
+            );
+            for (const site of page || []) {
+              if (!site?.id || seen.has(site.id) || !isQuarryRelevant(site)) continue;
+              seen.add(site.id);
+              rows.push(site);
+            }
+            if (!page || page.length < 500) break;
+          }
+          return rows;
+        };
 
+        const stateRows = await Promise.all(statesToLoad.map(loadStateInventory));
         const seen = new Set();
         const rows = [];
         for (const site of stateRows.flat()) {
-          if (!isQuarryRelevant(site) || seen.has(site.id)) continue;
+          if (!site?.id || seen.has(site.id)) continue;
           seen.add(site.id);
           rows.push(site);
         }
