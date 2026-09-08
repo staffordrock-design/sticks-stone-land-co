@@ -83,32 +83,23 @@ export default function Home() {
 
       const loadMiningSiteInventory = async () => {
         const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
+        const perStateLimit = stateFilter === "All Southeast" ? 250 : 500;
 
-        const loadStateInventory = async (state) => {
-          const rows = [];
-          const seen = new Set();
-          for (let offset = 0; offset < 10000; offset += 500) {
-            // Page through the whole state inventory. The old single-page query
-            // silently dropped older MSHA/TDEC records when a state had >500 rows.
-            const page = await safeLoad(
-              `MiningSite inventory ${state} offset ${offset}`,
-              base44.entities.MiningSite.filter({ state }, "-updated_date", 500, offset)
-            );
-            for (const site of page || []) {
-              if (!site?.id || seen.has(site.id) || !isQuarryRelevant(site)) continue;
-              seen.add(site.id);
-              rows.push(site);
-            }
-            if (!page || page.length < 500) break;
-          }
-          return rows;
-        };
+        // Keep the first screen fast and reliable on phones. Search still queries the
+        // full MiningSite database, so older records remain discoverable without
+        // downloading tens of thousands of rows before anything can render.
+        const stateRows = await Promise.all(statesToLoad.map(async (state) => {
+          const page = await safeLoad(
+            `MiningSite working set ${state}`,
+            base44.entities.MiningSite.filter({ state }, "-updated_date", perStateLimit)
+          );
+          return (page || []).filter((site) => site?.id && isQuarryRelevant(site));
+        }));
 
-        const stateRows = await Promise.all(statesToLoad.map(loadStateInventory));
         const seen = new Set();
         const rows = [];
         for (const site of stateRows.flat()) {
-          if (!site?.id || seen.has(site.id)) continue;
+          if (seen.has(site.id)) continue;
           seen.add(site.id);
           rows.push(site);
         }
