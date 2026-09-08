@@ -21,7 +21,6 @@ const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Othe
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
 const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
-const QUARRY_COMMODITY_REGEX = "stone|limestone|sand|gravel|aggregate|marble|granite|slate|shale|quartz|clay|dolomite|rock|lime";
 const INITIAL_PER_STATE = 220;
 const SELECTED_STATE_LIMIT = 500;
 const MAP_RENDER_LIMIT = 240;
