@@ -41,7 +41,7 @@ export default function MembershipRequiredGate({ children }) {
   const { user, isLoadingAuth, isLoadingPublicSettings, authChecked } = useAuth();
   const [accessState, setAccessState] = useState({ loading: true, active: false, checkedPath: null });
 
-  const exempt = EXEMPT_PATHS.has(pathname) && !(isNativeIOS() && (pathname === "/" || pathname === "/get-started"));
+  const exempt = EXEMPT_PATHS.has(pathname);
 
   useEffect(() => {
     let cancelled = false;
