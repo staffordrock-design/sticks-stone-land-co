@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import {
   ArrowLeft,
   Building2,
   CheckCircle2,
+  FileText,
   Handshake,
   Link2,
   MapPin,
@@ -15,14 +16,26 @@ import {
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 
 const MODES = [
-  { id: "Buyer", label: "Find a Quarry", icon: ShoppingCart, description: "Tell us what you want to buy and we’ll match it to quarry and mineral opportunities." },
-  { id: "Seller", label: "Sell a Quarry", icon: Handshake, description: "Tell us what you own or control and put it into the S&S seller pipeline." },
+  { id: "Buyer", label: "Find Quarry Opportunities", icon: ShoppingCart, description: "Tell us what you want to buy, lease or operate and S&S will match it to quarry and mineral opportunities." },
+  { id: "Seller", label: "Evaluate My Rock Land", icon: Handshake, description: "Tell us what you own or control and put it into the S&S seller pipeline." },
+  { id: "Report Request", label: "Confidential Report", icon: FileText, description: "Request a private S&S review of a quarry, property, owner, permit or county market." },
   { id: "Link My Quarry", label: "Link My Quarry Data", icon: Link2, description: "Find an existing quarry record and connect your company or relationship to it for review." },
 ];
 
 const ASSET_TYPES = ["Operating Quarry", "Potential Quarry Land", "Aggregate Operation", "Mineral Rights", "Royalty Interest", "Other"];
 const RELATIONSHIPS = ["Owner / Landowner", "Operator", "Permittee", "Controller", "Broker / Agent", "Buyer / Investor", "Other"];
 const TIMING = ["Immediately", "0–3 months", "3–6 months", "6–12 months", "12+ months", "Just exploring"];
+
+const MODE_BY_PARAM = {
+  buyer: "Buyer",
+  seller: "Seller",
+  report: "Report Request",
+  link: "Link My Quarry",
+};
+
+function modeFromParam(value) {
+  return MODE_BY_PARAM[String(value || "").toLowerCase()] || "Buyer";
+}
 
 const initialForm = {
   name: "",
@@ -63,7 +76,9 @@ function escapeRegex(value = "") {
 
 export default function LeadSetup() {
   const { user } = useAuth();
-  const [mode, setMode] = useState("Buyer");
+  const [searchParams] = useSearchParams();
+  const paramMode = searchParams.get("mode");
+  const [mode, setMode] = useState(() => modeFromParam(paramMode));
   const [form, setForm] = useState(initialForm);
   const [mineQuery, setMineQuery] = useState("");
   const [mineResults, setMineResults] = useState([]);
@@ -78,6 +93,11 @@ export default function LeadSetup() {
     if (!user) return;
     setForm((f) => ({ ...f, name: f.name || user.name || "", email: f.email || user.email || "" }));
   }, [user]);
+
+  useEffect(() => {
+    if (!paramMode) return;
+    setMode(modeFromParam(paramMode));
+  }, [paramMode]);
 
   useEffect(() => {
     const q = mineQuery.trim();
@@ -172,15 +192,15 @@ export default function LeadSetup() {
         phone: form.phone,
         company: form.company,
         role_title: form.role_title,
-        target_states: mode === "Buyer" ? form.target_states : "",
-        target_counties: mode === "Buyer" ? form.target_counties : "",
-        target_commodities: mode === "Buyer" ? form.target_commodities : "",
-        min_acres: mode === "Buyer" ? numberOrNull(form.min_acres) : null,
-        max_acres: mode === "Buyer" ? numberOrNull(form.max_acres) : null,
+        target_states: ["Buyer", "Report Request"].includes(mode) ? form.target_states : "",
+        target_counties: ["Buyer", "Report Request"].includes(mode) ? form.target_counties : "",
+        target_commodities: ["Buyer", "Report Request"].includes(mode) ? form.target_commodities : "",
+        min_acres: ["Buyer", "Report Request"].includes(mode) ? numberOrNull(form.min_acres) : null,
+        max_acres: ["Buyer", "Report Request"].includes(mode) ? numberOrNull(form.max_acres) : null,
         min_budget: mode === "Buyer" ? numberOrNull(form.min_budget) : null,
         max_budget: mode === "Buyer" ? numberOrNull(form.max_budget) : null,
-        asset_preferences: mode === "Buyer" ? form.asset_preferences : "",
-        acquisition_timing: mode === "Buyer" ? form.acquisition_timing : "",
+        asset_preferences: ["Buyer", "Report Request"].includes(mode) ? form.asset_preferences : "",
+        acquisition_timing: ["Buyer", "Report Request"].includes(mode) ? form.acquisition_timing : "",
         property_name: mode === "Seller" ? form.property_name : "",
         state: mode === "Seller" ? form.state : "",
         county: mode === "Seller" ? form.county : "",
@@ -261,8 +281,8 @@ export default function LeadSetup() {
         <header className="border-b border-border"><div className="mx-auto max-w-5xl px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Back</Link></div></header>
         <main className="mx-auto max-w-3xl px-6 py-16 text-center">
           <Building2 className="mx-auto h-12 w-12 text-slate-700" />
-          <h1 className="mt-5 font-heading text-3xl font-bold">Buy, Sell, or Link Your Quarry</h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Create a free S&S account or sign in so we can save your buyer criteria, seller lead, or quarry-data link request.</p>
+          <h1 className="mt-5 font-heading text-3xl font-bold">Find Opportunities or Request a Report</h1>
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Create a free S&S account or sign in so we can save buyer criteria, land review, confidential report requests, or quarry-data links.</p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <Link to="/register?returnTo=%2Fget-started" className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Create Account</Link>
             <Link to="/login?returnTo=%2Fget-started" className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-bold">Sign In</Link>
@@ -283,12 +303,12 @@ export default function LeadSetup() {
 
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Buyer / Seller Lead Setup</p>
-          <h1 className="mt-2 font-heading text-3xl font-bold sm:text-4xl">Buy, sell, or link your quarry.</h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">Start with what you’re trying to do. S&amp;S keeps the lead information tied to the quarry intelligence side instead of making you re-enter the same data later.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">S&amp;S Opportunity Desk</p>
+          <h1 className="mt-2 font-heading text-3xl font-bold sm:text-4xl">Find quarry opportunities, evaluate land, or request a confidential report.</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">Start with the money lane. S&amp;S keeps buyer criteria, seller leads, quarry-data links and report requests tied to the intelligence record.</p>
         </div>
 
-        <div className="mt-8 grid gap-3 md:grid-cols-3">
+        <div className="mt-8 grid gap-3 md:grid-cols-4">
           {MODES.map(({ id, label, icon: Icon, description }) => {
             const active = mode === id;
             return (
@@ -317,7 +337,7 @@ export default function LeadSetup() {
             </section>
 
             <section className="border-t border-border pt-6">
-              <SectionTitle>{mode === "Buyer" ? "Find Your Quarry" : mode === "Seller" ? "Link an Existing Quarry Record (Optional)" : "Find the Quarry to Link"}</SectionTitle>
+              <SectionTitle>{mode === "Buyer" ? "Find Your Quarry" : mode === "Seller" ? "Link an Existing Quarry Record (Optional)" : mode === "Report Request" ? "Attach a Quarry Record (Optional)" : "Find the Quarry to Link"}</SectionTitle>
               <p className="mt-2 text-sm text-muted-foreground">Search by quarry name, company, county, rock type, MSHA ID, TDEC permit, or parcel ID.</p>
               <div className="relative mt-4">
                 <Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" />
@@ -352,9 +372,9 @@ export default function LeadSetup() {
               )}
             </section>
 
-            {mode === "Buyer" && (
+            {["Buyer", "Report Request"].includes(mode) && (
               <section className="border-t border-border pt-6">
-                <SectionTitle>Buyer Criteria</SectionTitle>
+                <SectionTitle>{mode === "Report Request" ? "Report Scope" : "Buyer Criteria"}</SectionTitle>
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                   <Field label="Target States"><input className="input" value={form.target_states} onChange={(e) => set("target_states", e.target.value)} /></Field>
                   <Field label="Target Counties / Markets"><input className="input" value={form.target_counties} onChange={(e) => set("target_counties", e.target.value)} placeholder="Polk, Bradley, Chattanooga market..." /></Field>
@@ -365,7 +385,7 @@ export default function LeadSetup() {
                   <Field label="Minimum Budget"><input className="input" inputMode="decimal" value={form.min_budget} onChange={(e) => set("min_budget", e.target.value)} placeholder="$" /></Field>
                   <Field label="Maximum Budget"><input className="input" inputMode="decimal" value={form.max_budget} onChange={(e) => set("max_budget", e.target.value)} placeholder="$" /></Field>
                 </div>
-                <Field label="What are you looking for?"><textarea className="input mt-4 min-h-28" value={form.asset_preferences} onChange={(e) => set("asset_preferences", e.target.value)} placeholder="Operating quarry, undeveloped permitted property, reserve potential, rail access, ready-mix tie-in, royalty interest..." /></Field>
+                <Field label={mode === "Report Request" ? "What should S&S investigate?" : "What are you looking for?"}><textarea className="input mt-4 min-h-28" value={form.asset_preferences} onChange={(e) => set("asset_preferences", e.target.value)} placeholder={mode === "Report Request" ? "County market, ownership, permit status, active/inactive quarry, rock land, possible buyer/seller opportunity, lease or royalty situation..." : "Operating quarry, undeveloped permitted property, reserve potential, rail access, ready-mix tie-in, royalty interest..."} /></Field>
               </section>
             )}
 
@@ -403,7 +423,7 @@ export default function LeadSetup() {
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-6">
               <p className="max-w-xl text-xs leading-5 text-muted-foreground">Your lead stays connected to your S&amp;S account and, when selected, the quarry record you chose.</p>
               <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-sm disabled:opacity-50">
-                {saving ? "Saving…" : mode === "Buyer" ? "Save Buyer Lead" : mode === "Seller" ? "Submit Seller Lead" : "Submit Link Request"}
+                {saving ? "Saving…" : mode === "Buyer" ? "Save Buyer Lead" : mode === "Seller" ? "Submit Seller Lead" : mode === "Report Request" ? "Request Confidential Report" : "Submit Link Request"}
               </button>
             </div>
           </form>
@@ -424,11 +444,12 @@ function Field({ label, children }) {
 function Success({ mode }) {
   const seller = mode === "Seller";
   const linker = mode === "Link My Quarry";
+  const report = mode === "Report Request";
   return (
     <div className="mt-7 rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center">
       <CheckCircle2 className="mx-auto h-11 w-11 text-emerald-700" />
-      <h2 className="mt-4 font-heading text-2xl font-bold text-slate-950">{seller ? "Seller lead received" : linker ? "Quarry link request received" : "Buyer profile saved"}</h2>
-      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-emerald-950">{seller ? "Your property is now in the S&S seller pipeline." : linker ? "S&S now has the quarry record and your relationship request together for review." : "Your quarry acquisition criteria are saved and ready to match against S&S quarry intelligence."}</p>
+      <h2 className="mt-4 font-heading text-2xl font-bold text-slate-950">{seller ? "Seller lead received" : linker ? "Quarry link request received" : report ? "Report request received" : "Buyer profile saved"}</h2>
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-emerald-950">{seller ? "Your property is now in the S&S seller pipeline." : linker ? "S&S now has the quarry record and your relationship request together for review." : report ? "S&S has your confidential report request and can review the target, market or quarry question you submitted." : "Your quarry acquisition criteria are saved and ready to match against S&S quarry intelligence."}</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <Link to="/" className="rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white">Explore Quarry Data</Link>
         {seller && <Link to="/seller-portal" className="rounded-xl border border-emerald-300 bg-white px-5 py-2.5 text-sm font-bold text-emerald-900">Seller Portal</Link>}
