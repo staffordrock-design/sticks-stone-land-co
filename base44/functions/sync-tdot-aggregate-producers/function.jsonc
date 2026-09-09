@@ -1,0 +1,14 @@
+{
+  "automations": [
+    {
+      "name": "Daily TDOT aggregate producer refresh",
+      "description": "Refresh TDOT Tennessee aggregate producer status and re-match approved producer plants to quarry records.",
+      "type": "scheduled",
+      "schedule_mode": "recurring",
+      "schedule_type": "cron",
+      "cron_expression": "0 8 * * *",
+      "function_args": {},
+      "is_active": true
+    }
+  ]
+}
