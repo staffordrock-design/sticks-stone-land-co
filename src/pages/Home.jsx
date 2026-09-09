@@ -294,34 +294,34 @@ export default function Home() {
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
               <Layers className="h-3.5 w-3.5" />
-              Industrial Quarry Intelligence
+              Quarry Opportunity Intelligence
             </span>
             <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-              Find the asset. Know the ground.
+              Find quarry value before the market sees it.
             </h1>
             <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
-              Source-backed quarry intelligence across Tennessee and the Southeast — mine records, mapped locations,
-              geology, permits, production context, ownership signals and downloadable S&S intelligence reports.
+              S&S Rock Holdings identifies quarry, mineral, land and aggregate opportunities across Tennessee and the Southeast — connecting public records, permits, ownership signals, geology, production context and confidential report requests.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Explore Quarry Intelligence</a>
-              <Link to="/get-started" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Buy / Sell / Link Your Quarry</Link>
+              <Link to="/get-started?mode=buyer" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Find Quarry Opportunities</Link>
+              <Link to="/get-started?mode=seller" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Evaluate My Rock Land</Link>
+              <Link to="/get-started?mode=report" className="rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-sm font-bold text-white hover:bg-sky-600">Request Confidential Report</Link>
               {!isNativeApp && <a href="https://apps.apple.com/app/id6802014287" target="_blank" rel="noreferrer" className="rounded-xl border border-slate-300/50 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/20">Download iPhone App</a>}
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
-            <p className="mt-4 max-w-xl text-sm text-slate-300">Browse the quarry marketplace first. When you choose to unlock full intelligence on iPhone, Apple handles the subscription and shows the purchase terms before confirmation.</p>
+            <p className="mt-4 max-w-xl text-sm text-slate-300">Search the data first. Serious buyers, owners and landholders can submit criteria, request review and move into S&S reports, diligence and deal follow-up.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
-                Source-backed records
+                Buyer and owner leads
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-slate-200" />
-                Geology &amp; mineral context
+                Permits, geology and ownership signals
               </div>
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-slate-200" />
-                Maps &amp; parcel intelligence
+                Reports and deal pipeline
               </div>
             </div>
           </div>
@@ -333,7 +333,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
           {[
             [metricValue(quarrySites.length), loading ? "Loading quarry records" : inventoryUnavailable ? "Records temporarily unavailable" : "Quarry records loaded"],
-            [metricValue(opportunityCount), "Potential / idled opportunities"],
+            [metricValue(opportunityCount), "Potential / idled targets"],
             [metricValue(activeCount), "Active mine records"],
             [Math.max(statesCovered, SOUTHEAST_STATES.length).toLocaleString(), "Southeast states in scope"],
           ].map(([value, label]) => (
@@ -354,10 +354,10 @@ export default function Home() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><Database className="h-4 w-4" /> Live S&amp;S Workspaces</div>
-              <h2 className="mt-2 font-heading text-2xl font-bold sm:text-3xl">Work the quarry data from here.</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Open the actual company network, deal workspace, ownership graph or comparison tool. These actions use the quarry records loaded in the app instead of sending you to another promotional page.</p>
+              <h2 className="mt-2 font-heading text-2xl font-bold sm:text-3xl">Turn quarry data into money moves.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Use the company network, deal workspace, ownership graph and comparison tools to spot quarry-capable land, operating assets, buyer criteria, seller leads and report-worthy targets.</p>
             </div>
-            <button type="button" onClick={() => navigate("/network")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-950">Open Quarry Network <ArrowRight className="h-4 w-4" /></button>
+            <button type="button" onClick={() => navigate("/get-started?mode=report")} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-950">Request a Report <ArrowRight className="h-4 w-4" /></button>
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -385,7 +385,7 @@ export default function Home() {
           <div className="mt-4 grid gap-2 sm:grid-cols-3">
             <button type="button" onClick={() => navigate("/network/watchlist")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><Bell className="h-4 w-4 text-sky-300"/>Network Watchlist</button>
             <button type="button" onClick={() => navigate("/mineral-intelligence")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><MapPinned className="h-4 w-4 text-sky-300"/>Mineral Map</button>
-            <button type="button" onClick={() => navigate("/intelligence")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><Layers className="h-4 w-4 text-sky-300"/>All Intel Workspaces</button>
+            <button type="button" onClick={() => navigate("/get-started?mode=buyer")} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold"><Layers className="h-4 w-4 text-sky-300"/>Submit Buyer Criteria</button>
           </div>
           <div className="mt-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">App build {BUILD_SHA}</div>
         </div>
