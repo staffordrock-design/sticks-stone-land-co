@@ -1,0 +1,73 @@
+{
+  "name": "TDOTAggregateDemand",
+  "type": "object",
+  "properties": {
+    "letting_date": {
+      "type": "string"
+    },
+    "contract_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "counties": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "item_no": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "quantity": {
+      "type": "number"
+    },
+    "unit": {
+      "type": "string"
+    },
+    "material_group": {
+      "type": "string"
+    },
+    "source_title": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_id",
+    "description",
+    "quantity",
+    "unit",
+    "source_url"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
