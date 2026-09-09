@@ -237,7 +237,7 @@ def find_subscription_version_and_group(c: ASC, app_id: str) -> tuple[dict[str, 
             versions = c.all(f"/v1/subscriptions/{sub['id']}/versions", params={"limit": 200})
             candidates = [v for v in versions if (v.get("attributes") or {}).get("state") in REVIEWABLE_VERSION_STATES]
             if not candidates:
-                raise RuntimeError("The $199 subscription has no reviewable subscription version")
+                raise RuntimeError("The $49 monthly subscription has no reviewable subscription version")
             priority = {"READY_FOR_REVIEW": 8, "PREPARE_FOR_SUBMISSION": 7, "DEVELOPER_REJECTED": 6, "DEVELOPER_ACTION_NEEDED": 5, "REJECTED": 4, "WAITING_FOR_REVIEW": 3, "IN_REVIEW": 2}
             candidates.sort(key=lambda v: (priority.get((v.get("attributes") or {}).get("state"), 0), v.get("id") or ""), reverse=True)
             chosen = candidates[0]
@@ -387,9 +387,31 @@ def main() -> None:
             review_id = create_review(c, app_id)
             review_state_before = "READY_FOR_REVIEW"
 
+        subscription_version_id = ""
+        subscription_group_version_id = ""
         if review_state_before == "READY_FOR_REVIEW":
             ensure_whats_new(c, version_id)
             add_item(c, review_id, "appStoreVersion", "appStoreVersions", version_id)
+
+            # This subscription group has not always had a previously approved group
+            # version. Apple requires the reviewable subscription version and group
+            # version to travel with the app version in that case. Include them when
+            # they are reviewable; if both are already approved, the app can submit
+            # without creating duplicate subscription review items.
+            try:
+                subscription_version, subscription_group_id = find_subscription_version_and_group(c, app_id)
+                subscription_group_version = find_group_version(c, subscription_group_id)
+                subscription_version_id = str(subscription_version["id"])
+                subscription_group_version_id = str(subscription_group_version["id"])
+                add_item(c, review_id, "subscriptionVersion", "subscriptionVersions", subscription_version_id)
+                add_item(c, review_id, "subscriptionGroupVersion", "subscriptionGroupVersions", subscription_group_version_id)
+            except RuntimeError as exc:
+                if "no reviewable subscription version" in str(exc).lower():
+                    report["actions"].append("No reviewable $49 subscription version remains; submitting the app version without duplicate subscription items")
+                    save()
+                else:
+                    raise
+
             submit_review(c, review_id)
         elif review_state_before not in {"WAITING_FOR_REVIEW", "IN_REVIEW"}:
             raise RuntimeError(f"Review {review_id} is not submit-ready; state={review_state_before}")
@@ -406,6 +428,8 @@ def main() -> None:
             "attached_build": (attached.get("attributes") or {}).get("version"),
             "attached_build_state": (attached.get("attributes") or {}).get("processingState"),
             "app_version_linked": ("appStoreVersion", version_id) in resource_pairs,
+            "subscription_version_linked": (not subscription_version_id) or (("subscriptionVersion", subscription_version_id) in resource_pairs),
+            "subscription_group_version_linked": (not subscription_group_version_id) or (("subscriptionGroupVersion", subscription_group_version_id) in resource_pairs),
             "review_items": items,
         }
         save()
@@ -413,6 +437,8 @@ def main() -> None:
             raise RuntimeError("Final verification failed: expected VALID target build is not attached")
         if not report["final"]["app_version_linked"]:
             raise RuntimeError("Final verification failed: app version review linkage is incomplete")
+        if not report["final"]["subscription_version_linked"] or not report["final"]["subscription_group_version_linked"]:
+            raise RuntimeError("Final verification failed: subscription review linkage is incomplete")
         if review_state not in {"WAITING_FOR_REVIEW", "IN_REVIEW"}:
             raise RuntimeError(f"Final verification failed: review state is {review_state}")
         print(f"SUCCESS: version {TARGET_VERSION} build {TARGET_BUILD} submitted for App Review.")
