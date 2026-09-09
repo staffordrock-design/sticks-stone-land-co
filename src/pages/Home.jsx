@@ -1,5 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
@@ -52,6 +53,7 @@ function isQuarryRelevant(site) {
 export default function Home() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isNativeApp = Capacitor.isNativePlatform();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inventoryUnavailable, setInventoryUnavailable] = useState(false);
@@ -304,6 +306,7 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#quarry-intelligence" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Explore Quarry Intelligence</a>
               <Link to="/get-started" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Buy / Sell / Link Your Quarry</Link>
+              {!isNativeApp && <a href="https://apps.apple.com/app/id6802014287" target="_blank" rel="noreferrer" className="rounded-xl border border-slate-300/50 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/20">Download iPhone App</a>}
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
             <p className="mt-4 max-w-xl text-sm text-slate-300">Browse the quarry marketplace first. When you choose to unlock full intelligence on iPhone, Apple handles the subscription and shows the purchase terms before confirmation.</p>
