@@ -1,0 +1,100 @@
+{
+  "name": "TDOTProducerPlant",
+  "type": "object",
+  "properties": {
+    "tdot_object_id": {
+      "type": "number"
+    },
+    "producer_code": {
+      "type": "string"
+    },
+    "producer_name": {
+      "type": "string"
+    },
+    "plant_type_code": {
+      "type": "string"
+    },
+    "plant_type_description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "street": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "zip": {
+      "type": "string"
+    },
+    "region": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "matched_mining_site_id": {
+      "type": "string"
+    },
+    "matched_msha_mine_id": {
+      "type": "string"
+    },
+    "matched_mine_name": {
+      "type": "string"
+    },
+    "match_method": {
+      "type": "string"
+    },
+    "match_distance_miles": {
+      "type": "number"
+    },
+    "match_confidence": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ]
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "last_source_update": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "producer_name",
+    "state",
+    "plant_type_code"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
