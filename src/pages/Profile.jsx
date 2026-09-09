@@ -22,7 +22,7 @@ function customerAccountType(type, company) {
 }
 
 function cleanReturnTo(value) {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/profile")) return "/";
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.startsWith("/profile")) return "/network?tab=feed";
   return value;
 }
 
