@@ -5,7 +5,7 @@ S&S Rock Holdings Mobile now offers one auto-renewing iOS subscription:
 
 - Full Quarry Intelligence Monthly
 - Product ID: com.ssrockholdings.mobile.quarryintelligence.monthly199
-- Price: $39.00 USD per month
+- Price: $49.00 USD per month
 - Introductory offer: None. Subscription is paid immediately when confirmed.
 - Billing period: 1 month, auto-renewing
 
@@ -15,7 +15,7 @@ The retired Marketplace, Professional, annual, and Deal subscription tiers are n
 Registration is not required to purchase the Apple subscription.
 
 Signed-out iPhone path:
-Launch → Membership → Full Quarry Intelligence → Subscribe → Apple StoreKit purchase sheet → $39/month paid subscription → immediate full access.
+Launch → Membership → Full Quarry Intelligence → Subscribe → Apple StoreKit purchase sheet → $49/month paid subscription → immediate full access.
 
 After Apple confirms an active StoreKit entitlement, Full Quarry Intelligence unlocks on the device. Restore Purchases is available while signed out. An S&S account is optional for Apple subscription access and is used for account-linked tools such as saved opportunities, alerts, buyer/seller tools, messages, and network profiles.
 
@@ -49,4 +49,4 @@ The standard Apple Terms of Use (EULA) applies to the iOS app.
 - Native Base44 API/public-settings routing is pinned to the production Base44 service.
 - StoreKit product loading includes retry and timeout handling.
 - The retired 60-second JavaScript preview gate is removed.
-- The current app presents one $39/month Full Quarry Intelligence subscription with no free trial rather than the retired multi-tier pricing model.
+- The current app presents one $49/month Full Quarry Intelligence subscription with no free trial rather than the retired multi-tier pricing model.
