@@ -64,8 +64,12 @@ jobs:
             echo "::error title=Native public API host missing::The built web bundle still contains a relative public-settings API path";
             exit 1;
           }
-          grep -Rqs "Work the quarry data from here" dist || {
-            echo "::error title=Current Home workspace missing::The built bundle does not contain the new live quarry workspace";
+          grep -Rqs "Turn quarry data into money moves." dist || {
+            echo "::error title=Current Home workspace missing::The built bundle does not contain the current quarry workspace";
+            exit 1;
+          }
+          grep -Rqs "Welcome to the network" dist || {
+            echo "::error title=Network onboarding missing::The built bundle does not contain the new member onboarding flow";
             exit 1;
           }
           grep -Rqs "S&S Intelligence Center" dist || {
@@ -234,8 +238,12 @@ jobs:
       - name: Verify current web bundle reached iOS
         run: |
           set -Eeuo pipefail
-          grep -Rqs "Work the quarry data from here" ios/App/App/public || {
-            echo "::error title=Capacitor copied stale web assets::The iOS public bundle does not contain the new live quarry workspace";
+          grep -Rqs "Turn quarry data into money moves." ios/App/App/public || {
+            echo "::error title=Capacitor copied stale web assets::The iOS public bundle does not contain the current quarry workspace";
+            exit 1;
+          }
+          grep -Rqs "Welcome to the network" ios/App/App/public || {
+            echo "::error title=iOS network onboarding missing::The iPhone bundle does not contain the new member onboarding flow";
             exit 1;
           }
           grep -Rqs "S&S Intelligence Center" ios/App/App/public || {
@@ -428,8 +436,12 @@ jobs:
           set -Eeuo pipefail
           APP_PUBLIC="$RUNNER_TEMP/SSRockHoldings.xcarchive/Products/Applications/App.app/public"
           test -d "$APP_PUBLIC" || { echo "::error title=Archive public bundle missing::No Capacitor public directory was found inside the archived app"; exit 1; }
-          grep -Rqs "Work the quarry data from here" "$APP_PUBLIC" || {
-            echo "::error title=Archived app is stale::The archive does not contain the new live quarry workspace";
+          grep -Rqs "Turn quarry data into money moves." "$APP_PUBLIC" || {
+            echo "::error title=Archived app is stale::The archive does not contain the current quarry workspace";
+            exit 1;
+          }
+          grep -Rqs "Welcome to the network" "$APP_PUBLIC" || {
+            echo "::error title=Archived network onboarding missing::The archive does not contain the new member onboarding flow";
             exit 1;
           }
           if grep -Rqs "Use the full quarry intelligence toolkit" "$APP_PUBLIC"; then
