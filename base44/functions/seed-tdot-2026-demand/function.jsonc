@@ -1,0 +1,13 @@
+{
+  "automations": [
+    {
+      "name": "Immediate TDOT 2026 aggregate demand seed",
+      "description": "Load parsed 2026 TDOT letting aggregate and stone tonnage into TDOTAggregateDemand.",
+      "type": "scheduled",
+      "schedule_mode": "one-time",
+      "one_time_date": "2026-09-09T02:43:05Z",
+      "function_args": {},
+      "is_active": true
+    }
+  ]
+}
