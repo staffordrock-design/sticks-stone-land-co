@@ -110,7 +110,7 @@ export default async function(req: Request) {
     const parcelId = site.parcel_id;
     const permitNo = site.tdec_permit_number;
 
-    const [parcels, permits, geologyRows, profileRows, production, inspections, violations, environmental, freshnessRows, countySites] = await Promise.all([
+    const [parcels, permits, geologyRows, profileRows, production, inspections, violations, environmental, freshnessRows, countySites, tdotProducers, tdotDemand] = await Promise.all([
       collect(base44.asServiceRole.entities.ParcelRecord, [
         { parcel_id: parcelId }, { msha_mine_id: msha }, { tdec_permit_number: permitNo }
       ], "-updated_date", 20),
@@ -133,6 +133,8 @@ export default async function(req: Request) {
       ], "-updated_date", 100),
       base44.asServiceRole.entities.DataFreshnessStatus.list("source", 20),
       reportType === "Enhanced" && site.county ? base44.asServiceRole.entities.MiningSite.filter({ state: site.state || "TN", county: site.county }, "-updated_date", 100, 0) : Promise.resolve([]),
+      String(site.state || "").toUpperCase() === "TN" ? base44.asServiceRole.entities.TDOTProducerPlant.filter({ $or: [{ matched_mining_site_id: site.id }, { county: site.county, state: "TN" }] }, "-last_source_update", 25, 0).catch(() => []) : Promise.resolve([]),
+      String(site.state || "").toUpperCase() === "TN" && site.county ? base44.asServiceRole.entities.TDOTAggregateDemand.filter({ $or: [{ county: site.county }, { counties: site.county }], unit: "TON" }, "-letting_date", 500, 0).catch(() => []) : Promise.resolve([]),
     ]);
 
     let parcel = parcels[0] || null;
@@ -144,6 +146,9 @@ export default async function(req: Request) {
     const profile = profileRows[0] || null;
     const freshness = Object.fromEntries((freshnessRows || []).map((r: any) => [r.source, r]));
     const nearbySites = reportType === "Enhanced" ? (countySites || []).filter((r: any) => r.id !== site.id).slice(0, 20) : [];
+    const tdotProducer = (tdotProducers || []).find((r: any) => r.matched_mining_site_id === site.id) || (tdotProducers || [])[0] || null;
+    const tdotDemandTons = (tdotDemand || []).reduce((sum: number, r: any) => sum + Number(r.quantity || 0), 0);
+    const tdotDemandByGroup = (tdotDemand || []).reduce((acc: any, r: any) => { const key = r.material_group || "Aggregate / Stone"; acc[key] = (acc[key] || 0) + Number(r.quantity || 0); return acc; }, {});
     const freshnessSummary = ["MSHA", "TDEC", "Geology", "Parcel", "Tax", "Environmental"].map((key) => `${key}:${freshness[key]?.status || "Unknown"}`).join(" · ");
     const now = new Date().toISOString();
 
@@ -174,6 +179,8 @@ export default async function(req: Request) {
       geology && sourceRow(order.id, "Geology", geology.source_agency || "Mapped geology source", geology.source_url, `${geology.primary_rock || geology.lithology || "Mapped geology"}; confidence ${geology.confidence || "not recorded"}.`, geology.confidence || "Medium"),
       ...permits.map((p: any) => sourceRow(order.id, "TDEC", `TDEC ${p.permit_number || "permit"}`, p.source_url, `${p.permit_type || "Permit"}; status ${p.status || "not recorded"}.`, "High")),
       ...environmental.slice(0, 20).map((r: any) => sourceRow(order.id, "Environmental", `${r.agency || "Environmental"} ${r.program || "record"}`, r.source_url, `${r.record_type || r.status || "Environmental record"}.`, "Medium")),
+      tdotProducer && sourceRow(order.id, "Other", `TDOT aggregate producer ${tdotProducer.producer_code || "record"}`, tdotProducer.source_url, `${tdotProducer.producer_name || "TDOT producer"}; status ${tdotProducer.status || "not recorded"}.`, tdotProducer.match_confidence === "High" ? "High" : "Medium"),
+      tdotDemandTons > 0 && sourceRow(order.id, "Other", `TDOT letting aggregate demand - ${site.county || "county"}`, (tdotDemand || [])[0]?.source_url, `${Math.round(tdotDemandTons).toLocaleString()} tons of connected aggregate/stone project demand across ${(tdotDemand || []).length} line item(s).`, "High"),
     ].filter(Boolean);
 
     for (const row of sourceSnapshots) {
@@ -187,6 +194,7 @@ export default async function(req: Request) {
       ["geology", "Geology / Rock", geology ? `${geology.primary_rock || geology.lithology || "Mapped geology"}; formation ${geology.formation_name || "not recorded"}; confidence ${geology.confidence || "not recorded"}.` : "No connected mapped geology record at generation time."],
       ["permits", "Permits / Regulatory", `${permits.length} connected permit record(s).`],
       ["activity", "Production / Activity", `${production.length} connected production/employment record(s).`],
+      ["tdot_market", "TDOT Aggregate Producer / Market Demand", tdotDemandTons > 0 || tdotProducer ? `${tdotProducer ? `TDOT producer ${tdotProducer.producer_name || "match"} (${tdotProducer.status || "status unavailable"})` : "No TDOT producer match"}. Connected ${site.county || "county"} TDOT letting demand: ${Math.round(tdotDemandTons).toLocaleString()} tons across ${(tdotDemand || []).length} line item(s). Material mix: ${Object.entries(tdotDemandByGroup).sort((a: any, b: any) => Number(b[1]) - Number(a[1])).slice(0, 6).map(([k, v]: any) => `${k} ${Math.round(Number(v)).toLocaleString()} t`).join(" · ") || "not available"}. Contract demand is not the quarry's production tonnage.` : "No connected TDOT producer or letting-demand record at generation time."],
       ["compliance", "Environmental / Compliance", `${inspections.length} MSHA inspection(s), ${violations.length} MSHA violation(s), ${environmental.length} environmental record(s).`],
       ["freshness", "Source Freshness", freshnessSummary],
       ...(reportType === "Enhanced" ? [
@@ -271,6 +279,9 @@ export default async function(req: Request) {
         environmental,
         inspections,
         violations,
+        tdot_producer: tdotProducer,
+        tdot_demand: tdotDemand,
+        tdot_demand_tons: tdotDemandTons,
         freshness,
         nearby_sites: nearbySites,
         report_type: reportType,
