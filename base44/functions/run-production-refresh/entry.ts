@@ -19,6 +19,7 @@ export default async function(req: Request) {
   const results: any[] = [];
   results.push(await run(base44, "sync-msha-employment", {}));
   results.push(await run(base44, "sync-usgs-aggregate-production", {}));
+  results.push(await run(base44, "sync-tdot-aggregate-producers", {}));
   results.push(await run(base44, "build-production-estimates", { state: "TN" }));
 
   const success = results.every((r) => r.success);
