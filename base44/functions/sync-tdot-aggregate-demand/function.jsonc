@@ -1,0 +1,14 @@
+{
+  "automations": [
+    {
+      "name": "Weekly TDOT aggregate demand refresh",
+      "description": "Refresh Tennessee TDOT letting quantity PDFs and upsert aggregate/stone demand by contract and county.",
+      "type": "scheduled",
+      "schedule_mode": "recurring",
+      "schedule_type": "cron",
+      "cron_expression": "15 8 * * 6",
+      "function_args": {},
+      "is_active": true
+    }
+  ]
+}
