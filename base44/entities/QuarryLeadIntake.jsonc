@@ -10,7 +10,8 @@
       "enum": [
         "Buyer",
         "Seller",
-        "Link My Quarry"
+        "Link My Quarry",
+        "Report Request"
       ]
     },
     "name": {
