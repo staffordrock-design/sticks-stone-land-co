@@ -38,6 +38,13 @@ function subscriptionSessionId() {
   }
 }
 
+function storeProductDetail(product) {
+  if (!product) return "";
+  const price = product.priceString || product.localizedPrice || product.price || "";
+  const intro = product.introductoryPriceString || product.introductoryPrice || product.introductoryPricePeriod || "";
+  return [product.identifier, price ? `price=${price}` : "", intro ? `intro=${intro}` : ""].filter(Boolean).join(" · ");
+}
+
 function trackSubscriptionAction(user, action, platform, detail = "") {
   try {
     void base44.entities.ViewerActivity.create({
@@ -185,6 +192,7 @@ export default function Subscription() {
         }
         if (!cancelled) {
           setStoreProducts(Object.fromEntries(products.map((p) => [p.identifier, p])));
+          products.forEach((product) => trackSubscriptionAction(user, "store_product_loaded", isIOS ? "apple" : "google", storeProductDetail(product)));
           if (isIOS && products.length === 0) {
             setPurchaseMessage("Apple is still preparing the subscription products for this build. Please try again after the App Store product setup finishes.");
           }
@@ -240,19 +248,13 @@ export default function Subscription() {
         }
         setStoreProducts((current) => ({ ...current, [productId]: appleProduct }));
 
-        const hasIntroductoryOffer = appleProduct?.introductoryPrice != null
-          || !!appleProduct?.introductoryPriceString
-          || !!appleProduct?.introductoryPricePeriod;
-        if (hasIntroductoryOffer) {
-          throw new Error("Apple is finishing the no-trial subscription update. Please try again shortly.");
-        }
-
         const options = {
           productIdentifier: productId,
           productType: PURCHASE_TYPE.SUBS,
         };
         if (user?.id) options.appAccountToken = await appleAccountTokenForUser(user.id);
 
+        trackSubscriptionAction(user, "store_purchase_sheet_opening", "apple", storeProductDetail(appleProduct) || productId);
         // Do not put a short JavaScript timeout around StoreKit's purchase sheet.
         // The user may need time for Face ID, password entry, or Apple's confirmation UI.
         const transaction = await NativePurchases.purchaseProduct(options);
@@ -262,8 +264,10 @@ export default function Subscription() {
         // identity; signing in later migrates that receipt to the S&S account.
         try {
           await verifyAppleTransactions([transaction]);
+          trackSubscriptionAction(user, "store_backend_verification_succeeded", "apple", productId);
         } catch (verificationError) {
           console.error("Apple backend reporting verification failed", verificationError);
+          trackSubscriptionAction(user, "store_backend_verification_error", "apple", String(verificationError?.message || verificationError || productId));
         }
 
         const storeAccess = await waitForAppleStoreAccess();
@@ -272,6 +276,7 @@ export default function Subscription() {
         }
         setAppleStoreAccess(storeAccess);
         if (user?.id) await refreshEntitlements();
+        trackSubscriptionAction(user, "store_entitlement_activated", "apple", productId);
         setPurchaseMessage("Purchase confirmed by Apple. Your full S&S quarry intelligence is active.");
         navigate(returnTo, { replace: true });
       } else {
@@ -293,6 +298,7 @@ export default function Subscription() {
       const message = String(error?.message || error || "Purchase was not completed.");
       if (code === "USER_CANCELLED") {
         trackSubscriptionAction(user, "store_purchase_cancelled", isIOS ? "apple" : "google", productId);
+        setPurchaseMessage("Purchase canceled — your subscription was not started and you were not charged.");
       } else if (code === "PAYMENT_PENDING") {
         trackSubscriptionAction(user, "store_purchase_pending", isIOS ? "apple" : "google", productId);
         setPurchaseMessage("Apple says this purchase is pending. Check your App Store account and try again after it clears.");
@@ -377,7 +383,7 @@ export default function Subscription() {
         <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Unlock Full Quarry Intelligence</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Full Quarry Intelligence is a monthly subscription with no free trial. {isIOS ? "Apple shows the current price and purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."} The subscription renews automatically until canceled.</p>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Full Quarry Intelligence is a monthly subscription. {isIOS ? "Apple shows the current price, any introductory terms, and the purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."} The subscription renews automatically until canceled.</p>
           {!active && <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">View Membership</a>}
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, review Apple&apos;s purchase terms, confirm, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
           {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950">On the web, create a free S&amp;S account or sign in so the subscription can be attached to your account. Your checkout provider shows the current price before confirmation. <Link to="/register?returnTo=%2Fsubscribe" className="font-bold underline">Create free account</Link> · <Link to="/login?returnTo=%2Fsubscribe" className="font-bold underline">Sign in</Link></div>}
@@ -399,7 +405,7 @@ export default function Subscription() {
               const monthlyStore = storeProducts[monthlyId];
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
-                <div className="mt-3 text-sm font-semibold text-muted-foreground">Monthly subscription · no free trial · full app access · auto-renewing until canceled</div>
+                <div className="mt-3 text-sm font-semibold text-muted-foreground">Monthly subscription · full app access · auto-renewing until canceled</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
                   {user?.id ? (
@@ -411,8 +417,8 @@ export default function Subscription() {
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
-                    <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : "Continue with Apple"}</button>
-                    <div className="text-[11px] leading-4 text-muted-foreground">Apple shows the exact purchase terms before you approve. The subscription renews automatically until canceled.</div>
+                    <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : monthlyStore?.priceString ? `Subscribe with Apple · ${monthlyStore.priceString}/month` : "Subscribe with Apple"}</button>
+                    <div className="text-[11px] leading-4 text-muted-foreground">Apple shows the exact price, any introductory offer, and purchase terms before you approve. The subscription renews automatically until canceled.</div>
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
