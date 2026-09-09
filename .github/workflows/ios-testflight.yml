@@ -76,6 +76,18 @@ jobs:
             echo "::error title=Quarry Network Intelligence missing::The built bundle does not contain the full company/quarry network intelligence workspace";
             exit 1;
           }
+          grep -Rqs "TDOT Aggregate Producer Intelligence" dist || {
+            echo "::error title=TDOT intelligence missing::The built bundle does not contain the TDOT aggregate intelligence panel";
+            exit 1;
+          }
+          grep -Rqs "TDOT contract demand" dist || {
+            echo "::error title=TDOT demand missing::The built bundle does not contain the TDOT contract demand summary";
+            exit 1;
+          }
+          grep -Rqs "TDOTAggregateDemand" dist || {
+            echo "::error title=TDOT demand entity missing::The built bundle does not query TDOT aggregate demand records";
+            exit 1;
+          }
           grep -Rqs 'label:"Intel"' dist || grep -Rqs 'label: "Intel"' dist || {
             echo "::error title=Mobile Intel tab missing::The native web bundle does not expose Intelligence in the mobile tab bar";
             exit 1;
@@ -232,6 +244,14 @@ jobs:
           }
           grep -Rqs "S&S Quarry Network Intelligence" ios/App/App/public || {
             echo "::error title=iOS Quarry Network missing::The iPhone bundle does not contain the full Quarry Network Intelligence workspace";
+            exit 1;
+          }
+          grep -Rqs "TDOT Aggregate Producer Intelligence" ios/App/App/public || {
+            echo "::error title=iOS TDOT intelligence missing::The iPhone bundle does not contain the TDOT aggregate intelligence panel";
+            exit 1;
+          }
+          grep -Rqs "TDOT contract demand" ios/App/App/public || {
+            echo "::error title=iOS TDOT demand missing::The iPhone bundle does not contain the TDOT contract demand summary";
             exit 1;
           }
           if grep -Rqs "Use the full quarry intelligence toolkit" ios/App/App/public; then
@@ -416,6 +436,14 @@ jobs:
             echo "::error title=Archived app contains old Home screen::Refusing to upload stale code";
             exit 1;
           fi
+          grep -Rqs "TDOT Aggregate Producer Intelligence" "$APP_PUBLIC" || {
+            echo "::error title=Archived TDOT intelligence missing::The archive does not contain the TDOT aggregate intelligence panel";
+            exit 1;
+          }
+          grep -Rqs "TDOT contract demand" "$APP_PUBLIC" || {
+            echo "::error title=Archived TDOT demand missing::The archive does not contain the TDOT contract demand summary";
+            exit 1;
+          }
           SHORT_SHA="${GITHUB_SHA:0:7}"
           grep -Rqs "$SHORT_SHA" "$APP_PUBLIC" || {
             echo "::error title=Archived commit mismatch::The archive does not contain commit marker $SHORT_SHA";
