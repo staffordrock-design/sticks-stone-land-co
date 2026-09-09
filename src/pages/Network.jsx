@@ -266,6 +266,7 @@ export default function Network() {
   const matchFor = (item) => matchesForMe.find((match) => match.item.id === item.id) || null;
   const myReactionFor = (post) => reactions.find((reaction) => reaction.post_id === post.id && reaction.user_id === user?.id && reaction.reaction === "Like") || null;
   const reactionCountFor = (post) => reactions.filter((reaction) => reaction.post_id === post.id && reaction.reaction === "Like").length;
+  const commentsFor = (post) => comments.filter((comment) => comment.post_id === post.id);
   const roomRequestFor = (item) => dataRoomRequests.find((request) => request.network_opportunity_id === item.id && request.user_id === user?.id) || null;
   const incomingRoomRequestCount = (item) => dataRoomRequests.filter((request) => request.network_opportunity_id === item.id && request.opportunity_owner_user_id === user?.id).length;
 
@@ -412,6 +413,29 @@ export default function Network() {
       console.error("Network post failed", error);
       setNotice("Your post could not be published. Please try again.");
     } finally { setPosting(false); }
+  };
+
+  const createComment = async (post) => {
+    const text = String(commentDrafts[post.id] || "").trim();
+    if (!user?.id || !text || commentingPostId) return;
+    setCommentingPostId(post.id);
+    try {
+      await base44.entities.NetworkComment.create({
+        post_id: post.id,
+        author_user_id: user.id,
+        author_name: publicProfile?.full_name || privateProfile?.full_name || user.name || user.email || "Member",
+        body: text,
+        created_at: new Date().toISOString(),
+        status: "Published",
+      });
+      setCommentDrafts((current) => ({ ...current, [post.id]: "" }));
+      await load();
+    } catch (error) {
+      console.error("Network comment failed", error);
+      setNotice("Your comment could not be posted. Please try again.");
+    } finally {
+      setCommentingPostId("");
+    }
   };
 
   const toggleLike = async (post) => {
