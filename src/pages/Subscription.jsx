@@ -250,7 +250,6 @@ export default function Subscription() {
         const options = {
           productIdentifier: productId,
           productType: PURCHASE_TYPE.SUBS,
-          quantity: 1,
         };
         if (user?.id) options.appAccountToken = await appleAccountTokenForUser(user.id);
 
@@ -290,11 +289,15 @@ export default function Subscription() {
         navigate(returnTo, { replace: true });
       }
     } catch (error) {
+      const code = String(error?.code || "");
       const message = String(error?.message || error || "Purchase was not completed.");
-      if (/cancel/i.test(message)) {
+      if (code === "USER_CANCELLED") {
         trackSubscriptionAction(user, "store_purchase_cancelled", isIOS ? "apple" : "google", productId);
+      } else if (code === "PAYMENT_PENDING") {
+        trackSubscriptionAction(user, "store_purchase_pending", isIOS ? "apple" : "google", productId);
+        setPurchaseMessage("Apple says this purchase is pending. Check your App Store account and try again after it clears.");
       } else {
-        trackSubscriptionAction(user, "store_purchase_error", isIOS ? "apple" : "google", message);
+        trackSubscriptionAction(user, "store_purchase_error", isIOS ? "apple" : "google", [code, message].filter(Boolean).join(": "));
         setPurchaseMessage(message);
       }
     } finally {
