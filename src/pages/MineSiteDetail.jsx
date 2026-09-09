@@ -683,6 +683,16 @@ export default function MineSiteDetail() {
 
           <Card title="Production Intelligence" icon={BarChart3}>
             <div className="space-y-4">
+              {latestReported && (
+                <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-5">
+                  <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-800">Reported mine production</div>
+                  <div className="mt-2 text-3xl font-black text-emerald-950">{Number(latestReported.production_amount || 0).toLocaleString()} {latestReported.production_unit || "tons"}</div>
+                  <div className="mt-1 text-sm font-semibold text-emerald-900">{latestReported.year || ""}{latestReported.period ? ` · ${latestReported.period}` : ""} · {latestReported.source_agency || "reported source"}</div>
+                  <p className="mt-3 text-xs leading-5 text-emerald-900">This is a reported production figure stored from the cited source, not an S&amp;S modeled estimate. When a reported Tennessee annual mine figure is available, S&amp;S gives it priority over modeled tonnage.</p>
+                  {latestReported.source_url && <a href={latestReported.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-900 hover:underline">Open reported production source <ExternalLink className="h-3 w-3" /></a>}
+                </div>
+              )}
+
               {relevantMarketProduction && (
                 <div className="rounded-xl border border-sky-200 bg-sky-50/70 p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -739,9 +749,9 @@ export default function MineSiteDetail() {
                 </div>
               )}
 
-              {!latestEstimate && !latestActivity && (
+              {!latestReported && !latestEstimate && !latestActivity && (
                 <div className="rounded-xl border border-border bg-muted/20 p-4">
-                  <p className="text-sm leading-relaxed text-muted-foreground">No current mine-level activity record is connected yet. S&amp;S will not show a quarry tonnage estimate until current MSHA hours are available for calibration.</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">No current mine-level reported production or activity record is connected yet. S&amp;S will not present modeled quarry tonnage as reported production.</p>
                 </div>
               )}
 
