@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import {
@@ -76,6 +76,7 @@ function escapeRegex(value = "") {
 
 export default function LeadSetup() {
   const { user } = useAuth();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const paramMode = searchParams.get("mode");
   const [mode, setMode] = useState(() => modeFromParam(paramMode));
@@ -222,6 +223,27 @@ export default function LeadSetup() {
 
       await base44.entities.QuarryLeadIntake.create(lead);
 
+      if (mode === "Report Request") {
+        await base44.entities.IntelligenceReportOrder.create({
+          user_id: user.id,
+          customer_email: form.email || user.email || "",
+          mining_site_id: selectedMine?.id || "",
+          site_name: selectedMine?.mine_name || form.target_counties || "Custom quarry opportunity review",
+          report_type: "Custom",
+          status: "Requested",
+          amount: 1500,
+          requested_at: now,
+          notes: [
+            "Confidential report requested from S&S Opportunity Desk.",
+            form.target_states ? `Target states: ${form.target_states}` : "",
+            form.target_counties ? `Target counties / markets: ${form.target_counties}` : "",
+            form.target_commodities ? `Rock / commodity: ${form.target_commodities}` : "",
+            form.asset_preferences ? `Scope: ${form.asset_preferences}` : "",
+            form.phone ? `Phone: ${form.phone}` : "",
+          ].filter(Boolean).join("\n"),
+        });
+      }
+
       if (mode === "Buyer") {
         const buyerPayload = {
           user_id: user.id,
@@ -276,6 +298,7 @@ export default function LeadSetup() {
   };
 
   if (!user?.id) {
+    const returnTo = encodeURIComponent(`${location.pathname}${location.search || ""}`);
     return (
       <div className="min-h-screen bg-background">
         <header className="border-b border-border"><div className="mx-auto max-w-5xl px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4" />Back</Link></div></header>
@@ -284,8 +307,8 @@ export default function LeadSetup() {
           <h1 className="mt-5 font-heading text-3xl font-bold">Find Opportunities or Request a Report</h1>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Create a free S&S account or sign in so we can save buyer criteria, land review, confidential report requests, or quarry-data links.</p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <Link to="/register?returnTo=%2Fget-started" className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Create Account</Link>
-            <Link to="/login?returnTo=%2Fget-started" className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-bold">Sign In</Link>
+            <Link to={`/register?returnTo=${returnTo}`} className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Create Account</Link>
+            <Link to={`/login?returnTo=${returnTo}`} className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-bold">Sign In</Link>
           </div>
         </main>
       </div>
@@ -382,8 +405,8 @@ export default function LeadSetup() {
                   <Field label="Timing"><BottomSheetSelect value={form.acquisition_timing} onChange={(value) => set("acquisition_timing", value)} options={TIMING} label="Acquisition Timing" /></Field>
                   <Field label="Minimum Acres"><input className="input" inputMode="decimal" value={form.min_acres} onChange={(e) => set("min_acres", e.target.value)} /></Field>
                   <Field label="Maximum Acres"><input className="input" inputMode="decimal" value={form.max_acres} onChange={(e) => set("max_acres", e.target.value)} /></Field>
-                  <Field label="Minimum Budget"><input className="input" inputMode="decimal" value={form.min_budget} onChange={(e) => set("min_budget", e.target.value)} placeholder="$" /></Field>
-                  <Field label="Maximum Budget"><input className="input" inputMode="decimal" value={form.max_budget} onChange={(e) => set("max_budget", e.target.value)} placeholder="$" /></Field>
+                  {mode === "Buyer" && <Field label="Minimum Budget"><input className="input" inputMode="decimal" value={form.min_budget} onChange={(e) => set("min_budget", e.target.value)} placeholder="$" /></Field>}
+                  {mode === "Buyer" && <Field label="Maximum Budget"><input className="input" inputMode="decimal" value={form.max_budget} onChange={(e) => set("max_budget", e.target.value)} placeholder="$" /></Field>}
                 </div>
                 <Field label={mode === "Report Request" ? "What should S&S investigate?" : "What are you looking for?"}><textarea className="input mt-4 min-h-28" value={form.asset_preferences} onChange={(e) => set("asset_preferences", e.target.value)} placeholder={mode === "Report Request" ? "County market, ownership, permit status, active/inactive quarry, rock land, possible buyer/seller opportunity, lease or royalty situation..." : "Operating quarry, undeveloped permitted property, reserve potential, rail access, ready-mix tie-in, royalty interest..."} /></Field>
               </section>
