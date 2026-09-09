@@ -19,6 +19,10 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const requestedReturnTo = safeReturnTo();
+  const postSignupDestination = requestedReturnTo === "/"
+    ? `/profile?returnTo=${encodeURIComponent("/network?tab=feed")}`
+    : requestedReturnTo;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,7 +50,7 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      window.location.href = safeReturnTo();
+      window.location.href = postSignupDestination;
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -68,11 +72,11 @@ export default function Register() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", safeReturnTo());
+    base44.auth.loginWithProvider("google", postSignupDestination);
   };
 
   const handleApple = () => {
-    base44.auth.loginWithProvider("apple", safeReturnTo());
+    base44.auth.loginWithProvider("apple", postSignupDestination);
   };
 
   if (showOtp) {
