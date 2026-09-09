@@ -771,6 +771,32 @@ export default function MineSiteDetail() {
             </div>
           </Card>
 
+          <Card title="TDOT Aggregate Producer Intelligence" icon={ShieldCheck}>
+            {tdotProducer ? (
+              <>
+                <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-sky-800">TDOT producer-list match</div>
+                  <div className="mt-1 text-lg font-bold text-sky-950">{tdotProducer.producer_name}</div>
+                  <div className="mt-1 text-sm text-sky-900">Producer code {tdotProducer.producer_code || "—"} · {tdotProducer.status || "Status not listed"} · Region {tdotProducer.region || "—"}</div>
+                </div>
+                <div className="mt-4">
+                  <Row label="TDOT status" value={tdotProducer.status} />
+                  <Row label="Producer code" value={tdotProducer.producer_code} />
+                  <Row label="Plant type" value={tdotProducer.plant_type_description || "Aggregate"} />
+                  <Row label="County" value={tdotProducer.county} />
+                  <Row label="Location" value={[tdotProducer.street, tdotProducer.city, tdotProducer.state, tdotProducer.zip].filter(Boolean).join(", ")} />
+                  <Row label="Match confidence" value={tdotProducer.match_confidence || (tdotProducer.matched_mining_site_id ? "Linked" : "Nearest TDOT producer within 10 miles")} />
+                  <Row label="Distance" value={tdotProducer.match_distance_miles != null ? `${Number(tdotProducer.match_distance_miles).toFixed(1)} miles` : (() => { const d = distanceMiles(site.latitude, site.longitude, tdotProducer.latitude, tdotProducer.longitude); return d == null ? null : `${d.toFixed(1)} miles`; })()} />
+                  <Row label="TDOT checked" value={displayDate(tdotProducer.last_source_update)} />
+                </div>
+                <p className="mt-3 text-xs leading-5 text-muted-foreground">TDOT producer-list status shows whether an aggregate producer/plant appears in TDOT Materials &amp; Tests data. It does not by itself state how many tons the quarry produced or supplied.</p>
+                {tdotProducer.source_url && <a href={tdotProducer.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open TDOT producer source <ExternalLink className="h-3.5 w-3.5" /></a>}
+              </>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground">No TDOT aggregate producer-list match is connected to this quarry yet. The TDOT producer sync checks Tennessee aggregate plants and matches them by location, county and producer/mine name.</p>
+            )}
+          </Card>
+
           <Card title="Geology / Rock Identification" icon={Gem}>
             {geologyRecord ? (
               <>
