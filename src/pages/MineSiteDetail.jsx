@@ -58,6 +58,14 @@ function compactNumber(value) {
   return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
 }
 
+function distanceMiles(lat1, lon1, lat2, lon2) {
+  const a = Number(lat1), b = Number(lon1), c = Number(lat2), d = Number(lon2);
+  if (![a, b, c, d].every(Number.isFinite) || (a === 0 && b === 0) || (c === 0 && d === 0)) return null;
+  const rad = (x) => x * Math.PI / 180;
+  const h = Math.sin(rad(c - a) / 2) ** 2 + Math.cos(rad(a)) * Math.cos(rad(c)) * Math.sin(rad(d - b) / 2) ** 2;
+  return 2 * 3958.7613 * Math.asin(Math.sqrt(h));
+}
+
 function productionCommodityGroup(site) {
   const text = `${site?.commodity || ""} ${site?.mine_name || ""}`.toLowerCase();
   if (text.includes("dimension stone") || text.includes("dimension sandstone") || text.includes("dimension limestone") || text.includes("fieldstone")) return null;
@@ -178,7 +186,7 @@ export default function MineSiteDetail() {
           base44.entities.ContractIntelligence.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
           base44.entities.USGSMineralOccurrence.filter(linkOr(), "-updated_date", 20),
           base44.entities.USGSMarketProduction.filter({ state: String(mine.state || "").toUpperCase() }, "-year", 20),
-          base44.entities.TDOTProducerPlant.filter({ matched_mining_site_id: siteId }, "-last_source_update", 10),
+          base44.entities.TDOTProducerPlant.filter({ $or: [{ matched_mining_site_id: siteId }, { county: mine.county, state: "TN" }] }, "-last_source_update", 50),
         ]);
 
         setParcels(parcelData || []);
@@ -266,6 +274,12 @@ export default function MineSiteDetail() {
     return !hasStoredEstimate && fallbackEstimate ? [...rows, fallbackEstimate] : rows;
   }, [relatedProduction, fallbackEstimate]);
 
+  const latestReported = useMemo(() => {
+    return meaningfulProduction
+      .filter((r) => r.record_type === "Reported Production" && Number(r.production_amount) > 0)
+      .sort((a, b) => Number(b.year || 0) - Number(a.year || 0) || Number(String(b.period || "").replace(/\D/g, "") || 0) - Number(String(a.period || "").replace(/\D/g, "") || 0))[0] || null;
+  }, [meaningfulProduction]);
+
   const latestEstimate = useMemo(() => {
     return meaningfulProduction
       .filter((r) => r.record_type === "S&S Estimate" || r.is_estimate)
@@ -285,6 +299,17 @@ export default function MineSiteDetail() {
       .filter((r) => r.commodity_group === siteProductionGroup)
       .sort((a, b) => Number(b.year || 0) - Number(a.year || 0) || Number(String(b.period || "").replace(/\D/g, "") || 0) - Number(String(a.period || "").replace(/\D/g, "") || 0))[0] || null;
   }, [usgsMarketProduction, siteProductionGroup]);
+
+  const tdotProducer = useMemo(() => {
+    if (!site || !tdotProducerPlants.length) return null;
+    const direct = tdotProducerPlants.find((p) => p.matched_mining_site_id === site.id);
+    if (direct) return direct;
+    const ranked = tdotProducerPlants
+      .map((p) => ({ p, distance: distanceMiles(site.latitude, site.longitude, p.latitude, p.longitude) }))
+      .filter((x) => x.distance != null && x.distance <= 10)
+      .sort((a, b) => a.distance - b.distance);
+    return ranked[0]?.p || null;
+  }, [site, tdotProducerPlants]);
 
   const geologyRecord = useMemo(() => {
     if (!site) return null;
@@ -355,7 +380,7 @@ export default function MineSiteDetail() {
     { label: "Geology / rock intelligence", ready: Boolean(geologyRecord), detail: geologyRecord?.primary_rock || geologyRecord?.lithology || "Geology linkage pending" },
     { label: "Permit / regulatory record", ready: Boolean(relatedPermits.length), detail: relatedPermits.length ? `${relatedPermits.length} connected record${relatedPermits.length === 1 ? "" : "s"}` : "Permit linkage pending" },
     { label: "Owner / operator / permitted footprint", ready: Boolean(landOwner && operator && Number(permittedAcreage) > 0), detail: `${landOwner || "owner pending"} · ${operator || "operator pending"} · ${Number(permittedAcreage) > 0 ? `${Number(permittedAcreage).toLocaleString()} permitted ac` : "permit acreage pending"}` },
-    { label: "Production intelligence", ready: Boolean(latestActivity || latestEstimate), detail: latestEstimate ? `S&S modeled range available · ${latestEstimate.confidence || "Low"} confidence` : latestActivity ? `${Number(latestActivity.employee_hours || 0).toLocaleString()} MSHA employee hours connected` : "Current MSHA activity / modeled production pending" },
+    { label: "Production intelligence", ready: Boolean(latestReported || latestActivity || latestEstimate), detail: latestReported ? `${Number(latestReported.production_amount || 0).toLocaleString()} ${latestReported.production_unit || "tons"} reported · ${latestReported.year || ""}` : latestEstimate ? `S&S modeled range available · ${latestEstimate.confidence || "Low"} confidence` : latestActivity ? `${Number(latestActivity.employee_hours || 0).toLocaleString()} MSHA employee hours connected` : "Current reported / MSHA activity / modeled production pending" },
     { label: "Compliance history", ready: Boolean(relatedInspections.length || relatedViolations.length || relatedEnvironmental.length), detail: `${relatedInspections.length} inspections · ${relatedViolations.length} violations · ${relatedEnvironmental.length} environmental` },
     { label: "Contract / royalty intelligence", ready: Boolean(relatedContracts.length), detail: relatedContracts.length ? `${relatedContracts.length} agreement record${relatedContracts.length === 1 ? "" : "s"}` : "Lease / royalty terms not connected" },
     { label: "USGS mineral intelligence", ready: Boolean(relatedUsgsOccurrences.length), detail: relatedUsgsOccurrences.length ? `${relatedUsgsOccurrences.length} MRDS occurrence${relatedUsgsOccurrences.length === 1 ? "" : "s"}` : "USGS MRDS linkage pending" },
