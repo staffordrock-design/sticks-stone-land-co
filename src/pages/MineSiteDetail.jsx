@@ -152,6 +152,7 @@ export default function MineSiteDetail() {
   const [usgsOccurrences, setUsgsOccurrences] = useState([]);
   const [usgsMarketProduction, setUsgsMarketProduction] = useState([]);
   const [tdotProducerPlants, setTdotProducerPlants] = useState([]);
+  const [tdotDemand, setTdotDemand] = useState([]);
   const [liveParcel, setLiveParcel] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -214,7 +215,7 @@ export default function MineSiteDetail() {
           return { $or: conditions };
         };
 
-        const [parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData, contractData, usgsData, usgsMarketData, tdotProducerData] = await Promise.all([
+        const [parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData, contractData, usgsData, usgsMarketData, tdotProducerData, tdotDemandData] = await Promise.all([
           base44.entities.ParcelRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null, tdecPermit ? { tdec_permit_number: tdecPermit } : null]), "-updated_date", 50),
           base44.entities.TDECPermit.filter(linkOr([tdecPermit ? { permit_number: tdecPermit } : null]), "-updated_date", 50),
           base44.entities.EnvironmentalRecord.filter(linkOr([npdesPermit ? { npdes_permit_number: npdesPermit } : null]), "-updated_date", 50),
@@ -237,6 +238,9 @@ export default function MineSiteDetail() {
             }
             return [...byKey.values()];
           }),
+          String(mine.state || "").toUpperCase() === "TN" && mine.county
+            ? base44.entities.TDOTAggregateDemand.filter({ county: mine.county, unit: "TON" }, "-letting_date", 100).catch(() => [])
+            : Promise.resolve([]),
         ]);
 
         setParcels(parcelData || []);
@@ -251,6 +255,7 @@ export default function MineSiteDetail() {
         setUsgsOccurrences(usgsData || []);
         setUsgsMarketProduction(usgsMarketData || []);
         setTdotProducerPlants(tdotProducerData || []);
+        setTdotDemand(tdotDemandData || []);
       } catch (e) {
         setError(e?.message || "Unable to load site intelligence.");
       } finally {
@@ -360,6 +365,17 @@ export default function MineSiteDetail() {
       .sort((a, b) => a.distance - b.distance);
     return ranked[0]?.p || null;
   }, [site, tdotProducerPlants]);
+
+  const tdotDemandSummary = useMemo(() => {
+    const rows = (tdotDemand || []).filter((r) => String(r.unit || "").toUpperCase() === "TON" && Number(r.quantity) > 0);
+    const totalTons = rows.reduce((sum, r) => sum + Number(r.quantity || 0), 0);
+    const byGroup = rows.reduce((acc, r) => {
+      const key = r.material_group || "Aggregate / Stone";
+      acc[key] = (acc[key] || 0) + Number(r.quantity || 0);
+      return acc;
+    }, {});
+    return { rows, totalTons, byGroup };
+  }, [tdotDemand]);
 
   const geologyRecord = useMemo(() => {
     if (!site) return null;
