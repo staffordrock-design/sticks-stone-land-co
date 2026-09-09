@@ -239,7 +239,7 @@ export default function MineSiteDetail() {
             return [...byKey.values()];
           }),
           String(mine.state || "").toUpperCase() === "TN" && mine.county
-            ? base44.entities.TDOTAggregateDemand.filter({ county: mine.county, unit: "TON" }, "-letting_date", 100).catch(() => [])
+            ? base44.entities.TDOTAggregateDemand.filter({ $or: [{ county: mine.county }, { counties: mine.county }], unit: "TON" }, "-letting_date", 200).catch(() => [])
             : Promise.resolve([]),
         ]);
 
