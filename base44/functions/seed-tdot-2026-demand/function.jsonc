@@ -8,6 +8,15 @@
       "one_time_date": "2026-09-09T02:43:05Z",
       "function_args": {},
       "is_active": true
+    },
+    {
+      "name": "TDOT demand seed trigger",
+      "description": "Run the statewide 2026 TDOT aggregate demand seed immediately when an admin creates a trigger record.",
+      "type": "entity",
+      "entity_name": "TDOTDemandSeedTrigger",
+      "event_types": ["create"],
+      "function_args": {},
+      "is_active": true
     }
   ]
 }
