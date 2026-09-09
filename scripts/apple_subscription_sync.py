@@ -437,7 +437,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
                 parsed_start = dt.date.fromisoformat(start_date) if start_date else None
             except ValueError:
                 parsed_start = None
-            if parsed_start and parsed_start > today:
+            if parsed_start and parsed_start >= today:
                 future_prices_by_territory.setdefault(territory, []).append(item)
 
     usa_point = find_usa_price_point(client, subscription_id, desired)
@@ -515,7 +515,38 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
                     time.sleep(0.03)
                     continue
                 except Exception as change_exc:
-                    failed.append(f"{territory}:{type(change_exc).__name__}:{str(change_exc)[:1200]}")
+                    change_message = str(change_exc)
+                    if "cannot create more than one future prices" in change_message.lower():
+                        try:
+                            refreshed = client.all(
+                                f"/v1/subscriptions/{subscription_id}/prices",
+                                params={"include": "territory,subscriptionPricePoint", "limit": 200},
+                            )
+                            removed_conflicts = 0
+                            for pending in refreshed:
+                                pending_territory_rel = ((pending.get("relationships") or {}).get("territory") or {}).get("data") or {}
+                                if str(pending_territory_rel.get("id") or "") != territory:
+                                    continue
+                                pending_start = (((pending.get("attributes") or {}).get("startDate") or "")[:10])
+                                try:
+                                    pending_date = dt.date.fromisoformat(pending_start) if pending_start else None
+                                except ValueError:
+                                    pending_date = None
+                                if pending_date and pending_date >= today:
+                                    pending_id = pending.get("id")
+                                    if pending_id:
+                                        client.request("DELETE", f"/v1/subscriptionPrices/{quote(str(pending_id), safe='')}", allow=(204, 404))
+                                        removed_conflicts += 1
+                                        removed_future += 1
+                            if removed_conflicts:
+                                client.request("POST", "/v1/subscriptionPrices", payload=change_payload)
+                                created += 1
+                                time.sleep(0.03)
+                                continue
+                        except Exception as conflict_exc:
+                            failed.append(f"{territory}:{type(conflict_exc).__name__}:{str(conflict_exc)[:1200]}")
+                            continue
+                    failed.append(f"{territory}:{type(change_exc).__name__}:{change_message[:1200]}")
                     continue
             failed.append(f"{territory}:{type(exc).__name__}:{message[:1200]}")
 
