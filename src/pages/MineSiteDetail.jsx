@@ -861,6 +861,25 @@ export default function MineSiteDetail() {
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No TDOT aggregate producer-list match is connected to this quarry yet. The TDOT producer sync checks Tennessee aggregate plants and matches them by location, county and producer/mine name.</p>
             )}
+
+            {tdotDemandSummary.totalTons > 0 && (
+              <div className="mt-6 border-t border-border pt-5">
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <div className="text-xs font-bold uppercase tracking-wider text-amber-800">TDOT contract demand · {site.county} County</div>
+                  <div className="mt-1 text-3xl font-black text-amber-950">{tdotDemandSummary.totalTons.toLocaleString()} tons</div>
+                  <div className="mt-1 text-xs text-amber-900">Aggregate/stone quantities currently connected from TDOT letting documents. This is project demand, not quarry production.</div>
+                </div>
+                <div className="mt-4 space-y-2">
+                  {Object.entries(tdotDemandSummary.byGroup).sort((a, b) => b[1] - a[1]).map(([group, tons]) => (
+                    <div key={group} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
+                      <span className="font-medium text-foreground">{group}</span>
+                      <span className="font-bold text-foreground">{Number(tons).toLocaleString()} tons</span>
+                    </div>
+                  ))}
+                </div>
+                {tdotDemandSummary.rows[0]?.source_url && <a href={tdotDemandSummary.rows[0].source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-900 hover:underline">Open TDOT letting quantities <ExternalLink className="h-3.5 w-3.5" /></a>}
+              </div>
+            )}
           </Card>
 
           <Card title="Geology / Rock Identification" icon={Gem}>
