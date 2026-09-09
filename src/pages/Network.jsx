@@ -556,6 +556,24 @@ export default function Network() {
       <main className="mx-auto max-w-6xl px-4 py-5 sm:px-6">
         {notice && <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm font-semibold text-sky-950">{notice}</div>}
 
+        {!privateProfile && (
+          <section className="mb-5 rounded-3xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Welcome to the network</p>
+                <h2 className="mt-1 font-heading text-2xl font-bold text-slate-950">Give your account a face, company and quarry interests.</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">Your account is active now. Build your network profile so other members can find you, connect, message you and match opportunities to what you do.</p>
+              </div>
+              <Link to="/profile?returnTo=/network%3Ftab%3Dfeed" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><UserPlus className="h-4 w-4" />Build my profile</Link>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <button type="button" onClick={() => changeTab("feed")} className="rounded-2xl border border-border bg-card p-4 text-left"><div className="font-bold">1. Join the conversation</div><div className="mt-1 text-xs leading-5 text-muted-foreground">Post an update, question, project or equipment need.</div></button>
+              <button type="button" onClick={() => changeTab("people")} className="rounded-2xl border border-border bg-card p-4 text-left"><div className="font-bold">2. Find your people</div><div className="mt-1 text-xs leading-5 text-muted-foreground">Connect with operators, owners, buyers and industry professionals.</div></button>
+              <button type="button" onClick={() => changeTab("opportunities")} className="rounded-2xl border border-border bg-card p-4 text-left"><div className="font-bold">3. Find business</div><div className="mt-1 text-xs leading-5 text-muted-foreground">Post what you need or what you have and let S&amp;S match the other side.</div></button>
+            </div>
+          </section>
+        )}
+
         {tab === "opportunities" && <>
           <section className="rounded-3xl border border-slate-700 bg-slate-950 p-5 text-white sm:p-7">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-300">Where quarry deals start</p>
