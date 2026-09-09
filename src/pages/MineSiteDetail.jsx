@@ -66,6 +66,46 @@ function distanceMiles(lat1, lon1, lat2, lon2) {
   return 2 * 3958.7613 * Math.asin(Math.sqrt(h));
 }
 
+const TDOT_PRODUCER_LAYER = "https://spatial.tdot.tn.gov/ArcGIS/rest/services/Materials_and_Tests/Producer_List_Plants/FeatureServer/0";
+
+async function fetchLiveTdotProducerCandidates(mine) {
+  if (String(mine?.state || "").toUpperCase() !== "TN") return [];
+  const county = String(mine?.county || "").trim().replace(/'/g, "''");
+  if (!county) return [];
+  const params = new URLSearchParams({
+    where: `PLANT_TYPE_CODE='AGGR' AND STATE='TN' AND UPPER(COUNTY)=UPPER('${county}')`,
+    outFields: "PRODUCER_SUPPLIER_CODE,PRODUCER_SUPPLIER_NAME,PLANT_TYPE_CODE,PLANT_TYPE_DESCRIPTION,STATUS,STREET,CITY,STATE,ZIP,REGION,COUNTY,LATITUDE,LONGITUDE,OBJECTID",
+    returnGeometry: "false",
+    f: "json",
+  });
+  const response = await fetch(`${TDOT_PRODUCER_LAYER}/query?${params.toString()}`);
+  if (!response.ok) return [];
+  const payload = await response.json();
+  const now = new Date().toISOString();
+  return (payload?.features || []).map((feature) => {
+    const a = feature?.attributes || {};
+    return {
+      tdot_object_id: a.OBJECTID,
+      producer_code: a.PRODUCER_SUPPLIER_CODE,
+      producer_name: a.PRODUCER_SUPPLIER_NAME,
+      plant_type_code: a.PLANT_TYPE_CODE,
+      plant_type_description: a.PLANT_TYPE_DESCRIPTION,
+      status: a.STATUS,
+      street: a.STREET,
+      city: a.CITY,
+      state: a.STATE,
+      zip: a.ZIP,
+      region: a.REGION,
+      county: a.COUNTY,
+      latitude: a.LATITUDE,
+      longitude: a.LONGITUDE,
+      source_url: "https://www.tn.gov/tdot/materials-and-tests/producer-list.html",
+      last_source_update: now,
+      live_tdot: true,
+    };
+  });
+}
+
 function productionCommodityGroup(site) {
   const text = `${site?.commodity || ""} ${site?.mine_name || ""}`.toLowerCase();
   if (text.includes("dimension stone") || text.includes("dimension sandstone") || text.includes("dimension limestone") || text.includes("fieldstone")) return null;
@@ -186,7 +226,17 @@ export default function MineSiteDetail() {
           base44.entities.ContractIntelligence.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
           base44.entities.USGSMineralOccurrence.filter(linkOr(), "-updated_date", 20),
           base44.entities.USGSMarketProduction.filter({ state: String(mine.state || "").toUpperCase() }, "-year", 20),
-          base44.entities.TDOTProducerPlant.filter({ $or: [{ matched_mining_site_id: siteId }, { county: mine.county, state: "TN" }] }, "-last_source_update", 50),
+          Promise.all([
+            base44.entities.TDOTProducerPlant.filter({ $or: [{ matched_mining_site_id: siteId }, { county: mine.county, state: "TN" }] }, "-last_source_update", 50).catch(() => []),
+            fetchLiveTdotProducerCandidates(mine).catch(() => []),
+          ]).then(([stored, live]) => {
+            const byKey = new Map();
+            for (const row of [...(stored || []), ...(live || [])]) {
+              const key = row.tdot_object_id ? `id:${row.tdot_object_id}` : `code:${row.producer_code || row.producer_name}`;
+              if (!byKey.has(key) || !row.live_tdot) byKey.set(key, row);
+            }
+            return [...byKey.values()];
+          }),
         ]);
 
         setParcels(parcelData || []);
