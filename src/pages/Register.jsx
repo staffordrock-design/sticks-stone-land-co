@@ -21,7 +21,7 @@ export default function Register() {
   const [otpCode, setOtpCode] = useState("");
   const requestedReturnTo = safeReturnTo();
   const postSignupDestination = requestedReturnTo === "/"
-    ? `/profile?returnTo=${encodeURIComponent("/network?tab=feed")}`
+    ? "/network?tab=feed&welcome=1"
     : requestedReturnTo;
 
   const handleSubmit = async (e) => {
