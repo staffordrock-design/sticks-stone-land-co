@@ -21,7 +21,25 @@ const EXEMPT_PATHS = new Set([
   "/account-deletion",
   "/subscribe",
   "/get-started",
+  // Free account + network workspace. These pages are intentionally available
+  // without a paid quarry-intelligence subscription so a new member can create
+  // a profile, join the network, message people, and post buyer/seller activity.
+  "/profile",
+  "/network",
+  "/network/community",
+  "/network/deals",
+  "/network/deals/new",
+  "/network/deals/activity",
+  "/messages",
+  "/buyer-profile",
+  "/opportunities",
+  "/sell",
+  "/seller-portal",
 ]);
+
+const FREE_ACCOUNT_PREFIXES = [
+  "/network/deals/",
+];
 
 function loadingScreen() {
   return (
@@ -42,7 +60,8 @@ export default function MembershipRequiredGate({ children }) {
   const [accessState, setAccessState] = useState({ loading: true, active: false, checkedPath: null });
 
   const previewDetail = pathname.startsWith("/mines/") || pathname.startsWith("/listings/");
-  const exempt = EXEMPT_PATHS.has(pathname) || previewDetail;
+  const freeAccountArea = FREE_ACCOUNT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const exempt = EXEMPT_PATHS.has(pathname) || freeAccountArea || previewDetail;
 
   useEffect(() => {
     let cancelled = false;
