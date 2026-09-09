@@ -111,7 +111,7 @@ export default function Network() {
   const [params, setParams] = useSearchParams();
   const requestedTab = params.get("tab");
   const shareMineId = params.get("shareMine") || "";
-  const [tab, setTab] = useState(requestedTab === "people" || requestedTab === "feed" ? requestedTab : "opportunities");
+  const [tab, setTab] = useState(["opportunities", "feed", "people"].includes(requestedTab) ? requestedTab : "feed");
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [savingOpportunity, setSavingOpportunity] = useState(false);
@@ -122,6 +122,9 @@ export default function Network() {
   const [publicProfile, setPublicProfile] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [commentDrafts, setCommentDrafts] = useState({});
+  const [commentingPostId, setCommentingPostId] = useState("");
   const [opportunities, setOpportunities] = useState([]);
   const [dataRoomRequests, setDataRoomRequests] = useState([]);
   const [requestingRoomId, setRequestingRoomId] = useState("");
@@ -169,11 +172,12 @@ export default function Network() {
     if (!user?.id) { setLoading(false); return; }
     setLoading(true);
     try {
-      const [mineRows, publicMineRows, people, feed, opportunityRows, roomRequests, links, blocked, reactionRows, buyers] = await Promise.all([
+      const [mineRows, publicMineRows, people, feed, commentRows, opportunityRows, roomRequests, links, blocked, reactionRows, buyers] = await Promise.all([
         base44.entities.UserProfile.filter({ user_id: user.id }, "-updated_date", 1),
         base44.entities.NetworkMemberProfile.filter({ user_id: user.id }, "-updated_at", 1).catch(() => []),
         base44.entities.NetworkMemberProfile.list("-updated_at", 300).catch(() => []),
         base44.entities.NetworkPost.list("-created_at", 250).catch(() => []),
+        base44.entities.NetworkComment.list("created_at", 1000).catch(() => []),
         base44.entities.NetworkOpportunity.list("-created_at", 300).catch(() => []),
         base44.entities.DataRoomRequest.list("-requested_at", 200).catch(() => []),
         base44.entities.ProfessionalConnection.list("-created_at", 500).catch(() => []),
@@ -187,6 +191,7 @@ export default function Network() {
       setPublicProfile(publicMine);
       setProfiles((people || []).filter((p) => p.user_id !== user.id && p.profile_visibility !== "Private"));
       setPosts((feed || []).filter((p) => p.status === "Published"));
+      setComments((commentRows || []).filter((comment) => comment.status === "Published"));
       setOpportunities((opportunityRows || []).filter((o) => o.status !== "Closed" || o.author_user_id === user.id));
       setDataRoomRequests(roomRequests || []);
       setConnections(links || []);
