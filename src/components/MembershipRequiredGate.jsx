@@ -41,7 +41,8 @@ export default function MembershipRequiredGate({ children }) {
   const { user, isLoadingAuth, isLoadingPublicSettings, authChecked } = useAuth();
   const [accessState, setAccessState] = useState({ loading: true, active: false, checkedPath: null });
 
-  const exempt = EXEMPT_PATHS.has(pathname);
+  const previewDetail = pathname.startsWith("/mines/") || pathname.startsWith("/listings/");
+  const exempt = EXEMPT_PATHS.has(pathname) || previewDetail;
 
   useEffect(() => {
     let cancelled = false;
