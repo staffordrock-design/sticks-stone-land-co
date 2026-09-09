@@ -128,7 +128,7 @@ export default async function(req) {
       // Legacy introductory-offer transactions are still recognized correctly if Apple returns one.
       const amountFromApple = Number.isFinite(transactionPriceMilliunits) && transactionPriceMilliunits >= 0
         ? transactionPriceMilliunits / 1000
-        : (productId === 'com.ssrockholdings.mobile.quarryintelligence.monthly199' || productId === 'com.ssrockholdings.quarryintelligence.monthly199' ? 199 : 0);
+        : (productId === 'com.ssrockholdings.mobile.quarryintelligence.monthly199' || productId === 'com.ssrockholdings.quarryintelligence.monthly199' ? 49 : 0);
       const billingStatus = revoked ? 'Refunded' : expired ? 'Cancelled' : freeTrial ? 'Pending' : 'Paid';
       const billingData = {
         user_id: recordUserId,
