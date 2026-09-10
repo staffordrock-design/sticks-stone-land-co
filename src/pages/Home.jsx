@@ -303,10 +303,10 @@ export default function Home() {
               S&S Rock Holdings identifies quarry, mineral, land and aggregate opportunities across Tennessee and the Southeast — connecting public records, permits, ownership signals, geology, production context and confidential report requests.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/get-started?mode=buyer" className="rounded-xl bg-slate-100 px-5 py-3 text-sm font-bold text-slate-950 shadow-sm transition hover:bg-white">Find Quarry Opportunities</Link>
+              {!isNativeApp && <a href="https://apps.apple.com/app/id6802014287" target="_blank" rel="noreferrer" className="w-full rounded-xl bg-white px-5 py-3 text-center text-sm font-bold text-slate-950 shadow-lg ring-1 ring-white/60 transition hover:bg-slate-100 sm:w-auto">Download on the App Store</a>}
+              <Link to="/get-started?mode=buyer" className="rounded-xl border border-slate-300/60 bg-slate-900/40 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">Find Quarry Opportunities</Link>
               <Link to="/get-started?mode=seller" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Evaluate My Rock Land</Link>
               <Link to="/get-started?mode=report" className="rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-sm font-bold text-white hover:bg-sky-600">Request Confidential Report</Link>
-              {!isNativeApp && <a href="https://apps.apple.com/app/id6802014287" target="_blank" rel="noreferrer" className="rounded-xl border border-slate-300/50 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/20">Download iPhone App</a>}
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
             <p className="mt-4 max-w-xl text-sm text-slate-300">Search the data first. Serious buyers, owners and landholders can submit criteria, request review and move into S&S reports, diligence and deal follow-up.</p>
