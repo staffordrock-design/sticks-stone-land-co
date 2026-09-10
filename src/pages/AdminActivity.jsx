@@ -27,15 +27,57 @@ export default function AdminActivity() {
     })();
   }, [user?.role]);
 
-  const uniqueVisitors = useMemo(() => {
-    const ids = new Set(rows.map((r) => r.user_id || r.session_id).filter(Boolean));
-    return ids.size;
+  const humanRows = useMemo(() => {
+    const internalEmails = new Set([
+      "contact@ssrockholdings.com",
+      "contact+appreview@ssrockholdings.com",
+      "karringtonstafford@gmail.com",
+    ]);
+    const botPattern = /(bot|crawler|spider|headless|lighthouse|pagespeed|facebookexternalhit|linkedinbot|slurp)/i;
+
+    return rows.filter((r) => {
+      const email = String(r.user_email || "").toLowerCase();
+      const role = String(r.user_role || "").toLowerCase();
+      const userAgent = String(r.user_agent || "");
+
+      if (role === "admin") return false;
+      if (internalEmails.has(email)) return false;
+      if (botPattern.test(userAgent)) return false;
+      return true;
+    });
   }, [rows]);
 
+  const uniqueVisitors = useMemo(() => {
+    const ids = new Set(
+      humanRows
+        .map((r) => {
+          const email = String(r.user_email || "").toLowerCase();
+          if (email) return `user:${email}`;
+          if (r.session_id) return `session:${r.session_id}`;
+          if (r.user_id && r.user_id !== "anonymous") return `user:${r.user_id}`;
+          return null;
+        })
+        .filter(Boolean)
+    );
+    return ids.size;
+  }, [humanRows]);
+
   const recentMineViews = useMemo(
-    () => rows.filter((r) => r.page_type === "mine_detail").length,
-    [rows]
+    () => humanRows.filter((r) => r.page_type === "mine_detail").length,
+    [humanRows]
   );
+
+  const conversionSessions = useMemo(() => {
+    const ids = new Set();
+    humanRows.forEach((r) => {
+      const path = String(r.path || "");
+      if (!path.startsWith("/subscribe") && !path.startsWith("/get-started")) return;
+      const email = String(r.user_email || "").toLowerCase();
+      const id = email ? `user:${email}` : r.session_id ? `session:${r.session_id}` : null;
+      if (id) ids.add(id);
+    });
+    return ids.size;
+  }, [humanRows]);
 
   if (user?.role !== "admin") {
     return (
@@ -60,13 +102,14 @@ export default function AdminActivity() {
         <div className="mt-6 flex flex-col gap-2">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Private Admin Analytics</p>
           <h1 className="text-3xl font-bold text-foreground">Who’s looking at S&S Rock Holdings</h1>
-          <p className="text-sm text-muted-foreground">Recent registered-user and session activity captured inside the app.</p>
+          <p className="text-sm text-muted-foreground">External human activity, with admin, app-review, internal testing, and obvious bot traffic filtered out.</p>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-3">
-          <Stat icon={Eye} label="Recent views" value={rows.length} />
-          <Stat icon={Users} label="Unique visitors" value={uniqueVisitors} />
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Stat icon={Eye} label="Human page views" value={humanRows.length} />
+          <Stat icon={Users} label="Likely unique visitors" value={uniqueVisitors} />
           <Stat icon={Clock3} label="Mine detail views" value={recentMineViews} />
+          <Stat icon={Users} label="Conversion sessions" value={conversionSessions} />
         </div>
 
         <div className="mt-8 overflow-hidden rounded-2xl border border-border bg-card">
@@ -76,8 +119,8 @@ export default function AdminActivity() {
 
           {loading ? (
             <div className="p-8 text-sm text-muted-foreground">Loading activity…</div>
-          ) : rows.length === 0 ? (
-            <div className="p-8 text-sm text-muted-foreground">No activity has been recorded yet.</div>
+          ) : humanRows.length === 0 ? (
+            <div className="p-8 text-sm text-muted-foreground">No external human activity has been recorded yet.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[900px] text-left text-sm">
@@ -91,7 +134,7 @@ export default function AdminActivity() {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row) => (
+                  {humanRows.map((row) => (
                     <tr key={row.id} className="border-t border-border align-top">
                       <td className="px-5 py-4 font-medium text-foreground">{row.user_name || "Anonymous visitor"}</td>
                       <td className="px-5 py-4 text-muted-foreground">{row.user_email || "—"}</td>
