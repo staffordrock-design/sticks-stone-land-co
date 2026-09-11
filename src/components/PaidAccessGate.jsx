@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
+import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 
 export default function PaidAccessGate({ children }) {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export default function PaidAccessGate({ children }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [appleStoreActive, setAppleStoreActive] = useState(false);
+  const [webGuestActive, setWebGuestActive] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -32,6 +34,10 @@ export default function PaidAccessGate({ children }) {
         }
 
         if (!user?.id) {
+          if (!isNativeIOS()) {
+            const webAccess = await verifySavedWebSubscriptionAccess();
+            if (!cancelled) setWebGuestActive(Boolean(webAccess?.active));
+          }
           if (!cancelled) setRows([]);
           return;
         }
@@ -59,7 +65,7 @@ export default function PaidAccessGate({ children }) {
   }, [user?.id]);
 
   const accountActive = useMemo(() => findFullQuarryEntitlement(rows), [rows]);
-  const active = appleStoreActive || Boolean(accountActive);
+  const active = appleStoreActive || webGuestActive || Boolean(accountActive);
 
   if (user?.role === "admin") return children;
 
