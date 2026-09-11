@@ -60,9 +60,8 @@ export default function MembershipRequiredGate({ children }) {
   const { user, isLoadingAuth, isLoadingPublicSettings, authChecked } = useAuth();
   const [accessState, setAccessState] = useState({ loading: true, active: false, checkedPath: null });
 
-  const previewDetail = pathname.startsWith("/mines/") || pathname.startsWith("/listings/");
   const freeAccountArea = FREE_ACCOUNT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-  const exempt = EXEMPT_PATHS.has(pathname) || freeAccountArea || previewDetail;
+  const exempt = EXEMPT_PATHS.has(pathname) || freeAccountArea;
 
   useEffect(() => {
     let cancelled = false;
