@@ -119,9 +119,9 @@ const AuthenticatedApp = () => {
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Add your page Route elements here */}
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<PaidAccessGate><Home /></PaidAccessGate>} />
       <Route path="/listings/:id" element={<PageTransition><PaidAccessGate><ListingDetail /></PaidAccessGate></PageTransition>} />
-      <Route path="/mines/:id" element={<PageTransition><MineSiteDetail /></PageTransition>} />
+      <Route path="/mines/:id" element={<PageTransition><PaidAccessGate><MineSiteDetail /></PaidAccessGate></PageTransition>} />
       <Route path="/admin/activity" element={<RequireAdmin><AdminActivity /></RequireAdmin>} />
       <Route path="/admin/data-sync" element={<RequireAdmin><AdminDataSync /></RequireAdmin>} />
       <Route path="/admin/reports" element={<RequireAdmin><AdminReports /></RequireAdmin>} />
