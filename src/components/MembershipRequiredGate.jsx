@@ -7,6 +7,7 @@ import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptio
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
+import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 const EXEMPT_PATHS = new Set([
   "/",
   "/login",
@@ -72,24 +73,20 @@ export default function MembershipRequiredGate({ children }) {
     }
 
     if (!user?.id) {
-      if (!isNativeIOS()) {
-        setAccessState({ loading: false, active: false, checkedPath: pathname });
-        return () => { cancelled = true; };
-      }
-
       setAccessState((current) => ({ ...current, loading: true, checkedPath: null }));
       (async () => {
         try {
-          const storeAccess = await stableAppleSubscriptionAccess({ attempts: 4 });
-          if (!cancelled) {
-            setAccessState({
-              loading: false,
-              active: Boolean(storeAccess?.active && storeAccess?.professional),
-              checkedPath: pathname,
-            });
+          let active = false;
+          if (isNativeIOS()) {
+            const storeAccess = await stableAppleSubscriptionAccess({ attempts: 4 });
+            active = Boolean(storeAccess?.active && storeAccess?.professional);
+          } else if (!isNativeAndroid()) {
+            const webAccess = await verifySavedWebSubscriptionAccess();
+            active = Boolean(webAccess?.active);
           }
+          if (!cancelled) setAccessState({ loading: false, active, checkedPath: pathname });
         } catch (error) {
-          console.error("Anonymous Apple membership check failed", error);
+          console.error("Anonymous membership check failed", error);
           if (!cancelled) setAccessState({ loading: false, active: false, checkedPath: pathname });
         }
       })();
@@ -157,13 +154,11 @@ export default function MembershipRequiredGate({ children }) {
   if (isLoadingPublicSettings || isLoadingAuth || !authChecked) return loadingScreen();
 
   if (!user?.id) {
-    // iPhone subscriptions belong to the Apple ID and do not require an S&S account.
-    // Let StoreKit-authorized anonymous subscribers into paid screens; everyone else
-    // goes straight to the paywall instead of being bounced through Login first.
-    if (isNativeIOS()) {
-      if (accessState.loading || accessState.checkedPath !== pathname) return loadingScreen();
-      if (accessState.active) return children;
-    }
+    // Store purchases on iPhone and verified guest web purchases can unlock paid
+    // intelligence without forcing an S&S account. Account-only workspaces still
+    // use their own RequireSignedIn route guards.
+    if (accessState.loading || accessState.checkedPath !== pathname) return loadingScreen();
+    if (accessState.active) return children;
     return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
   }
 
