@@ -10,6 +10,7 @@ import { appleAccountTokenForUser, appleProductIds, stableAppleSubscriptionAcces
 import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
+import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -84,6 +85,7 @@ export default function Subscription() {
   const [purchaseMessage, setPurchaseMessage] = useState("");
   const [buyingId, setBuyingId] = useState("");
   const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
+  const [webAccess, setWebAccess] = useState({ active: false });
   const isNative = Capacitor.isNativePlatform();
   const isIOS = Capacitor.getPlatform() === "ios";
   const isAndroid = isNativeAndroid();
@@ -128,6 +130,12 @@ export default function Subscription() {
         .catch((error) => console.error("Google entitlement sync failed", error));
     }
 
+    if (!isNative && !user?.id) {
+      verifySavedWebSubscriptionAccess()
+        .then((access) => { if (!cancelled) setWebAccess(access || { active: false }); })
+        .catch(() => { if (!cancelled) setWebAccess({ active: false }); });
+    }
+
     return () => { cancelled = true; };
   }, [user?.id, isNative, isIOS, isAndroid]);
 
@@ -138,17 +146,23 @@ export default function Subscription() {
   }, [checkoutStatus, user?.id, isIOS, isAndroid]);
 
   useEffect(() => {
-    if (isNative || !user?.id || checkoutStatus !== "success" || !stripeSessionId) return;
+    if (isNative || checkoutStatus !== "success" || !stripeSessionId) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
       setPurchaseMessage("Confirming your Full Quarry Intelligence subscription…");
       try {
-        const response = await base44.functions.invoke("verify-stripe-subscription", { session_id: stripeSessionId });
-        const payload = response?.data || response || {};
-        if (payload?.error) throw new Error(payload.error);
-        const rows = await refreshEntitlements();
-        if (!findFullQuarryEntitlement(rows)) throw new Error("Payment was confirmed, but access has not refreshed yet. Please try again in a moment.");
+        if (user?.id) {
+          const response = await base44.functions.invoke("verify-stripe-subscription", { session_id: stripeSessionId });
+          const payload = response?.data || response || {};
+          if (payload?.error) throw new Error(payload.error);
+          const rows = await refreshEntitlements();
+          if (!findFullQuarryEntitlement(rows)) throw new Error("Payment was confirmed, but access has not refreshed yet. Please try again in a moment.");
+        } else {
+          const access = await verifySavedWebSubscriptionAccess(stripeSessionId);
+          if (!access?.active) throw new Error(access?.error || "Payment was confirmed, but guest access has not refreshed yet. Please try again in a moment.");
+          if (!cancelled) setWebAccess(access);
+        }
         if (!cancelled) {
           setPurchaseMessage("Subscription confirmed. Your full quarry intelligence is active.");
           navigate(returnTo, { replace: true });
@@ -211,6 +225,10 @@ export default function Subscription() {
     plan_code: "professional (Apple StoreKit)",
     platform: "apple",
     expires_at: null,
+  } : null) || (!isNative && webAccess?.active ? {
+    plan_code: webAccess?.plan_code || "professional_monthly",
+    platform: "web",
+    expires_at: webAccess?.expires_at || null,
   } : null);
 
   const purchase = async (productId) => {
@@ -316,7 +334,7 @@ export default function Subscription() {
     setPurchaseMessage("");
     setBuyingId(planCode);
     try {
-      const response = await base44.functions.invoke("create-public-subscription-checkout", { plan_code: planCode, return_to: returnTo, session_id: subscriptionSessionId(), user_id: user?.id || "", user_email: user?.email || "" });
+      const response = await base44.functions.invoke("create-public-subscription-checkout", { plan_code: planCode, return_to: returnTo, session_id: getWebSubscriptionBrowserId(), user_id: user?.id || "", user_email: user?.email || "" });
       const payload = response?.data || response || {};
       if (!payload?.url) throw new Error(payload?.error || "Could not start checkout.");
       trackSubscriptionAction(user, "checkout_created", "web", planCode);
@@ -382,7 +400,7 @@ export default function Subscription() {
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Full Quarry Intelligence is a monthly subscription. {isIOS ? "Apple shows the current price, any introductory terms, and the purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."} The subscription renews automatically until canceled.</p>
           {!active && <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">View Membership</a>}
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, review Apple&apos;s purchase terms, confirm, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
-          {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required before checkout.</strong> Continue to secure checkout first. After payment, create or sign in to attach Full Quarry Intelligence access to your account.</div>}
+          {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to buy.</strong> Continue straight to secure checkout. After payment, Full Quarry Intelligence unlocks on this browser; sign in later only if you want account-based features.</div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
@@ -405,7 +423,7 @@ export default function Subscription() {
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
                   <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Continue to Secure Checkout"}</button>
-                  <div className="text-[11px] leading-4 text-muted-foreground">Your checkout provider shows the current subscription price before confirmation. The subscription renews automatically until canceled. Account setup happens after payment if you are not signed in.</div>
+                  <div className="text-[11px] leading-4 text-muted-foreground">Your checkout provider shows the current subscription price before confirmation. The subscription renews automatically until canceled. No S&amp;S account is required to complete the purchase.</div>
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
@@ -440,7 +458,7 @@ export default function Subscription() {
 
           {!isNative && !active && <div className="mt-8 rounded-2xl border border-stone-300 bg-stone-50 p-5">
             <div className="font-semibold text-foreground">Ready to unlock Full Quarry Intelligence?</div>
-            <p className="mt-1 text-sm text-muted-foreground">Continue above to review the current subscription price and confirm securely. If you are not signed in, account setup comes after payment.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Continue above to review the current subscription price and confirm securely. You can buy without creating an S&amp;S account.</p>
           </div>}
         </div>
       </div>
