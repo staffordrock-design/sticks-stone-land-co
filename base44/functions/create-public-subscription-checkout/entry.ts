@@ -39,8 +39,6 @@ export default async function(req: Request) {
     const appUserId = String(user_id || '').slice(0, 120);
     const appUserEmail = String(user_email || '').includes('@') ? String(user_email).slice(0, 160) : '';
     const signedIn = Boolean(appUserId && appUserEmail);
-    const successTarget = signedIn ? '/subscribe' : '/register';
-    const attachUrl = `/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`;
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -73,7 +71,7 @@ export default async function(req: Request) {
           return_to: returnTo,
         },
       },
-      success_url: `${origin}${successTarget}?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(attachUrl)}`,
+      success_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
       cancel_url: `${origin}/subscribe?checkout=cancelled&returnTo=${encodeURIComponent(returnTo)}`,
     });
     return Response.json({ url: session.url });
