@@ -104,9 +104,9 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered' && !publicPath) {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required' && !publicPath) {
-      // Redirect protected app areas to login, while keeping legal pages public.
-      navigateToLogin();
-      return null;
+      // Do not globally force Login here. Paid guest web sessions and anonymous
+      // App Store subscribers are allowed through their purchase gates, while
+      // account-only routes enforce sign-in with RequireSignedIn/RequireAdmin.
     }
   }
 
