@@ -1,4 +1,3 @@
-import { createClientFromRequest } from 'npm:@base44/sdk';
 import Stripe from 'npm:stripe';
 import { secrets } from 'base44:runtime';
 
@@ -26,13 +25,7 @@ function cleanReturnTo(value: unknown) {
 
 export default async function(req: Request) {
   try {
-    const base44 = createClientFromRequest(req);
-    let user = null;
-    const authHeader = req.headers.get('authorization') || '';
-    if (/^Bearers+(?!null|undefined)S+/i.test(authHeader)) {
-      try { user = await base44.auth.me(); } catch (_) { user = null; }
-    }
-    const { plan_code, return_to, session_id } = await req.json().catch(() => ({}));
+    const { plan_code, return_to, session_id, user_id, user_email } = await req.json().catch(() => ({}));
     const plan = SUBSCRIPTION_PLANS[plan_code as keyof typeof SUBSCRIPTION_PLANS];
     const returnTo = cleanReturnTo(return_to);
     if (!plan) return Response.json({ error: 'Invalid plan' }, { status: 400 });
@@ -43,9 +36,10 @@ export default async function(req: Request) {
 
     const origin = req.headers.get('origin') || 'https://ssrockholdings.com';
     const browserSessionId = String(session_id || '').slice(0, 120);
-    const appUserId = user?.id ? String(user.id) : '';
-    const appUserEmail = user?.email ? String(user.email) : '';
-    const successTarget = appUserId ? '/subscribe' : '/register';
+    const appUserId = String(user_id || '').slice(0, 120);
+    const appUserEmail = String(user_email || '').includes('@') ? String(user_email).slice(0, 160) : '';
+    const signedIn = Boolean(appUserId && appUserEmail);
+    const successTarget = signedIn ? '/subscribe' : '/register';
     const attachUrl = `/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`;
 
     const session = await stripe.checkout.sessions.create({
@@ -60,20 +54,20 @@ export default async function(req: Request) {
         quantity: 1,
       }],
       customer_email: appUserEmail || undefined,
-      client_reference_id: appUserId || `anonymous:${browserSessionId || randomSuffix()}`,
+      client_reference_id: signedIn ? appUserId : `anonymous:${browserSessionId || randomSuffix()}`,
       integration_identifier: `ssrockholdings_${randomSuffix()}`,
       metadata: {
         purchase_type: 'subscription',
-        checkout_flow: appUserId ? 'signed_in' : 'anonymous_web',
-        user_id: appUserId,
+        checkout_flow: signedIn ? 'signed_in' : 'anonymous_web',
+        user_id: signedIn ? appUserId : '',
         browser_session_id: browserSessionId,
         plan_code,
         return_to: returnTo,
       },
       subscription_data: {
         metadata: {
-          checkout_flow: appUserId ? 'signed_in' : 'anonymous_web',
-          user_id: appUserId,
+          checkout_flow: signedIn ? 'signed_in' : 'anonymous_web',
+          user_id: signedIn ? appUserId : '',
           browser_session_id: browserSessionId,
           plan_code,
           return_to: returnTo,
