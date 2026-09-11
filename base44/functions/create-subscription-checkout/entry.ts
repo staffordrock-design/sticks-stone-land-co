@@ -28,7 +28,8 @@ export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
     let user = null;
-    if (req.headers.get('authorization')) {
+    const authHeader = req.headers.get('authorization') || '';
+    if (/^Bearers+(?!null|undefined)S+/i.test(authHeader)) {
       try { user = await base44.auth.me(); } catch (_) { user = null; }
     }
     const { plan_code, return_to, session_id } = await req.json().catch(() => ({}));
