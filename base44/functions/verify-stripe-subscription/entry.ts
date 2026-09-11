@@ -21,11 +21,15 @@ function isoFromSeconds(value: unknown) {
   return Number.isFinite(n) && n > 0 ? new Date(n * 1000).toISOString() : '';
 }
 
+function normalizeEmail(value: unknown) {
+  return String(value || '').trim().toLowerCase();
+}
+
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user?.id) return Response.json({ error: 'Sign in required' }, { status: 401 });
+    const user = await base44.auth.me().catch(() => null);
+    if (!user?.id) return Response.json({ error: 'Create or sign in to your S&S account to finish activating this subscription' }, { status: 401 });
 
     const { session_id } = await req.json().catch(() => ({}));
     const sessionId = String(session_id || '').trim();
@@ -36,11 +40,19 @@ export default async function(req: Request) {
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
 
     const session: any = await stripe.checkout.sessions.retrieve(sessionId, { expand: ['subscription'] });
+    if (session?.mode !== 'subscription') return Response.json({ error: 'Checkout session is not a subscription' }, { status: 400 });
+
     const sessionUserId = String(session?.metadata?.user_id || session?.client_reference_id || '');
-    if (!sessionUserId || sessionUserId !== user.id) {
+    const anonymousCheckout = String(session?.metadata?.checkout_flow || '') === 'anonymous_web' || sessionUserId.startsWith('anonymous:');
+    if (!anonymousCheckout && (!sessionUserId || sessionUserId !== user.id)) {
       return Response.json({ error: 'This checkout session belongs to a different S&S account' }, { status: 403 });
     }
-    if (session?.mode !== 'subscription') return Response.json({ error: 'Checkout session is not a subscription' }, { status: 400 });
+
+    const buyerEmail = normalizeEmail(session?.customer_details?.email || session?.customer_email);
+    const userEmail = normalizeEmail(user.email);
+    if (anonymousCheckout && buyerEmail && userEmail && buyerEmail !== userEmail) {
+      return Response.json({ error: `This checkout was paid with ${buyerEmail}. Sign in or create the S&S account with that email to activate access.` }, { status: 403 });
+    }
 
     const subscription: any = typeof session.subscription === 'string'
       ? await stripe.subscriptions.retrieve(session.subscription)
@@ -65,20 +77,45 @@ export default async function(req: Request) {
       expires_at: isoFromSeconds(periodEnd),
       started_at: isoFromSeconds(start),
       last_verified_at: new Date().toISOString(),
-      source: 'Stripe checkout session verified',
+      source: anonymousCheckout ? 'Stripe anonymous checkout claimed after signup' : 'Stripe checkout session verified',
     };
 
     const existing = await base44.asServiceRole.entities.SubscriptionEntitlement.filter(
-      { user_id: user.id, platform: 'web', original_transaction_id: String(subscription.id) },
+      { platform: 'web', original_transaction_id: String(subscription.id) },
       '-updated_date',
       1,
       0,
     );
     if (existing?.[0]) {
+      if (existing[0].user_id && existing[0].user_id !== user.id) {
+        return Response.json({ error: 'This subscription is already attached to another S&S account' }, { status: 409 });
+      }
       await base44.asServiceRole.entities.SubscriptionEntitlement.update(existing[0].id, entitlement);
     } else {
       await base44.asServiceRole.entities.SubscriptionEntitlement.create(entitlement);
     }
+
+    const billingData = {
+      user_id: user.id,
+      customer_email: user.email || buyerEmail || '',
+      revenue_type: 'Subscription',
+      plan_or_product: planCode,
+      amount: Number(session?.amount_total || 0) / 100,
+      currency: String(session?.currency || 'usd').toUpperCase(),
+      platform: 'Stripe',
+      status: active ? 'Paid' : 'Pending',
+      external_transaction_id: String(session.id),
+      occurred_at: new Date().toISOString(),
+      notes: anonymousCheckout ? 'Anonymous web checkout attached after account creation.' : 'Web subscription checkout verified.',
+    };
+    const existingBilling = await base44.asServiceRole.entities.BillingEvent.filter(
+      { external_transaction_id: String(session.id) },
+      '-created_date',
+      1,
+      0,
+    );
+    if (existingBilling?.[0]) await base44.asServiceRole.entities.BillingEvent.update(existingBilling[0].id, billingData);
+    else await base44.asServiceRole.entities.BillingEvent.create(billingData);
 
     return Response.json({ verified: true, active, entitlement });
   } catch (error) {
