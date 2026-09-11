@@ -6,9 +6,20 @@ const INTERNAL_EMAIL_PATTERNS = [
   /^karringtonstafford@gmail\.com$/i,
 ];
 
+const BOT_PATTERN = /(bot|crawler|spider|headless|lighthouse|pagespeed|facebookexternalhit|linkedinbot|slurp)/i;
+
 function isInternalEmail(value: any) {
   const email = String(value || "").trim();
   return INTERNAL_EMAIL_PATTERNS.some((pattern) => pattern.test(email));
+}
+
+function isExternalHuman(row: any) {
+  const role = String(row?.user_role || "").toLowerCase();
+  const userAgent = String(row?.user_agent || "");
+  if (role === "admin") return false;
+  if (isInternalEmail(row?.user_email)) return false;
+  if (BOT_PATTERN.test(userAgent)) return false;
+  return true;
 }
 
 function isRealSubscriber(row: any) {
@@ -44,9 +55,10 @@ async function listAll(entity: any, sort = "-created_date", maxRows = 5000) {
   return rows;
 }
 
-function countBy(rows: any[], key: string) {
+function countBy(rows: any[], getKey: string | ((row: any) => string)) {
   return rows.reduce((acc: Record<string, number>, row: any) => {
-    const value = String(row?.[key] || "unknown").toLowerCase();
+    const raw = typeof getKey === "function" ? getKey(row) : row?.[getKey];
+    const value = String(raw || "unknown").toLowerCase();
     acc[value] = (acc[value] || 0) + 1;
     return acc;
   }, {});
@@ -62,15 +74,25 @@ function latestDate(rows: any[], fields: string[]) {
   return new Date(Math.max(...dates)).toISOString();
 }
 
+function queryAction(path: any) {
+  try {
+    const url = new URL(String(path || ""), "https://ssrockholdings.local");
+    return url.searchParams.get("action") || "page_view";
+  } catch {
+    return "unknown";
+  }
+}
+
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
-    const [entitlements, receipts, billingEvents, summaries, funnel] = await Promise.all([
+    const [entitlements, receipts, billingEvents, summaries, funnel, activities] = await Promise.all([
       listAll(base44.asServiceRole.entities.SubscriptionEntitlement, "-updated_date"),
       listAll(base44.asServiceRole.entities.StoreReceipt, "-created_date"),
       listAll(base44.asServiceRole.entities.BillingEvent, "-occurred_at"),
       listAll(base44.asServiceRole.entities.CustomerBillingSummary, "-updated_date"),
       listAll(base44.asServiceRole.entities.SubscriptionConversionFunnel, "-created_date"),
+      listAll(base44.asServiceRole.entities.ViewerActivity, "-created_date"),
     ]);
 
     const realEntitlements = entitlements.filter(isRealSubscriber);
@@ -80,6 +102,11 @@ export default async function(req: Request) {
       return status === "verified" && !String(row?.user_id || "").toLowerCase().includes("review");
     });
     const currentBillingSummaries = summaries.filter((row) => String(row?.billing_status || "").toLowerCase() === "current" && !isInternalEmail(row?.email));
+    const externalActivities = activities.filter(isExternalHuman);
+    const subscriptionActivities = externalActivities.filter((row) => {
+      const path = String(row?.path || "");
+      return row?.page_type === "subscription_action" || path.startsWith("/subscribe");
+    });
 
     return Response.json({
       checked_at: new Date().toISOString(),
@@ -90,6 +117,10 @@ export default async function(req: Request) {
       entitlement_statuses: countBy(entitlements, "status"),
       entitlement_platforms: countBy(entitlements, "platform"),
       paid_platforms: countBy(paidBillingEvents, "platform"),
+      subscription_activity_total: subscriptionActivities.length,
+      subscription_actions: countBy(subscriptionActivities, (row) => queryAction(row?.path)),
+      subscription_platform_details: countBy(subscriptionActivities, (row) => String(row?.resource_name || "unknown").split(" · ")[0] || "unknown"),
+      latest_subscription_activity_at: latestDate(subscriptionActivities, ["viewed_at", "created_date"]),
       latest_entitlement_activity_at: latestDate(entitlements, ["last_verified_at", "updated_date", "created_date", "started_at"]),
       latest_paid_subscription_at: latestDate(paidBillingEvents, ["occurred_at", "created_date"]),
       latest_funnel_rows: funnel.slice(0, 5).map((row: any) => ({
