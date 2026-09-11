@@ -27,7 +27,10 @@ function cleanReturnTo(value: unknown) {
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me().catch(() => null);
+    let user = null;
+    if (req.headers.get('authorization')) {
+      try { user = await base44.auth.me(); } catch (_) { user = null; }
+    }
     const { plan_code, return_to, session_id } = await req.json().catch(() => ({}));
     const plan = SUBSCRIPTION_PLANS[plan_code as keyof typeof SUBSCRIPTION_PLANS];
     const returnTo = cleanReturnTo(return_to);
