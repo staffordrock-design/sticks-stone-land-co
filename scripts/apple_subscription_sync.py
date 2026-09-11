@@ -39,6 +39,8 @@ PRODUCTS = [
         "description": "Full monthly access to S&S quarry intelligence.",
         "period": "ONE_MONTH",
         "group_level": 1,
+        # Customer-facing monthly price target. Keep this at $49.00 unless the
+        # subscription strategy is intentionally changed again.
         "usa_price": Decimal("49.00"),
     },
 ]
