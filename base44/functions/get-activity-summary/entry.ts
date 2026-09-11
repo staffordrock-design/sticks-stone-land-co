@@ -31,13 +31,22 @@ function rowTime(row: any) {
   return row?.viewed_at || row?.created_date || row?.updated_date || null;
 }
 
+async function readJsonBody(req: Request) {
+  try {
+    return await req.json();
+  } catch (_) {
+    return {};
+  }
+}
+
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
+    const body = await readJsonBody(req);
     const url = new URL(req.url);
-    const limitParam = Number(url.searchParams.get("limit") || 2000);
+    const requestedLimit = Number(body?.limit || url.searchParams.get("limit") || 2000);
     const pageSize = 500;
-    const maxRows = Math.min(Math.max(limitParam, pageSize), 5000);
+    const maxRows = Math.min(Math.max(requestedLimit, pageSize), 5000);
 
     const allRows: any[] = [];
     for (let offset = 0; offset < maxRows; offset += pageSize) {
