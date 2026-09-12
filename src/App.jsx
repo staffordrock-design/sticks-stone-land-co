@@ -42,6 +42,7 @@ const QuarryWatchlist = lazy(() => import('./pages/QuarryWatchlist'));
 const DealInvestor = lazy(() => import('./pages/DealInvestor'));
 const SellProperty = lazy(() => import('./pages/SellProperty'));
 const SellerPortal = lazy(() => import('./pages/SellerPortal'));
+const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
 const BuyerProfile = lazy(() => import('./pages/BuyerProfile'));
 const MyOpportunities = lazy(() => import('./pages/MyOpportunities'));
 const Profile = lazy(() => import('./pages/Profile'));
@@ -142,6 +143,7 @@ const AuthenticatedApp = () => {
       <Route path="/deal-investor" element={<DealInvestor />} />
       <Route path="/sell" element={<SellProperty />} />
       <Route path="/seller-portal" element={<RequireSignedIn><SellerPortal /></RequireSignedIn>} />
+      <Route path="/seller-dashboard" element={<RequireSignedIn><SellerDashboard /></RequireSignedIn>} />
       <Route path="/buyer-profile" element={<RequireSignedIn><BuyerProfile /></RequireSignedIn>} />
       <Route path="/profile" element={<RequireSignedIn><Profile /></RequireSignedIn>} />
       <Route path="/network" element={<Network />} />

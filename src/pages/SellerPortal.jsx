@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { ArrowLeft, Building2, Plus, Loader2, MapPin, Layers, Ruler } from "lucide-react";
+import { ArrowLeft, BarChart3, Building2, Plus, Loader2, MapPin, Layers, Ruler } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
 
 const STATUS_STYLES = {
@@ -48,7 +48,10 @@ export default function SellerPortal() {
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 pb-4">
           <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Marketplace</Link>
-          <Link to="/sell" className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white"><Plus className="h-4 w-4" /> Submit property</Link>
+          <div className="flex items-center gap-2">
+            <Link to="/seller-dashboard" className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-muted"><BarChart3 className="h-4 w-4" /> Dashboard</Link>
+            <Link to="/sell" className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-sm font-semibold text-white"><Plus className="h-4 w-4" /> Submit property</Link>
+          </div>
         </div>
       </header>
 
