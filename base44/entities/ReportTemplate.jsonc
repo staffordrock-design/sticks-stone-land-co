@@ -2,6 +2,11 @@
   "name": "ReportTemplate",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Additional details or notes about this record.",
+      "maxLength": 1000
+    },
     "report_type": {
       "type": "string",
       "enum": [

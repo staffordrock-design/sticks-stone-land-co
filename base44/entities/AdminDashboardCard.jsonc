@@ -2,6 +2,11 @@
   "name": "AdminDashboardCard",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Additional details or notes about this record.",
+      "maxLength": 1000
+    },
     "card_code": {
       "type": "string"
     },

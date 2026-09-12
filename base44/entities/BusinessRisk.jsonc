@@ -2,6 +2,11 @@
   "name": "BusinessRisk",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Additional details or notes about this record.",
+      "maxLength": 1000
+    },
     "risk_code": {
       "type": "string"
     },

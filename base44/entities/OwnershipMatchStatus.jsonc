@@ -2,6 +2,11 @@
   "name": "OwnershipMatchStatus",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Additional details or notes about this record.",
+      "maxLength": 1000
+    },
     "mining_site_id": {
       "type": "string"
     },

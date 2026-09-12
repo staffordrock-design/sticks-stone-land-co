@@ -2,6 +2,11 @@
   "name": "CompanyWatch",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "description": "Additional details or notes about this record.",
+      "maxLength": 1000
+    },
     "user_id": {
       "type": "string"
     },

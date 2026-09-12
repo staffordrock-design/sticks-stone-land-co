@@ -1,6 +1,12 @@
 {
   "type": "object",
-  "properties": {},
+  "properties": {
+    "description": {
+      "type": "string",
+      "description": "Additional details or notes about this record.",
+      "maxLength": 1000
+    }
+  },
   "required": [],
   "name": "noop",
   "rls": {
