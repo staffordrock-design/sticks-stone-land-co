@@ -42,6 +42,16 @@ const FREE_ACCOUNT_PREFIXES = [
   "/network/deals/",
 ];
 
+// Public browseable content: quarry mine records and property listings are
+// viewable without a paid subscription so visitors can evaluate the marketplace
+// before subscribing. Detailed intelligence inside each page is gated separately
+// by the page's own professional-access logic (MineSiteDetail hasProfessional
+// upsell, ListingDetail uses NdaGate for the data room).
+const PUBLIC_BROWSE_PREFIXES = [
+  "/mines/",
+  "/listings/",
+];
+
 function loadingScreen() {
   return (
     <div className="fixed inset-0 z-[125] flex items-center justify-center bg-background">
@@ -61,7 +71,8 @@ export default function MembershipRequiredGate({ children }) {
   const [accessState, setAccessState] = useState({ loading: true, active: false, checkedPath: null });
 
   const freeAccountArea = FREE_ACCOUNT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
-  const exempt = EXEMPT_PATHS.has(pathname) || freeAccountArea;
+  const publicBrowseArea = PUBLIC_BROWSE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  const exempt = EXEMPT_PATHS.has(pathname) || freeAccountArea || publicBrowseArea;
 
   useEffect(() => {
     let cancelled = false;
