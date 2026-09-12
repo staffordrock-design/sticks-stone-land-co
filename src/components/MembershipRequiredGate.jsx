@@ -42,13 +42,10 @@ const FREE_ACCOUNT_PREFIXES = [
   "/network/deals/",
 ];
 
-// Public browseable content: quarry mine records and property listings are
-// viewable without a paid subscription so visitors can evaluate the marketplace
-// before subscribing. Detailed intelligence inside each page is gated separately
-// by the page's own professional-access logic (MineSiteDetail hasProfessional
-// upsell, ListingDetail uses NdaGate for the data room).
+// Property listings remain publicly viewable so buyers can evaluate what is
+// for sale before subscribing. Mine detail intelligence is gated behind a
+// subscription — the Home page cards serve as the free teaser.
 const PUBLIC_BROWSE_PREFIXES = [
-  "/mines/",
   "/listings/",
 ];
 
