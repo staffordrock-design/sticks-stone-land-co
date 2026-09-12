@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { ArrowRight, Bell, Building2, Database, GitCompareArrows, Handshake, Landmark, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, Bell, Building2, CheckCircle2, Database, GitCompareArrows, Handshake, Landmark, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
@@ -369,6 +369,48 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Why subscribe — conversion section */}
+      <section className="mx-auto max-w-7xl px-6 py-14">
+        <div className="overflow-hidden rounded-3xl border border-slate-700 bg-slate-950 p-8 text-white sm:p-12">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-sky-300">
+                <ShieldCheck className="h-3.5 w-3.5" /> Full Quarry Intelligence
+              </div>
+              <h2 className="mt-5 font-heading text-3xl font-bold sm:text-4xl">Unlock the full record behind every quarry.</h2>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">Free browsing shows mine locations and basic records. Full Quarry Intelligence unlocks ownership and parcel data, geology and rock type, permitted acreage, compliance history, production context, contract and royalty intelligence, valuation screening, and S&amp;S opportunity scores — for every site on the map.</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
+                  <TrendingUp className="h-4 w-4" /> Start for $49/month
+                </Link>
+                <Link to="/get-started?mode=report" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
+                  Request a custom report
+                </Link>
+              </div>
+              <p className="mt-4 text-xs text-slate-400">Cancel anytime. No S&amp;S account required to subscribe on web. Custom reports and due-diligence research are separate professional services.</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[
+                ["Ownership & Parcel", "Landowner, parcel ID, acreage, tax assessment, GIS boundary"],
+                ["Geology & Rock Type", "Primary rock, formation, age, lithology, deposit classification"],
+                ["Permits & Compliance", "TDEC permits, MSHA inspections, violations, environmental records"],
+                ["Production & Market", "Reported tonnage, MSHA activity, USGS market context, TDOT demand"],
+                ["Contract & Royalty", "Lease terms, royalty rates, assignment rights, deal signals"],
+                ["Valuation Screening", "Source-supported per-acre range, opportunity score, diligence checklist"],
+              ].map(([title, desc]) => (
+                <div key={title} className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+                  <div className="flex items-center gap-2 text-sm font-bold text-sky-300">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
+                    {title}
+                  </div>
+                  <p className="mt-1.5 text-xs leading-5 text-slate-400">{desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Live quarry workspaces — real actions, not a promotional menu */}
       <section className="mx-auto max-w-7xl px-6 py-10">
