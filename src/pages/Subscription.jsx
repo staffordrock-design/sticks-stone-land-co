@@ -419,10 +419,14 @@ export default function Subscription() {
               const monthlyStore = storeProducts[monthlyId];
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
-                <div className="mt-3 text-sm font-semibold text-muted-foreground">Monthly subscription · full app access · auto-renewing until canceled</div>
+                <div className="mt-2 flex items-baseline gap-2">
+                  <span className="font-heading text-3xl font-bold text-foreground">{tier.priceLabel}</span>
+                  <span className="text-xs text-muted-foreground">{tier.priceSublabel}</span>
+                </div>
+                <div className="mt-2 text-sm font-semibold text-muted-foreground">Monthly subscription · full app access · auto-renewing until canceled</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
-                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : "Continue to Secure Checkout"}</button>
+                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : `Subscribe for ${tier.priceLabel} · Secure Checkout`}</button>
                   <div className="text-[11px] leading-4 text-muted-foreground">Your checkout provider shows the current subscription price before confirmation. The subscription renews automatically until canceled. No S&amp;S account is required to complete the purchase.</div>
                 </div>}
                 {isNative && isIOS && (

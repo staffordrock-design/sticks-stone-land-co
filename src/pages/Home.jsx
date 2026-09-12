@@ -12,6 +12,7 @@ import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
 import PullToRefresh from "@/components/PullToRefresh";
 import BrandLogo from "@/components/BrandLogo";
+import ListingCard from "@/components/ListingCard";
 import ProfitabilityUpgradeBanner from "@/components/ProfitabilityUpgradeBanner";
 import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
@@ -62,6 +63,7 @@ export default function Home() {
   const [geology, setGeology] = useState([]);
   const [permits, setPermits] = useState([]);
   const [environmental, setEnvironmental] = useState([]);
+  const [listings, setListings] = useState([]);
   const [query, setQuery] = useState("");
   const [remoteSearchSites, setRemoteSearchSites] = useState([]);
   const [source, setSource] = useState("All");
@@ -111,13 +113,14 @@ export default function Home() {
       // Do not let one optional enrichment source blank the entire marketplace.
       // MiningSite is the core public inventory; parcel/geology/permit/environmental
       // data enrich the cards when available.
-      const [data, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
+      const [data, profileData, parcelData, geologyData, permitData, environmentalData, listingData] = await Promise.all([
         loadMiningSiteInventory(),
         safeLoad("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.list("-updated_date", limit)),
         safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", limit)),
         safeLoad("GeologyRecord", base44.entities.GeologyRecord.list("-updated_date", limit)),
         safeLoad("TDECPermit", base44.entities.TDECPermit.list("-last_source_update", limit)),
         safeLoad("EnvironmentalRecord", base44.entities.EnvironmentalRecord.list("-last_source_update", limit)),
+        safeLoad("Listing", base44.entities.Listing.filter({ status: "Active" }, "-created_date", 12)),
       ]);
 
       const siteList = Array.from(new Map((data || []).map((site) => [site.id, site])).values());
@@ -130,6 +133,7 @@ export default function Home() {
       setGeology(geoRecords);
       setPermits(permitData || []);
       setEnvironmental(environmentalData || []);
+      setListings(listingData || []);
     } catch (error) {
       console.error("Home quarry inventory load failed", error);
       setInventoryUnavailable(true);
@@ -347,6 +351,24 @@ export default function Home() {
       </section>
 
       <ProfitabilityUpgradeBanner />
+
+      {/* Featured property listings */}
+      {listings.length > 0 && (
+        <section className="mx-auto max-w-7xl px-6 py-14">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-700">For Sale</p>
+              <h2 className="mt-1 font-heading text-2xl font-bold text-foreground">Quarry &amp; Mineral Property Listings</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Active quarry operations, aggregate sites, mineral rights and royalty interests available for acquisition. Confidential data rooms with core drilling, environmental reports and financials available under NDA.</p>
+            </div>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {listings.slice(0, 6).map((listing) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Live quarry workspaces — real actions, not a promotional menu */}
       <section className="mx-auto max-w-7xl px-6 py-10">
