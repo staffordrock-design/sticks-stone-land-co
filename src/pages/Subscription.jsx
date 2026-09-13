@@ -330,6 +330,10 @@ export default function Subscription() {
   };
 
   const startWebCheckout = async (planCode) => {
+    if (window.self !== window.top) {
+      setPurchaseMessage("Checkout works only from the published app. Open the site directly in your browser to subscribe.");
+      return;
+    }
     trackSubscriptionAction(user, "subscribe_cta_clicked", "web", planCode);
     setPurchaseMessage("");
     setBuyingId(planCode);

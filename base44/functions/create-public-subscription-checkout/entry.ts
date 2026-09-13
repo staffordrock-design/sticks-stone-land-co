@@ -55,6 +55,7 @@ export default async function(req: Request) {
       client_reference_id: signedIn ? appUserId : `anonymous:${browserSessionId || randomSuffix()}`,
       integration_identifier: `ssrockholdings_${randomSuffix()}`,
       metadata: {
+        base44_app_id: Deno.env.get("BASE44_APP_ID") || '',
         purchase_type: 'subscription',
         checkout_flow: signedIn ? 'signed_in' : 'anonymous_web',
         user_id: signedIn ? appUserId : '',
@@ -64,6 +65,7 @@ export default async function(req: Request) {
       },
       subscription_data: {
         metadata: {
+          base44_app_id: Deno.env.get("BASE44_APP_ID") || '',
           checkout_flow: signedIn ? 'signed_in' : 'anonymous_web',
           user_id: signedIn ? appUserId : '',
           browser_session_id: browserSessionId,

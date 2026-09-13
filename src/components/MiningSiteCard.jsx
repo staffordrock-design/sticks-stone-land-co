@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, Gem, ShieldCheck, Gauge, Landmark, Leaf, LockKeyhole } from "lucide-react";
 import { classifyRock } from "../../base44/shared/rockTypes.js";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
+import { formatCompactMoney } from "@/utils/quarryValuation";
 
 function worldImageryTile(lat, lng, state, zoom = 14) {
   if (!isPlausibleSoutheastCoordinate(lat, lng, state)) return null;
@@ -102,6 +103,26 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
           <MapPin className="h-3.5 w-3.5" />
           <span>{location || "—"}</span>
         </div>
+
+        {valuation?.available ? (
+          <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-sky-800">S&amp;S Estimate</span>
+              <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700">{valuation.confidence} confidence</span>
+            </div>
+            <div className="mt-1 font-heading text-2xl font-bold text-sky-950">
+              {formatCompactMoney(valuation.low)} – {formatCompactMoney(valuation.high)}
+            </div>
+            <div className="mt-0.5 text-[10px] text-sky-700">
+              {Number(valuation.acres).toLocaleString()} acres · {formatCompactMoney(valuation.perAcreLow)}–{formatCompactMoney(valuation.perAcreHigh)}/ac
+            </div>
+          </div>
+        ) : (
+          <div className="mt-3 rounded-xl border border-dashed border-border bg-muted/20 p-3">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">S&amp;S Estimate</span>
+            <div className="mt-1 text-sm font-semibold text-muted-foreground">Pending — parcel &amp; tax data needed</div>
+          </div>
+        )}
 
         {showOpportunity && (
           <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/70 p-4">
