@@ -1,8 +1,8 @@
 export const SUBSCRIPTION_PRODUCTS = {
   apple: {
     professional: {
-      monthly: "com.ssrockholdings.professional.monthly",
-      annual: "com.ssrockholdings.professional.annual",
+      monthly: "com.ssrockholdings.intelligence.monthly",
+      annual: null,
     },
   },
   google: {

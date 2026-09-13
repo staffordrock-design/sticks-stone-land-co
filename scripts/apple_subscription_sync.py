@@ -33,15 +33,15 @@ TODAY = dt.datetime.now(dt.timezone.utc).date().isoformat()
 
 PRODUCTS = [
     {
-        "product_id": "com.ssrockholdings.mobile.quarryintelligence.monthly199",
+        "product_id": "com.ssrockholdings.intelligence.monthly",
         "internal_name": "Full Quarry Intelligence Monthly",
         "display_name": "Full Quarry Intelligence Monthly",
         "description": "Full monthly access to S&S quarry intelligence.",
         "period": "ONE_MONTH",
         "group_level": 1,
-        # Customer-facing monthly price target. Keep this at $49.00 unless the
+        # Customer-facing monthly price target. Keep this at $49.99 unless the
         # subscription strategy is intentionally changed again.
-        "usa_price": Decimal("49.00"),
+        "usa_price": Decimal("49.99"),
     },
 ]
 

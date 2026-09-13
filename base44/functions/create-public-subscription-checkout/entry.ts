@@ -4,6 +4,7 @@ import { secrets } from 'base44:runtime';
 const SUBSCRIPTION_PLANS = {
   professional_monthly: {
     name: 'S&S Rock Holdings — Full Quarry Intelligence',
+    priceId: 'price_1UF7SyHBH3xrClLVWswRS50j',
     unitAmount: 4900,
     currency: 'usd',
     interval: 'month' as const,
@@ -43,12 +44,7 @@ export default async function(req: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{
-        price_data: {
-          currency: plan.currency,
-          unit_amount: plan.unitAmount,
-          recurring: { interval: plan.interval },
-          product_data: { name: plan.name },
-        },
+        price: plan.priceId,
         quantity: 1,
       }],
       customer_email: appUserEmail || undefined,
