@@ -7,7 +7,7 @@ import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptio
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
-import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
+import { verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 const EXEMPT_PATHS = new Set([
   "/",
   "/login",
@@ -145,7 +145,31 @@ export default function MembershipRequiredGate({ children }) {
           "-updated_date",
           20
         );
-        const accountActive = hasFullQuarryEntitlement(rows || []);
+        let accountActive = hasFullQuarryEntitlement(rows || []);
+
+        // Migrate a previous anonymous web checkout to this signed-in account
+        // so the user doesn't lose access they already paid for.
+        if (!accountActive && !storeActive && !isNativeIOS() && !isNativeAndroid()) {
+          const savedAccess = getSavedWebSubscriptionAccess();
+          if (savedAccess?.sessionId) {
+            try {
+              const response = await base44.functions.invoke("verify-stripe-subscription", { session_id: savedAccess.sessionId });
+              const payload = response?.data || response || {};
+              if (!payload?.error) {
+                clearWebSubscriptionAccess();
+                const refreshedRows = await base44.entities.SubscriptionEntitlement.filter(
+                  { user_id: user.id },
+                  "-updated_date",
+                  20
+                );
+                accountActive = hasFullQuarryEntitlement(refreshedRows || []);
+              }
+            } catch (error) {
+              console.error("Web subscription migration failed", error);
+            }
+          }
+        }
+
         if (!cancelled) setAccessState({ loading: false, active: storeActive || accountActive || isReviewDemoAccount(user?.email), checkedPath: pathname });
       } catch (error) {
         console.error("Membership access check failed", error);

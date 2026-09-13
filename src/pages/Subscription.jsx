@@ -10,7 +10,7 @@ import { appleAccountTokenForUser, appleProductIds, stableAppleSubscriptionAcces
 import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, verifyGoogleTransactions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
-import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
+import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -109,7 +109,27 @@ export default function Subscription() {
     setLoading(false);
 
     if (user?.id) {
-      refreshEntitlements().catch((error) => console.error("Account entitlement refresh failed", error));
+      // Migrate a previous anonymous web checkout to this signed-in account.
+      const savedAccess = getSavedWebSubscriptionAccess();
+      if (savedAccess?.sessionId) {
+        (async () => {
+          try {
+            const response = await base44.functions.invoke("verify-stripe-subscription", { session_id: savedAccess.sessionId });
+            const payload = response?.data || response || {};
+            if (payload?.error) {
+              console.error("Web subscription migration failed:", payload.error);
+            } else {
+              clearWebSubscriptionAccess();
+            }
+          } catch (error) {
+            console.error("Web subscription migration failed", error);
+          } finally {
+            refreshEntitlements().catch(() => {});
+          }
+        })();
+      } else {
+        refreshEntitlements().catch((error) => console.error("Account entitlement refresh failed", error));
+      }
     }
 
     if (isNative && isIOS) {
