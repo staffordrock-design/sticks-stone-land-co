@@ -424,7 +424,7 @@ export default function Subscription() {
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="font-heading text-3xl font-bold text-foreground">{tier.priceLabel}</span>
+                  <span className="font-heading text-3xl font-bold text-foreground">{isNative && isIOS && monthlyStore?.priceString ? `${monthlyStore.priceString}/month` : tier.priceLabel}</span>
                   <span className="text-xs text-muted-foreground">{tier.priceSublabel}</span>
                 </div>
                 <div className="mt-2 text-sm font-semibold text-muted-foreground">Monthly subscription · full app access · auto-renewing until canceled</div>
