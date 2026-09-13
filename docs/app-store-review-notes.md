@@ -29,6 +29,8 @@ Custom reports, due-diligence research, surveys, reserve studies, environmental 
 ## 4. Apple review access
 A dedicated App Review account is available. The review-account credentials are maintained in App Store Connect Review Information rather than in this repository.
 
+A review screenshot for the subscription group is uploaded in App Store Connect under the subscription group's Review Information section.
+
 Account deletion is available in the app at /account/delete.
 
 ## 5. External services and source data
@@ -39,7 +41,7 @@ Tennessee currently has the deepest parcel/ownership, permit/permitted-acreage, 
 S&S Rock Holdings provides business-intelligence and screening information. It is not a title opinion, appraisal, certified reserve estimate, engineering opinion, geological certification, environmental assessment, or guarantee of commercially recoverable material. Government and other external data are source-labeled where available.
 
 ## 6. Subscription controls and legal links
-The Membership screen shows the monthly price, free-trial eligibility language, auto-renewal terms, Restore Purchases, Manage Subscriptions, Terms of Use, Privacy Policy, and Apple standard EULA link. StoreKit presents Apple's final storefront price and confirmation before purchase.
+The Membership screen shows the monthly price, auto-renewal terms, Restore Purchases, Manage Subscriptions, Terms of Use, Privacy Policy, and Apple standard EULA link. There is no free trial; the subscription is paid immediately when confirmed. StoreKit presents Apple's final storefront price and confirmation before purchase.
 
 The standard Apple Terms of Use (EULA) applies to the iOS app.
 
