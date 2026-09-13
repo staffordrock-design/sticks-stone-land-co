@@ -20,7 +20,7 @@ ISSUER_ID = os.getenv("ASC_ISSUER_ID", "7097918c-2758-4720-b0fa-938914c24b36")
 KEY_IDS = [x.strip() for x in os.getenv("ASC_KEY_IDS", "").split(",") if x.strip()]
 PRIVATE_KEY = os.getenv("ASC_PRIVATE_KEY", "")
 REPORT_PATH = Path(os.getenv("ASC_SUBMIT_REPORT_PATH", "reports/apple_submit_no_trial_update.json"))
-PRODUCT_ID = "com.ssrockholdings.mobile.quarryintelligence.monthly199"
+PRODUCT_ID = "com.ssrockholdings.marketplace.monthly"
 WHATS_NEW = "This update improves subscription access, quarry data and maps, and overall performance and stability."
 ACTIVE_REVIEW_STATES = {"READY_FOR_REVIEW", "WAITING_FOR_REVIEW", "IN_REVIEW", "UNRESOLVED_ISSUES", "CANCELING", "COMPLETING"}
 REVIEWABLE_VERSION_STATES = {"PREPARE_FOR_SUBMISSION", "READY_FOR_REVIEW", "DEVELOPER_REJECTED", "DEVELOPER_ACTION_NEEDED", "WAITING_FOR_REVIEW", "IN_REVIEW", "REJECTED"}
@@ -237,7 +237,7 @@ def find_subscription_version_and_group(c: ASC, app_id: str) -> tuple[dict[str, 
             versions = c.all(f"/v1/subscriptions/{sub['id']}/versions", params={"limit": 200})
             candidates = [v for v in versions if (v.get("attributes") or {}).get("state") in REVIEWABLE_VERSION_STATES]
             if not candidates:
-                raise RuntimeError("The $49 monthly subscription has no reviewable subscription version")
+                raise RuntimeError("The $69 monthly subscription has no reviewable subscription version")
             priority = {"READY_FOR_REVIEW": 8, "PREPARE_FOR_SUBMISSION": 7, "DEVELOPER_REJECTED": 6, "DEVELOPER_ACTION_NEEDED": 5, "REJECTED": 4, "WAITING_FOR_REVIEW": 3, "IN_REVIEW": 2}
             candidates.sort(key=lambda v: (priority.get((v.get("attributes") or {}).get("state"), 0), v.get("id") or ""), reverse=True)
             chosen = candidates[0]
@@ -407,7 +407,7 @@ def main() -> None:
                 add_item(c, review_id, "subscriptionGroupVersion", "subscriptionGroupVersions", subscription_group_version_id)
             except RuntimeError as exc:
                 if "no reviewable subscription version" in str(exc).lower():
-                    report["actions"].append("No reviewable $49 subscription version remains; submitting the app version without duplicate subscription items")
+                    report["actions"].append("No reviewable $69 subscription version remains; submitting the app version without duplicate subscription items")
                     save()
                 else:
                     raise
