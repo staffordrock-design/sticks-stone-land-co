@@ -307,6 +307,7 @@ export default function Home() {
               S&S Rock Holdings identifies quarry, mineral, land and aggregate opportunities across Tennessee and the Southeast — connecting public records, permits, ownership signals, geology, production context and confidential report requests.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
+              <Link to="/quarry-intelligence" className="w-full rounded-xl bg-sky-600 px-5 py-3 text-center text-sm font-bold text-white shadow-lg ring-1 ring-sky-400/50 transition hover:bg-sky-500 sm:w-auto">Analyze a Quarry or Property</Link>
               {!isNativeApp && <a href="https://apps.apple.com/app/id6802014287" target="_blank" rel="noreferrer" className="w-full rounded-xl bg-white px-5 py-3 text-center text-sm font-bold text-slate-950 shadow-lg ring-1 ring-white/60 transition hover:bg-slate-100 sm:w-auto">Download on the App Store</a>}
               <Link to="/get-started?mode=buyer" className="rounded-xl border border-slate-300/60 bg-slate-900/40 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">Find Quarry Opportunities</Link>
               <Link to="/get-started?mode=seller" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Evaluate My Rock Land</Link>

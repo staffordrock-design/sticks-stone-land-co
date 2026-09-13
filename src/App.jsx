@@ -58,6 +58,7 @@ const OwnershipIntelligence = lazy(() => import('./pages/OwnershipIntelligence')
 const Messages = lazy(() => import('./pages/Messages'));
 const IntelligenceHub = lazy(() => import('./pages/IntelligenceHub'));
 const LeadSetup = lazy(() => import('./pages/LeadSetup'));
+const QuarryIntelligence = lazy(() => import('./pages/QuarryIntelligence'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -121,6 +122,7 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Add your page Route elements here */}
       <Route path="/" element={<Home />} />
+      <Route path="/quarry-intelligence" element={<QuarryIntelligence />} />
       <Route path="/listings/:id" element={<PageTransition><ListingDetail /></PageTransition>} />
       <Route path="/mines/:id" element={<PageTransition><MineSiteDetail /></PageTransition>} />
       <Route path="/admin/activity" element={<RequireAdmin><AdminActivity /></RequireAdmin>} />
