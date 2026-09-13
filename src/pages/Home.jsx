@@ -114,7 +114,7 @@ export default function Home() {
       const [data, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
         loadMiningSiteInventory(),
         safeLoad("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.list("-updated_date", limit)),
-        safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", limit)),
+        safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", 500)),
         safeLoad("GeologyRecord", base44.entities.GeologyRecord.list("-updated_date", limit)),
         safeLoad("TDECPermit", base44.entities.TDECPermit.list("-last_source_update", limit)),
         safeLoad("EnvironmentalRecord", base44.entities.EnvironmentalRecord.list("-last_source_update", limit)),
