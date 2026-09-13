@@ -3,7 +3,7 @@
   "authenticated": true,
   "bundle_id": "com.base6a78376a454093ba2f431acd.app",
   "errors": [],
-  "generated_at": "2026-09-11T19:41:43.920009+00:00",
+  "generated_at": "2026-09-13T07:23:52.516549+00:00",
   "group": {
     "created": false,
     "id": "22312976",
@@ -11,10 +11,10 @@
   },
   "key_id_used": "2A3958GU5F",
   "products": {
-    "com.ssrockholdings.mobile.quarryintelligence.monthly199": {
+    "com.ssrockholdings.marketplace.monthly": {
       "created": false,
       "group_id": "22312976",
-      "id": "6806611685",
+      "id": "6802019025",
       "introductory_offer": {
         "created": false,
         "existing_offer_count": 0,
@@ -28,7 +28,7 @@
       "plan_availability": {
         "available_in_new_territories": true,
         "created": false,
-        "id": "eyJhIjoiNjgwNjYxMTY4NSIsInAiOiIwIn0",
+        "id": "eyJhIjoiNjgwMjAxOTAyNSIsInAiOiIwIn0",
         "plan_type": "UPFRONT",
         "territories": 175
       },
@@ -39,9 +39,9 @@
         "prices_already_at_target": 175,
         "prices_created": 0,
         "territories_available_from_equalization": 175,
-        "usa_price": "49.00"
+        "usa_price": "69.00"
       },
-      "state": "APPROVED"
+      "state": "READY_TO_SUBMIT"
     }
   }
 }
