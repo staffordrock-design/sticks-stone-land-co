@@ -304,7 +304,7 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/quarry-intelligence" className="w-full rounded-xl bg-sky-600 px-5 py-3 text-center text-sm font-bold text-white shadow-lg ring-1 ring-sky-400/50 transition hover:bg-sky-500 sm:w-auto">Analyze a Quarry or Property</Link>
-              <Link to="/subscribe" className="w-full rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-sky-600 sm:w-auto">Unlock Full Intelligence — $49/month</Link>
+              <Link to="/subscribe" className="w-full rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-sky-600 sm:w-auto">Unlock Full Intelligence — $69/month</Link>
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
             <p className="mt-4 max-w-xl text-sm text-slate-300">Search the data first. Serious buyers, owners and landholders can submit criteria, request review and move into S&S reports, diligence and deal follow-up.</p>
@@ -358,7 +358,7 @@ export default function Home() {
               <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">Free browsing shows mine locations and basic records. Full Quarry Intelligence unlocks ownership and parcel data, geology and rock type, permitted acreage, compliance history, production context, contract and royalty intelligence, valuation screening, and S&amp;S opportunity scores — for every site on the map.</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
-                  <TrendingUp className="h-4 w-4" /> Start for $49/month
+                  <TrendingUp className="h-4 w-4" /> Start for $69/month
                 </Link>
                 <Link to="/get-started?mode=report" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
                   Request a custom report

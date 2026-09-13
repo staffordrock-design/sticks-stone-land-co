@@ -4,8 +4,8 @@ import { secrets } from 'base44:runtime';
 const SUBSCRIPTION_PLANS = {
   professional_monthly: {
     name: 'S&S Rock Holdings — Full Quarry Intelligence',
-    priceId: 'price_1UF7SyHBH3xrClLVWswRS50j',
-    unitAmount: 4900,
+    priceId: 'price_1U4vqOHBH3xrClLV9vFwHk8r',
+    unitAmount: 6900,
     currency: 'usd',
     interval: 'month' as const,
   },

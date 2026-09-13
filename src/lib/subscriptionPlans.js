@@ -1,7 +1,7 @@
 export const SUBSCRIPTION_PRODUCTS = {
   apple: {
     professional: {
-      monthly: "com.ssrockholdings.intelligence.monthly",
+      monthly: "com.ssrockholdings.marketplace.monthly",
       annual: null,
     },
   },
@@ -21,7 +21,7 @@ export const ACCESS_TIERS = [
     code: "professional",
     name: "Full Quarry Intelligence",
     featured: true,
-    priceLabel: "$49/month",
+    priceLabel: "$69/month",
     priceSublabel: "Cancel anytime · No account required to buy",
     features: [
       "Full access to S&S quarry intelligence",
