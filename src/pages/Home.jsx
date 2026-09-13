@@ -68,7 +68,7 @@ export default function Home() {
   const [remoteSearchSites, setRemoteSearchSites] = useState([]);
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [stateFilter, setStateFilter] = useState("All Southeast");
+  const [stateFilter, setStateFilter] = useState("TN");
   const [sortMode, setSortMode] = useState("Opportunity Priority");
 
   const loadData = async () => {
@@ -87,7 +87,7 @@ export default function Home() {
 
       const loadMiningSiteInventory = async () => {
         const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
-        const perStateLimit = stateFilter === "All Southeast" ? 250 : 500;
+        const perStateLimit = stateFilter === "All Southeast" ? 80 : 500;
 
         // Keep the first screen fast and reliable on phones. Search still queries the
         // full MiningSite database, so older records remain discoverable without
@@ -308,10 +308,7 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/quarry-intelligence" className="w-full rounded-xl bg-sky-600 px-5 py-3 text-center text-sm font-bold text-white shadow-lg ring-1 ring-sky-400/50 transition hover:bg-sky-500 sm:w-auto">Analyze a Quarry or Property</Link>
-              {!isNativeApp && <a href="https://apps.apple.com/app/id6802014287" target="_blank" rel="noreferrer" className="w-full rounded-xl bg-white px-5 py-3 text-center text-sm font-bold text-slate-950 shadow-lg ring-1 ring-white/60 transition hover:bg-slate-100 sm:w-auto">Download on the App Store</a>}
-              <Link to="/get-started?mode=buyer" className="rounded-xl border border-slate-300/60 bg-slate-900/40 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">Find Quarry Opportunities</Link>
-              <Link to="/get-started?mode=seller" className="rounded-xl border border-slate-500 bg-slate-900/30 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Evaluate My Rock Land</Link>
-              <Link to="/get-started?mode=report" className="rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-sm font-bold text-white hover:bg-sky-600">Request Confidential Report</Link>
+              <Link to="/subscribe" className="w-full rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-sky-600 sm:w-auto">Unlock Full Intelligence — $49/month</Link>
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
             <p className="mt-4 max-w-xl text-sm text-slate-300">Search the data first. Serious buyers, owners and landholders can submit criteria, request review and move into S&S reports, diligence and deal follow-up.</p>
