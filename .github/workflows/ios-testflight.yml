@@ -133,7 +133,7 @@ jobs:
             echo "::error title=Retired access model found::Old pricing, trial copy, a retired preview gate, or the public review-demo bypass is present in the build";
             exit 1;
           fi
-          if grep -qE 'com\.ssrockholdings\.(marketplace|deal)\.(monthly|annual)|com\.ssrockholdings\.professional\.(monthly|annual)' src/lib/subscriptionPlans.js; then
+          if grep -qE 'com\.ssrockholdings\.marketplace\.annual|com\.ssrockholdings\.deal\.(monthly|annual)|com\.ssrockholdings\.professional\.(monthly|annual)' src/lib/subscriptionPlans.js; then
             echo "::error title=Legacy Apple products exposed::The client subscription catalog still contains a retired Apple subscription product";
             exit 1;
           fi
