@@ -442,7 +442,7 @@ def ensure_prices(client: ASC, subscription_id: str, desired: Decimal) -> dict[s
 
     usa_point = find_usa_price_point(client, subscription_id, desired)
     points = [usa_point]
-    # Use Apple's equalized tier so the $49 USA price maps consistently across
+    # Use Apple's equalized tier so the $69 USA price maps consistently across
     # all storefronts while retaining the existing product identifier.
     equalized = client.all(
         f"/v1/subscriptionPricePoints/{quote(usa_point['id'], safe='')}/equalizations",
