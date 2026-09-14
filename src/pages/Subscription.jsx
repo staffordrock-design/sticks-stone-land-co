@@ -11,6 +11,7 @@ import { googleProductIds, isNativeAndroid, syncCurrentGoogleSubscriptions, veri
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
+import StripeEmbeddedCheckout from "@/components/StripeEmbeddedCheckout";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -86,6 +87,7 @@ export default function Subscription() {
   const [buyingId, setBuyingId] = useState("");
   const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
   const [webAccess, setWebAccess] = useState({ active: false });
+  const [embeddedCheckout, setEmbeddedCheckout] = useState(null);
   const isNative = Capacitor.isNativePlatform();
   const isIOS = Capacitor.getPlatform() === "ios";
   const isAndroid = isNativeAndroid();
@@ -360,14 +362,39 @@ export default function Subscription() {
     try {
       const response = await base44.functions.invoke("create-public-subscription-checkout", { plan_code: planCode, return_to: returnTo, session_id: getWebSubscriptionBrowserId(), user_id: user?.id || "", user_email: user?.email || "" });
       const payload = response?.data || response || {};
-      if (!payload?.url) throw new Error(payload?.error || "Could not start checkout.");
+      if (!payload?.client_secret) throw new Error(payload?.error || "Could not start checkout.");
       trackSubscriptionAction(user, "checkout_created", "web", planCode);
-      window.location.assign(payload.url);
+      setEmbeddedCheckout({
+        clientSecret: payload.client_secret,
+        publishableKey: payload.publishable_key,
+        sessionId: payload.session_id,
+        browserSessionId: getWebSubscriptionBrowserId(),
+      });
     } catch (error) {
       const message = error?.message || "Could not start checkout.";
       trackSubscriptionAction(user, "checkout_error", "web", message);
       setPurchaseMessage(message);
+    } finally {
       setBuyingId("");
+    }
+  };
+
+  const handleEmbeddedComplete = async (result) => {
+    setEmbeddedCheckout(null);
+    if (result?.active) {
+      setPurchaseMessage("Subscription confirmed. Your full quarry intelligence is active.");
+      if (user?.id) {
+        try { await refreshEntitlements(); } catch { /* ignore */ }
+      }
+      trackSubscriptionAction(user, "checkout_completed", "web", "embedded");
+      navigate(returnTo, { replace: true });
+    } else if (result?.pending) {
+      // Session created but verification not ready yet — fall back to the
+      // success-page handler which re-verifies on full page load.
+      trackSubscriptionAction(user, "checkout_pending", "web", "embedded");
+      window.location.href = `/subscribe?checkout=success&session_id=${result.sessionId}&returnTo=${encodeURIComponent(returnTo)}`;
+    } else {
+      setPurchaseMessage(result?.error || "Checkout could not be confirmed yet. Please try again in a moment.");
     }
   };
 
@@ -490,6 +517,20 @@ export default function Subscription() {
           </div>}
         </div>
       </div>
+      {embeddedCheckout && (
+        <StripeEmbeddedCheckout
+          clientSecret={embeddedCheckout.clientSecret}
+          publishableKey={embeddedCheckout.publishableKey}
+          sessionId={embeddedCheckout.sessionId}
+          browserSessionId={embeddedCheckout.browserSessionId}
+          onComplete={handleEmbeddedComplete}
+          onClose={() => {
+            setEmbeddedCheckout(null);
+            setPurchaseMessage("Checkout canceled — your subscription was not started and you were not charged.");
+            trackSubscriptionAction(user, "checkout_cancelled", "web", "embedded");
+          }}
+        />
+      )}
     </div>
   );
 }
