@@ -104,7 +104,15 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
           <span>{location || "—"}</span>
         </div>
 
-        {valuation?.available ? (
+        {previewMode ? (
+          <div className="mt-3 rounded-xl border border-slate-300 bg-slate-100 p-3">
+            <div className="flex items-center gap-2">
+              <LockKeyhole className="h-4 w-4 text-slate-500" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-600">S&amp;S Estimate</span>
+            </div>
+            <div className="mt-1 text-sm font-semibold text-slate-500">Subscribe to unlock the valuation range</div>
+          </div>
+        ) : valuation?.available ? (
           <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3">
             <div className="flex items-baseline justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-sky-800">S&amp;S Estimate</span>
