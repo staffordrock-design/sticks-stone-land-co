@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.base6a78376a454093ba2f431acd.app',
+  appId: 'com.ssrockholdings.quarrymarketplace',
   appName: 'S&S Rock Holdings',
   webDir: 'dist'
 };
