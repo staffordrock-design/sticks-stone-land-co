@@ -6,6 +6,7 @@ import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import IntelligenceMap from "@/components/quarryIntelligence/IntelligenceMap";
 import IntelligenceProfile from "@/components/quarryIntelligence/IntelligenceProfile";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
+import { premiumSiteData } from "@/lib/subscriptionAccess";
 
 const FOCUS_STATE = "TN";
 const MAP_SITE_LIMIT = 500;
@@ -34,51 +35,22 @@ async function fetchIntelligenceData(site) {
   if (!site?.id || site.id.startsWith("location-")) {
     return { parcel: null, permits: [], environmental: [], inspections: [], violations: [], profile: null, production: [], geology: null, usgsOccurrences: [], tdotDemand: [], tdotProducer: null };
   }
-  const siteId = site.id;
+
+  const data = await premiumSiteData(site.id);
   const mshaId = site.msha_mine_id;
   const parcelId = site.parcel_id;
-  const tdecPermit = site.tdec_permit_number;
-  const npdesPermit = site.npdes_permit_number;
-
-  const linkOr = (extra = []) => {
-    const conditions = [{ mining_site_id: siteId }];
-    if (mshaId) conditions.push({ msha_mine_id: mshaId });
-    conditions.push(...extra.filter(Boolean));
-    return { $or: conditions };
-  };
-
-  const safe = async (label, req) => {
-    try { return await req; } catch (e) { console.error(`Intelligence fetch failed: ${label}`, e); return []; }
-  };
-
-  const [parcelData, permitData, envData, inspectionData, violationData, profileData, geologyData, usgsData, tdotDemandData, tdotProducerData] = await Promise.all([
-    safe("ParcelRecord", base44.entities.ParcelRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null, tdecPermit ? { tdec_permit_number: tdecPermit } : null]), "-updated_date", 50)),
-    safe("TDECPermit", base44.entities.TDECPermit.filter(linkOr([tdecPermit ? { permit_number: tdecPermit } : null]), "-updated_date", 50)),
-    safe("EnvironmentalRecord", base44.entities.EnvironmentalRecord.filter(linkOr([npdesPermit ? { npdes_permit_number: npdesPermit } : null]), "-updated_date", 50)),
-    safe("MSHAInspection", base44.entities.MSHAInspection.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", 100)),
-    safe("MSHAViolation", base44.entities.MSHAViolation.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", 100)),
-    safe("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.filter(linkOr(), "-updated_date", 10)),
-    safe("GeologyRecord", base44.entities.GeologyRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50)),
-    safe("USGSMineralOccurrence", base44.entities.USGSMineralOccurrence.filter(linkOr(), "-updated_date", 20)),
-    String(site.state || "").toUpperCase() === "TN" && site.county
-      ? safe("TDOTAggregateDemand", base44.entities.TDOTAggregateDemand.filter({ $or: [{ county: site.county }, { counties: site.county }], unit: "TON" }, "-letting_date", 200))
-      : Promise.resolve([]),
-    String(site.state || "").toUpperCase() === "TN" && site.county
-      ? safe("TDOTProducerPlant", base44.entities.TDOTProducerPlant.filter({ county: site.county, state: "TN" }, "-last_source_update", 10))
-      : Promise.resolve([]),
-  ]);
-
   return {
-    parcel: (parcelData || []).find((p) => p.parcel_id === parcelId || p.msha_mine_id === mshaId) || (parcelData || [])[0] || null,
-    permits: permitData || [],
-    environmental: envData || [],
-    inspections: inspectionData || [],
-    violations: violationData || [],
-    profile: (profileData || [])[0] || null,
-    geology: (geologyData || [])[0] || null,
-    usgsOccurrences: usgsData || [],
-    tdotDemand: tdotDemandData || [],
-    tdotProducer: (tdotProducerData || [])[0] || null,
+    parcel: (data.parcels || []).find((p) => p.parcel_id === parcelId || p.msha_mine_id === mshaId) || (data.parcels || [])[0] || null,
+    permits: data.permits || [],
+    environmental: data.environmental || [],
+    inspections: data.inspections || [],
+    violations: data.violations || [],
+    profile: (data.profiles || [])[0] || null,
+    production: data.production || [],
+    geology: (data.geology || [])[0] || null,
+    usgsOccurrences: data.usgsOccurrences || [],
+    tdotDemand: data.tdotDemand || [],
+    tdotProducer: (data.tdotProducerPlants || [])[0] || null,
   };
 }
 
