@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Database, Gem, Gauge, Landmark, Layers3, MapPin, Mountain, Search, ShieldCheck, TrendingUp } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
+import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 
 const STATES = ["All Southeast", "TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const MATERIALS = ["All materials", "Limestone", "Crushed Stone", "Sand & Gravel", "Granite", "Dolomite", "Marble", "Quartz", "Clay", "Shale", "Slate"];
@@ -71,10 +72,10 @@ export default function MineralValueGuide() {
         const permitNumbers = new Set(siteRows.map((s) => s.tdec_permit_number).filter(Boolean));
 
         const [geoRows, permitRows, envRows, profileRows] = await Promise.all([
-          base44.entities.GeologyRecord.list("-updated_date", 500).catch(() => []),
-          base44.entities.TDECPermit.list("-last_source_update", 500).catch(() => []),
-          base44.entities.EnvironmentalRecord.list("-last_source_update", 500).catch(() => []),
-          base44.entities.QuarryPotentialProfile.list("-updated_date", 500).catch(() => []),
+          premiumEntityQuery("GeologyRecord", {}, "-updated_date", 500).catch(() => []),
+          premiumEntityQuery("TDECPermit", {}, "-last_source_update", 500).catch(() => []),
+          premiumEntityQuery("EnvironmentalRecord", {}, "-last_source_update", 500).catch(() => []),
+          premiumEntityQuery("QuarryPotentialProfile", {}, "-updated_date", 500).catch(() => []),
         ]);
 
         if (cancelled) return;
