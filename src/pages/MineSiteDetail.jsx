@@ -247,7 +247,13 @@ export default function MineSiteDetail() {
           return;
         }
 
-        // Merge live TDOT producer candidates (public API, not a locked entity).
+        const mine = data?.site;
+        if (!mine?.id) throw new Error("Paid quarry record could not be loaded.");
+        if (cancelled) return;
+        setSite(mine);
+        trackFunnelEvent({ page_type: "premium_intelligence", resource_id: "premium_intelligence_attempted", path: `/mines/${id}`, resource_name: mine?.mine_name, user });
+
+        // Merge live TDOT producer candidates only after paid entitlement is verified.
         const liveTdot = await fetchLiveTdotProducerCandidates(mine).catch(() => []);
         const byKey = new Map();
         for (const row of [...(data.tdotProducerPlants || []), ...(liveTdot || [])]) {
