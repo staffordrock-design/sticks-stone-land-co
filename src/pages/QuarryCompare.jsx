@@ -43,7 +43,7 @@ export default function QuarryCompare() {
     (async () => {
       try {
         const [siteRows, entitlements] = await Promise.all([
-          base44.entities.MiningSite.list("mine_name", 500),
+          premiumEntityQuery("MiningSite", {}, "mine_name", 500),
           user?.id ? base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 20) : Promise.resolve([]),
         ]);
         setSites(siteRows || []);
