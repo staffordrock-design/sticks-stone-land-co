@@ -24,6 +24,11 @@ const FULL_APPLE_PRODUCTS = new Set([
   'com.ssrockholdings.quarryintelligence.monthly199',
   'com.ssrockholdings.professional.monthly',
 ]);
+const PREMIUM_ENTITY_NAMES = new Set([
+  'MiningSite', 'ParcelRecord', 'GeologyRecord', 'TDECPermit', 'EnvironmentalRecord',
+  'ProductionRecord', 'MSHAInspection', 'MSHAViolation', 'QuarryPotentialProfile',
+  'ContractIntelligence', 'ValuationRecord', 'USGSMineralOccurrence',
+]);
 
 function isEntitledEntitlement(row) {
   if (!row) return false;
