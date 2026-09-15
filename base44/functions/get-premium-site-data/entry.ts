@@ -219,6 +219,7 @@ export default async function(req) {
 
     return Response.json({
       entitled: true,
+      site,
       parcels: parcels || [],
       permits: permits || [],
       environmental: environmental || [],
