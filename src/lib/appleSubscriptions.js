@@ -74,7 +74,7 @@ export async function currentAppleSubscriptionAccess({ restore = false, allowRec
       productType: PURCHASE_TYPE.SUBS,
       onlyCurrentEntitlements: true,
     }),
-    'Apple subscription check did not respond. You can still browse the preview and try again.'
+    'Apple subscription check did not respond. You can still browse public quarry information and try again.'
   );
   const current = (purchases || []).filter((tx) => APPLE_RECOGNIZED_PRODUCT_IDS.includes(tx?.productIdentifier));
   const productIds = current.map((tx) => tx.productIdentifier).filter(Boolean);
@@ -164,7 +164,7 @@ export async function appleAccountTokenForUser(userId) {
   return `${joined.slice(0, 8)}-${joined.slice(8, 12)}-${joined.slice(12, 16)}-${joined.slice(16, 20)}-${joined.slice(20, 32)}`;
 }
 
-async function signedAppTransaction() {
+export async function signedAppTransaction() {
   try {
     const { appTransaction } = await withStoreKitTimeout(
       NativePurchases.getAppTransaction(),
@@ -207,7 +207,7 @@ export async function syncCurrentAppleSubscriptions({ restore = false } = {}) {
   // Apple requires registration to remain optional for StoreKit purchases.
   // Anonymous subscribers are authorized directly from StoreKit currentEntitlements.
   // Still verify their signed StoreKit transactions server-side so owner billing
-  // reporting sees the trial/purchase immediately. If they later sign in, the
+  // reporting sees the verified purchase immediately. If they later sign in, the
   // temporary Apple receipt is migrated to their S&S account.
   if (!user?.id) {
     if (access?.purchases?.length) {
