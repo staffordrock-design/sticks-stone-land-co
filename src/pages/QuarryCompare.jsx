@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 import { stableAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
-import { hasFullQuarryEntitlement, premiumSiteData } from "@/lib/subscriptionAccess";
+import { hasFullQuarryEntitlement, premiumSiteData, premiumEntityQuery } from "@/lib/subscriptionAccess";
 import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 
 const MAX_COMPARE = 5;
