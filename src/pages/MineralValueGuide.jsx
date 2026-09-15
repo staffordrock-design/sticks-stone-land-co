@@ -63,7 +63,7 @@ export default function MineralValueGuide() {
       try {
         const states = state === "All Southeast" ? STATES.slice(1) : [state];
         const siteRows = (await Promise.all(states.map((code) =>
-          base44.entities.MiningSite.filter({ state: code }, "-updated_date", state === "All Southeast" ? 120 : 400).catch(() => [])
+          premiumEntityQuery("MiningSite", { state: code }, "-updated_date", state === "All Southeast" ? 120 : 400).catch(() => [])
         ))).flat().filter(isQuarryRelevant);
 
         const mineIds = new Set(siteRows.map((s) => s.msha_mine_id).filter(Boolean));
