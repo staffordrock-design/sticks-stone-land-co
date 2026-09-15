@@ -298,7 +298,7 @@ export default function Home() {
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
-          <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Preview"}</div>
+          <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Public Access"}</div>
         </div>
       </header>
 
