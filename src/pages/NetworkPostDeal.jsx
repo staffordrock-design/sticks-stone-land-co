@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Handshake, Loader2, Mountain, Network, ShieldCheck } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityRecord } from "@/lib/subscriptionAccess";
 
 function numberOrUndefined(value) {
   if (value === "" || value == null) return undefined;
@@ -39,7 +40,7 @@ export default function NetworkPostDeal() {
   useEffect(() => {
     (async () => {
       if (siteId) {
-        const row = await base44.entities.MiningSite.get(siteId).catch(() => null);
+        const row = await premiumEntityRecord("MiningSite", siteId).catch(() => null);
         if (row) {
           setSite(row);
           setForm((current) => ({
