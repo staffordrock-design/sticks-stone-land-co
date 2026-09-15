@@ -87,6 +87,8 @@ export default function Home() {
         }
       };
 
+      const premiumReady = !checkingAccess && hasProfessional;
+
       const loadMiningSiteInventory = async () => {
         const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
         const perStateLimit = stateFilter === "All Southeast" ? 80 : 500;
@@ -97,7 +99,9 @@ export default function Home() {
         const stateRows = await Promise.all(statesToLoad.map(async (state) => {
           const page = await safeLoad(
             `MiningSite working set ${state}`,
-            base44.entities.MiningSite.filter({ state }, "-updated_date", perStateLimit)
+            premiumReady
+              ? premiumEntityQuery("MiningSite", { state }, "-updated_date", perStateLimit)
+              : base44.entities.MiningSite.filter({ state }, "-updated_date", perStateLimit)
           );
           return (page || []).filter((site) => site?.id && isQuarryRelevant(site));
         }));
@@ -115,7 +119,6 @@ export default function Home() {
       // Do not let one optional enrichment source blank the entire marketplace.
       // MiningSite is the core public inventory; parcel/geology/permit/environmental
       // data enrich the cards when available.
-      const premiumReady = !checkingAccess && hasProfessional;
       const [data, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
         loadMiningSiteInventory(),
         premiumReady ? safeLoad("QuarryPotentialProfile", premiumEntityQuery("QuarryPotentialProfile", {}, "-updated_date", limit)) : Promise.resolve([]),
