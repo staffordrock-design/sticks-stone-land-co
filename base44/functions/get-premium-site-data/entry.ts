@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
-import { decodeUnverifiedPayload, isoFromMillis } from '../../shared/appleVerify.ts';
+import { verifyApplePurchases } from '../../shared/appleVerify.ts';
 
 // ---------------------------------------------------------------------------
 // Server-side entitlement gate for premium quarry intelligence data.
@@ -18,6 +18,12 @@ import { decodeUnverifiedPayload, isoFromMillis } from '../../shared/appleVerify
 
 const FULL_QUARRY_PLANS = new Set(['professional_monthly', 'marketplace_monthly']);
 const ACTIVE_STATUSES = new Set(['active', 'grace_period']);
+const FULL_APPLE_PRODUCTS = new Set([
+  'com.ssrockholdings.marketplace.monthly',
+  'com.ssrockholdings.mobile.quarryintelligence.monthly199',
+  'com.ssrockholdings.quarryintelligence.monthly199',
+  'com.ssrockholdings.professional.monthly',
+]);
 
 function isEntitledEntitlement(row) {
   if (!row) return false;
