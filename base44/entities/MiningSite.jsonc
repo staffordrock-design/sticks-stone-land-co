@@ -14,10 +14,24 @@
       "default": "MSHA"
     },
     "source_record_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "msha_mine_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "mine_name": {
       "type": "string"
@@ -32,17 +46,45 @@
       "type": "string"
     },
     "operator_name": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "permittee_name": {
       "type": "string",
-      "description": "Named permit holder/permittee when verified from a regulatory permit record; kept separate from the MSHA operator."
+      "description": "Named permit holder/permittee when verified from a regulatory permit record; kept separate from the MSHA operator.",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "controller_name": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "address": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "city": {
       "type": "string"
@@ -54,7 +96,14 @@
       "type": "string"
     },
     "zip": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "latitude": {
       "type": "number"
@@ -63,34 +112,97 @@
       "type": "number"
     },
     "tdec_permit_number": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "npdes_permit_number": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "parcel_id": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "parcel_owner": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "acreage": {
       "type": "number",
-      "description": "Parcel/tax-map acreage when available. This is not the same as permitted mining acreage."
+      "description": "Parcel/tax-map acreage when available. This is not the same as permitted mining acreage.",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "permitted_acres": {
       "type": "number",
-      "description": "Acreage authorized or identified by the controlling mining/NPDES permit record. Never inferred from parcel acreage."
+      "description": "Acreage authorized or identified by the controlling mining/NPDES permit record. Never inferred from parcel acreage.",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "permitted_acres_basis": {
       "type": "string",
-      "description": "What the acreage represents, e.g. NPDES permitted acreage, surface-mining disturbed acreage, or permit-document acreage."
+      "description": "What the acreage represents, e.g. NPDES permitted acreage, surface-mining disturbed acreage, or permit-document acreage.",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "permitted_acres_source_url": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "permitted_acres_last_verified": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "site_images": {
       "type": "array",
@@ -101,10 +213,24 @@
     },
     "photo_condition_score": {
       "type": "number",
-      "description": "Reviewed 0-100 visual/site-condition screening score derived from available property photos; not a reserve or engineering conclusion."
+      "description": "Reviewed 0-100 visual/site-condition screening score derived from available property photos; not a reserve or engineering conclusion.",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "photo_notes": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "is_verified_listing": {
       "type": "boolean",
@@ -114,13 +240,34 @@
       "type": "string"
     },
     "source_url": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "last_source_update": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "notes": {
-      "type": "string"
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     }
   },
   "required": [
