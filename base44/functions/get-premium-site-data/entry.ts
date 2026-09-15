@@ -106,9 +106,22 @@ export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const { mining_site_id, apple_transactions, apple_app_transaction, stripe_session_id, stripe_browser_session_id } = body;
+    const {
+      mining_site_id,
+      apple_transactions,
+      apple_app_transaction,
+      stripe_session_id,
+      stripe_browser_session_id,
+      operation = 'site',
+      entity_name,
+      query,
+      sort,
+      limit,
+      skip,
+      record_id,
+    } = body;
 
-    if (!mining_site_id) {
+    if (operation === 'site' && !mining_site_id) {
       return Response.json({ error: 'mining_site_id is required' }, { status: 400 });
     }
 
@@ -136,8 +149,31 @@ export default async function(req) {
       return Response.json({ error: 'Subscription required', entitled: false }, { status: 403 });
     }
 
-    // --- Fetch premium data (service role bypasses RLS) ---
+    // --- Fetch premium data (service role bypasses RLS only after entitlement) ---
     const svc = base44.asServiceRole;
+
+    if (operation === 'entity') {
+      const entityName = String(entity_name || '');
+      if (!PREMIUM_ENTITY_NAMES.has(entityName)) {
+        return Response.json({ error: 'Premium entity is not allowed' }, { status: 400 });
+      }
+      const entity = svc.entities[entityName];
+      if (!entity) return Response.json({ error: 'Premium entity unavailable' }, { status: 404 });
+      if (record_id) {
+        const record = await entity.get(String(record_id));
+        return Response.json({ entitled: true, record: record || null });
+      }
+      const safeLimit = Math.max(1, Math.min(Number(limit) || 50, 500));
+      const safeSkip = Math.max(0, Math.min(Number(skip) || 0, 10000));
+      const rows = await entity.filter(
+        query && typeof query === 'object' ? query : {},
+        String(sort || '-updated_date'),
+        safeLimit,
+        safeSkip,
+      );
+      return Response.json({ entitled: true, rows: rows || [] });
+    }
+
     const site = await svc.entities.MiningSite.get(mining_site_id);
     if (!site) {
       return Response.json({ error: 'Mining site not found' }, { status: 404 });
