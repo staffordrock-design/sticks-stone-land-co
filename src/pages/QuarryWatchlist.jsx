@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Bell, Bookmark, Plus, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 
 const FREQUENCIES = ["Instant", "Daily", "Weekly"];
 
@@ -22,7 +23,7 @@ export default function QuarryWatchlist() {
       const [savedRows, alertRows, siteRows] = await Promise.all([
         base44.entities.SavedOpportunity.filter({ user_id: user.id }, "-saved_at", 200),
         base44.entities.BuyerAlert.filter({ user_id: user.id }, "-updated_date", 100),
-        base44.entities.MiningSite.list("mine_name", 500),
+        premiumEntityQuery("MiningSite", {}, "mine_name", 500),
       ]);
       setSaved(savedRows || []);
       setAlerts(alertRows || []);
