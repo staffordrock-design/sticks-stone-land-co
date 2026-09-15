@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 
 const STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "MS", "VA"];
 
@@ -36,7 +37,7 @@ async function loadQuarrySitesForState(state) {
   const rows = [];
   const seen = new Set();
   for (let offset = 0; offset < 10000; offset += 500) {
-    const page = await base44.entities.MiningSite.filter({ state }, "-updated_date", 500, offset).catch(() => []);
+    const page = await premiumEntityQuery("MiningSite", { state }, "-updated_date", 500, offset).catch(() => []);
     for (const site of page || []) {
       if (!site?.id || seen.has(site.id) || !isQuarryRelevant(site)) continue;
       seen.add(site.id);
@@ -106,7 +107,7 @@ export default function CompanyNetworkDetail() {
         });
         matched = Array.from(bySite.values());
       } else {
-        const exactRows = await base44.entities.MiningSite.filter({
+        const exactRows = await premiumEntityQuery("MiningSite", {
           $or: [
             { operator_name: requestedName },
             { controller_name: requestedName },
@@ -126,11 +127,11 @@ export default function CompanyNetworkDetail() {
       const byMsha = mshaIds.length ? { msha_mine_id: { $in: mshaIds } } : { msha_mine_id: "__none__" };
       const bySite = ids.length ? { mining_site_id: { $in: ids } } : { mining_site_id: "__none__" };
       const [permitRows, geologyRows, envRows, productionRows, contractRows, opportunityRows, watchRows] = await Promise.all([
-        base44.entities.TDECPermit.filter(byMsha, "-last_source_update", 500).catch(() => []),
-        base44.entities.GeologyRecord.filter(bySite, "-last_source_update", 500).catch(() => []),
-        base44.entities.EnvironmentalRecord.filter(byMsha, "-last_source_update", 500).catch(() => []),
-        base44.entities.ProductionRecord.filter(bySite, "-year", 500).catch(() => []),
-        base44.entities.ContractIntelligence.filter(bySite, "-last_source_update", 500).catch(() => []),
+        premiumEntityQuery("TDECPermit", byMsha, "-last_source_update", 500).catch(() => []),
+        premiumEntityQuery("GeologyRecord", bySite, "-last_source_update", 500).catch(() => []),
+        premiumEntityQuery("EnvironmentalRecord", byMsha, "-last_source_update", 500).catch(() => []),
+        premiumEntityQuery("ProductionRecord", bySite, "-year", 500).catch(() => []),
+        premiumEntityQuery("ContractIntelligence", bySite, "-last_source_update", 500).catch(() => []),
         base44.entities.NetworkOpportunity.list("-created_at", 500).catch(() => []),
         user?.id ? base44.entities.CompanyWatch.filter({ user_id: user.id }, "-created_at", 500).catch(() => []) : Promise.resolve([]),
       ]);
