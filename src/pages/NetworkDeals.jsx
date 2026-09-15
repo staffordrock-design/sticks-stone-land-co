@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Handshake, Loader2, Mountain, Search, ShieldCheck, Target } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityRecord } from "@/lib/subscriptionAccess";
 
 const STATES = ["All","TN","GA","AL","KY","NC","SC","MS","VA"];
 
@@ -32,7 +33,7 @@ export default function NetworkDeals() {
         setDeals(open);
         setInterests(interestRows || []);
         const ids = [...new Set(open.map((row) => row.linked_mining_site_id).filter(Boolean))].slice(0, 250);
-        const siteRows = await Promise.all(ids.map((id) => base44.entities.MiningSite.get(id).catch(() => null)));
+        const siteRows = await Promise.all(ids.map((id) => premiumEntityRecord("MiningSite", id).catch(() => null)));
         setSites(siteRows.filter(Boolean));
       } finally { setLoading(false); }
     })();
