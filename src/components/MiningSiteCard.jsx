@@ -46,7 +46,7 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
   const verified = site.is_verified_listing && site.listing_id;
   const aerialPreview = worldImageryTile(site.latitude, site.longitude, site.state);
   const heroImage = site.site_images?.[0] || aerialPreview;
-  const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location preview" : null;
+  const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location image" : null;
   const showOpportunity = !previewMode && Boolean(opportunity) && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
   const owner = parcel?.owner_name || site.parcel_owner;
   const parcelAcreage = parcel?.acreage ?? site.acreage;
@@ -67,7 +67,7 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
         {heroImage ? (
           <>
             <img src={heroImage} alt={site.mine_name || "Quarry opportunity"} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
-            {heroLabel && <div className="absolute bottom-2 left-2 rounded-md bg-stone-950/75 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">{heroLabel}{heroLabel === "Aerial location preview" ? " · Esri World Imagery" : ""}</div>}
+            {heroLabel && <div className="absolute bottom-2 left-2 rounded-md bg-stone-950/75 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">{heroLabel}{heroLabel === "Aerial location image" ? " · Esri World Imagery" : ""}</div>}
           </>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-stone-400">
