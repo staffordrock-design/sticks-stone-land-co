@@ -6,7 +6,7 @@ import { base44 } from "@/api/base44Client";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { ArrowRight, Bell, Building2, CheckCircle2, Database, GitCompareArrows, Handshake, Landmark, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, Bell, Building2, CheckCircle2, Database, GitCompareArrows, Handshake, Landmark, Layers, LockKeyhole, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
