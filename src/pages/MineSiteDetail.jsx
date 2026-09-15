@@ -1033,9 +1033,20 @@ export default function MineSiteDetail() {
         </>) : (
           <div className="mb-8 rounded-3xl border border-sky-200 bg-sky-50/70 p-7 text-center">
             <LockKeyhole className="mx-auto h-8 w-8 text-slate-800" />
-            <h2 className="mt-3 font-heading text-2xl font-bold text-slate-950">Full quarry intelligence starts here</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700">Full Quarry Intelligence unlocks the complete mine profile: source records, parcel and ownership data, permitted acreage, geology, production history, compliance, contract/royalty intelligence, valuation screening and S&amp;S opportunity analysis.</p>
-            <button onClick={() => navigate(`/subscribe?returnTo=${encodeURIComponent(`/mines/${id}`)}`)} className="mt-5 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white">Unlock full access</button>
+            <h2 className="mt-3 font-heading text-2xl font-bold text-slate-950">Full Quarry Intelligence starts here</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700">Unlock the complete mine profile: ownership and parcel data, permitted acreage, geology and rock type, production history, MSHA/TDEC compliance, contract/royalty intelligence, valuation screening and S&amp;S opportunity analysis.</p>
+            <div className="mx-auto mt-5 max-w-md rounded-2xl border border-slate-300 bg-white p-4 text-left">
+              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Locked premium sections</div>
+              <div className="mt-2 grid grid-cols-1 gap-1.5 text-sm text-slate-700">
+                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Ownership Intelligence — Locked</div>
+                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Geology &amp; Rock Type — Locked</div>
+                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Production Intelligence — Locked</div>
+                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Permits &amp; Compliance — Locked</div>
+                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Opportunity Screening — Locked</div>
+              </div>
+            </div>
+            <button onClick={() => navigate(`/subscribe?returnTo=${encodeURIComponent(`/mines/${id}`)}`)} className="mt-5 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg">Unlock Full Quarry Intelligence — $69/month</button>
+            <p className="mt-3 text-xs text-slate-500">Cancel anytime · No S&amp;S account required to buy</p>
           </div>
         )}
 
