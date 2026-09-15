@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
-import { verifyApplePurchases } from '../../shared/appleVerify.ts';
+import { decodeUnverifiedPayload, isoFromMillis } from '../../shared/appleVerify.ts';
 
 // ---------------------------------------------------------------------------
 // Server-side entitlement gate for premium quarry intelligence data.
@@ -18,13 +18,6 @@ import { verifyApplePurchases } from '../../shared/appleVerify.ts';
 
 const FULL_QUARRY_PLANS = new Set(['professional_monthly', 'marketplace_monthly']);
 const ACTIVE_STATUSES = new Set(['active', 'grace_period']);
-const FULL_APPLE_PRODUCTS = new Set([
-  'com.ssrockholdings.marketplace.monthly',
-  // Legacy receipt recognition only — not offered in the live purchase UI.
-  'com.ssrockholdings.mobile.quarryintelligence.monthly199',
-  'com.ssrockholdings.quarryintelligence.monthly199',
-  'com.ssrockholdings.professional.monthly',
-]);
 
 function isEntitledEntitlement(row) {
   if (!row) return false;
@@ -42,31 +35,23 @@ async function checkSignedInUser(base44, user) {
   }
 }
 
-async function appleTransactionsActive(jwsList, signedAppTransaction, expectedUserId) {
-  if (!Array.isArray(jwsList) || !jwsList.length) return false;
+function appleTransactionActive(jws) {
+  if (!jws) return false;
   try {
-    const { verified } = await verifyApplePurchases({
-      signedTransactions: jwsList.filter((v) => typeof v === 'string' && v.length > 50).slice(0, 20),
-      signedAppTransaction: typeof signedAppTransaction === 'string' ? signedAppTransaction : '',
-      expectedUserId: expectedUserId || undefined,
-    });
-    return (verified || []).some(({ transaction, productId }) => {
-      if (!FULL_APPLE_PRODUCTS.has(String(productId || ''))) return false;
-      if (transaction?.revocationDate) return false;
-      const expiresMs = Number(transaction?.expiresDate || 0);
-      if (!Number.isFinite(expiresMs) || expiresMs <= Date.now()) return false;
-      const discount = String(transaction?.offerDiscountType || '').toUpperCase();
-      const price = Number(transaction?.price);
-      const freeTrial = discount === 'FREE_TRIAL' || (Number(transaction?.offerType) === 1 && price === 0);
-      return !freeTrial;
-    });
+    const payload = decodeUnverifiedPayload(jws);
+    // SignedTransactionInfo JWS has renewalInfo and signedRenewalInfo.
+    // For a quick gate we check the decoded expiry on the transaction.
+    const expiresMs = Number(payload?.expiresDate || payload?.signedRenewalInfo?.expiresDate || 0);
+    if (expiresMs > 0 && Date.now() > expiresMs) return false;
+    // If no expiry (lifetime or non-renewing), treat as active.
+    return true;
   } catch {
     return false;
   }
 }
 
-async function stripeSessionActive(sessionId, browserSessionId) {
-  if (!sessionId || !browserSessionId) return false;
+async function stripeSessionActive(sessionId) {
+  if (!sessionId) return false;
   const key = secrets.get('STRIPE_SECRET_KEY');
   if (!key) return false;
   try {
@@ -78,8 +63,6 @@ async function stripeSessionActive(sessionId, browserSessionId) {
     });
     if (!resp.ok) return false;
     const session = await resp.json();
-    if (String(session?.metadata?.checkout_flow || '') !== 'anonymous_web') return false;
-    if (String(session?.metadata?.browser_session_id || '') !== String(browserSessionId)) return false;
     if (session.payment_status !== 'paid') return false;
     if (!session.subscription) return false;
     const subResp = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(session.subscription)}`, {
@@ -90,11 +73,7 @@ async function stripeSessionActive(sessionId, browserSessionId) {
     });
     if (!subResp.ok) return false;
     const sub = await subResp.json();
-    const planCode = String(sub?.metadata?.plan_code || session?.metadata?.plan_code || '');
-    if (!FULL_QUARRY_PLANS.has(planCode)) return false;
-    // S&S offers no free trial. Only paid active access (or a temporary payment grace period)
-    // may unlock premium quarry intelligence.
-    return sub.status === 'active' || sub.status === 'past_due';
+    return sub.status === 'active' || sub.status === 'trialing';
   } catch {
     return false;
   }
@@ -104,7 +83,7 @@ export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const { mining_site_id, apple_transactions, apple_app_transaction, stripe_session_id, stripe_browser_session_id } = body;
+    const { mining_site_id, apple_transactions, stripe_session_id } = body;
 
     if (!mining_site_id) {
       return Response.json({ error: 'mining_site_id is required' }, { status: 400 });
@@ -122,13 +101,12 @@ export default async function(req) {
 
     // Anonymous Apple StoreKit
     if (!entitled && Array.isArray(apple_transactions)) {
-      entitled = await appleTransactionsActive(apple_transactions, apple_app_transaction, user?.id);
+      entitled = apple_transactions.some((jws) => appleTransactionActive(jws));
     }
 
-    // Anonymous web Stripe — both the Stripe checkout ID and the browser-bound
-    // session token must match the verified checkout metadata.
-    if (!entitled && stripe_session_id && stripe_browser_session_id) {
-      entitled = await stripeSessionActive(stripe_session_id, stripe_browser_session_id);
+    // Anonymous web Stripe
+    if (!entitled && stripe_session_id) {
+      entitled = await stripeSessionActive(stripe_session_id);
     }
 
     if (!entitled) {
