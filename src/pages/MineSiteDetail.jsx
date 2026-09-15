@@ -199,15 +199,10 @@ export default function MineSiteDetail() {
     let cancelled = false;
     (async () => {
       try {
-        const mine = await base44.entities.MiningSite.get(id);
-        if (cancelled) return;
-        setSite(mine);
-        trackFunnelEvent({ page_type: "premium_intelligence", resource_id: "premium_intelligence_attempted", path: `/mines/${id}`, resource_name: mine?.mine_name, user });
-
         if (!hasProfessional) {
-          // Unpaid visitors see only the public MiningSite record. Premium
-          // entities are locked to admin-only RLS and retrieved through the
-          // server-side entitlement gate (get-premium-site-data).
+          // No quarry record — even the basic MiningSite identity — is loaded until
+          // a paid Full Quarry Intelligence entitlement has been verified.
+          setSite(null);
           setParcels([]); setPermits([]); setEnvironmental([]);
           setInspections([]); setViolations([]); setProfiles([]);
           setProduction([]); setGeology([]); setContracts([]);
@@ -217,7 +212,7 @@ export default function MineSiteDetail() {
         }
 
         // Gather verification tokens for anonymous Apple/Stripe purchasers.
-        const verifyParams = { mining_site_id: mine.id };
+        const verifyParams = { mining_site_id: id };
         if (!user?.id && isNativeIOS()) {
           try {
             const access = await stableAppleSubscriptionAccess({ attempts: 2 });
