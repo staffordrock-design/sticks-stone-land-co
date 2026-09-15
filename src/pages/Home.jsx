@@ -90,6 +90,8 @@ export default function Home() {
       const premiumReady = !checkingAccess && hasProfessional;
 
       const loadMiningSiteInventory = async () => {
+        // Do not expose quarry records at all until a paid entitlement is verified.
+        if (!premiumReady) return [];
         const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
         const perStateLimit = stateFilter === "All Southeast" ? 80 : 500;
 
@@ -99,9 +101,7 @@ export default function Home() {
         const stateRows = await Promise.all(statesToLoad.map(async (state) => {
           const page = await safeLoad(
             `MiningSite working set ${state}`,
-            premiumReady
-              ? premiumEntityQuery("MiningSite", { state }, "-updated_date", perStateLimit)
-              : base44.entities.MiningSite.filter({ state }, "-updated_date", perStateLimit)
+            premiumEntityQuery("MiningSite", { state }, "-updated_date", perStateLimit)
           );
           return (page || []).filter((site) => site?.id && isQuarryRelevant(site));
         }));
@@ -132,7 +132,7 @@ export default function Home() {
       const geoRecords = geologyData || [];
 
       setSites(siteList);
-      setInventoryUnavailable(siteList.length === 0);
+      setInventoryUnavailable(premiumReady && siteList.length === 0);
       setProfiles(profileData || []);
       setParcels(parcelData || []);
       setGeology(geoRecords);
@@ -152,6 +152,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (!hasProfessional) {
+      setRemoteSearchSites([]);
+      return undefined;
+    }
     const q = query.trim();
     if (q.length < 2) {
       setRemoteSearchSites([]);
@@ -180,9 +184,7 @@ export default function Home() {
             { parcel_id: { $regex: safe, $options: "i" } },
           ],
         };
-        const rows = hasProfessional
-          ? await premiumEntityQuery("MiningSite", paidQuery, "-updated_date", 100)
-          : await base44.entities.MiningSite.filter(publicQuery, "-updated_date", 100);
+        const rows = await premiumEntityQuery("MiningSite", paidQuery, "-updated_date", 100);
         if (!cancelled) setRemoteSearchSites(rows || []);
       } catch {
         if (!cancelled) setRemoteSearchSites([]);
