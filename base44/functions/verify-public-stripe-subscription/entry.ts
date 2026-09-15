@@ -1,11 +1,11 @@
 import Stripe from 'npm:stripe';
 import { secrets } from 'base44:runtime';
 
-const FULL_PLAN_CODES = new Set(['professional_monthly', 'professional_annual', 'deal_monthly', 'deal_annual']);
+const FULL_PLAN_CODES = new Set(['professional_monthly', 'marketplace_monthly']);
 
 function entitlementStatus(stripeStatus: string) {
   switch (stripeStatus) {
-    case 'trialing': return 'trial';
+    case 'trialing': return 'inactive';
     case 'active': return 'active';
     case 'past_due': return 'grace_period';
     case 'canceled': return 'cancelled';
@@ -56,7 +56,7 @@ export default async function(req: Request) {
     }
 
     const status = entitlementStatus(String(subscription.status || ''));
-    const active = ['active', 'trial', 'grace_period'].includes(status);
+    const active = ['active', 'grace_period'].includes(status);
     const periodEnd = subscription?.current_period_end || subscription?.items?.data?.[0]?.current_period_end || null;
 
     return Response.json({
