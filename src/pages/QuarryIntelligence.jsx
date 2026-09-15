@@ -6,7 +6,7 @@ import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import IntelligenceMap from "@/components/quarryIntelligence/IntelligenceMap";
 import IntelligenceProfile from "@/components/quarryIntelligence/IntelligenceProfile";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
-import { premiumSiteData } from "@/lib/subscriptionAccess";
+import { premiumEntityQuery, premiumSiteData } from "@/lib/subscriptionAccess";
 
 const FOCUS_STATE = "TN";
 const MAP_SITE_LIMIT = 500;
@@ -74,7 +74,7 @@ export default function QuarryIntelligence() {
     (async () => {
       setMapLoading(true);
       try {
-        const rows = await base44.entities.MiningSite.filter({ state: FOCUS_STATE }, "-updated_date", MAP_SITE_LIMIT);
+        const rows = await premiumEntityQuery("MiningSite", { state: FOCUS_STATE }, "-updated_date", MAP_SITE_LIMIT);
         if (!cancelled) setMapSites((rows || []).filter(isQuarryRelevant));
       } catch (e) {
         console.error("Map site load failed", e);
@@ -98,7 +98,7 @@ export default function QuarryIntelligence() {
     const timer = setTimeout(async () => {
       try {
         const safe = escapeRegex(q).slice(0, 80);
-        const rows = await base44.entities.MiningSite.filter({
+        const rows = await premiumEntityQuery("MiningSite", {
           $or: [
             { mine_name: { $regex: safe, $options: "i" } },
             { msha_mine_id: { $regex: safe, $options: "i" } },
