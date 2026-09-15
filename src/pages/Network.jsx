@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityRecord } from "@/lib/subscriptionAccess";
 import {
   Building2, Check, CircleDollarSign, Flag, Handshake, Heart, Loader2, MapPin,
   MessageCircle, Mountain, Plus, Search, Send, ShieldBan, Target, UserPlus, Users,
@@ -211,7 +212,7 @@ export default function Network() {
   useEffect(() => {
     if (!shareMineId || !user?.id) return;
     let cancelled = false;
-    base44.entities.MiningSite.get(shareMineId).then((site) => {
+    premiumEntityRecord("MiningSite", shareMineId).then((site) => {
       if (cancelled || !site) return;
       setLinkedMine(site);
       setOpportunity((current) => ({
