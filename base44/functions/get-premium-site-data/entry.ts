@@ -101,7 +101,7 @@ export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
-    const { mining_site_id, apple_transactions, stripe_session_id } = body;
+    const { mining_site_id, apple_transactions, apple_app_transaction, stripe_session_id, stripe_browser_session_id } = body;
 
     if (!mining_site_id) {
       return Response.json({ error: 'mining_site_id is required' }, { status: 400 });
@@ -119,12 +119,12 @@ export default async function(req) {
 
     // Anonymous Apple StoreKit
     if (!entitled && Array.isArray(apple_transactions)) {
-      entitled = apple_transactions.some((jws) => appleTransactionActive(jws));
+      entitled = await appleTransactionsActive(apple_transactions, apple_app_transaction, user?.id);
     }
 
     // Anonymous web Stripe
-    if (!entitled && stripe_session_id) {
-      entitled = await stripeSessionActive(stripe_session_id);
+    if (!entitled && stripe_session_id && stripe_browser_session_id) {
+      entitled = await stripeSessionActive(stripe_session_id, stripe_browser_session_id);
     }
 
     if (!entitled) {
