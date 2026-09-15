@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, BellRing, Building2, Loader2, Mountain, Network, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityRecord } from "@/lib/subscriptionAccess";
 
 function slug(value) {
   return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "company";
@@ -24,7 +25,7 @@ export default function NetworkWatchlist() {
         base44.entities.CompanyWatch.filter({ user_id: user.id }, "-created_at", 500).catch(() => []),
         base44.entities.SavedOpportunity.filter({ user_id: user.id }, "-saved_at", 500).catch(() => []),
       ]);
-      const siteRows = await Promise.all((saved || []).filter((row) => row.mining_site_id).slice(0, 250).map((row) => base44.entities.MiningSite.get(row.mining_site_id).catch(() => null)));
+      const siteRows = await Promise.all((saved || []).filter((row) => row.mining_site_id).slice(0, 250).map((row) => premiumEntityRecord("MiningSite", row.mining_site_id).catch(() => null)));
       setCompanyWatches(companies || []);
       setQuarryWatches(saved || []);
       setSites(siteRows.filter(Boolean));
