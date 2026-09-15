@@ -196,75 +196,86 @@ export default function MineSiteDetail() {
   }, [user?.id, user?.email, user?.role]);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         const mine = await base44.entities.MiningSite.get(id);
+        if (cancelled) return;
         setSite(mine);
         trackFunnelEvent({ page_type: "premium_intelligence", resource_id: "premium_intelligence_attempted", path: `/mines/${id}`, resource_name: mine?.mine_name, user });
 
-        const siteId = mine.id;
-        const mshaId = mine.msha_mine_id;
-        const parcelId = mine.parcel_id;
-        const tdecPermit = mine.tdec_permit_number;
-        const npdesPermit = mine.npdes_permit_number;
+        if (!hasProfessional) {
+          // Unpaid visitors see only the public MiningSite record. Premium
+          // entities are locked to admin-only RLS and retrieved through the
+          // server-side entitlement gate (get-premium-site-data).
+          setParcels([]); setPermits([]); setEnvironmental([]);
+          setInspections([]); setViolations([]); setProfiles([]);
+          setProduction([]); setGeology([]); setContracts([]);
+          setUsgsOccurrences([]); setUsgsMarketProduction([]);
+          setTdotProducerPlants([]); setTdotDemand([]);
+          return;
+        }
 
-        // Targeted queries by link fields instead of bulk-loading 500 of every entity.
-        // This finds connected data regardless of total record count.
-        const linkOr = (extra = []) => {
-          const conditions = [{ mining_site_id: siteId }];
-          if (mshaId) conditions.push({ msha_mine_id: mshaId });
-          conditions.push(...extra.filter(Boolean));
-          return { $or: conditions };
-        };
+        // Gather verification tokens for anonymous Apple/Stripe purchasers.
+        const verifyParams = { mining_site_id: mine.id };
+        if (!user?.id && isNativeIOS()) {
+          try {
+            const access = await stableAppleSubscriptionAccess({ attempts: 2 });
+            const jwsList = (access?.purchases || [])
+              .map((p) => p?.jws || p?.signedTransactionInfo || p?.transactionJws)
+              .filter(Boolean);
+            if (jwsList.length) verifyParams.apple_transactions = jwsList;
+          } catch { /* Apple verification optional — RLS is the primary gate */ }
+        }
+        if (!user?.id && !isNativeIOS()) {
+          try {
+            const { getSavedWebSubscriptionAccess } = await import("@/lib/webSubscriptionAccess");
+            const saved = getSavedWebSubscriptionAccess();
+            if (saved?.sessionId) verifyParams.stripe_session_id = saved.sessionId;
+          } catch { /* Stripe verification optional — RLS is the primary gate */ }
+        }
 
-        const [parcelData, permitData, envData, inspectionData, violationData, profileData, productionData, geologyData, contractData, usgsData, usgsMarketData, tdotProducerData, tdotDemandData] = await Promise.all([
-          base44.entities.ParcelRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null, tdecPermit ? { tdec_permit_number: tdecPermit } : null]), "-updated_date", 50),
-          base44.entities.TDECPermit.filter(linkOr([tdecPermit ? { permit_number: tdecPermit } : null]), "-updated_date", 50),
-          base44.entities.EnvironmentalRecord.filter(linkOr([npdesPermit ? { npdes_permit_number: npdesPermit } : null]), "-updated_date", 50),
-          base44.entities.MSHAInspection.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", showAllRecords ? 500 : 100),
-          base44.entities.MSHAViolation.filter(mshaId ? { msha_mine_id: mshaId } : { mining_site_id: siteId }, "-updated_date", showAllRecords ? 500 : 100),
-          base44.entities.QuarryPotentialProfile.filter(linkOr(), "-updated_date", 10),
-          base44.entities.ProductionRecord.filter(linkOr(), "-year", showAllRecords ? 500 : 100),
-          base44.entities.GeologyRecord.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
-          base44.entities.ContractIntelligence.filter(linkOr([parcelId ? { parcel_id: parcelId } : null]), "-updated_date", 50),
-          base44.entities.USGSMineralOccurrence.filter(linkOr(), "-updated_date", 20),
-          base44.entities.USGSMarketProduction.filter({ state: String(mine.state || "").toUpperCase() }, "-year", 20),
-          Promise.all([
-            base44.entities.TDOTProducerPlant.filter({ $or: [{ matched_mining_site_id: siteId }, { county: mine.county, state: "TN" }] }, "-last_source_update", 50).catch(() => []),
-            fetchLiveTdotProducerCandidates(mine).catch(() => []),
-          ]).then(([stored, live]) => {
-            const byKey = new Map();
-            for (const row of [...(stored || []), ...(live || [])]) {
-              const key = row.tdot_object_id ? `id:${row.tdot_object_id}` : `code:${row.producer_code || row.producer_name}`;
-              if (!byKey.has(key) || !row.live_tdot) byKey.set(key, row);
-            }
-            return [...byKey.values()];
-          }),
-          String(mine.state || "").toUpperCase() === "TN" && mine.county
-            ? base44.entities.TDOTAggregateDemand.filter({ $or: [{ county: mine.county }, { counties: mine.county }], unit: "TON" }, "-letting_date", 200).catch(() => [])
-            : Promise.resolve([]),
-        ]);
+        const response = await base44.functions.invoke("get-premium-site-data", verifyParams);
+        const data = response?.data || response || {};
+        if (data?.error || !data?.entitled) {
+          setParcels([]); setPermits([]); setEnvironmental([]);
+          setInspections([]); setViolations([]); setProfiles([]);
+          setProduction([]); setGeology([]); setContracts([]);
+          setUsgsOccurrences([]); setUsgsMarketProduction([]);
+          setTdotProducerPlants([]); setTdotDemand([]);
+          return;
+        }
 
-        setParcels(parcelData || []);
-        setPermits(permitData || []);
-        setEnvironmental(envData || []);
-        setInspections(inspectionData || []);
-        setViolations(violationData || []);
-        setProfiles(profileData || []);
-        setProduction(productionData || []);
-        setGeology(geologyData || []);
-        setContracts(contractData || []);
-        setUsgsOccurrences(usgsData || []);
-        setUsgsMarketProduction(usgsMarketData || []);
-        setTdotProducerPlants(tdotProducerData || []);
-        setTdotDemand(tdotDemandData || []);
+        // Merge live TDOT producer candidates (public API, not a locked entity).
+        const liveTdot = await fetchLiveTdotProducerCandidates(mine).catch(() => []);
+        const byKey = new Map();
+        for (const row of [...(data.tdotProducerPlants || []), ...(liveTdot || [])]) {
+          const key = row.tdot_object_id ? `id:${row.tdot_object_id}` : `code:${row.producer_code || row.producer_name}`;
+          if (!byKey.has(key) || !row.live_tdot) byKey.set(key, row);
+        }
+
+        if (cancelled) return;
+        setParcels(data.parcels || []);
+        setPermits(data.permits || []);
+        setEnvironmental(data.environmental || []);
+        setInspections(data.inspections || []);
+        setViolations(data.violations || []);
+        setProfiles(data.profiles || []);
+        setProduction(data.production || []);
+        setGeology(data.geology || []);
+        setContracts(data.contracts || []);
+        setUsgsOccurrences(data.usgsOccurrences || []);
+        setUsgsMarketProduction(data.usgsMarketProduction || []);
+        setTdotProducerPlants([...byKey.values()]);
+        setTdotDemand(data.tdotDemand || []);
       } catch (e) {
-        setError(e?.message || "Unable to load site intelligence.");
+        if (!cancelled) setError(e?.message || "Unable to load site intelligence.");
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, [id, showAllRecords]);
+    return () => { cancelled = true; };
+  }, [id, hasProfessional, user?.id]);
 
   const parcel = useMemo(() => {
     if (!site) return null;
@@ -407,7 +418,7 @@ export default function MineSiteDetail() {
   }, [site, usgsOccurrences]);
 
   useEffect(() => {
-    if (!site || parcel?.boundary_polygon?.length >= 3) return;
+    if (!hasProfessional || !site || parcel?.boundary_polygon?.length >= 3) return;
     const lat = site.latitude ?? parcel?.latitude;
     const lng = site.longitude ?? parcel?.longitude;
     if (!Number.isFinite(Number(lat)) || !Number.isFinite(Number(lng))) return;
@@ -420,7 +431,7 @@ export default function MineSiteDetail() {
         // Stored parcel data remains authoritative when live lookup is unavailable.
       }
     })();
-  }, [site, parcel]);
+  }, [hasProfessional, site, parcel]);
 
   if (loading) return <div className="min-h-screen bg-background p-10 text-center text-muted-foreground">Loading site intelligence…</div>;
   if (error || !site) return <div className="min-h-screen bg-background p-10 text-center text-destructive">{error || "Site not found."}</div>;

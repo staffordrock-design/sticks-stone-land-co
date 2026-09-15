@@ -18,6 +18,7 @@ import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
+import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -53,6 +54,7 @@ function isQuarryRelevant(site) {
 
 export default function Home() {
   const { user } = useAuth();
+  const { hasProfessional, checking: checkingAccess } = useProfessionalAccess();
   const navigate = useNavigate();
   const isNativeApp = Capacitor.isNativePlatform();
   const [sites, setSites] = useState([]);
@@ -112,13 +114,14 @@ export default function Home() {
       // Do not let one optional enrichment source blank the entire marketplace.
       // MiningSite is the core public inventory; parcel/geology/permit/environmental
       // data enrich the cards when available.
+      const premiumReady = !checkingAccess && hasProfessional;
       const [data, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
         loadMiningSiteInventory(),
-        safeLoad("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.list("-updated_date", limit)),
-        safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", 500)),
-        safeLoad("GeologyRecord", base44.entities.GeologyRecord.list("-updated_date", limit)),
-        safeLoad("TDECPermit", base44.entities.TDECPermit.list("-last_source_update", limit)),
-        safeLoad("EnvironmentalRecord", base44.entities.EnvironmentalRecord.list("-last_source_update", limit)),
+        premiumReady ? safeLoad("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.list("-updated_date", limit)) : Promise.resolve([]),
+        premiumReady ? safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", 500)) : Promise.resolve([]),
+        premiumReady ? safeLoad("GeologyRecord", base44.entities.GeologyRecord.list("-updated_date", limit)) : Promise.resolve([]),
+        premiumReady ? safeLoad("TDECPermit", base44.entities.TDECPermit.list("-last_source_update", limit)) : Promise.resolve([]),
+        premiumReady ? safeLoad("EnvironmentalRecord", base44.entities.EnvironmentalRecord.list("-last_source_update", limit)) : Promise.resolve([]),
       ]);
 
       const siteList = Array.from(new Map((data || []).map((site) => [site.id, site])).values());
@@ -138,7 +141,7 @@ export default function Home() {
       setLoading(false);
     }
   };
-  useEffect(() => { loadData(); }, [stateFilter]);
+  useEffect(() => { loadData(); }, [stateFilter, hasProfessional, checkingAccess]);
 
   useEffect(() => {
     trackFunnelEvent({ page_type: "homepage", resource_id: "homepage_viewed", path: "/" });
@@ -361,7 +364,7 @@ export default function Home() {
                 <ShieldCheck className="h-3.5 w-3.5" /> Full Quarry Intelligence
               </div>
               <h2 className="mt-5 font-heading text-3xl font-bold sm:text-4xl">Unlock the full record behind every quarry.</h2>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">Free browsing shows mine locations and basic records. Full Quarry Intelligence unlocks ownership and parcel data, geology and rock type, permitted acreage, compliance history, production context, contract and royalty intelligence, valuation screening, and S&amp;S opportunity scores — for every site on the map.</p>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">Public Quarry Information shows mine locations and basic records. Full Quarry Intelligence unlocks ownership and parcel data, geology and rock type, permitted acreage, compliance history, production context, contract and royalty intelligence, valuation screening, and S&amp;S opportunity scores — for every site on the map.</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
                   <TrendingUp className="h-4 w-4" /> Start for $69/month
@@ -457,7 +460,7 @@ export default function Home() {
               const siteEnvironmental = environmentalForSite(s);
               const opportunity = opportunityForSite(s);
               const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
-              return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} emphasizeOpportunity previewMode />;
+              return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} emphasizeOpportunity previewMode={!hasProfessional} />;
             })}
           </div>
         </section>
@@ -483,7 +486,7 @@ export default function Home() {
                 lng={featured.longitude}
                 rockType={featuredGeology?.primary_rock || featuredGeology?.lithology || featured.commodity}
                 height={420}
-                previewMode
+                previewMode={!hasProfessional}
               />
             </Suspense>
             <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8">
@@ -496,12 +499,12 @@ export default function Home() {
               </h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {featured.commodity ? `Commodity: ${featured.commodity}. ` : ""}
-                This preview shows the site and public mine identity. Open the full intelligence record to see owner/operator, permitted footprint, geology, regulatory and production context.
+                This Public Quarry Information shows the site and public mine identity. Open the full intelligence record to see owner/operator, permitted footprint, geology, regulatory and production context.
               </p>
               <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-6">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">Detail level</p>
-                  <p className="mt-1 font-display text-sm font-bold text-foreground">Preview</p>
+                  <p className="mt-1 font-display text-sm font-bold text-foreground">Public Record</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">Status</p>
@@ -531,7 +534,7 @@ export default function Home() {
             loading={loading}
             unavailable={inventoryUnavailable}
             onRetry={loadData}
-            previewMode
+            previewMode={!hasProfessional}
           />
         </Suspense>
         <p className="mt-2 text-xs text-muted-foreground">Aerial previews use Esri World Imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions. Records with the same MSHA Mine ID are consolidated in the browsing view to avoid duplicate display.</p>
@@ -617,7 +620,7 @@ export default function Home() {
                 const siteEnvironmental = environmentalForSite(s);
                 const opportunity = opportunityForSite(s);
                 const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
-                return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} previewMode />;
+                return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} previewMode={!hasProfessional} />;
               })}
             </div>
             {ranked.length > CARD_RENDER_LIMIT && (
