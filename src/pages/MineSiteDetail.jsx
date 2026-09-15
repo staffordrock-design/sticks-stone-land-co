@@ -9,7 +9,7 @@ import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
-import { stableAppleSubscriptionAccess, isNativeIOS } from "@/lib/appleSubscriptions";
+import { stableAppleSubscriptionAccess, isNativeIOS, signedAppTransaction } from "@/lib/appleSubscriptions";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
@@ -222,16 +222,22 @@ export default function MineSiteDetail() {
           try {
             const access = await stableAppleSubscriptionAccess({ attempts: 2 });
             const jwsList = (access?.purchases || [])
-              .map((p) => p?.jws || p?.signedTransactionInfo || p?.transactionJws)
+              .map((p) => p?.jwsRepresentation || p?.jws || p?.signedTransactionInfo || p?.transactionJws)
               .filter(Boolean);
-            if (jwsList.length) verifyParams.apple_transactions = jwsList;
+            if (jwsList.length) {
+              verifyParams.apple_transactions = jwsList;
+              verifyParams.apple_app_transaction = await signedAppTransaction();
+            }
           } catch { /* Apple verification optional — RLS is the primary gate */ }
         }
         if (!user?.id && !isNativeIOS()) {
           try {
             const { getSavedWebSubscriptionAccess } = await import("@/lib/webSubscriptionAccess");
             const saved = getSavedWebSubscriptionAccess();
-            if (saved?.sessionId) verifyParams.stripe_session_id = saved.sessionId;
+            if (saved?.sessionId && saved?.browserSessionId) {
+              verifyParams.stripe_session_id = saved.sessionId;
+              verifyParams.stripe_browser_session_id = saved.browserSessionId;
+            }
           } catch { /* Stripe verification optional — RLS is the primary gate */ }
         }
 
