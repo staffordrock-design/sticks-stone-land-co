@@ -162,17 +162,27 @@ export default function Home() {
     const timer = setTimeout(async () => {
       try {
         const safe = escapeRegex(q).slice(0, 80);
-        const rows = await base44.entities.MiningSite.filter({
+        const publicQuery = {
           $or: [
             { mine_name: { $regex: safe, $options: "i" } },
-            { operator_name: { $regex: safe, $options: "i" } },
             { county: { $regex: safe, $options: "i" } },
+            { state: { $regex: safe, $options: "i" } },
+            { city: { $regex: safe, $options: "i" } },
             { commodity: { $regex: safe, $options: "i" } },
+          ],
+        };
+        const paidQuery = {
+          $or: [
+            ...publicQuery.$or,
+            { operator_name: { $regex: safe, $options: "i" } },
             { msha_mine_id: { $regex: safe, $options: "i" } },
             { tdec_permit_number: { $regex: safe, $options: "i" } },
             { parcel_id: { $regex: safe, $options: "i" } },
           ],
-        }, "-updated_date", 100);
+        };
+        const rows = hasProfessional
+          ? await premiumEntityQuery("MiningSite", paidQuery, "-updated_date", 100)
+          : await base44.entities.MiningSite.filter(publicQuery, "-updated_date", 100);
         if (!cancelled) setRemoteSearchSites(rows || []);
       } catch {
         if (!cancelled) setRemoteSearchSites([]);
@@ -183,7 +193,7 @@ export default function Home() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, hasProfessional]);
 
   const visibleSites = Array.from(
     [...sites, ...remoteSearchSites].reduce((map, site) => {
