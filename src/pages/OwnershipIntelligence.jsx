@@ -43,7 +43,7 @@ export default function OwnershipIntelligence() {
     (async () => {
       try {
         const [siteRows, parcelRows] = await Promise.all([
-          base44.entities.MiningSite.list("mine_name", 500),
+          premiumEntityQuery("MiningSite", {}, "mine_name", 500),
           premiumEntityQuery("ParcelRecord", {}, "owner_name", 500),
         ]);
         setSites(siteRows || []);
