@@ -25,6 +25,7 @@ const EXEMPT_PATHS = new Set([
   // Free account + network workspace. These pages are intentionally available
   // without a paid quarry-intelligence subscription so a new member can create
   // a profile, join the network, message people, and post buyer/seller activity.
+  // (Public Quarry Information on the Home page does not require a subscription.)
   "/profile",
   "/network",
   "/network/community",

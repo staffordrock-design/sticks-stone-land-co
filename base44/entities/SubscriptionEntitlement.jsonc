@@ -15,11 +15,7 @@
       "enum": [
         "free",
         "marketplace_monthly",
-        "marketplace_annual",
-        "professional_monthly",
-        "professional_annual",
-        "deal_monthly",
-        "deal_annual"
+        "professional_monthly"
       ],
       "default": "free"
     },
@@ -27,7 +23,6 @@
       "type": "string",
       "enum": [
         "inactive",
-        "trial",
         "active",
         "grace_period",
         "expired",

@@ -34,7 +34,7 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
-          {previewMode ? "Free map preview · open a record to unlock deeper intelligence" : <span>Toggle the <strong>Bedrock Geology</strong> layer to see what rock is underground</span>}
+          {previewMode ? "Public Quarry Information · open a record to unlock deeper intelligence" : <span>Toggle the <strong>Bedrock Geology</strong> layer to see what rock is underground</span>}
         </p>
       </div>
       {unavailable && !loading ? (
