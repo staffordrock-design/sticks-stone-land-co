@@ -64,8 +64,8 @@ async function appleTransactionsActive(jwsList, signedAppTransaction, expectedUs
   }
 }
 
-async function stripeSessionActive(sessionId) {
-  if (!sessionId) return false;
+async function stripeSessionActive(sessionId, browserSessionId) {
+  if (!sessionId || !browserSessionId) return false;
   const key = secrets.get('STRIPE_SECRET_KEY');
   if (!key) return false;
   try {
@@ -77,6 +77,8 @@ async function stripeSessionActive(sessionId) {
     });
     if (!resp.ok) return false;
     const session = await resp.json();
+    if (String(session?.metadata?.checkout_flow || '') !== 'anonymous_web') return false;
+    if (String(session?.metadata?.browser_session_id || '') !== String(browserSessionId)) return false;
     if (session.payment_status !== 'paid') return false;
     if (!session.subscription) return false;
     const subResp = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(session.subscription)}`, {
@@ -87,7 +89,9 @@ async function stripeSessionActive(sessionId) {
     });
     if (!subResp.ok) return false;
     const sub = await subResp.json();
-    return sub.status === 'active' || sub.status === 'trialing';
+    const planCode = String(sub?.metadata?.plan_code || session?.metadata?.plan_code || '');
+    if (!FULL_QUARRY_PLANS.has(planCode)) return false;
+    return sub.status === 'active' || sub.status === 'past_due';
   } catch {
     return false;
   }
