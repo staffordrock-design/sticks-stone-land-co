@@ -91,3 +91,19 @@ export async function premiumEntityQuery(entityName, query = {}, sort = "-update
   }
   return payload?.rows || [];
 }
+
+export async function premiumEntityRecord(entityName, recordId) {
+  if (!recordId) return null;
+  const proof = await premiumAccessProofParams();
+  const response = await base44.functions.invoke("get-premium-site-data", {
+    operation: "entity",
+    entity_name: entityName,
+    record_id: recordId,
+    ...proof,
+  });
+  const payload = response?.data || response || {};
+  if (payload?.error || !payload?.entitled) {
+    throw new Error(payload?.error || "Full Quarry Intelligence subscription required");
+  }
+  return payload?.record || null;
+}
