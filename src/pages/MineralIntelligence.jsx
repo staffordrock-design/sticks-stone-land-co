@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 import MineralOccurrenceMap from "@/components/MineralOccurrenceMap";
 import { Mountain, TrendingUp, MapPin, Database } from "lucide-react";
 
@@ -17,7 +17,8 @@ export default function MineralIntelligence() {
         const all = [];
         for (const state of SOUTHEAST_STATES) {
           for (let offset = 0; offset < 10000; offset += 500) {
-            const page = await base44.entities.USGSMineralOccurrence.filter(
+            const page = await premiumEntityQuery(
+              "USGSMineralOccurrence",
               { occurrence_state: state },
               "-created_date",
               500,
