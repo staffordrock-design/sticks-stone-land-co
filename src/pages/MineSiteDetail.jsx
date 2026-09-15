@@ -15,6 +15,7 @@ import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import QuarryActionBar from "@/components/QuarryActionBar";
 import MarketValuationChart from "@/components/MarketValuationChart";
+import { trackFunnelEvent } from "@/lib/funnelTracking";
 
 function worldImageryTile(lat, lng, state, zoom = 15) {
   if (!isPlausibleSoutheastCoordinate(lat, lng, state)) return null;
@@ -199,6 +200,7 @@ export default function MineSiteDetail() {
       try {
         const mine = await base44.entities.MiningSite.get(id);
         setSite(mine);
+        trackFunnelEvent({ page_type: "premium_intelligence", resource_id: "premium_intelligence_attempted", path: `/mines/${id}`, resource_name: mine?.mine_name, user });
 
         const siteId = mine.id;
         const mshaId = mine.msha_mine_id;

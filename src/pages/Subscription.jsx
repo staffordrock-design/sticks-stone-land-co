@@ -12,6 +12,7 @@ import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 import StripeEmbeddedCheckout from "@/components/StripeEmbeddedCheckout";
+import { trackFunnelEvent } from "@/lib/funnelTracking";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -109,6 +110,8 @@ export default function Subscription() {
   useEffect(() => {
     let cancelled = false;
     setLoading(false);
+
+    trackFunnelEvent({ page_type: "subscription_page", resource_id: "paywall_viewed", path: "/subscribe", user });
 
     if (user?.id) {
       // Migrate a previous anonymous web checkout to this signed-in account.

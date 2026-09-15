@@ -59,6 +59,7 @@ const Messages = lazy(() => import('./pages/Messages'));
 const IntelligenceHub = lazy(() => import('./pages/IntelligenceHub'));
 const LeadSetup = lazy(() => import('./pages/LeadSetup'));
 const QuarryIntelligence = lazy(() => import('./pages/QuarryIntelligence'));
+const ConversionDashboard = lazy(() => import('./pages/ConversionDashboard'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -129,6 +130,7 @@ const AuthenticatedApp = () => {
       <Route path="/admin/data-sync" element={<RequireAdmin><AdminDataSync /></RequireAdmin>} />
       <Route path="/admin/reports" element={<RequireAdmin><AdminReports /></RequireAdmin>} />
       <Route path="/admin/leads" element={<RequireAdmin><AdminLeadInbox /></RequireAdmin>} />
+      <Route path="/admin/conversions" element={<RequireAdmin><ConversionDashboard /></RequireAdmin>} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />

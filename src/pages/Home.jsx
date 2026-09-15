@@ -17,6 +17,7 @@ import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
+import { trackFunnelEvent } from "@/lib/funnelTracking";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -138,6 +139,10 @@ export default function Home() {
     }
   };
   useEffect(() => { loadData(); }, [stateFilter]);
+
+  useEffect(() => {
+    trackFunnelEvent({ page_type: "homepage", resource_id: "homepage_viewed", path: "/" });
+  }, []);
 
   useEffect(() => {
     const q = query.trim();
@@ -272,6 +277,7 @@ export default function Home() {
             <Link to="/subscribe" className="hover:text-foreground">Access</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
             {user?.role === "admin" && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
+            {user?.role === "admin" && <Link to="/admin/conversions" className="font-semibold text-sky-700 hover:text-sky-800">Conversions</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
