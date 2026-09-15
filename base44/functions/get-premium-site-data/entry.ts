@@ -41,16 +41,24 @@ async function checkSignedInUser(base44, user) {
   }
 }
 
-function appleTransactionActive(jws) {
-  if (!jws) return false;
+async function appleTransactionsActive(jwsList, signedAppTransaction, expectedUserId) {
+  if (!Array.isArray(jwsList) || !jwsList.length) return false;
   try {
-    const payload = decodeUnverifiedPayload(jws);
-    // SignedTransactionInfo JWS has renewalInfo and signedRenewalInfo.
-    // For a quick gate we check the decoded expiry on the transaction.
-    const expiresMs = Number(payload?.expiresDate || payload?.signedRenewalInfo?.expiresDate || 0);
-    if (expiresMs > 0 && Date.now() > expiresMs) return false;
-    // If no expiry (lifetime or non-renewing), treat as active.
-    return true;
+    const { verified } = await verifyApplePurchases({
+      signedTransactions: jwsList.filter((v) => typeof v === 'string' && v.length > 50).slice(0, 20),
+      signedAppTransaction: typeof signedAppTransaction === 'string' ? signedAppTransaction : '',
+      expectedUserId: expectedUserId || undefined,
+    });
+    return (verified || []).some(({ transaction, productId }) => {
+      if (!FULL_APPLE_PRODUCTS.has(String(productId || ''))) return false;
+      if (transaction?.revocationDate) return false;
+      const expiresMs = Number(transaction?.expiresDate || 0);
+      if (!Number.isFinite(expiresMs) || expiresMs <= Date.now()) return false;
+      const discount = String(transaction?.offerDiscountType || '').toUpperCase();
+      const price = Number(transaction?.price);
+      const freeTrial = discount === 'FREE_TRIAL' || (Number(transaction?.offerType) === 1 && price === 0);
+      return !freeTrial;
+    });
   } catch {
     return false;
   }
