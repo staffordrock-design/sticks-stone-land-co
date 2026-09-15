@@ -19,6 +19,7 @@ import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
+import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -117,11 +118,11 @@ export default function Home() {
       const premiumReady = !checkingAccess && hasProfessional;
       const [data, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
         loadMiningSiteInventory(),
-        premiumReady ? safeLoad("QuarryPotentialProfile", base44.entities.QuarryPotentialProfile.list("-updated_date", limit)) : Promise.resolve([]),
-        premiumReady ? safeLoad("ParcelRecord", base44.entities.ParcelRecord.list("-updated_date", 500)) : Promise.resolve([]),
-        premiumReady ? safeLoad("GeologyRecord", base44.entities.GeologyRecord.list("-updated_date", limit)) : Promise.resolve([]),
-        premiumReady ? safeLoad("TDECPermit", base44.entities.TDECPermit.list("-last_source_update", limit)) : Promise.resolve([]),
-        premiumReady ? safeLoad("EnvironmentalRecord", base44.entities.EnvironmentalRecord.list("-last_source_update", limit)) : Promise.resolve([]),
+        premiumReady ? safeLoad("QuarryPotentialProfile", premiumEntityQuery("QuarryPotentialProfile", {}, "-updated_date", limit)) : Promise.resolve([]),
+        premiumReady ? safeLoad("ParcelRecord", premiumEntityQuery("ParcelRecord", {}, "-updated_date", 500)) : Promise.resolve([]),
+        premiumReady ? safeLoad("GeologyRecord", premiumEntityQuery("GeologyRecord", {}, "-updated_date", limit)) : Promise.resolve([]),
+        premiumReady ? safeLoad("TDECPermit", premiumEntityQuery("TDECPermit", {}, "-last_source_update", limit)) : Promise.resolve([]),
+        premiumReady ? safeLoad("EnvironmentalRecord", premiumEntityQuery("EnvironmentalRecord", {}, "-last_source_update", limit)) : Promise.resolve([]),
       ]);
 
       const siteList = Array.from(new Map((data || []).map((site) => [site.id, site])).values());
