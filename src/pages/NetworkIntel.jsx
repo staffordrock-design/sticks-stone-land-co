@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityRecord } from "@/lib/subscriptionAccess";
 import WatchQuarryButton from "@/components/WatchQuarryButton";
 
 const STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "MS", "VA"];
@@ -243,7 +244,7 @@ export default function NetworkIntel() {
     if (siteId) {
       setSearch(siteId);
       setTab("sites");
-      base44.entities.MiningSite.get(siteId).then((site) => {
+      premiumEntityRecord("MiningSite", siteId).then((site) => {
         if (!site || !isQuarryRelevant(site)) return;
         setSites((current) => current.some((row) => row.id === site.id) ? current : [...current, site]);
       }).catch(() => {});
