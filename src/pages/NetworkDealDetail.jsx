@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, CheckCircle2, FileKey2, Handshake, Loader2, MessageCircle, Mountain, ShieldCheck, XCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityRecord } from "@/lib/subscriptionAccess";
 
 function Pill({ children }) {
   return <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold text-muted-foreground">{children}</span>;
@@ -27,7 +28,7 @@ export default function NetworkDealDetail() {
       const row = await base44.entities.NetworkOpportunity.get(id);
       setDeal(row || null);
       const [siteRow, profileRows, interestRows, requestRows] = await Promise.all([
-        row?.linked_mining_site_id ? base44.entities.MiningSite.get(row.linked_mining_site_id).catch(() => null) : Promise.resolve(null),
+        row?.linked_mining_site_id ? premiumEntityRecord("MiningSite", row.linked_mining_site_id).catch(() => null) : Promise.resolve(null),
         user?.id ? base44.entities.UserProfile.filter({ user_id: user.id }, "-updated_date", 1).catch(() => []) : Promise.resolve([]),
         user?.id ? base44.entities.DealInterest.filter({ network_opportunity_id: id }, "-submitted_at", 500).catch(() => []) : Promise.resolve([]),
         user?.id ? base44.entities.DataRoomRequest.filter({ network_opportunity_id: id }, "-requested_at", 500).catch(() => []) : Promise.resolve([]),
