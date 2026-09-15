@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 import {
   ArrowLeft,
   Building2,
@@ -112,7 +113,7 @@ export default function LeadSetup() {
       setSearching(true);
       try {
         const safe = escapeRegex(q).slice(0, 80);
-        const rows = await base44.entities.MiningSite.filter({
+        const rows = await premiumEntityQuery("MiningSite", {
           $or: [
             { mine_name: { $regex: safe, $options: "i" } },
             { operator_name: { $regex: safe, $options: "i" } },
