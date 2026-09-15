@@ -259,7 +259,7 @@ export default function Home() {
   const opportunityCount = quarrySites.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).length;
   const statesCovered = new Set(quarrySites.map((s) => String(s.state || "").trim().toUpperCase()).filter(Boolean)).size;
   const geologyLinked = new Set(geology.map((g) => g.mining_site_id || g.msha_mine_id).filter(Boolean)).size;
-  const metricValue = (value) => loading ? "…" : inventoryUnavailable ? "—" : Number(value || 0).toLocaleString();
+  const metricValue = (value) => !hasProfessional ? "Locked" : loading ? "…" : inventoryUnavailable ? "—" : Number(value || 0).toLocaleString();
 
   const geologyLookup = React.useMemo(() => {
     const map = {};
@@ -540,24 +540,36 @@ export default function Home() {
         </section>
       )}
 
-      {/* Southeast intelligence map */}
-      <section className="mx-auto max-w-7xl px-6 pb-14">
-        <Suspense fallback={<div className="h-[560px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
-          <TennesseeMineMap
-            sites={ranked.slice(0, MAP_RENDER_LIMIT)}
-            geologyMap={geologyLookup}
-            height={560}
-            loading={loading}
-            unavailable={inventoryUnavailable}
-            onRetry={loadData}
-            previewMode={!hasProfessional}
-          />
-        </Suspense>
-        <p className="mt-2 text-xs text-muted-foreground">Aerial previews use Esri World Imagery tiles tied to each site's coordinates; they are location previews, not current-condition surveys or exact parcel-boundary depictions. Records with the same MSHA Mine ID are consolidated in the browsing view to avoid duplicate display.</p>
-      </section>
+      {/* Southeast intelligence map — paid members only */}
+      {hasProfessional && (
+        <section className="mx-auto max-w-7xl px-6 pb-14">
+          <Suspense fallback={<div className="h-[560px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
+            <TennesseeMineMap
+              sites={ranked.slice(0, MAP_RENDER_LIMIT)}
+              geologyMap={geologyLookup}
+              height={560}
+              loading={loading}
+              unavailable={inventoryUnavailable}
+              onRetry={loadData}
+              previewMode={false}
+            />
+          </Suspense>
+          <p className="mt-2 text-xs text-muted-foreground">Aerial imagery uses Esri World Imagery tiles tied to each site's coordinates; it is not a current-condition survey or exact parcel-boundary depiction. Records with the same MSHA Mine ID are consolidated in the browsing view to avoid duplicate display.</p>
+        </section>
+      )}
 
       {/* Marketplace */}
       <section id="quarry-intelligence" className="mx-auto max-w-7xl px-6 pb-24">
+        {!hasProfessional ? (
+          <div className="rounded-3xl border border-slate-700 bg-slate-950 p-8 text-center text-white sm:p-12">
+            <LockKeyhole className="mx-auto h-8 w-8 text-sky-300" />
+            <h2 className="mt-4 font-heading text-3xl font-bold">Quarry records are locked.</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-300">S&amp;S does not provide a free quarry-data preview. Mine identities, locations, maps, MSHA IDs, ownership, geology, permits, production, compliance, valuation and opportunity intelligence require an active Full Quarry Intelligence subscription.</p>
+            <Link to="/subscribe" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Unlock Full Intelligence — $69/month</Link>
+            <p className="mt-3 text-xs text-slate-400">No free trial. Cancel anytime.</p>
+          </div>
+        ) : (
+          <>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-3">
@@ -644,6 +656,8 @@ export default function Home() {
                 Showing the first {CARD_RENDER_LIMIT} results for speed. Use search or choose a state to query the full quarry database without loading every record onto the phone at once.
               </div>
             )}
+          </>
+        )}
           </>
         )}
       </section>
