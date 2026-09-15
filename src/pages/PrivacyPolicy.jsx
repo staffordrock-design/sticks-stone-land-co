@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
       <main className="mx-auto max-w-4xl px-6 py-12">
         <div className="mb-8 flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-stone-900 text-white"><ShieldCheck className="h-5 w-5" /></div><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Legal</p><h1 className="font-heading text-3xl font-bold">Privacy Policy</h1></div></div>
         <div className="space-y-7 text-sm leading-7 text-muted-foreground">
-          <p><strong className="text-foreground">Last updated: August 25, 2026.</strong> This Privacy Policy explains how Sticks &amp; Stone Land Co. ("we," "us," "our") collects, uses, and protects information when you use our mobile application and related services (the "Service").</p>
+          <p><strong className="text-foreground">Last updated: August 25, 2026.</strong> This Privacy Policy explains how S&amp;S Rock Holdings, LLC ("we," "us," "our") collects, uses, and protects information when you use our mobile application and related services (the "Service").</p>
 
           <section>
             <h2 className="font-heading text-xl font-bold text-foreground">1. Information We Collect</h2>
@@ -89,7 +89,7 @@ export default function PrivacyPolicy() {
             <h2 className="font-heading text-xl font-bold text-foreground">10. Contact Us</h2>
             <p className="mt-2">If you have questions about this Privacy Policy or wish to exercise your data rights, contact us at:</p>
             <div className="mt-2 space-y-0.5">
-              <p><strong className="text-foreground">Email:</strong> contact@ssholdings.com</p>
+              <p><strong className="text-foreground">Email:</strong> contact@ssrockholdings.com</p>
               <p><strong className="text-foreground">Company:</strong> S&amp;S Rock Holdings, LLC.</p>
               <p><strong className="text-foreground">Address:</strong> 196 Riverside Drive, Benton, TN 37307</p>
             </div>
