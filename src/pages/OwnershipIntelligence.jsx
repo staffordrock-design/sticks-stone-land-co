@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { ArrowLeft, Building2, Factory, Landmark, Layers3, ShieldCheck } from "lucide-react";
+import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 
 function norm(value) {
   return String(value || "").trim();
@@ -43,7 +44,7 @@ export default function OwnershipIntelligence() {
       try {
         const [siteRows, parcelRows] = await Promise.all([
           base44.entities.MiningSite.list("mine_name", 500),
-          base44.entities.ParcelRecord.list("owner_name", 500),
+          premiumEntityQuery("ParcelRecord", {}, "owner_name", 500),
         ]);
         setSites(siteRows || []);
         setParcels(parcelRows || []);
