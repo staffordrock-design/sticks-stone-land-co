@@ -37,12 +37,21 @@ export default async function(req: Request) {
     results.push(await run(base44, "build-production-estimates", { state: "TN" }));
   }
 
-  // Parcel GIS can change more often, so refresh the Tennessee working set weekly.
-  if (day === 0) results.push(await run(base44, "sync-parcel-boundaries", { limit: 500 }));
+  // Parcel GIS can change more often. Tennessee and North Carolina both have automated parcel refreshes.
+  if (day === 0) {
+    results.push(await run(base44, "sync-parcel-boundaries", { limit: 500 }));
+    results.push(await run(base44, "sync-nc-parcels", { limit: 200 }));
+  }
 
-  // EPA ICIS-NPDES is our dependable automated permit/compliance cross-check for Tennessee mining sites.
-  // DMGR remains the controlling Tennessee record source; this job never invents missing DMGR-only fields.
+  // EPA ICIS-NPDES is our dependable automated environmental/compliance cross-check.
+  // State mining agencies remain the controlling source for the mining permit itself.
   if (day === 1) results.push(await run(base44, "sync-tn-npdes-environmental", { limit: 500 }));
+  const environmentalStateByDay: Record<number, string> = { 2: "GA", 3: "NC", 4: "SC" };
+  const environmentalState = environmentalStateByDay[day];
+  if (environmentalState) results.push(await run(base44, "sync-southeast-npdes-environmental", { state: environmentalState, limit: 300 }));
+
+  // NC DEQ publishes an official statewide mining-permit KMZ including status, commodity and permitted acres.
+  if (day === 3) results.push(await run(base44, "sync-nc-mining-permits", {}));
 
   // Bedrock geology is comparatively stable; refresh once a month.
   if (date === 1) results.push(await run(base44, "sync-tn-geology", {}));
