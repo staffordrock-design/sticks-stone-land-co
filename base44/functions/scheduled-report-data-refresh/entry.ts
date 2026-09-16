@@ -50,11 +50,15 @@ export default async function(req: Request) {
   const environmentalState = environmentalStateByDay[day];
   if (environmentalState) results.push(await run(base44, "sync-southeast-npdes-environmental", { state: environmentalState, limit: 300 }));
 
-  // NC DEQ publishes an official statewide mining-permit KMZ including status, commodity and permitted acres.
+  // State mining-permit registries that can be consumed directly without changing the mobile bundle.
   if (day === 3) results.push(await run(base44, "sync-nc-mining-permits", {}));
+  if (day === 5) results.push(await run(base44, "sync-ga-surface-mining-permits", {}));
 
-  // Bedrock geology is comparatively stable; refresh once a month.
+  // Bedrock geology is comparatively stable; stagger the monthly refresh by state.
   if (date === 1) results.push(await run(base44, "sync-tn-geology", {}));
+  if (date === 2) results.push(await run(base44, "sync-usgs-sgmc-geology", { state: "GA", limit: 200 }));
+  if (date === 3) results.push(await run(base44, "sync-usgs-sgmc-geology", { state: "NC", limit: 200 }));
+  if (date === 4) results.push(await run(base44, "sync-usgs-sgmc-geology", { state: "SC", limit: 200 }));
 
   // Always recalculate report freshness after the scheduled maintenance window.
   results.push(await run(base44, "report-data-freshness", {}));
