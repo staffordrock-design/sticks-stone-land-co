@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { ArrowRight, Bell, Building2, CheckCircle2, Database, GitCompareArrows, Handshake, Landmark, Layers, LockKeyhole, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, Bell, Building2, CheckCircle2, Database, GitCompareArrows, Handshake, Landmark, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
@@ -19,6 +19,8 @@ import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { premiumEntityQuery } from "@/lib/subscriptionAccess";
+import { base44 } from "@/api/base44Client";
+import QuarryTeaserSection from "@/components/QuarryTeaserSection";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -60,6 +62,7 @@ export default function Home() {
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inventoryUnavailable, setInventoryUnavailable] = useState(false);
+  const [teaserSites, setTeaserSites] = useState([]);
   const [profiles, setProfiles] = useState([]);
   const [parcels, setParcels] = useState([]);
   const [geology, setGeology] = useState([]);
@@ -127,6 +130,20 @@ export default function Home() {
         premiumReady ? safeLoad("EnvironmentalRecord", premiumEntityQuery("EnvironmentalRecord", {}, "-last_source_update", limit)) : Promise.resolve([]),
       ]);
 
+      // Load a small teaser set for unpaid visitors so they see real quarry data
+      // instead of a blank lock screen, creating a reason to subscribe.
+      if (!premiumReady) {
+        try {
+          const teaserResponse = await base44.functions.invoke("get-teaser-sites", {});
+          setTeaserSites(teaserResponse?.data?.sites || teaserResponse?.sites || []);
+        } catch (error) {
+          console.error("Teaser load failed", error);
+          setTeaserSites([]);
+        }
+      } else {
+        setTeaserSites([]);
+      }
+
       const siteList = Array.from(new Map((data || []).map((site) => [site.id, site])).values());
       const geoRecords = geologyData || [];
 
@@ -149,6 +166,12 @@ export default function Home() {
   useEffect(() => {
     trackFunnelEvent({ page_type: "homepage", resource_id: "homepage_viewed", path: "/" });
   }, []);
+
+  useEffect(() => {
+    if (!hasProfessional && teaserSites.length > 0) {
+      trackFunnelEvent({ page_type: "quarry_teaser", resource_id: "quarry_teaser", path: "/", user });
+    }
+  }, [hasProfessional, teaserSites.length, user]);
 
   useEffect(() => {
     if (!hasProfessional) {
@@ -560,13 +583,7 @@ export default function Home() {
       {/* Marketplace */}
       <section id="quarry-intelligence" className="mx-auto max-w-7xl px-6 pb-24">
         {!hasProfessional ? (
-          <div className="rounded-3xl border border-slate-700 bg-slate-950 p-8 text-center text-white sm:p-12">
-            <LockKeyhole className="mx-auto h-8 w-8 text-sky-300" />
-            <h2 className="mt-4 font-heading text-3xl font-bold">Quarry records are locked.</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-300">S&amp;S does not provide a free quarry-data preview. Mine identities, locations, maps, MSHA IDs, ownership, geology, permits, production, compliance, valuation and opportunity intelligence require an active Full Quarry Intelligence subscription.</p>
-            <Link to="/subscribe" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Unlock Full Intelligence — $69/month</Link>
-            <p className="mt-3 text-xs text-slate-400">No free trial. Cancel anytime.</p>
-          </div>
+          <QuarryTeaserSection sites={teaserSites} loading={loading} />
         ) : (
           <>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
