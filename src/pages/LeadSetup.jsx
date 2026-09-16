@@ -223,6 +223,7 @@ export default function LeadSetup() {
       };
 
       await base44.entities.QuarryLeadIntake.create(lead);
+      base44.analytics.track({ eventName: "lead_submitted" });
 
       if (mode === "Report Request") {
         await base44.entities.IntelligenceReportOrder.create({

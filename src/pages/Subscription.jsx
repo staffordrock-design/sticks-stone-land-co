@@ -190,6 +190,7 @@ export default function Subscription() {
         }
         if (!cancelled) {
           setPurchaseMessage("Subscription confirmed. Your full quarry intelligence is active.");
+          base44.analytics.track({ eventName: "subscription_purchased" });
           navigate(returnTo, { replace: true });
         }
       } catch (error) {
@@ -390,6 +391,7 @@ export default function Subscription() {
         try { await refreshEntitlements(); } catch { /* ignore */ }
       }
       trackSubscriptionAction(user, "checkout_completed", "web", "embedded");
+      base44.analytics.track({ eventName: "subscription_purchased" });
       navigate(returnTo, { replace: true });
     } else if (result?.pending) {
       // Session created but verification not ready yet — fall back to the
