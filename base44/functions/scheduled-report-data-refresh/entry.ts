@@ -52,6 +52,7 @@ export default async function(req: Request) {
 
   // State mining-permit registries that can be consumed directly without changing the mobile bundle.
   if (day === 3) results.push(await run(base44, "sync-nc-mining-permits", {}));
+  if (day === 4) results.push(await run(base44, "sync-sc-mining-permits", {}));
   if (day === 5) results.push(await run(base44, "sync-ga-surface-mining-permits", {}));
 
   // Bedrock geology is comparatively stable; stagger the monthly refresh by state.
