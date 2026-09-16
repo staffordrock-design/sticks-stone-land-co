@@ -1065,7 +1065,7 @@ export default function MineSiteDetail() {
                 <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Opportunity Screening — Locked</div>
               </div>
             </div>
-            <button onClick={() => navigate(`/subscribe?returnTo=${encodeURIComponent(`/mines/${id}`)}`)} className="mt-5 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg">Unlock Full Quarry Intelligence — $69/month</button>
+            <button onClick={() => navigate(`/subscribe?returnTo=${encodeURIComponent(`/mines/${id}`)}`)} className="mt-5 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg">Unlock Full Quarry Intelligence — $199/month</button>
             <p className="mt-3 text-xs text-slate-500">Cancel anytime · No S&amp;S account required to buy</p>
           </div>
         )}
