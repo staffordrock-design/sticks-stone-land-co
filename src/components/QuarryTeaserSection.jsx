@@ -93,7 +93,7 @@ export default function QuarryTeaserSection({ sites, loading }) {
       <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-950 p-6 text-center text-white">
         <h3 className="font-heading text-xl font-bold">This is just a sample.</h3>
         <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-300">Full Quarry Intelligence includes every quarry record across the Southeast — with ownership, parcel data, geology, permitted acreage, compliance history, production context, contract intelligence, valuation screening, and S&amp;S opportunity scores.</p>
-        <Link to="/subscribe" className="mt-4 inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Unlock Full Intelligence — $199/month</Link>
+        <Link to="/subscribe" className="mt-4 inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Unlock Full Intelligence — $69/month</Link>
         <p className="mt-3 text-xs text-slate-400">No free trial. Cancel anytime.</p>
       </div>
     </div>
