@@ -20,8 +20,14 @@ export default async function(req: Request) {
   const date = now.getUTCDate();
   const results: any[] = [];
 
-  // MSHA Mines is the authoritative mine identity/status/operator backbone. Refresh weekly by Mine ID.
+  // MSHA Mines is the authoritative mine identity/status/operator backbone. Refresh all Southeast states weekly by Mine ID.
   if (day === 6) results.push(await run(base44, "sync-msha-mines", {}));
+
+  // Keep the core launch states' USGS MRDS mineral-occurrence coverage moving every week.
+  // One state per day avoids a heavy all-state WFS/import burst and reduces rate-limit risk.
+  const mrdsStateByDay: Record<number, string> = { 2: "TN", 3: "GA", 4: "NC", 5: "SC" };
+  const mrdsState = mrdsStateByDay[day];
+  if (mrdsState) results.push(await run(base44, "sync-usgs-mrds-southeast", { state: mrdsState }));
 
   // Production intelligence: refresh official MSHA mine-level activity, USGS state aggregate totals,
   // then rebuild S&S modeled mine-level ranges from the same quarter.
