@@ -26,6 +26,25 @@ function num(v: unknown) {
   return Number.isFinite(n) ? n : undefined;
 }
 
+const WRITE_BATCH_SIZE = 100;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function withRateLimitRetry<T>(operation: () => Promise<T>, attempts = 4): Promise<T> {
+  let lastError: any;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      const message = error?.message || String(error);
+      const rateLimited = /rate limit|too many requests|\b429\b/i.test(message);
+      if (!rateLimited || attempt === attempts) throw error;
+      await sleep(1000 * Math.pow(2, attempt - 1));
+    }
+  }
+  throw lastError;
+}
+
 function validStateCoordinate(state: string | undefined, lat: number | undefined, lng: number | undefined) {
   if (lat == null || lng == null) return false;
   const bounds = STATE_BOUNDS[String(state || "").toUpperCase()];
@@ -146,20 +165,22 @@ export default async function(req: Request) {
       if (sample.length < 12) sample.push({ mine_id: mineId, name: official.mine_name, status: official.mine_status, operator: official.operator_name, state });
     }
 
-    // Bulk create new records in batches of 500 to avoid rate limits.
+    // Use smaller write batches plus exponential backoff so a single Base44 429
+    // does not stop the Southeast refresh and leave GA/NC/SC stale.
     let created = 0;
-    for (let i = 0; i < toCreate.length; i += 500) {
-      const batch = toCreate.slice(i, i + 500);
-      const result = await base44.asServiceRole.entities.MiningSite.bulkCreate(batch);
+    for (let i = 0; i < toCreate.length; i += WRITE_BATCH_SIZE) {
+      const batch = toCreate.slice(i, i + WRITE_BATCH_SIZE);
+      await withRateLimitRetry(() => base44.asServiceRole.entities.MiningSite.bulkCreate(batch));
       created += batch.length;
+      await sleep(150);
     }
 
-    // Bulk update existing records in batches of 500.
     let updated = 0;
-    for (let i = 0; i < toUpdate.length; i += 500) {
-      const batch = toUpdate.slice(i, i + 500);
-      await base44.asServiceRole.entities.MiningSite.bulkUpdate(batch);
+    for (let i = 0; i < toUpdate.length; i += WRITE_BATCH_SIZE) {
+      const batch = toUpdate.slice(i, i + WRITE_BATCH_SIZE);
+      await withRateLimitRetry(() => base44.asServiceRole.entities.MiningSite.bulkUpdate(batch));
       updated += batch.length;
+      await sleep(150);
     }
 
     await upsertFreshness(base44, {
