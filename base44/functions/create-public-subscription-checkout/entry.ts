@@ -4,7 +4,8 @@ import { secrets } from 'base44:runtime';
 const SUBSCRIPTION_PLANS = {
   professional_monthly: {
     name: 'S&S Rock Holdings — Full Quarry Intelligence',
-    unitAmount: 19900,
+    priceId: 'price_1U4vqOHBH3xrClLV9vFwHk8r',
+    unitAmount: 6900,
     currency: 'usd',
     interval: 'month' as const,
   },
@@ -44,12 +45,7 @@ export default async function(req: Request) {
       mode: 'subscription',
       ui_mode: 'embedded_page',
       line_items: [{
-        price_data: {
-          currency: plan.currency,
-          unit_amount: plan.unitAmount,
-          recurring: { interval: plan.interval },
-          product_data: { name: plan.name },
-        },
+        price: plan.priceId,
         quantity: 1,
       }],
       customer_email: appUserEmail || undefined,
