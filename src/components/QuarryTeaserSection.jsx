@@ -36,10 +36,10 @@ export default function QuarryTeaserSection({ sites, loading }) {
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Preview</h2>
+            <h2 className="font-heading text-2xl font-bold text-foreground">See the quarry. Then see what the basic record misses.</h2>
             <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700">{sites.length} sample records</span>
           </div>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">A small sample of the quarry records in our database. Unlock Full Quarry Intelligence to see every site — with ownership, parcel data, geology, permits, production, compliance, valuation and opportunity scores.</p>
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">These sample records show the surface-level identity. Full Quarry Intelligence connects the ownership, parcel acreage, geology, permits, compliance, production, market context, valuation screening and opportunity signals behind the site.</p>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export default function QuarryTeaserSection({ sites, loading }) {
 
             <div className="mt-auto border-t border-border p-4">
               <Link to="/subscribe" className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800">
-                <TrendingUp className="h-4 w-4" /> Unlock this record
+                <TrendingUp className="h-4 w-4" /> See the full record — $69/month
               </Link>
             </div>
           </div>
@@ -91,10 +91,10 @@ export default function QuarryTeaserSection({ sites, loading }) {
       </div>
 
       <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-950 p-6 text-center text-white">
-        <h3 className="font-heading text-xl font-bold">This is just a sample.</h3>
-        <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-300">Full Quarry Intelligence includes every quarry record across the Southeast — with ownership, parcel data, geology, permitted acreage, compliance history, production context, contract intelligence, valuation screening, and S&amp;S opportunity scores.</p>
+        <h3 className="font-heading text-xl font-bold">Basic records tell you where it is. Intelligence tells you what to investigate next.</h3>
+        <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-300">Unlock the connected quarry picture across the Southeast: ownership, parcel data, geology, permitted acreage, compliance history, production and demand context, contract intelligence, valuation screening and S&amp;S opportunity scores.</p>
         <Link to="/subscribe" className="mt-4 inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Unlock Full Intelligence — $69/month</Link>
-        <p className="mt-3 text-xs text-slate-400">No free trial. Cancel anytime.</p>
+        <p className="mt-3 text-xs text-slate-400">Cancel anytime. Full quarry intelligence stays locked until a paid subscription is active.</p>
       </div>
     </div>
   );
