@@ -341,32 +341,32 @@ export default function Home() {
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
               <Layers className="h-3.5 w-3.5" />
-              Quarry Opportunity Intelligence
+              Built for quarry decisions
             </span>
             <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-              Find quarry value before the market sees it.
+              Know the rock. Know the owner. Know the opportunity.
             </h1>
             <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
-              S&S Rock Holdings identifies quarry, mineral, land and aggregate opportunities across Tennessee and the Southeast — connecting public records, permits, ownership signals, geology, production context and confidential report requests.
+              Before you buy, sell, lease or evaluate a quarry, bring ownership, acreage, geology, permits, production and market-demand signals into one decision screen.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/quarry-intelligence" className="w-full rounded-xl bg-sky-600 px-5 py-3 text-center text-sm font-bold text-white shadow-lg ring-1 ring-sky-400/50 transition hover:bg-sky-500 sm:w-auto">Analyze a Quarry or Property</Link>
-              <Link to="/subscribe" className="w-full rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-sky-600 sm:w-auto">Unlock Full Intelligence — $69/month</Link>
+              <Link to="/subscribe" className="w-full rounded-xl bg-sky-600 px-5 py-3 text-center text-sm font-bold text-white shadow-lg ring-1 ring-sky-400/50 transition hover:bg-sky-500 sm:w-auto">Unlock Quarry Intelligence — $69/month</Link>
+              <Link to="/quarry-intelligence" className="w-full rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-sky-600 sm:w-auto">Analyze a Quarry or Property</Link>
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
-            <p className="mt-4 max-w-xl text-sm text-slate-300">Search the data first. Serious buyers, owners and landholders can submit criteria, request review and move into S&S reports, diligence and deal follow-up.</p>
+            <p className="mt-4 max-w-xl text-sm font-medium text-slate-200">One search replaces hours of digging through disconnected mine, permit, parcel, geology and market records.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
-                Buyer and owner leads
+                Ownership & acreage signals
               </div>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-slate-200" />
-                Permits, geology and ownership signals
+                Geology, permits & compliance
               </div>
               <div className="flex items-center gap-2">
                 <Layers className="h-4 w-4 text-slate-200" />
-                Reports and deal pipeline
+                Production, demand & deal context
               </div>
             </div>
           </div>
@@ -376,12 +376,17 @@ export default function Home() {
       {/* Fast market snapshot */}
       <section className="border-b border-border bg-slate-50/80">
         <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
-          {[
+          {(hasProfessional ? [
             [metricValue(quarrySites.length), loading ? "Loading quarry records" : inventoryUnavailable ? "Records temporarily unavailable" : "Quarry records loaded"],
             [metricValue(opportunityCount), "Potential / idled targets"],
             [metricValue(activeCount), "Active mine records"],
             [Math.max(statesCovered, SOUTHEAST_STATES.length).toLocaleString(), "Southeast states in scope"],
-          ].map(([value, label]) => (
+          ] : [
+            [SOUTHEAST_STATES.length.toLocaleString(), "Southeast states in scope"],
+            ["MSHA + State", "Mine & permit intelligence"],
+            ["GIS + Deeds", "Ownership & parcel signals"],
+            ["USGS + TDOT", "Geology & demand context"],
+          ]).map(([value, label]) => (
             <div key={label} className="bg-background px-5 py-5 sm:px-6">
               <div className="font-heading text-2xl font-bold text-slate-950">{value}</div>
               <div className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-slate-500">{label}</div>
@@ -401,11 +406,11 @@ export default function Home() {
               <div className="inline-flex items-center gap-2 rounded-full border border-sky-400/30 bg-sky-500/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-sky-300">
                 <ShieldCheck className="h-3.5 w-3.5" /> Full Quarry Intelligence
               </div>
-              <h2 className="mt-5 font-heading text-3xl font-bold sm:text-4xl">Unlock the full record behind every quarry.</h2>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">Public Quarry Information shows mine locations and basic records. Full Quarry Intelligence unlocks ownership and parcel data, geology and rock type, permitted acreage, compliance history, production context, contract and royalty intelligence, valuation screening, and S&amp;S opportunity scores — for every site on the map.</p>
+              <h2 className="mt-5 font-heading text-3xl font-bold sm:text-4xl">The public record gives you pieces. S&S connects the quarry decision.</h2>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">See the facts that change a quarry decision in one place: who controls the property, how much acreage is involved, what the geology says, what permits and compliance records show, how production and demand fit together, and where deeper diligence is needed.</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
-                  <TrendingUp className="h-4 w-4" /> Start for $69/month
+                  <TrendingUp className="h-4 w-4" /> Unlock the full record — $69/month
                 </Link>
                 <Link to="/get-started?mode=report" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
                   Request a custom report
