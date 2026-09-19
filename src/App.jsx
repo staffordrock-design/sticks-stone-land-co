@@ -37,7 +37,6 @@ const Support = lazy(() => import('./pages/Support'));
 const MineralValueGuide = lazy(() => import('./pages/MineralValueGuide'));
 const MineralIntelligence = lazy(() => import('./pages/MineralIntelligence'));
 const AdminSellerReview = lazy(() => import('./pages/AdminSellerReview'));
-const QuarryCompare = lazy(() => import('./pages/QuarryCompare'));
 const QuarryWatchlist = lazy(() => import('./pages/QuarryWatchlist'));
 const DealInvestor = lazy(() => import('./pages/DealInvestor'));
 const SellProperty = lazy(() => import('./pages/SellProperty'));
@@ -142,7 +141,6 @@ const AuthenticatedApp = () => {
       <Route path="/mineral-intelligence" element={<MineralIntelligence />} />
       <Route path="/admin/seller-review" element={<RequireAdmin><AdminSellerReview /></RequireAdmin>} />
       <Route path="/admin/deals" element={<RequireAdmin><DealDesk /></RequireAdmin>} />
-      <Route path="/compare" element={<QuarryCompare />} />
       <Route path="/watchlist" element={<QuarryWatchlist />} />
       <Route path="/deal-investor" element={<DealInvestor />} />
       <Route path="/sell" element={<SellProperty />} />
