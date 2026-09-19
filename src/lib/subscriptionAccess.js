@@ -7,7 +7,7 @@ export const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "grace_period"]);
 // S&S sells one digital membership: Full Quarry Intelligence, with no free trial.
 // Storefront pricing is managed by the purchase provider.
 // "marketplace_monthly" is retained for legacy receipt recognition (restore of
-// historical purchases) but is the same $69/month product as professional_monthly.
+// historical purchases) but is the same $49/month product as professional_monthly.
 export const FULL_QUARRY_PLAN_CODES = new Set([
   "professional_monthly",
   "marketplace_monthly",
