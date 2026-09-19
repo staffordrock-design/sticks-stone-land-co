@@ -452,8 +452,8 @@ export default function Subscription() {
       <div className="mx-auto max-w-6xl px-6 py-12">
         <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
-          <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Unlock Full Quarry Intelligence</h1></div></div>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Full Quarry Intelligence is a monthly subscription. {isIOS ? "Apple shows the current price and the purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."} The subscription renews automatically until canceled.</p>
+          <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Unlock the records behind the quarry</h1></div></div>
+          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Get the ownership, parcel, geology, permit, production, environmental and opportunity intelligence that sits behind each quarry record. Full access unlocks immediately after purchase. {isIOS ? "Apple shows the current price and purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."}</p>
           {!active && <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">View Membership</a>}
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, review Apple&apos;s purchase terms, confirm, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
           {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to buy.</strong> Continue straight to secure checkout. After payment, Full Quarry Intelligence unlocks on this browser; sign in later only if you want account-based features.</div>}
@@ -479,7 +479,7 @@ export default function Subscription() {
                   <span className="font-heading text-3xl font-bold text-foreground">{isNative && isIOS && monthlyStore?.priceString ? `${monthlyStore.priceString}/month` : tier.priceLabel}</span>
                   <span className="text-xs text-muted-foreground">{tier.priceSublabel}</span>
                 </div>
-                <div className="mt-2 text-sm font-semibold text-muted-foreground">Monthly subscription · full app access · auto-renewing until canceled</div>
+                <div className="mt-2 text-sm font-semibold text-muted-foreground">One monthly membership · full quarry records · immediate access · cancel anytime</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
                   <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : `Subscribe for ${tier.priceLabel} · Secure Checkout`}</button>
@@ -487,7 +487,7 @@ export default function Subscription() {
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
-                    <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : monthlyStore?.priceString ? `Subscribe with Apple · ${monthlyStore.priceString}/month` : "Subscribe with Apple"}</button>
+                    <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : monthlyStore?.priceString ? `Unlock Full Access · ${monthlyStore.priceString}/month` : "Unlock Full Access"}</button>
                     <div className="text-[11px] leading-4 text-muted-foreground">Apple shows the exact price and purchase terms before you approve. The subscription renews automatically until canceled.</div>
                   </div>
                 )}
