@@ -67,7 +67,7 @@ export default function QuarryWatchlist() {
   if (!user?.id) return <div className="min-h-screen bg-background px-6 py-16 text-center"><Bell className="mx-auto h-9 w-9 text-muted-foreground"/><h1 className="mt-4 font-heading text-2xl font-bold">Sign in to watch quarry opportunities</h1><p className="mt-2 text-sm text-muted-foreground">Your saved sites and alert criteria are tied to your S&amp;S account.</p><Link to="/login?returnTo=/watchlist" className="mt-6 inline-block rounded-xl bg-stone-900 px-5 py-3 text-sm font-bold text-white">Sign in</Link></div>;
 
   return <div className="min-h-screen bg-background">
-    <header className="border-b border-border"><div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Marketplace</Link><Link to="/compare" className="text-sm font-semibold text-sky-800">Compare quarries</Link></div></header>
+    <header className="border-b border-border"><div className="mx-auto flex max-w-6xl items-center px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Marketplace</Link></div></header>
     <main className="mx-auto max-w-6xl px-6 py-10">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-700">Buyer workspace</p>
       <h1 className="mt-2 font-heading text-3xl font-bold">Quarry Watchlist & Alerts</h1>
