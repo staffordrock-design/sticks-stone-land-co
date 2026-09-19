@@ -8,7 +8,6 @@ import {
   Database,
   FileSearch,
   Gem,
-  GitCompareArrows,
   MapPinned,
   Mountain,
   ShieldCheck,
@@ -36,13 +35,6 @@ const tools = [
     eyebrow: "USGS + S&S",
     title: "Mineral Intelligence Map",
     description: "Explore Southeast mineral occurrences, matched mine records, historical producers and potential mineral clusters.",
-  },
-  {
-    to: "/compare",
-    icon: GitCompareArrows,
-    eyebrow: "Decision tool",
-    title: "Compare Quarries",
-    description: "Put quarry records side by side across status, ownership, acreage, geology, production, compliance and valuation context.",
   },
   {
     to: "/watchlist",
