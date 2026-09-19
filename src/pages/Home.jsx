@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { ArrowRight, Bell, Building2, CheckCircle2, Database, GitCompareArrows, Handshake, Landmark, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, Bell, Building2, CheckCircle2, Database, Handshake, Landmark, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
@@ -313,7 +313,6 @@ export default function Home() {
             <span className="font-medium text-foreground">Quarry Intelligence</span>
             <Link to="/mineral-value-guide" className="hover:text-foreground">Material Analyzer</Link>
             <Link to="/mineral-intelligence" className="hover:text-foreground">Mineral Map</Link>
-            <Link to="/compare" className="hover:text-foreground">Compare</Link>
             <Link to="/watchlist" className="hover:text-foreground">Watchlist</Link>
             <Link to="/subscribe" className="hover:text-foreground">Access</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
@@ -459,12 +458,11 @@ export default function Home() {
             <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3"><div className="text-xl font-bold">{loading ? "…" : geologyLinked.toLocaleString()}</div><div className="mt-1 text-[10px] uppercase tracking-wider text-slate-400">geology linked</div></div>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["/network", Building2, "Quarry Network", "Companies, operators, controllers, owners and linked sites"],
               ["/network/deals", Handshake, "Deal Network", "Post, open and track quarry opportunities and buyer interest"],
               ["/ownership-intelligence", Landmark, "Ownership & Control", "Rank operators, controllers and linked landowners"],
-              ["/compare", GitCompareArrows, "Compare Quarries", "Put quarry records side by side for a real decision"],
             ].map(([to, Icon, title, description]) => (
               <button key={to + title} type="button" onClick={() => navigate(to)} className="group min-h-32 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-left transition active:scale-[0.99] hover:border-sky-700 hover:bg-slate-900">
                 <div className="flex items-center justify-between"><Icon className="h-5 w-5 text-sky-300" /><ArrowRight className="h-4 w-4 text-slate-500 transition group-hover:translate-x-1 group-hover:text-sky-300" /></div>
