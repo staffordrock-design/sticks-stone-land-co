@@ -5,7 +5,7 @@ const SUBSCRIPTION_PLANS = {
   professional_monthly: {
     name: 'S&S Rock Holdings — Full Quarry Intelligence',
     priceId: 'price_1U4vqOHBH3xrClLV9vFwHk8r',
-    unitAmount: 6900,
+    unitAmount: 4900,
     currency: 'usd',
     interval: 'month' as const,
   },
@@ -45,7 +45,12 @@ export default async function(req: Request) {
       mode: 'subscription',
       ui_mode: 'embedded_page',
       line_items: [{
-        price: plan.priceId,
+        price_data: {
+          currency: plan.currency,
+          unit_amount: plan.unitAmount,
+          recurring: { interval: plan.interval },
+          product_data: { name: plan.name },
+        },
         quantity: 1,
       }],
       customer_email: appUserEmail || undefined,
