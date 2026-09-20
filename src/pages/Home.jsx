@@ -348,7 +348,7 @@ export default function Home() {
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
           <div className="flex items-center gap-3">
-            <AppStoreBadge className="hidden sm:inline-flex" />
+            <AppStoreBadge className="inline-flex" />
             <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Public Access"}</div>
           </div>
         </div>
