@@ -59,6 +59,7 @@ const IntelligenceHub = lazy(() => import('./pages/IntelligenceHub'));
 const LeadSetup = lazy(() => import('./pages/LeadSetup'));
 const QuarryIntelligence = lazy(() => import('./pages/QuarryIntelligence'));
 const ConversionDashboard = lazy(() => import('./pages/ConversionDashboard'));
+const DataSources = lazy(() => import('./pages/DataSources'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -161,6 +162,7 @@ const AuthenticatedApp = () => {
       <Route path="/messages" element={<RequireSignedIn><Messages /></RequireSignedIn>} />
       <Route path="/opportunities" element={<RequireSignedIn><MyOpportunities /></RequireSignedIn>} />
       <Route path="/subscribe" element={<Subscription />} />
+      <Route path="/data-sources" element={<DataSources />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
