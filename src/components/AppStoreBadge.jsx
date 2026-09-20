@@ -1,7 +1,7 @@
 import React from "react";
 
 // Update this URL with your actual App Store listing once the app is published.
-const APP_STORE_URL = "https://apps.apple.com/us/app/idYOUR_APP_ID";
+const APP_STORE_URL = "https://apps.apple.com/us/app/s-s-rock-holdings/id6802014287";
 
 export default function AppStoreBadge({ className = "", variant = "dark" }) {
   const isDark = variant === "dark";
