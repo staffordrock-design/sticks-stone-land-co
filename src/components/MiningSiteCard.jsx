@@ -24,13 +24,13 @@ const sourceStyles = {
 };
 
 function recordStatusLabel(site) {
-  if (site.is_verified_listing && site.listing_id) return "Verified Listing";
+  if (site.is_verified_listing && site.listing_id) return "For Sale Listing";
   const s = String(site.mine_status || "").toLowerCase();
   if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Inactive / Idled Record";
   if (s.includes("historical") || s.includes("abandon")) return "Historical Record";
   if (s.includes("new mine")) return "New Mine Record";
-  if (s.includes("active")) return "Active Mine Record";
-  return "Mine Record";
+  if (s.includes("active")) return "Active Quarry Intelligence";
+  return "Off-Market Quarry Intelligence";
 }
 
 function displayDate(value) {
@@ -181,6 +181,11 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
           {site.commodity && site.commodity !== rockChip && (
             <span className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               {site.commodity}
+            </span>
+          )}
+          {Number(parcelAcreage) > 0 && (
+            <span className="rounded-md border border-slate-300 bg-white px-2 py-0.5 text-xs font-semibold text-slate-800">
+              {Number(parcelAcreage).toLocaleString()} acres
             </span>
           )}
           {site.mine_type && (
