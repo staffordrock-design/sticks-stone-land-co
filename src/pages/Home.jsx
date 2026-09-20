@@ -349,7 +349,7 @@ export default function Home() {
               Before you buy, sell, lease or evaluate a quarry, bring ownership, acreage, geology, permits, production and market-demand signals into one decision screen.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/subscribe" className="w-full rounded-xl bg-sky-600 px-5 py-3 text-center text-sm font-bold text-white shadow-lg ring-1 ring-sky-400/50 transition hover:bg-sky-500 sm:w-auto">Unlock Quarry Intelligence — $69/month</Link>
+              <Link to="/subscribe" className="w-full rounded-xl bg-sky-600 px-5 py-3 text-center text-sm font-bold text-white shadow-lg ring-1 ring-sky-400/50 transition hover:bg-sky-500 sm:w-auto">Unlock Quarry Intelligence — $49/month</Link>
               <Link to="/quarry-intelligence" className="w-full rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-sky-600 sm:w-auto">Analyze a Quarry or Property</Link>
               {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
             </div>
@@ -409,7 +409,7 @@ export default function Home() {
               <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">See the facts that change a quarry decision in one place: who controls the property, how much acreage is involved, what the geology says, what permits and compliance records show, how production and demand fit together, and where deeper diligence is needed.</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
-                  <TrendingUp className="h-4 w-4" /> Unlock the full record — $69/month
+                  <TrendingUp className="h-4 w-4" /> Unlock the full record — $49/month
                 </Link>
                 <Link to="/get-started?mode=report" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
                   Request a custom report
