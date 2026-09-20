@@ -125,7 +125,7 @@ function addRecordToMetrics(metrics: any, record: any) {
   metrics.bySource[source].add(sessionId);
 
   if (step === 'paid_subscriber') {
-    metrics.revenue += 49;
+    metrics.revenue += 69;
     if (!metrics.bySourcePaid[source]) metrics.bySourcePaid[source] = 0;
     metrics.bySourcePaid[source] += 1;
   }
