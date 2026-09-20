@@ -21,7 +21,7 @@ export const ACCESS_TIERS = [
     code: "professional",
     name: "Full Quarry Intelligence",
     featured: true,
-    priceLabel: "$49/month",
+    priceLabel: "$69/month",
     priceSublabel: "Unlocks immediately · Cancel anytime",
     features: [
       "Full access to S&S quarry intelligence",
