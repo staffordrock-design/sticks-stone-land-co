@@ -21,6 +21,7 @@ import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 import { base44 } from "@/api/base44Client";
 import QuarryTeaserSection from "@/components/QuarryTeaserSection";
+import AppStoreBadge from "@/components/AppStoreBadge";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "For Sale", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -63,6 +64,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [inventoryUnavailable, setInventoryUnavailable] = useState(false);
   const [teaserSites, setTeaserSites] = useState([]);
+  const [sampleBundle, setSampleBundle] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [parcels, setParcels] = useState([]);
   const [geology, setGeology] = useState([]);
@@ -140,8 +142,17 @@ export default function Home() {
           console.error("Teaser load failed", error);
           setTeaserSites([]);
         }
+        try {
+          const sampleResponse = await base44.functions.invoke("get-sample-site", {});
+          const sampleData = sampleResponse?.data || sampleResponse || {};
+          setSampleBundle(sampleData?.site ? sampleData : null);
+        } catch (error) {
+          console.error("Sample site load failed", error);
+          setSampleBundle(null);
+        }
       } else {
         setTeaserSites([]);
+        setSampleBundle(null);
       }
 
       const siteList = Array.from(new Map((data || []).map((site) => [site.id, site])).values());
@@ -321,7 +332,10 @@ export default function Home() {
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
-          <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Public Access"}</div>
+          <div className="flex items-center gap-3">
+            <AppStoreBadge className="hidden sm:inline-flex" />
+            <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Public Access"}</div>
+          </div>
         </div>
       </header>
 
@@ -335,7 +349,8 @@ export default function Home() {
             className="h-full w-full"
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/92 via-slate-950/72 to-slate-900/40" />
+        <div className="absolute inset-0 bg-slate-950/75" />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-900/50" />
         <div className="relative mx-auto max-w-7xl px-6 py-20 sm:py-28">
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
@@ -382,6 +397,9 @@ export default function Home() {
                 Production, demand & deal context
               </div>
             </div>
+            <div className="mt-6">
+              <AppStoreBadge variant="dark" />
+            </div>
           </div>
         </div>
       </section>
@@ -408,6 +426,34 @@ export default function Home() {
         </div>
         {geologyLinked > 0 && <div className="mx-auto max-w-7xl px-6 py-3 text-xs text-slate-500">{geologyLinked.toLocaleString()} geology-linked records currently loaded for screening. Coverage continues to expand as public-source records are connected and verified.</div>}
       </section>
+
+      {/* Free preview — one fully-unlocked record for unpaid visitors */}
+      {!hasProfessional && sampleBundle?.site && (
+        <section className="mx-auto max-w-7xl px-6 py-10">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Free Preview
+              </span>
+              <h2 className="mt-2 font-heading text-2xl font-bold text-foreground">See what a full quarry record looks like</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">This is a real, fully-unlocked S&amp;S quarry intelligence record — owner, operator, permitted acreage, parcel links, geology, permits and compliance. Every property in the marketplace has this same depth of data.</p>
+            </div>
+            <Link to="/subscribe" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-sky-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Unlock all records — $49/month</Link>
+          </div>
+          <div className="mx-auto max-w-md">
+            <MiningSiteCard
+              site={sampleBundle.site}
+              valuation={calculateIndicativeQuarryValue({ site: sampleBundle.site, parcel: sampleBundle.parcel, profile: sampleBundle.profile, geology: sampleBundle.geology })}
+              geology={sampleBundle.geology}
+              parcel={sampleBundle.parcel}
+              permits={sampleBundle.permits || []}
+              environmental={sampleBundle.environmental || []}
+              opportunity={calculateOpportunityScore({ site: sampleBundle.site, parcel: sampleBundle.parcel, geology: sampleBundle.geology, permits: sampleBundle.permits || [], environmental: sampleBundle.environmental || [], profile: sampleBundle.profile })}
+              previewMode={false}
+            />
+          </div>
+        </section>
+      )}
 
       <ProfitabilityUpgradeBanner />
 
