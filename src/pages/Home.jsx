@@ -352,13 +352,15 @@ export default function Home() {
         <div className="absolute inset-0 bg-slate-950/75" />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-slate-900/50" />
         <div className="relative mx-auto max-w-7xl px-6 py-20 sm:py-28">
-          <div className="max-w-2xl">
+          <div className="max-w-4xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
               <Layers className="h-3.5 w-3.5" />
               Quarry marketplace + intelligence
             </span>
-            <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-              Know the rock. Know the ground.
+            <h1 className="mt-6 max-w-4xl font-heading text-5xl font-black leading-[0.98] tracking-tight text-white drop-shadow-2xl sm:text-7xl">
+              <span className="block">Find the rock.</span>
+              <span className="block">Know the property.</span>
+              <span className="block text-sky-300">See the opportunity.</span>
             </h1>
             <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
               Search operating quarries, aggregate properties, potential quarry land and off-market mine records across the Southeast — then open the intelligence behind each property.
