@@ -5,7 +5,7 @@ const SUBSCRIPTION_PLANS = {
   professional_monthly: {
     name: 'S&S Rock Holdings — Full Quarry Intelligence',
     priceId: 'price_1U4vqOHBH3xrClLV9vFwHk8r',
-    unitAmount: 4900,
+    unitAmount: 6900,
     currency: 'usd',
     interval: 'month' as const,
   },
