@@ -83,7 +83,7 @@ export default function QuarryTeaserSection({ sites, loading }) {
 
             <div className="mt-auto border-t border-border p-4">
               <Link to="/subscribe" className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800">
-                <TrendingUp className="h-4 w-4" /> See the full record — $49/month
+                <TrendingUp className="h-4 w-4" /> See the full record — $69/month
               </Link>
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function QuarryTeaserSection({ sites, loading }) {
       <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-950 p-6 text-center text-white">
         <h3 className="font-heading text-xl font-bold">Basic records tell you where it is. Intelligence tells you what to investigate next.</h3>
         <p className="mx-auto mt-2 max-w-2xl text-sm text-slate-300">Unlock the connected quarry picture across the Southeast: ownership, parcel data, geology, permitted acreage, compliance history, production and demand context, contract intelligence, valuation screening and S&amp;S opportunity scores.</p>
-        <Link to="/subscribe" className="mt-4 inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Unlock Full Intelligence — $49/month</Link>
+        <Link to="/subscribe" className="mt-4 inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Unlock Full Intelligence — $69/month</Link>
         <p className="mt-3 text-xs text-slate-400">Cancel anytime. Full quarry intelligence stays locked until a paid subscription is active.</p>
       </div>
     </div>
