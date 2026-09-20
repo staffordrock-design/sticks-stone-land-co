@@ -358,7 +358,7 @@ export default function Home() {
               Quarry marketplace + intelligence
             </span>
             <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-              Know the ground.
+              Know the rock. Know the ground.
             </h1>
             <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
               Search operating quarries, aggregate properties, potential quarry land and off-market mine records across the Southeast — then open the intelligence behind each property.
