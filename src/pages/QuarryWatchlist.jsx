@@ -70,7 +70,7 @@ export default function QuarryWatchlist() {
     <header className="border-b border-border"><div className="mx-auto flex max-w-6xl items-center px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Marketplace</Link></div></header>
     <main className="mx-auto max-w-6xl px-6 py-10">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-700">Buyer workspace</p>
-      <h1 className="mt-2 font-heading text-3xl font-bold">Quarry Watchlist & Alerts</h1>
+      <h1 className="mt-2 font-heading text-3xl font-bold">Saved Properties & Alerts</h1>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">Save quarry records you care about and define exactly what kind of new opportunity you want S&amp;S to surface. This becomes your recurring acquisition radar rather than a one-time search.</p>
 
       <section className="mt-8 rounded-2xl border border-border bg-card p-6">
@@ -89,7 +89,7 @@ export default function QuarryWatchlist() {
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-6">
-          <div className="flex items-center gap-2"><Bookmark className="h-5 w-5 text-sky-700"/><h2 className="font-heading text-xl font-bold">Saved quarries</h2></div>
+          <div className="flex items-center gap-2"><Bookmark className="h-5 w-5 text-sky-700"/><h2 className="font-heading text-xl font-bold">Saved properties</h2></div>
           <div className="mt-4 space-y-3">{loading?<p className="text-sm text-muted-foreground">Loading…</p>:savedSites.length===0?<p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">No saved quarry records yet. Open a site and tap “Watch this quarry.”</p>:savedSites.map((item)=><div key={item.id} className="rounded-xl border border-border p-4"><div className="flex items-start justify-between gap-3"><div><div className="font-semibold">{item.resource_name}</div><div className="mt-1 text-xs text-muted-foreground">{item.site ? [item.site.county,item.site.state,item.site.commodity].filter(Boolean).join(" · ") : "Saved opportunity"}</div></div><button onClick={()=>removeSaved(item.id)} className="rounded-lg border border-border p-2 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4"/></button></div>{item.mining_site_id&&<Link to={`/mines/${item.mining_site_id}`} className="mt-3 inline-block text-sm font-semibold text-sky-800">Open intelligence →</Link>}</div>)}</div>
         </div>
 
