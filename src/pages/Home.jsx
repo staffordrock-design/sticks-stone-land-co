@@ -23,7 +23,7 @@ import { base44 } from "@/api/base44Client";
 import QuarryTeaserSection from "@/components/QuarryTeaserSection";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
-const STATUS_GROUPS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
+const STATUS_GROUPS = ["All", "For Sale", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
 const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
 const MAP_RENDER_LIMIT = 240;
@@ -249,7 +249,7 @@ export default function Home() {
     const matchesState = stateFilter === "All Southeast"
       ? SOUTHEAST_STATES.includes(stateCode)
       : stateCode === stateFilter;
-    const matchesStatus = statusFilter === "All" || statusGroup(s.mine_status) === statusFilter;
+    const matchesStatus = statusFilter === "All" || (statusFilter === "For Sale" ? Boolean(s.is_verified_listing && s.listing_id) : statusGroup(s.mine_status) === statusFilter);
     return matchesSource && matchesQuery && matchesStatus && matchesState;
   });
 
@@ -310,11 +310,11 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 pb-4">
           <BrandLogo />
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
-            <span className="font-medium text-foreground">Quarry Intelligence</span>
-            <Link to="/mineral-value-guide" className="hover:text-foreground">Material Analyzer</Link>
-            <Link to="/mineral-intelligence" className="hover:text-foreground">Mineral Map</Link>
-            <Link to="/watchlist" className="hover:text-foreground">Watchlist</Link>
-            <Link to="/subscribe" className="hover:text-foreground">Access</Link>
+            <span className="font-medium text-foreground">Explore Properties</span>
+            <Link to="/watchlist" className="hover:text-foreground">Saved</Link>
+            <Link to="/sell" className="hover:text-foreground">List a Property</Link>
+            <Link to="/mineral-intelligence" className="hover:text-foreground">Map & Geology</Link>
+            <Link to="/subscribe" className="hover:text-foreground">Full Intelligence</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
             {user?.role === "admin" && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
             {user?.role === "admin" && <Link to="/admin/conversions" className="font-semibold text-sky-700 hover:text-sky-800">Conversions</Link>}
@@ -340,20 +340,34 @@ export default function Home() {
           <div className="max-w-2xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/25 bg-white/5 px-3 py-1 text-xs font-medium uppercase tracking-wider text-slate-200">
               <Layers className="h-3.5 w-3.5" />
-              Built for quarry decisions
+              Quarry marketplace + intelligence
             </span>
             <h1 className="mt-6 font-heading text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-              Know the rock. Know the owner. Know the opportunity.
+              Find your next quarry.
             </h1>
             <p className="mt-5 max-w-xl text-base text-slate-300 sm:text-lg">
-              Before you buy, sell, lease or evaluate a quarry, bring ownership, acreage, geology, permits, production and market-demand signals into one decision screen.
+              Search operating quarries, aggregate properties, potential quarry land and off-market mine records across the Southeast — then open the intelligence behind each property.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/subscribe" className="w-full rounded-xl bg-sky-600 px-5 py-3 text-center text-sm font-bold text-white shadow-lg ring-1 ring-sky-400/50 transition hover:bg-sky-500 sm:w-auto">Unlock Quarry Intelligence — $49/month</Link>
-              <Link to="/quarry-intelligence" className="w-full rounded-xl border border-sky-300/60 bg-sky-700/70 px-5 py-3 text-center text-sm font-bold text-white transition hover:bg-sky-600 sm:w-auto">Analyze a Quarry or Property</Link>
-              {user?.role === "admin" && <Link to="/admin/leads" className="rounded-xl border border-sky-300/50 bg-sky-700/80 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-600">S&S Lead Inbox</Link>}
+            <div className="mt-8 max-w-2xl rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur">
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }); }}
+                  placeholder="Search quarry, county, state, rock type or MSHA ID"
+                  aria-label="Search quarry properties"
+                  className="min-h-12 flex-1 rounded-xl border border-white/25 bg-white px-4 text-base font-medium text-slate-950 outline-none ring-offset-2 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400"
+                />
+                <button type="button" onClick={() => document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" })} className="min-h-12 rounded-xl bg-sky-600 px-5 text-sm font-bold text-white shadow-lg hover:bg-sky-500">Search Properties</button>
+              </div>
             </div>
-            <p className="mt-4 max-w-xl text-sm font-medium text-slate-200">One search replaces hours of digging through disconnected mine, permit, parcel, geology and market records.</p>
+            <div className="mt-4 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-4">
+              <button type="button" onClick={() => { setStatusFilter("For Sale"); document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }); }} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/25 bg-slate-950/55 px-3 text-xs font-bold text-white"><Building2 className="h-4 w-4"/>For Sale</button>
+              <button type="button" onClick={() => document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/25 bg-slate-950/55 px-3 text-xs font-bold text-white"><MapPinned className="h-4 w-4"/>Explore</button>
+              <Link to="/watchlist" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/25 bg-slate-950/55 px-3 text-xs font-bold text-white"><Bell className="h-4 w-4"/>Saved</Link>
+              <Link to="/sell" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/25 bg-slate-950/55 px-3 text-xs font-bold text-white"><Layers className="h-4 w-4"/>List Property</Link>
+            </div>
+            <p className="mt-4 max-w-xl text-sm font-medium text-slate-200">Browse like a real-estate marketplace. Open a property to see the quarry intelligence that ordinary land listings leave out.</p>
             <div className="mt-8 flex flex-wrap items-center gap-6 text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-slate-200" />
@@ -592,11 +606,11 @@ export default function Home() {
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Intelligence</h2>
+              <h2 className="font-heading text-2xl font-bold text-foreground">Quarry & Aggregate Properties</h2>
               <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{loading ? "Loading results…" : inventoryUnavailable ? "Records temporarily unavailable" : `${ranked.length.toLocaleString()} results`}</span>
               {filtersActive && <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>}
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">The app loads a fast working set instead of thousands of records at once. Search by mine name, MSHA Mine ID, state, county or commodity to query the larger quarry database. Open a record for owner/operator, permitted acreage, geology, permits, compliance, production context and opportunity analysis.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Search the marketplace by property, county, state, rock type or mine ID. Verified seller listings appear alongside off-market quarry intelligence records, with ownership, acreage, geology, permits, compliance and production context available inside the full record.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <QuarrySearchAutocomplete sites={quarrySites} query={query} setQuery={setQuery} />
@@ -683,7 +697,7 @@ export default function Home() {
 
       <footer className="border-t border-border bg-muted">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground sm:flex-row">
-          <div>S&amp;S Rock Holdings — Industrial quarry intelligence · Hold the line on the data.</div>
+          <div>S&amp;S Rock Holdings — Quarry marketplace + industrial intelligence.</div>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a href="/support" className="hover:text-foreground hover:underline">Support</a>
             <a href="/privacy" className="hover:text-foreground hover:underline">Privacy</a>
