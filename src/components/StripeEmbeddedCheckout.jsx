@@ -12,7 +12,7 @@ const POLL_MAX_ATTEMPTS = 120; // ~5 minutes
  * completes payment without leaving the page. Polls the session status to
  * detect completion (compatible with all Stripe.js versions).
  */
-export default function StripeEmbeddedCheckout({ clientSecret, publishableKey, sessionId, browserSessionId, onComplete, onClose }) {
+export default function StripeEmbeddedCheckout({ clientSecret, publishableKey, sessionId, browserSessionId, signedIn = false, onComplete, onClose }) {
   const containerRef = useRef(null);
   const checkoutRef = useRef(null);
   const completedRef = useRef(false);
@@ -79,10 +79,12 @@ export default function StripeEmbeddedCheckout({ clientSecret, publishableKey, s
         if (cancelled || completedRef.current) return;
 
         try {
-          const response = await base44.functions.invoke("verify-public-stripe-subscription", {
-            session_id: sessionId,
-            browser_session_id: browserSessionId || getWebSubscriptionBrowserId(),
-          });
+          const response = signedIn
+            ? await base44.functions.invoke("verify-stripe-subscription", { session_id: sessionId })
+            : await base44.functions.invoke("verify-public-stripe-subscription", {
+                session_id: sessionId,
+                browser_session_id: browserSessionId || getWebSubscriptionBrowserId(),
+              });
           const payload = response?.data || response || {};
           if (payload?.active) {
             completedRef.current = true;
@@ -109,7 +111,7 @@ export default function StripeEmbeddedCheckout({ clientSecret, publishableKey, s
     poll();
 
     return () => { cancelled = true; };
-  }, [sessionId, browserSessionId, onComplete]);
+  }, [sessionId, browserSessionId, signedIn, onComplete]);
 
   return (
     <div className="fixed inset-0 z-[130] flex flex-col bg-black/60 backdrop-blur-sm">
