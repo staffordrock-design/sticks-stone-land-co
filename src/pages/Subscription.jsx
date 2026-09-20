@@ -528,6 +528,7 @@ export default function Subscription() {
           publishableKey={embeddedCheckout.publishableKey}
           sessionId={embeddedCheckout.sessionId}
           browserSessionId={embeddedCheckout.browserSessionId}
+          signedIn={!!user?.id}
           onComplete={handleEmbeddedComplete}
           onClose={() => {
             setEmbeddedCheckout(null);
