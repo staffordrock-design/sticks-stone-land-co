@@ -438,7 +438,7 @@ export default function Home() {
               <h2 className="mt-2 font-heading text-2xl font-bold text-foreground">See what a full quarry record looks like</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">This is a real, fully-unlocked S&amp;S quarry intelligence record — owner, operator, permitted acreage, parcel links, geology, permits and compliance. Every property in the marketplace has this same depth of data.</p>
             </div>
-            <Link to="/subscribe" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-sky-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Unlock all records — $49/month</Link>
+            <Link to="/subscribe" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-sky-700 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Unlock all records — $69/month</Link>
           </div>
           <div className="mx-auto max-w-md">
             <MiningSiteCard
@@ -469,7 +469,7 @@ export default function Home() {
               <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">See the facts that change a quarry decision in one place: who controls the property, how much acreage is involved, what the geology says, what permits and compliance records show, how production and demand fit together, and where deeper diligence is needed.</p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
-                  <TrendingUp className="h-4 w-4" /> Unlock the full record — $49/month
+                  <TrendingUp className="h-4 w-4" /> Unlock the full record — $69/month
                 </Link>
                 <Link to="/get-started?mode=report" className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white transition hover:bg-slate-800">
                   Request a custom report
