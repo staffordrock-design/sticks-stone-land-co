@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Mountain, Layers3, Crown, Users, UserRound } from "lucide-react";
+import { Mountain, Layers3, Bookmark, PlusCircle, UserRound } from "lucide-react";
 
 const TABS = [
-  { to: "/", label: "Quarries", icon: Mountain, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
-  { to: "/intelligence", label: "Intel", icon: Layers3, match: (p) => p.startsWith("/intelligence") || p.startsWith("/mineral-intelligence") || p.startsWith("/mineral-value-guide") || p.startsWith("/watchlist") || p.startsWith("/opportunities") || p.startsWith("/deal-investor") },
-  { to: "/network", label: "Network", icon: Users, match: (p) => p.startsWith("/network") || p.startsWith("/messages") },
-  { to: "/subscribe", label: "Access", icon: Crown, match: (p) => p.startsWith("/subscribe") },
-  { to: "/profile", label: "Profile", icon: UserRound, match: (p) => p.startsWith("/profile") || p.startsWith("/buyer-profile") },
+  { to: "/", label: "Explore", icon: Mountain, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
+  { to: "/watchlist", label: "Saved", icon: Bookmark, match: (p) => p.startsWith("/watchlist") || p.startsWith("/opportunities") || p.startsWith("/deal-investor") },
+  { to: "/sell", label: "List", icon: PlusCircle, match: (p) => p.startsWith("/sell") || p.startsWith("/seller-portal") || p.startsWith("/seller-dashboard") },
+  { to: "/intelligence", label: "Intel", icon: Layers3, match: (p) => p.startsWith("/intelligence") || p.startsWith("/mineral-intelligence") || p.startsWith("/mineral-value-guide") || p.startsWith("/quarry-intelligence") },
+  { to: "/profile", label: "Profile", icon: UserRound, match: (p) => p.startsWith("/profile") || p.startsWith("/buyer-profile") || p.startsWith("/network") || p.startsWith("/messages") || p.startsWith("/subscribe") },
 ];
 
 // Preserve each tab's last in-tab route and scroll position across tab switches.
