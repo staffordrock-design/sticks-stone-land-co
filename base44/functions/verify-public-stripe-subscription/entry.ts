@@ -1,3 +1,4 @@
+import { createClientFromRequest } from 'npm:@base44/sdk';
 import Stripe from 'npm:stripe';
 import { secrets } from 'base44:runtime';
 
@@ -22,6 +23,7 @@ function isoFromSeconds(value: unknown) {
 
 export default async function(req: Request) {
   try {
+    const base44 = createClientFromRequest(req);
     const { session_id, browser_session_id } = await req.json().catch(() => ({}));
     const sessionId = String(session_id || '').trim();
     const browserSessionId = String(browser_session_id || '').trim();
@@ -58,6 +60,30 @@ export default async function(req: Request) {
     const status = entitlementStatus(String(subscription.status || ''));
     const active = ['active', 'grace_period'].includes(status);
     const periodEnd = subscription?.current_period_end || subscription?.items?.data?.[0]?.current_period_end || null;
+
+    if (active) {
+      const billingData = {
+        user_id: '',
+        customer_email: String(session?.customer_details?.email || session?.customer_email || ''),
+        revenue_type: 'Subscription',
+        plan_or_product: planCode,
+        amount: Number(session?.amount_total || 0) / 100,
+        currency: String(session?.currency || 'usd').toUpperCase(),
+        platform: 'Stripe',
+        status: 'Paid',
+        external_transaction_id: String(session.id),
+        occurred_at: new Date().toISOString(),
+        notes: 'Anonymous web subscription checkout verified.',
+      };
+      const existingBilling = await base44.asServiceRole.entities.BillingEvent.filter(
+        { external_transaction_id: String(session.id) },
+        '-created_date',
+        1,
+        0,
+      );
+      if (existingBilling?.[0]) await base44.asServiceRole.entities.BillingEvent.update(existingBilling[0].id, billingData);
+      else await base44.asServiceRole.entities.BillingEvent.create(billingData);
+    }
 
     return Response.json({
       verified: true,
