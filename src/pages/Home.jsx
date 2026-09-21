@@ -21,6 +21,7 @@ import { base44 } from "@/api/base44Client";
 import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
 import SampleIntelligenceRecord from "@/components/SampleIntelligenceRecord";
+import BlurredQuarryCard from "@/components/BlurredQuarryCard";
 import AudiencePaths from "@/components/AudiencePaths";
 import MembershipValueSection from "@/components/MembershipValueSection";
 
@@ -548,21 +549,46 @@ export default function Home() {
       {/* Marketplace */}
       <section id="quarry-intelligence" className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-24">
         {!hasProfessional ? (
-          <div className="rounded-2xl border border-slate-700 bg-slate-950 p-10 text-center text-white">
-            <h2 className="font-heading text-2xl font-bold sm:text-3xl">The Full Quarry Database Is Locked</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-300">
-              The sample record above shows what each quarry intelligence record contains. To search and browse the full database — every quarry, every county, every state — unlock Full Quarry Intelligence for $69/month.
-            </p>
-            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
+          <>
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="font-heading text-2xl font-bold text-foreground">Quarry Opportunities</h2>
+                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{teaserSites.length} shown · unlock for the full database</span>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">These are live quarry records from the S&amp;S database. The owner, operator, permitted acreage, geology, valuation and opportunity score are blurred until you unlock Full Quarry Intelligence.</p>
+              </div>
+              <Link to="/subscribe" className="inline-flex min-h-12 w-fit items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
                 <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $69/month
               </Link>
-              <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800">
-                View Sample Record
-              </button>
             </div>
-            <p className="mt-4 text-xs text-slate-400">Cancel anytime. No account required to subscribe on web.</p>
-          </div>
+            {teaserSites.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {teaserSites.map((s) => (
+                  <BlurredQuarryCard key={s.id} site={s} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">
+                Quarry records are loading. Try again in a moment.
+              </div>
+            )}
+            <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-950 p-8 text-center text-white">
+              <h3 className="font-heading text-xl font-bold sm:text-2xl">This is a small sample of the full database</h3>
+              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+                Unlock to search and browse every quarry, every county, every state — with owner/operator, permitted acreage, mapped geology, valuation and opportunity score on every record.
+              </p>
+              <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
+                  <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $69/month
+                </Link>
+                <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800">
+                  View Sample Record
+                </button>
+              </div>
+              <p className="mt-4 text-xs text-slate-400">Cancel anytime. No account required to subscribe on web.</p>
+            </div>
+          </>
         ) : (
           <>
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
