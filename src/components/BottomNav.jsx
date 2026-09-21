@@ -4,7 +4,7 @@ import { Mountain, MapPinned, Bookmark, PlusCircle, UserRound } from "lucide-rea
 
 const TABS = [
   { to: "/", label: "Explore", icon: Mountain, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
-  { to: "/mineral-intelligence", label: "Map", icon: MapPinned, match: (p) => p.startsWith("/mineral-intelligence") || p.startsWith("/quarry-intelligence") },
+  { to: "/search", label: "Map", icon: MapPinned, match: (p) => p.startsWith("/search") || p.startsWith("/mineral-intelligence") || p.startsWith("/quarry-intelligence") },
   { to: "/watchlist", label: "Saved", icon: Bookmark, match: (p) => p.startsWith("/watchlist") || p.startsWith("/opportunities") },
   { to: "/sell", label: "List", icon: PlusCircle, match: (p) => p.startsWith("/sell") || p.startsWith("/seller-portal") || p.startsWith("/seller-dashboard") },
   { to: "/profile", label: "Account", icon: UserRound, match: (p) => p.startsWith("/profile") || p.startsWith("/buyer-profile") || p.startsWith("/subscribe") },
