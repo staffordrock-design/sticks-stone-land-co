@@ -5,30 +5,30 @@ import { Building2, Layers, TrendingUp, FileSearch, ArrowRight } from "lucide-re
 const PATHS = [
   {
     icon: Building2,
-    title: "Buy a Quarry",
-    description: "Find operating quarries, potential acquisition targets, ownership signals, permits, geology and market intelligence.",
-    cta: "Search Quarry Records",
-    to: "/subscribe",
+    title: "Find Quarry Opportunities",
+    description: "Browse quarry properties and off-market targets by location, rock type, operating status, acreage and source records.",
+    cta: "Find Opportunities",
+    to: "/#quarry-intelligence",
   },
   {
     icon: Layers,
-    title: "Sell Quarry-Capable Land",
-    description: "Submit property and provide buyers with the information needed to evaluate quarry potential.",
+    title: "List a Quarry Property",
+    description: "Submit an operating quarry, aggregate business, mineral interest or quarry-capable property for review.",
     cta: "List a Property",
     to: "/sell",
   },
   {
     icon: TrendingUp,
-    title: "Research a Market",
-    description: "Analyze quarry activity, operators, geology, permits, production signals and demand.",
-    cta: "Explore Intelligence",
-    to: "/subscribe",
+    title: "Map & Research",
+    description: "Explore quarry locations, geology, permits and nearby market signals in one property-focused view.",
+    cta: "Open the Map",
+    to: "/mineral-intelligence",
   },
   {
     icon: FileSearch,
-    title: "Order Due Diligence",
-    description: "Request deeper professional research on a quarry, property, operator or acquisition target.",
-    cta: "Request Due Diligence",
+    title: "Request Property Research",
+    description: "Request deeper due diligence on a quarry, land parcel, operator or potential acquisition.",
+    cta: "Request Research",
     to: "/get-started?mode=report",
   },
 ];
@@ -37,8 +37,8 @@ export default function AudiencePaths() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-14">
       <div className="mb-8 text-center">
-        <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">What Do You Need to Do?</h2>
-        <p className="mt-2 max-w-2xl mx-auto text-sm text-muted-foreground">Whether you're buying, selling, researching or diligencing — S&S Rock Holdings connects the quarry intelligence you need.</p>
+        <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">Quarry Real Estate, Built for Decisions</h2>
+        <p className="mt-2 max-w-2xl mx-auto text-sm text-muted-foreground">Search opportunities, compare property facts, map the land, save targets and connect with sellers from one focused marketplace.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {PATHS.map(({ icon: Icon, title, description, cta, to }) => (
