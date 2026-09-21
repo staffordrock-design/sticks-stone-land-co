@@ -19,6 +19,7 @@ const STATUS_OPTIONS = ["All", "Active", "Inactive / Idled", "Historical / Aband
 const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
 const CENSUS_COUNTY_WMS = "https://tigerweb.geo.census.gov/arcgis/services/TIGERweb/tigerWMS_ACS2026/MapServer/WMSServer";
 const DEFAULT_CENTER = [34.6, -85.4];
+const STATE_FIPS = { "01": "AL", "12": "FL", "13": "GA", "21": "KY", "28": "MS", "37": "NC", "45": "SC", "47": "TN" };
 
 function statusColor(group) {
   if (group === "Active") return "#15803d";
@@ -89,6 +90,34 @@ function MapViewportTracker({ onChange }) {
         zoom: map.getZoom(),
         bounds: { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() },
       });
+    },
+  });
+  return null;
+}
+
+function CountyClickPicker({ enabled, onCounty }) {
+  useMapEvents({
+    async click(event) {
+      if (!enabled) return;
+      const { lat, lng } = event.latlng;
+      try {
+        const params = new URLSearchParams({
+          where: "1=1",
+          geometry: `${lng},${lat}`,
+          geometryType: "esriGeometryPoint",
+          inSR: "4326",
+          spatialRel: "esriSpatialRelIntersects",
+          outFields: "STATE,BASENAME,NAME",
+          returnGeometry: "false",
+          f: "json",
+        });
+        const response = await fetch(`https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query?${params.toString()}`);
+        const data = await response.json();
+        const attributes = data?.features?.[0]?.attributes;
+        if (attributes?.BASENAME) onCounty({ county: attributes.BASENAME, state: STATE_FIPS[String(attributes.STATE || "").padStart(2, "0")] || null });
+      } catch {
+        // County selection remains optional if Census TIGERweb is temporarily unavailable.
+      }
     },
   });
   return null;
@@ -225,6 +254,7 @@ export default function QuarryMarketplace() {
   const [deedOnly, setDeedOnly] = useState(false);
   const [mapView, setMapView] = useState({ zoom: 6, bounds: null });
   const [areaBounds, setAreaBounds] = useState(null);
+  const [countyPickMode, setCountyPickMode] = useState(false);
   const [sites, setSites] = useState([]);
   const [parcels, setParcels] = useState([]);
   const [verifications, setVerifications] = useState([]);
