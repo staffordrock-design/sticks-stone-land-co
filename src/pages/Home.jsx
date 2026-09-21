@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { Layers, TrendingUp } from "lucide-react";
+import { Layers, TrendingUp, MapPin } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
@@ -433,17 +433,28 @@ export default function Home() {
         <div className="mb-3">
           <AppStoreBadge variant="dark" />
         </div>
-        <Suspense fallback={<div className="h-[480px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
-          <TennesseeMineMap
-            sites={ranked.slice(0, MAP_RENDER_LIMIT)}
-            geologyMap={geologyLookup}
-            height={480}
-            loading={loading}
-            unavailable={inventoryUnavailable}
-            onRetry={loadData}
-            previewMode={!hasProfessional}
-          />
-        </Suspense>
+        {!hasProfessional ? (
+          <div className="relative flex h-[480px] flex-col items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-slate-800 to-slate-950 p-6 text-center">
+            <MapPin className="h-10 w-10 text-sky-300" />
+            <p className="mt-3 font-heading text-3xl font-bold text-white">{loading ? "…" : `${ranked.length.toLocaleString()} quarry records mapped`}</p>
+            <p className="mt-2 max-w-md text-sm text-slate-200">Unlock Full Quarry Intelligence to explore every site on the interactive map with owner, geology, valuation and opportunity score.</p>
+            <Link to="/subscribe" className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
+              <TrendingUp className="h-4 w-4" /> Unlock — $69/month
+            </Link>
+          </div>
+        ) : (
+          <Suspense fallback={<div className="h-[480px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
+            <TennesseeMineMap
+              sites={ranked.slice(0, MAP_RENDER_LIMIT)}
+              geologyMap={geologyLookup}
+              height={480}
+              loading={loading}
+              unavailable={inventoryUnavailable}
+              onRetry={loadData}
+              previewMode={false}
+            />
+          </Suspense>
+        )}
         <p className="mt-2 text-xs text-muted-foreground">Aerial imagery uses Esri World Imagery tiles tied to each site's coordinates; it is not a current-condition survey or exact parcel-boundary depiction.</p>
       </section>
 
