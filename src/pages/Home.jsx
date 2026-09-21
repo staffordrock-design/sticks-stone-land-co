@@ -335,13 +335,13 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 pb-4">
           <BrandLogo />
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
-            <span className="font-medium text-foreground">Explore Properties</span>
+            <a href="#quarry-intelligence" className="font-medium text-foreground hover:text-sky-700">Find Opportunities</a>
+            <Link to="/mineral-intelligence" className="hover:text-foreground">Map</Link>
             <Link to="/watchlist" className="hover:text-foreground">Saved</Link>
-            <Link to="/sell" className="hover:text-foreground">List a Property</Link>
-            <Link to="/mineral-intelligence" className="hover:text-foreground">Map & Geology</Link>
-            <Link to="/subscribe" className="hover:text-foreground">Full Intelligence</Link>
-            <Link to="/data-sources" className="hover:text-foreground">Data Sources</Link>
-            <Link to="/support" className="hover:text-foreground">Support</Link>
+            <Link to="/sell" className="hover:text-foreground">List Property</Link>
+            <Link to="/data-sources" className="hover:text-foreground">How the Data Works</Link>
+            <Link to="/support" className="hover:text-foreground">Help</Link>
+            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 font-bold text-white hover:bg-sky-500">Unlock — $69/mo</Link>}
             {user?.role === "admin" && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
             {user?.role === "admin" && <Link to="/admin/conversions" className="font-semibold text-sky-700 hover:text-sky-800">Conversions</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
@@ -384,12 +384,16 @@ export default function Home() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }); }}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter") return;
+                    if (hasProfessional) document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" });
+                    else navigate("/subscribe");
+                  }}
                   placeholder="Search quarry, county, state, rock type or MSHA ID"
                   aria-label="Search quarry records"
                   className="min-h-12 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-base font-medium text-slate-950 outline-none ring-offset-2 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400"
                 />
-                <button type="button" onClick={() => document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" })} className="min-h-12 rounded-xl bg-sky-600 px-6 text-sm font-bold text-white shadow-lg hover:bg-sky-500">SEARCH QUARRY RECORDS</button>
+                <button type="button" onClick={() => hasProfessional ? document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }) : navigate("/subscribe")} className="min-h-12 rounded-xl bg-sky-600 px-6 text-sm font-bold text-white shadow-lg hover:bg-sky-500">{hasProfessional ? "FIND OPPORTUNITIES" : "UNLOCK PROPERTY SEARCH — $69/MO"}</button>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2 px-1 text-xs text-slate-700">
                 <span className="font-semibold">Try:</span>
@@ -419,7 +423,7 @@ export default function Home() {
           <div className="mb-6 text-center">
             <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">See What a Full Quarry Record Looks Like</h2>
             <p className="mt-2 max-w-3xl mx-auto text-sm leading-6 text-muted-foreground">
-              This is a real, fully-enriched S&S quarry intelligence record. Every property in the marketplace has this same depth of data — locked for paid members only.
+              This sample shows the source-linked property facts S&S can assemble. Each live record displays only the information actually available for that property; missing facts are not guessed.
             </p>
           </div>
           <div className="mx-auto max-w-3xl">
@@ -559,11 +563,11 @@ export default function Home() {
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-heading text-2xl font-bold text-foreground">Quarry & Aggregate Properties</h2>
+              <h2 className="font-heading text-2xl font-bold text-foreground">Find Quarry Opportunities</h2>
               <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{loading ? "Loading results…" : inventoryUnavailable ? "Records temporarily unavailable" : `${ranked.length.toLocaleString()} results`}</span>
               {filtersActive && <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>}
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">Search the marketplace by property, county, state, rock type or mine ID. Verified seller listings appear alongside off-market quarry intelligence records, with ownership, acreage, geology, permits, compliance and production context available inside the full record.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Browse the marketplace like commercial real estate: search by quarry, county, state, rock type or mine ID; filter by operating status; compare mapped property facts; and save the opportunities worth investigating. Verified seller listings are clearly separated from off-market intelligence records.</p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <QuarrySearchAutocomplete sites={quarrySites} query={query} setQuery={setQuery} />
