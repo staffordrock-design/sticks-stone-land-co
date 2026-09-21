@@ -90,7 +90,7 @@ const RequireAdmin = ({ children }) => {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
+  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   // Show loading spinner while checking app public settings or auth
