@@ -501,7 +501,7 @@ export default function QuarryMarketplace() {
           </section>
 
           <section className={`${mobileView === "list" ? "hidden lg:block" : "block"} relative min-h-[680px] bg-muted/20`}>
-            <div className="sticky top-[190px] relative h-[calc(100vh-190px)] min-h-[620px]">
+            <div className="sticky top-[190px] h-[calc(100vh-190px)] min-h-[620px]">
               <MapContainer center={DEFAULT_CENTER} zoom={6} minZoom={4} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
                 <MapController sites={displayed} selectedId={selectedId} />
                 <MapViewportTracker onChange={setMapView} />
@@ -531,7 +531,7 @@ export default function QuarryMarketplace() {
                   <LayersControl.Overlay name="Bedrock geology (USGS)">
                     <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.58} attribution="USGS State Geologic Map Compilation" />
                   </LayersControl.Overlay>
-                  <LayersControl.Overlay name="County boundaries (Census 2026)">
+                  <LayersControl.Overlay checked name="County boundaries (Census 2026)">
                     <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="82,83" format="image/png" transparent opacity={0.82} attribution="U.S. Census Bureau TIGERweb ACS 2026" />
                   </LayersControl.Overlay>
                 </LayersControl>
