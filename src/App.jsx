@@ -17,6 +17,7 @@ import MembershipRequiredGate from './components/MembershipRequiredGate';
 import { isNativeIOS } from '@/lib/appleSubscriptions';
 // Add page imports here
 const Home = lazy(() => import('./pages/Home'));
+const QuarryMarketplace = lazy(() => import('./pages/QuarryMarketplace'));
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
 const MineSiteDetail = lazy(() => import('./pages/MineSiteDetail'));
 const AdminActivity = lazy(() => import('./pages/AdminActivity'));
@@ -123,6 +124,7 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Add your page Route elements here */}
       <Route path="/" element={<Home />} />
+      <Route path="/search" element={<QuarryMarketplace />} />
       <Route path="/quarry-intelligence" element={<QuarryIntelligence />} />
       <Route path="/listings/:id" element={<PageTransition><ListingDetail /></PageTransition>} />
       <Route path="/mines/:id" element={<PageTransition><MineSiteDetail /></PageTransition>} />
