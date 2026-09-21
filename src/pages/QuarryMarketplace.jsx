@@ -423,7 +423,7 @@ export default function QuarryMarketplace() {
               {query && <button type="button" onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4" /></button>}
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:flex">
-              <select value={state} onChange={(e) => { setState(e.target.value); setCounty("All counties"); }} className="min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold">
+              <select value={state} onChange={(e) => { setState(e.target.value); setCounty("All counties"); setAreaBounds(null); setCountyPickMode(false); }} className="min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold">
                 {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
               <select value={county} onChange={(e) => setCounty(e.target.value)} className="min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold">
@@ -479,7 +479,7 @@ export default function QuarryMarketplace() {
             </div>
 
             <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-1 xl:grid-cols-2">
-              {loading ? [...Array(8)].map((_, i) => <div key={i} className="h-72 animate-pulse rounded-2xl border border-border bg-muted/30" />) : filtered.length ? (
+              {loading ? [...Array(8)].map((_, i) => <div key={i} className="h-72 animate-pulse rounded-2xl border border-border bg-muted/30" />) : displayed.length ? (
                 displayed.slice(0, 160).map((site) => {
                   const parcel = site.msha_mine_id ? parcelByMine.get(String(site.msha_mine_id)) : null;
                   const verification = verificationBySite.get(site.id) || (site.msha_mine_id ? verificationBySite.get(`msha:${site.msha_mine_id}`) : null);
@@ -501,10 +501,23 @@ export default function QuarryMarketplace() {
           </section>
 
           <section className={`${mobileView === "list" ? "hidden lg:block" : "block"} relative min-h-[680px] bg-muted/20`}>
-            <div className="sticky top-[190px] h-[calc(100vh-190px)] min-h-[620px]">
+            <div className="sticky top-[190px] relative h-[calc(100vh-190px)] min-h-[620px]">
               <MapContainer center={DEFAULT_CENTER} zoom={6} minZoom={4} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
                 <MapController sites={displayed} selectedId={selectedId} />
                 <MapViewportTracker onChange={setMapView} />
+                <CountyClickPicker
+                  enabled={countyPickMode}
+                  onCounty={({ county: pickedCounty, state: pickedState }) => {
+                    if (pickedState && pickedState !== state) {
+                      setState(pickedState);
+                      setCounty(pickedCounty);
+                    } else {
+                      setCounty(pickedCounty);
+                    }
+                    setAreaBounds(null);
+                    setCountyPickMode(false);
+                  }}
+                />
                 <LayersControl position="topright">
                   <LayersControl.BaseLayer checked name="Street">
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
@@ -560,7 +573,35 @@ export default function QuarryMarketplace() {
                 })}
               </MapContainer>
 
-              <div className="pointer-events-none absolute bottom-5 left-5 z-[500] max-w-xs rounded-2xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
+              <div className="absolute left-1/2 top-4 z-[600] flex -translate-x-1/2 flex-wrap items-center justify-center gap-2 px-3">
+                {mapView.bounds && (
+                  <button
+                    type="button"
+                    onClick={() => { setAreaBounds(mapView.bounds); setSelectedId(null); }}
+                    className="min-h-11 rounded-xl border border-slate-300 bg-white/95 px-4 text-xs font-black text-slate-900 shadow-lg backdrop-blur hover:bg-white"
+                  >
+                    Search this map area
+                  </button>
+                )}
+                {areaBounds && (
+                  <button
+                    type="button"
+                    onClick={() => setAreaBounds(null)}
+                    className="min-h-11 rounded-xl border border-slate-300 bg-white/95 px-4 text-xs font-black text-sky-800 shadow-lg backdrop-blur hover:bg-white"
+                  >
+                    Show all filtered properties
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setCountyPickMode((v) => !v)}
+                  className={`min-h-11 rounded-xl border px-4 text-xs font-black shadow-lg backdrop-blur ${countyPickMode ? "border-sky-500 bg-sky-600 text-white" : "border-slate-300 bg-white/95 text-slate-900 hover:bg-white"}`}
+                >
+                  {countyPickMode ? "Tap a county on the map" : "Pick county from map"}
+                </button>
+              </div>
+
+              <div className="pointer-events-none absolute bottom-5 left-5 z-[500] max-w-sm rounded-2xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
                 <div className="flex items-center gap-2 text-xs font-black"><Layers3 className="h-4 w-4" />Map intelligence</div>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
                   <span className="flex items-center gap-1"><Mountain className="h-3 w-3" />USGS geology</span>
@@ -568,6 +609,14 @@ export default function QuarryMarketplace() {
                   <span className="flex items-center gap-1"><FileText className="h-3 w-3" />Deed references</span>
                   <span className="flex items-center gap-1"><Database className="h-3 w-3" />Mine / permit data</span>
                 </div>
+                <div className="mt-3 border-t border-border pt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status ring</div>
+                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+                  <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-green-700" />Active</span>
+                  <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-amber-600" />Inactive / idled</span>
+                  <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-slate-500" />Historical</span>
+                  <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-blue-600" />New / potential</span>
+                </div>
+                <div className="mt-2 text-[10px] leading-4 text-muted-foreground">Zoomed-out markers cluster automatically. Exact parcel outlines appear inside records when source geometry is available.</div>
               </div>
             </div>
           </section>
