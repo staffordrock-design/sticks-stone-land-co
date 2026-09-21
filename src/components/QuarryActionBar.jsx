@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Network, Share2 } from "lucide-react";
+import { MessageCircleQuestion, FileSearch } from "lucide-react";
 import WatchQuarryButton from "@/components/WatchQuarryButton";
 
 export default function QuarryActionBar({ site }) {
@@ -9,18 +9,18 @@ export default function QuarryActionBar({ site }) {
     <div className="flex flex-wrap gap-2">
       <WatchQuarryButton site={site} />
       <Link
-        to={`/network/intelligence?site=${encodeURIComponent(site.id)}&tab=sites`}
+        to={`/get-started?mode=buyer&site=${encodeURIComponent(site.id)}`}
         className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-bold transition hover:bg-muted"
       >
-        <Network className="h-4 w-4 text-sky-700" />
-        Network intel
+        <MessageCircleQuestion className="h-4 w-4 text-sky-700" />
+        Ask About This Property
       </Link>
       <Link
-        to={`/network/deals/new?site=${encodeURIComponent(site.id)}`}
+        to={`/get-started?mode=report&site=${encodeURIComponent(site.id)}`}
         className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-xs font-bold transition hover:bg-muted"
       >
-        <Share2 className="h-4 w-4 text-sky-700" />
-        Post deal
+        <FileSearch className="h-4 w-4 text-sky-700" />
+        Request Property Research
       </Link>
     </div>
   );
