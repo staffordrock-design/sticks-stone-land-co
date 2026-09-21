@@ -1,3 +1,5 @@
+import { calculateComparableQuarryValue, regionalDefaultPerAcre } from "@/lib/quarryValuation";
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
@@ -28,8 +30,15 @@ export function calculateScenarioTonnage({ acres, depthFt = 200, densityLbFt3 = 
   };
 }
 
-export function calculateIndicativeQuarryValue({ site, parcel, profile, geology } = {}) {
+export function calculateIndicativeQuarryValue({ site, parcel, profile, geology, comps } = {}) {
   if (!site) return null;
+
+  // Prefer the comparable-sales engine whenever comp data is available — it
+  // values quarry land from real market sales / regional benchmarks instead of
+  // tax-assessed farmland values, which systematically undervalued properties.
+  if (comps && comps.length) {
+    return calculateComparableQuarryValue({ site, parcel, profile, geology, comps });
+  }
 
   const acres = n(site.acreage) ?? n(parcel?.acreage);
   const scenarioDepths = [50, 100, 200, 500, 1000];
@@ -39,13 +48,18 @@ export function calculateIndicativeQuarryValue({ site, parcel, profile, geology 
   const tonnageScenario = tonnageScenarios.find((scenario) => scenario.depthFt === 200) || tonnageScenarios[0] || null;
   const landValue = n(parcel?.land_value);
   const assessedValue = n(parcel?.assessed_value);
-  const anchorValue = landValue && landValue > 0 ? landValue : assessedValue && assessedValue > 0 ? assessedValue : null;
+  const taxAnchor = landValue && landValue > 0 ? landValue : assessedValue && assessedValue > 0 ? assessedValue : null;
+  // Raise the anchor: quarry land is systematically under-assessed as farmland.
+  // When a regional market benchmark per-acre value exceeds the tax anchor, use
+  // the benchmark so the estimate reflects quarry/mineral land, not pasture.
+  const marketFloor = acres && acres > 0 ? regionalDefaultPerAcre(site, geology) * acres : null;
+  const anchorValue = Math.max(taxAnchor || 0, marketFloor || 0) || null;
 
   if (!anchorValue || !acres || acres <= 0) {
     return {
       available: false,
       acres,
-      reason: "A verified parcel acreage and tax/GIS land-value anchor are required before a dollar estimate is shown.",
+      reason: "A verified parcel acreage is required before a dollar estimate is shown.",
     };
   }
 

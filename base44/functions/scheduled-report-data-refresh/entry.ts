@@ -35,6 +35,9 @@ export default async function(req: Request) {
     results.push(await run(base44, "sync-msha-employment", {}));
     results.push(await run(base44, "sync-usgs-aggregate-production", {}));
     results.push(await run(base44, "build-production-estimates", { state: "TN" }));
+    // Recompute comp-based valuations for every site after the weekly source
+    // sync so stored ValuationRecord rows stay current for reports/admin.
+    results.push(await run(base44, "build-valuation-estimates", {}));
   }
 
   // Parcel GIS can change more often. Tennessee and North Carolina both have automated parcel refreshes.

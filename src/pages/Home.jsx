@@ -69,6 +69,7 @@ export default function Home() {
   const [geology, setGeology] = useState([]);
   const [permits, setPermits] = useState([]);
   const [environmental, setEnvironmental] = useState([]);
+  const [comps, setComps] = useState([]);
   const [query, setQuery] = useState("");
   const [remoteSearchSites, setRemoteSearchSites] = useState([]);
   const [source, setSource] = useState("All");
@@ -122,13 +123,16 @@ export default function Home() {
       // Do not let one optional enrichment source blank the entire marketplace.
       // MiningSite is the core public inventory; parcel/geology/permit/environmental
       // data enrich the cards when available.
-      const [data, profileData, parcelData, geologyData, permitData, environmentalData] = await Promise.all([
+      const [data, profileData, parcelData, geologyData, permitData, environmentalData, compData] = await Promise.all([
         loadMiningSiteInventory(),
         premiumReady ? safeLoad("QuarryPotentialProfile", premiumEntityQuery("QuarryPotentialProfile", {}, "-updated_date", limit)) : Promise.resolve([]),
         premiumReady ? safeLoad("ParcelRecord", premiumEntityQuery("ParcelRecord", {}, "-updated_date", 500)) : Promise.resolve([]),
         premiumReady ? safeLoad("GeologyRecord", premiumEntityQuery("GeologyRecord", {}, "-updated_date", limit)) : Promise.resolve([]),
         premiumReady ? safeLoad("TDECPermit", premiumEntityQuery("TDECPermit", {}, "-last_source_update", limit)) : Promise.resolve([]),
         premiumReady ? safeLoad("EnvironmentalRecord", premiumEntityQuery("EnvironmentalRecord", {}, "-last_source_update", limit)) : Promise.resolve([]),
+        // Comparable sales are public-read and drive the comp-based valuation
+        // for both paid and unpaid visitors (unpaid only sees them after unlock).
+        safeLoad("QuarryComparable", base44.entities.QuarryComparable.list("-updated_date", 200)),
       ]);
 
       // Load a small teaser set for unpaid visitors so they see real quarry data
@@ -164,6 +168,7 @@ export default function Home() {
       setGeology(geoRecords);
       setPermits(permitData || []);
       setEnvironmental(environmentalData || []);
+      setComps(compData || []);
     } catch (error) {
       console.error("Home quarry inventory load failed", error);
       setInventoryUnavailable(true);
@@ -457,7 +462,7 @@ export default function Home() {
               const sitePermits = permitsForSite(s);
               const siteEnvironmental = environmentalForSite(s);
               const opportunity = opportunityForSite(s);
-              const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
+              const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord, comps });
               return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} emphasizeOpportunity previewMode={!hasProfessional} />;
             })}
           </div>
@@ -637,7 +642,7 @@ export default function Home() {
                 const sitePermits = permitsForSite(s);
                 const siteEnvironmental = environmentalForSite(s);
                 const opportunity = opportunityForSite(s);
-                const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord });
+                const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord, comps });
                 return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} previewMode={!hasProfessional} />;
               })}
             </div>
