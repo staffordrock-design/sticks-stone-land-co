@@ -48,7 +48,8 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
   const heroImage = site.site_images?.[0] || aerialPreview;
   const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location image" : null;
   const showOpportunity = !previewMode && Boolean(opportunity) && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
-  const owner = parcel?.owner_name || site.parcel_owner;
+  const rawOwner = parcel?.owner_name || site.parcel_owner;
+  const owner = rawOwner && !/pending|unknown|verify/i.test(rawOwner) ? rawOwner : null;
   const parcelAcreage = parcel?.acreage ?? site.acreage;
   const primaryPermit = permits.find((p) => Number(p?.permitted_acres) > 0) || permits[0] || null;
   const siteOperator = site.operator_name && !/pending|unknown|verify|requires verification/i.test(site.operator_name) ? site.operator_name : null;
@@ -59,7 +60,7 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
     ? `${permits.length} permit${permits.length === 1 ? "" : "s"}`
     : site.tdec_permit_number || site.npdes_permit_number
       ? "Permit linked"
-      : "Permit pending";
+      : null;
 
   const body = (
     <div className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
@@ -125,12 +126,7 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
               {Number(valuation.acres).toLocaleString()} acres · {formatCompactMoney(valuation.perAcreLow)}–{formatCompactMoney(valuation.perAcreHigh)}/ac
             </div>
           </div>
-        ) : (
-          <div className="mt-3 rounded-xl border border-dashed border-border bg-muted/20 p-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">S&amp;S Estimate</span>
-            <div className="mt-1 text-sm font-semibold text-muted-foreground">Pending — parcel &amp; tax data needed</div>
-          </div>
-        )}
+        ) : null}
 
         {showOpportunity && (
           <div className="mt-4 rounded-xl border border-sky-200 bg-sky-50/70 p-4">
@@ -144,22 +140,22 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
               </div>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
+              {opportunity.rock && <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
                 <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Gem className="h-3 w-3" /> Rock</div>
-                <div className="mt-1 line-clamp-2 font-semibold text-slate-900">{opportunity.rock || "Geology pending"}</div>
-              </div>
-              <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
+                <div className="mt-1 line-clamp-2 font-semibold text-slate-900">{opportunity.rock}</div>
+              </div>}
+              {(owner || opportunity.parcelId) && <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
                 <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Landmark className="h-3 w-3" /> Owner / Parcel</div>
-                <div className="mt-1 line-clamp-2 font-semibold text-slate-900">{owner && !/pending|unknown|verify/i.test(owner) ? owner : opportunity.parcelId || "Parcel pending"}</div>
-              </div>
-              <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
+                <div className="mt-1 line-clamp-2 font-semibold text-slate-900">{owner || opportunity.parcelId}</div>
+              </div>}
+              {Number(permittedAcreage) > 0 && <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Permitted acres</div>
-                <div className="mt-1 font-semibold text-slate-900">{Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Permit record pending"}</div>
-              </div>
-              <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
+                <div className="mt-1 font-semibold text-slate-900">{Number(permittedAcreage).toLocaleString()}</div>
+              </div>}
+              {(regulatoryLabel || environmental.length > 0) && <div className="rounded-lg border border-sky-100 bg-white/80 p-2">
                 <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><Leaf className="h-3 w-3" /> Regulatory</div>
-                <div className="mt-1 font-semibold text-slate-900">{regulatoryLabel}{environmental.length ? ` · ${environmental.length} env.` : ""}</div>
-              </div>
+                <div className="mt-1 font-semibold text-slate-900">{regulatoryLabel}{regulatoryLabel && environmental.length ? " · " : ""}{environmental.length ? `${environmental.length} environmental record${environmental.length === 1 ? "" : "s"}` : ""}</div>
+              </div>}
             </div>
             <p className="mt-3 text-[10px] leading-4 text-sky-900/70">Source-linked screening signal only. Not an appraisal, reserve estimate, title opinion or sale recommendation.</p>
           </div>
@@ -209,7 +205,7 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
         <div className="mt-4 rounded-xl border border-slate-300 bg-slate-100/70 p-3">
           <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-700"><ShieldCheck className="h-3.5 w-3.5" /> Source record</div>
           <div className="mt-1 text-sm font-semibold text-slate-900">{site.msha_mine_id ? `MSHA Mine ID ${site.msha_mine_id}` : site.tdec_permit_number ? `TDEC ${site.tdec_permit_number}` : site.source}</div>
-          <div className="mt-0.5 text-xs text-slate-600">{displayDate(site.last_source_update) ? `Source checked ${displayDate(site.last_source_update)}` : "Source date not yet verified"}</div>
+          {displayDate(site.last_source_update) && <div className="mt-0.5 text-xs text-slate-600">Source checked {displayDate(site.last_source_update)}</div>}
         </div>
 
         {site.site_images?.length > 0 && (
@@ -226,24 +222,23 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
               </div>
             </div>
           </div>
-        ) : (
-          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-border pt-4">
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Land owner</p>
-              <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{owner || "Owner pending"}</p>
+        ) : (owner || operator || Number(permittedAcreage) > 0 || Number(parcelAcreage) > 0) ? (
+          <div className="mt-4 grid grid-cols-1 gap-3 border-t border-border pt-4 sm:grid-cols-3">
+            {(owner || Number(parcelAcreage) > 0) && <div className="min-w-0">
+              {owner && <><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Land owner</p><p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{owner}</p></>}
               {Number(parcelAcreage) > 0 && <p className="mt-1 text-[10px] text-muted-foreground">Parcel: {Number(parcelAcreage).toLocaleString()} ac</p>}
-            </div>
-            <div className="min-w-0 border-l border-border pl-3">
+            </div>}
+            {operator && <div className="min-w-0 sm:border-l sm:border-border sm:pl-3">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{siteOperator ? "MSHA operator" : "Operator"}</p>
-              <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{operator || "Operator pending"}</p>
-            </div>
-            <div className="min-w-0 border-l border-border pl-3 text-right">
+              <p className="mt-1 line-clamp-2 font-display text-xs font-semibold text-foreground">{operator}</p>
+            </div>}
+            {Number(permittedAcreage) > 0 && <div className="min-w-0 sm:border-l sm:border-border sm:pl-3 sm:text-right">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Permitted acres</p>
-              <p className="mt-1 font-display text-base font-bold text-foreground">{Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "—"}</p>
-              <p className="mt-1 text-[10px] text-muted-foreground">{primaryPermit?.acreage_basis || site.permitted_acres_basis || "TDEC acreage pending"}</p>
-            </div>
+              <p className="mt-1 font-display text-base font-bold text-foreground">{Number(permittedAcreage).toLocaleString()}</p>
+              {(primaryPermit?.acreage_basis || site.permitted_acres_basis) && <p className="mt-1 text-[10px] text-muted-foreground">{primaryPermit?.acreage_basis || site.permitted_acres_basis}</p>}
+            </div>}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
