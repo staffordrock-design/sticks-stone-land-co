@@ -353,8 +353,9 @@ export default function Home() {
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
           <div className="flex items-center gap-3">
-            <AppStoreBadge className="inline-flex" />
-            <div className="text-sm font-medium text-foreground">{user?.name || user?.email || "Public Access"}</div>
+            <AppStoreBadge className="hidden sm:inline-flex" />
+            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-500 sm:text-sm">Unlock — $69/mo</Link>}
+            <div className="hidden text-sm font-medium text-foreground sm:block">{user?.name || user?.email || "Public Access"}</div>
           </div>
         </div>
       </header>
@@ -397,7 +398,7 @@ export default function Home() {
                   aria-label="Search quarry records"
                   className="min-h-12 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-base font-medium text-slate-950 outline-none ring-offset-2 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400"
                 />
-                <button type="button" onClick={scrollToOpportunities} className="min-h-12 rounded-xl bg-sky-600 px-6 text-sm font-bold text-white shadow-lg hover:bg-sky-500">{hasProfessional ? "FIND OPPORTUNITIES" : "UNLOCK PROPERTY SEARCH — $69/MO"}</button>
+                <button type="button" onClick={scrollToOpportunities} className="min-h-12 rounded-xl bg-sky-600 px-6 text-sm font-bold text-white shadow-lg hover:bg-sky-500">{hasProfessional ? "FIND OPPORTUNITIES" : "UNLOCK FULL ACCESS — $69/MO"}</button>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2 px-1 text-xs text-slate-700">
                 <span className="font-semibold">Try:</span>
