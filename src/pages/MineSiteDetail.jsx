@@ -652,6 +652,36 @@ export default function MineSiteDetail() {
           <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{diligence.map((item) => <div key={item.label} className="flex gap-2 rounded-xl border border-stone-800 bg-stone-900/70 p-3">{item.ready ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />}<div><div className="text-xs font-bold">{item.label}</div><div className="mt-0.5 text-[11px] text-stone-400">{item.detail || "Not connected"}</div></div></div>)}</div>
         </div>
 
+        <section className="mb-6 overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-slate-50">
+          <div className="flex flex-col gap-4 border-b border-sky-100 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-sky-800"><Landmark className="h-4 w-4" /> Courthouse / Parcel Record</div>
+              <h2 className="mt-2 font-heading text-xl font-black text-slate-950">Ownership and tax-map identity</h2>
+              <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">Source-linked parcel and ownership fields for screening. Use the cited government or county source for the controlling record and current title work.</p>
+            </div>
+            {ownershipVerification?.status === "Verified" ? (
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-800"><ShieldCheck className="h-4 w-4" /> Verified parcel match</span>
+            ) : (
+              <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-black text-amber-900"><AlertTriangle className="h-4 w-4" /> Verification pending / partial</span>
+            )}
+          </div>
+          <div className="grid gap-px bg-slate-200 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-white p-5"><div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Recorded owner</div><div className="mt-2 text-sm font-black text-slate-950">{ownershipVerification?.owner_name || landOwner || "Not yet verified"}</div>{ownershipVerification?.owner_name_2 && <div className="mt-1 text-xs text-slate-600">{ownershipVerification.owner_name_2}</div>}</div>
+            <div className="bg-white p-5"><div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Parcel / tax map</div><div className="mt-2 break-all text-sm font-black text-slate-950">{ownershipVerification?.parcel_id || parcel?.parcel_id || site.parcel_id || "Not linked"}</div><div className="mt-1 text-xs text-slate-600">{ownershipVerification?.tax_year ? `Tax year ${ownershipVerification.tax_year}` : "Tax year not loaded"}</div></div>
+            <div className="bg-white p-5"><div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Deed reference</div><div className="mt-2 text-sm font-black text-slate-950">{ownershipVerification?.deed_book_page || parcel?.deed_book_page || liveParcel?.deed_book_page || "Not loaded"}</div><div className="mt-1 text-xs text-slate-600">Book/page when supplied by source</div></div>
+            <div className="bg-white p-5"><div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Verified / source date</div><div className="mt-2 text-sm font-black text-slate-950">{displayDate(ownershipVerification?.verified_at || ownershipVerification?.source_updated || parcel?.last_source_update)}</div><div className="mt-1 text-xs text-slate-600">Keep separate from database refresh date</div></div>
+          </div>
+          <div className="grid gap-4 px-6 py-5 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-white p-4"><div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Property address</div><div className="mt-1 text-sm font-bold text-slate-900">{ownershipVerification?.property_address || parcel?.property_address || liveParcel?.situs_address || site.address || "Not loaded"}</div></div>
+            <div className="rounded-xl border border-slate-200 bg-white p-4"><div className="text-[10px] font-black uppercase tracking-wider text-slate-500">Mailing address</div><div className="mt-1 text-sm font-bold text-slate-900">{ownershipVerification?.mailing_address || parcel?.mailing_address || liveParcel?.mailing_address || "Not loaded"}</div></div>
+          </div>
+          {(ownershipVerification?.source_url || parcel?.source_url || liveParcel?.source_url || site.tax_map_url) && (
+            <div className="border-t border-sky-100 px-6 py-4">
+              <a href={ownershipVerification?.source_url || parcel?.source_url || liveParcel?.source_url || site.tax_map_url} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 text-xs font-black text-white hover:bg-slate-800">Open government parcel / tax-map source <ExternalLink className="h-4 w-4" /></a>
+            </div>
+          )}
+        </section>
+
         {!showAllRecords && (relatedInspections.length >= 90 || relatedViolations.length >= 90 || relatedProduction.length >= 90) && (
           <div className="mb-6 text-center">
             <button onClick={() => setShowAllRecords(true)} className="rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted">Show all compliance & production records</button>
@@ -661,23 +691,24 @@ export default function MineSiteDetail() {
           <Card title="Parcel & Tax Intelligence" icon={Landmark}>
             {(parcel || liveParcel || site.parcel_id || site.parcel_owner) ? (
               <>
-                <Row label="Parcel" value={parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
-                <Row label="Owner" value={landOwner || liveParcel?.owner} />
+                <Row label="Parcel" value={ownershipVerification?.parcel_id || parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
+                <Row label="Owner" value={ownershipVerification?.owner_name || landOwner || liveParcel?.owner} />
+                <Row label="Verification status" value={ownershipVerification?.status} />
                 <Row label="Parcel acreage" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />
                 <Row label="Permitted acreage" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />
-                <Row label="Property address" value={parcel?.property_address || liveParcel?.situs_address || site.address} />
-                <Row label="Mailing address" value={parcel?.mailing_address || liveParcel?.mailing_address} />
+                <Row label="Property address" value={ownershipVerification?.property_address || parcel?.property_address || liveParcel?.situs_address || site.address} />
+                <Row label="Mailing address" value={ownershipVerification?.mailing_address || parcel?.mailing_address || liveParcel?.mailing_address} />
                 <Row label="Assessed" value={money(parcel?.assessed_value ?? liveParcel?.assessed_value)} />
                 <Row label="Land value" value={money(parcel?.land_value ?? liveParcel?.land_value)} />
                 <Row label="Improvement value" value={money(parcel?.improvement_value ?? liveParcel?.improvement_value)} />
-                <Row label="Deed" value={parcel?.deed_book_page || liveParcel?.deed_book_page} />
-                <Row label="Tax year" value={parcel?.tax_year ?? liveParcel?.tax_year} />
-                <Row label="Source" value={parcel?.source_name || liveParcel?.source || (site.parcel_id || site.parcel_owner ? "Mining-site record; county verification pending" : null)} />
-                <Row label="Source checked" value={displayDate(parcel?.last_source_update || site.last_source_update)} />
+                <Row label="Deed" value={ownershipVerification?.deed_book_page || parcel?.deed_book_page || liveParcel?.deed_book_page} />
+                <Row label="Tax year" value={ownershipVerification?.tax_year ?? parcel?.tax_year ?? liveParcel?.tax_year} />
+                <Row label="Source" value={ownershipVerification?.source_url ? "Government parcel / tax-map verification" : (parcel?.source_name || liveParcel?.source || (site.parcel_id || site.parcel_owner ? "Mining-site record; county verification pending" : null))} />
+                <Row label="Source checked" value={displayDate(ownershipVerification?.verified_at || ownershipVerification?.source_updated || parcel?.last_source_update || site.last_source_update)} />
                 <Row label="Boundary" value={(parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3) ? "GIS parcel outline loaded" : "Boundary geometry not loaded yet"} />
                 <Row label="Boundary source" value={parcel?.boundary_source || liveParcel?.source} />
                 {(parcel?.boundary_source_url || liveParcel?.boundary_source_url) && <a href={parcel?.boundary_source_url || liveParcel?.boundary_source_url} target="_blank" rel="noreferrer" className="mt-4 mr-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open boundary source <ExternalLink className="h-3.5 w-3.5" /></a>}
-                {(parcel?.source_url || liveParcel?.source_url || site.tax_map_url) && <a href={parcel?.source_url || liveParcel?.source_url || site.tax_map_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
+                {(ownershipVerification?.source_url || parcel?.source_url || liveParcel?.source_url || site.tax_map_url) && <a href={ownershipVerification?.source_url || parcel?.source_url || liveParcel?.source_url || site.tax_map_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open tax/GIS source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No parcel match is available yet for this site.</p>
