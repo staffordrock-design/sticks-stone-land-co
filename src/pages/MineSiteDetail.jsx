@@ -475,7 +475,7 @@ export default function MineSiteDetail() {
   const aerialPreview = worldImageryTile(mapLat, mapLng, site.state);
   const diligence = [
     { label: "Mine / operating record", ready: Boolean(site.msha_mine_id || site.mine_status), detail: site.msha_mine_id ? `MSHA ${site.msha_mine_id}` : site.mine_status },
-    { label: "Parcel / tax record", ready: Boolean(parcel), detail: parcel?.parcel_id || "Parcel linkage pending" },
+    { label: "Parcel / tax record", ready: Boolean(parcel || ownershipVerification), detail: ownershipVerification?.parcel_id || parcel?.parcel_id || "Parcel linkage pending" },
     { label: "GIS boundary", ready: Boolean(parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3), detail: (parcel?.boundary_polygon?.length >= 3 || liveParcel?.boundary?.length >= 3) ? "Boundary available" : "Boundary pending" },
     { label: "Geology / rock intelligence", ready: Boolean(geologyRecord), detail: geologyRecord?.primary_rock || geologyRecord?.lithology || "Geology linkage pending" },
     { label: "Permit / regulatory record", ready: Boolean(relatedPermits.length), detail: relatedPermits.length ? `${relatedPermits.length} connected record${relatedPermits.length === 1 ? "" : "s"}` : "Permit linkage pending" },
@@ -689,7 +689,7 @@ export default function MineSiteDetail() {
         )}
         <div className="grid gap-6 lg:grid-cols-2">
           <Card title="Parcel & Tax Intelligence" icon={Landmark}>
-            {(parcel || liveParcel || site.parcel_id || site.parcel_owner) ? (
+            {(ownershipVerification || parcel || liveParcel || site.parcel_id || site.parcel_owner) ? (
               <>
                 <Row label="Parcel" value={ownershipVerification?.parcel_id || parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
                 <Row label="Owner" value={ownershipVerification?.owner_name || landOwner || liveParcel?.owner} />
