@@ -42,7 +42,26 @@ export default function SellProperty() {
     } finally { setSaving(false); }
   };
 
-  if (!user?.id) return <div className="min-h-screen p-10 text-center text-muted-foreground">Sign in to submit a property.</div>;
+  if (!user?.id) return (
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border">
+        <div className="mx-auto max-w-4xl px-6 py-4">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Back to marketplace</Link>
+        </div>
+      </header>
+      <main className="mx-auto max-w-3xl px-6 py-16 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white"><Building2 className="h-7 w-7"/></div>
+        <p className="mt-6 text-xs font-bold uppercase tracking-[0.2em] text-sky-700">For Property Owners</p>
+        <h1 className="mt-2 font-heading text-3xl font-bold text-foreground">List Your Quarry or Property</h1>
+        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Submit an operating quarry, aggregate operation, mineral interest, royalty interest or quarry-capable property for confidential S&amp;S review. Your information is not automatically published.</p>
+        <div className="mx-auto mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+          <Link to="/register?returnTo=%2Fsell" className="inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white hover:bg-sky-800">Create Free Account</Link>
+          <Link to="/login?returnTo=%2Fsell" className="inline-flex min-h-12 items-center justify-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-900 hover:bg-slate-50">Sign In to Continue</Link>
+        </div>
+        <p className="mt-5 text-xs text-muted-foreground">Creating an account lets you save the submission and track its review status.</p>
+      </main>
+    </div>
+  );
 
   return <div className="min-h-screen bg-background">
     <header className="border-b border-border"><div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Back</Link><Link to="/seller-portal" className="text-sm font-semibold text-sky-800 hover:underline">My submissions</Link></div></header>
