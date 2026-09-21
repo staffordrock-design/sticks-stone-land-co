@@ -5,7 +5,7 @@ import {
   LockKeyhole, Map as MapIcon, MapPin, Mountain, Search, ShieldCheck, SlidersHorizontal, X
 } from "lucide-react";
 import {
-  CircleMarker, LayersControl, MapContainer, Popup, TileLayer, useMap, WMSTileLayer
+  CircleMarker, LayersControl, MapContainer, Popup, TileLayer, Tooltip, useMap, useMapEvents, WMSTileLayer
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import BrandLogo from "@/components/BrandLogo";
@@ -17,7 +17,46 @@ import { rockCategoryColor, rockCategoryFor } from "../../base44/shared/rockType
 const STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATUS_OPTIONS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
 const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
+const CENSUS_COUNTY_WMS = "https://tigerweb.geo.census.gov/arcgis/services/TIGERweb/tigerWMS_ACS2026/MapServer/WMSServer";
 const DEFAULT_CENTER = [34.6, -85.4];
+
+function statusColor(group) {
+  if (group === "Active") return "#15803d";
+  if (group === "Inactive / Idled") return "#d97706";
+  if (group === "Historical / Abandoned") return "#64748b";
+  return "#2563eb";
+}
+
+function withinBounds(site, bounds) {
+  if (!bounds) return true;
+  const lat = Number(site.latitude);
+  const lng = Number(site.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  return lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
+}
+
+function clusterSites(sites, zoom) {
+  if (zoom >= 9) return sites.map((site) => ({ kind: "site", site }));
+  const cell = zoom <= 5 ? 1.25 : zoom === 6 ? 0.7 : zoom === 7 ? 0.35 : 0.18;
+  const groups = new Map();
+  for (const site of sites) {
+    const lat = Number(site.latitude);
+    const lng = Number(site.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+    const key = `${Math.floor(lat / cell)}:${Math.floor(lng / cell)}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(site);
+  }
+  return Array.from(groups.values()).map((group) => {
+    if (group.length === 1) return { kind: "site", site: group[0] };
+    return {
+      kind: "cluster",
+      sites: group,
+      lat: group.reduce((sum, s) => sum + Number(s.latitude), 0) / group.length,
+      lng: group.reduce((sum, s) => sum + Number(s.longitude), 0) / group.length,
+    };
+  });
+}
 
 function statusGroup(status = "") {
   const s = String(status).toLowerCase();
@@ -31,6 +70,43 @@ function formatDate(value) {
   if (!value) return "Not dated";
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString();
+}
+
+function MapViewportTracker({ onChange }) {
+  useMapEvents({
+    moveend(event) {
+      const map = event.target;
+      const b = map.getBounds();
+      onChange({
+        zoom: map.getZoom(),
+        bounds: { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() },
+      });
+    },
+    zoomend(event) {
+      const map = event.target;
+      const b = map.getBounds();
+      onChange({
+        zoom: map.getZoom(),
+        bounds: { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() },
+      });
+    },
+  });
+  return null;
+}
+
+function ClusterBubble({ cluster }) {
+  const map = useMap();
+  const count = cluster.sites.length;
+  return (
+    <CircleMarker
+      center={[cluster.lat, cluster.lng]}
+      radius={Math.min(24, 10 + Math.log2(count + 1) * 3)}
+      pathOptions={{ color: "#fff", weight: 2.5, fillColor: "#0f172a", fillOpacity: 0.92 }}
+      eventHandlers={{ click: () => map.flyTo([cluster.lat, cluster.lng], Math.min(11, map.getZoom() + 2), { duration: 0.5 }) }}
+    >
+      <Tooltip permanent direction="center" className="ss-map-cluster-count">{count}</Tooltip>
+    </CircleMarker>
+  );
 }
 
 function MapController({ sites, selectedId }) {
