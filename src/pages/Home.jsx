@@ -563,7 +563,7 @@ export default function Home() {
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-heading text-2xl font-bold text-foreground">Quarry Opportunities</h2>
-                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{loading ? "Loading…" : `${ranked.length.toLocaleString()} shown · unlock for the full database`}</span>
+                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{loading ? "Loading…" : `${ranked.length.toLocaleString()} records available`}</span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">These are live quarry records from the S&amp;S database. The owner, operator, permitted acreage, geology, valuation and opportunity score are blurred until you unlock Full Quarry Intelligence.</p>
               </div>
@@ -573,16 +573,22 @@ export default function Home() {
             </div>
             {loading ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
+                {[...Array(3)].map((_, i) => (
                   <div key={i} className="h-72 animate-pulse rounded-2xl border border-border bg-muted/40" />
                 ))}
               </div>
             ) : ranked.length > 0 ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {ranked.slice(0, CARD_RENDER_LIMIT).map((s) => (
-                  <BlurredQuarryCard key={s.id} site={s} />
-                ))}
-              </div>
+              <>
+                <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-5 text-center">
+                  <p className="font-heading text-2xl font-bold text-sky-950">{ranked.length.toLocaleString()} quarry records available</p>
+                  <p className="mt-1 text-sm text-sky-800">Here's a 3-record preview. Unlock Full Quarry Intelligence to view every record with owner, operator, geology, valuation and opportunity score.</p>
+                </div>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {ranked.slice(0, 3).map((s) => (
+                    <BlurredQuarryCard key={s.id} site={s} />
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">
                 Quarry records are loading. Try again in a moment.
