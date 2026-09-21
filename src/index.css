@@ -120,6 +120,20 @@
     position: relative;
     z-index: 1;
   }
+
+  .ss-map-cluster-count.leaflet-tooltip {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    color: white;
+    font-weight: 900;
+    font-size: 12px;
+    padding: 0;
+  }
+
+  .ss-map-cluster-count.leaflet-tooltip::before {
+    display: none;
+  }
 }
 
 @layer base {
