@@ -355,7 +355,7 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-slate-700 text-slate-50">
+      <section className="relative overflow-hidden border-b border-slate-300 text-slate-900">
         <div className="absolute inset-0">
           <Image
             src="https://media.base44.com/images/public/6a78376a454093ba2f431acd/4d73516b6_generated_image.png"
@@ -364,22 +364,22 @@ export default function Home() {
             className="h-full w-full"
           />
         </div>
-        <div className="absolute inset-0 bg-slate-950/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/75 to-slate-900/60" />
+        <div className="absolute inset-0 bg-white/60" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/50 to-transparent" />
         <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-24">
           <div className="max-w-4xl">
-            <h1 className="font-heading text-4xl font-black leading-[1.02] tracking-tight text-white drop-shadow-2xl sm:text-6xl lg:text-7xl">
+            <h1 className="font-heading text-4xl font-black leading-[1.02] tracking-tight text-slate-950 drop-shadow-sm sm:text-6xl lg:text-7xl">
               <span className="block">KNOW THE ROCK.</span>
               <span className="block">KNOW THE LAND.</span>
-              <span className="block text-sky-300">KNOW THE DEAL.</span>
+              <span className="block text-sky-700">KNOW THE DEAL.</span>
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-medium text-slate-200 sm:text-lg">
+            <p className="mt-5 max-w-2xl text-base font-semibold text-slate-800 sm:text-lg">
               Quarry marketplace + intelligence for buyers, operators, landowners, investors, and industry professionals.
             </p>
-            <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+            <p className="mt-3 max-w-2xl text-sm font-medium text-slate-700 sm:text-base">
               Search quarry and mineral-property intelligence built from mining records, permits, ownership data, geology, GIS, production, transportation demand, and other public-source intelligence.
             </p>
-            <div className="mt-8 max-w-2xl rounded-2xl border border-white/20 bg-white/10 p-3 backdrop-blur">
+            <div className="mt-8 max-w-2xl rounded-2xl border border-slate-300 bg-white/80 p-3 shadow-lg backdrop-blur">
               <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   value={query}
@@ -387,19 +387,19 @@ export default function Home() {
                   onKeyDown={(e) => { if (e.key === "Enter") document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }); }}
                   placeholder="Search quarry, county, state, rock type or MSHA ID"
                   aria-label="Search quarry records"
-                  className="min-h-12 flex-1 rounded-xl border border-white/25 bg-white px-4 text-base font-medium text-slate-950 outline-none ring-offset-2 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400"
+                  className="min-h-12 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-base font-medium text-slate-950 outline-none ring-offset-2 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400"
                 />
                 <button type="button" onClick={() => document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" })} className="min-h-12 rounded-xl bg-sky-600 px-6 text-sm font-bold text-white shadow-lg hover:bg-sky-500">SEARCH QUARRY RECORDS</button>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2 px-1 text-xs text-slate-300">
+              <div className="mt-2 flex flex-wrap items-center gap-2 px-1 text-xs text-slate-700">
                 <span className="font-semibold">Try:</span>
                 {["Tennessee", "Polk County", "Limestone", "MSHA Mine ID", "Quarry name"].map((s) => (
-                  <button key={s} type="button" onClick={() => { setQuery(s); document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }); }} className="rounded-full border border-white/20 bg-slate-950/40 px-2.5 py-0.5 font-medium hover:bg-slate-950/60">{s}</button>
+                  <button key={s} type="button" onClick={() => { setQuery(s); document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }); }} className="rounded-full border border-slate-300 bg-white/70 px-2.5 py-0.5 font-medium text-slate-800 hover:bg-slate-100">{s}</button>
                 ))}
               </div>
             </div>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-white/25 bg-slate-950/55 px-5 text-sm font-bold text-white hover:bg-slate-950/70">
+              <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-400 bg-white/70 px-5 text-sm font-bold text-slate-900 shadow-sm hover:bg-white">
                 <Layers className="h-4 w-4" /> VIEW SAMPLE INTELLIGENCE RECORD
               </button>
             </div>
