@@ -323,13 +323,8 @@ export default function Home() {
       navigate("/subscribe");
       return;
     }
-    requestAnimationFrame(() => {
-      const target = document.getElementById("quarry-intelligence");
-      if (!target) return;
-      const stickyHeaderOffset = 96;
-      const top = target.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
-      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    });
+    const q = query.trim();
+    navigate(q ? `/search?q=${encodeURIComponent(q)}&state=${stateFilter === "All Southeast" ? "TN" : stateFilter}` : `/search?state=${stateFilter === "All Southeast" ? "TN" : stateFilter}`);
   };
 
   return (
@@ -341,7 +336,7 @@ export default function Home() {
           <BrandLogo />
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
             <button type="button" onClick={scrollToOpportunities} className="font-medium text-foreground hover:text-sky-700">Find Opportunities</button>
-            <Link to="/mineral-intelligence" className="hover:text-foreground">Map</Link>
+            <Link to="/search" className="hover:text-foreground">Map</Link>
             <Link to="/watchlist" className="hover:text-foreground">Saved</Link>
             <Link to="/sell" className="hover:text-foreground">List Property</Link>
             <Link to="/data-sources" className="hover:text-foreground">How the Data Works</Link>
@@ -403,7 +398,7 @@ export default function Home() {
               <div className="mt-2 flex flex-wrap items-center gap-2 px-1 text-xs text-slate-700">
                 <span className="font-semibold">Try:</span>
                 {["Tennessee", "Polk County", "Limestone", "MSHA Mine ID", "Quarry name"].map((s) => (
-                  <button key={s} type="button" onClick={() => { setQuery(s); document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }); }} className="rounded-full border border-slate-300 bg-white/70 px-2.5 py-0.5 font-medium text-slate-800 hover:bg-slate-100">{s}</button>
+                  <button key={s} type="button" onClick={() => { if (!hasProfessional) { navigate("/subscribe"); return; } setQuery(s); navigate(`/search?q=${encodeURIComponent(s)}&state=TN`); }} className="rounded-full border border-slate-300 bg-white/70 px-2.5 py-0.5 font-medium text-slate-800 hover:bg-slate-100">{s}</button>
                 ))}
               </div>
             </div>
