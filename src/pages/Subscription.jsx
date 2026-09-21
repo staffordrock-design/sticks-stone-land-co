@@ -79,6 +79,7 @@ export default function Subscription() {
     return candidate;
   }, [location.search]);
   const checkoutStatus = useMemo(() => new URLSearchParams(location.search).get("checkout"), [location.search]);
+  const adminPreview = useMemo(() => user?.role === "admin" && new URLSearchParams(location.search).get("previewCustomer") === "1", [location.search, user?.role]);
   const stripeSessionId = useMemo(() => new URLSearchParams(location.search).get("session_id") || "", [location.search]);
   const [entitlements, setEntitlements] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -144,7 +145,7 @@ export default function Subscription() {
             try { await syncCurrentAppleSubscriptions(); } catch (error) { console.error("Apple backend entitlement sync failed", error); }
           }
           if (!cancelled) setAppleStoreAccess(access || { active: false, professional: false, purchases: [], planCodes: [] });
-          if (!cancelled && access?.active && access?.professional) navigate(returnTo, { replace: true });
+          if (!cancelled && access?.active && access?.professional && !adminPreview) navigate(returnTo, { replace: true });
         })
         .catch((error) => console.error("Apple entitlement recovery failed", error));
     }
@@ -162,7 +163,7 @@ export default function Subscription() {
     }
 
     return () => { cancelled = true; };
-  }, [user?.id, isNative, isIOS, isAndroid]);
+  }, [user?.id, isNative, isIOS, isAndroid, adminPreview]);
 
   useEffect(() => {
     if (checkoutStatus !== "cancelled") return;
@@ -451,6 +452,8 @@ export default function Subscription() {
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-12">
         <Link to="/" className="text-sm font-semibold text-sky-800 hover:underline">← Back to quarry intelligence</Link>
+        {user?.role === "admin" && !adminPreview && <Link to={`/subscribe?previewCustomer=1&returnTo=${encodeURIComponent(returnTo)}`} className="ml-4 inline-flex rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-xs font-bold text-sky-900">View checkout as customer</Link>}
+        {adminPreview && <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"><strong>Admin customer preview.</strong> You are seeing the purchase screen instead of being redirected by your existing access. Your admin access is unchanged.</div>}
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Unlock the records behind the quarry</h1></div></div>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Get the ownership, parcel, geology, permit, production, environmental and opportunity intelligence that sits behind each quarry record. Full access unlocks immediately after purchase. {isIOS ? "Apple shows the current price and purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."}</p>
