@@ -77,12 +77,12 @@ export default function ListingDetail() {
   }
 
   const specs = [
-    { icon: Ruler, label: "Acreage", value: `${Number(listing.acreage).toLocaleString()} acres` },
-    { icon: MapPin, label: "Location", value: `${listing.county ? listing.county + ", " : ""}${listing.state}` },
-    { icon: Layers, label: "Zoning", value: listing.zoning || "—" },
-    { icon: FileBadge, label: "Mineral Rights", value: listing.mineral_rights },
-    { icon: Coins, label: "Royalty Terms", value: listing.royalty_terms || "—" },
-  ];
+    Number(listing.acreage) > 0 ? { icon: Ruler, label: "Acreage", value: `${Number(listing.acreage).toLocaleString()} acres` } : null,
+    (listing.county || listing.state) ? { icon: MapPin, label: "Location", value: [listing.county, listing.state].filter(Boolean).join(", ") } : null,
+    listing.zoning ? { icon: Layers, label: "Zoning", value: listing.zoning } : null,
+    listing.mineral_rights ? { icon: FileBadge, label: "Mineral Rights", value: listing.mineral_rights } : null,
+    listing.royalty_terms ? { icon: Coins, label: "Royalty Terms", value: listing.royalty_terms } : null,
+  ].filter(Boolean);
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,13 +124,15 @@ export default function ListingDetail() {
               {listing.location_name || `${listing.county}, ${listing.state}`}
             </p>
           </div>
-          <div className="rounded-2xl border border-border bg-card px-6 py-4 text-right">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">Asking Price</p>
-            <p className="font-display text-3xl font-bold text-foreground">
-              ${Number(listing.asking_price).toLocaleString()}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">{listing.status}</p>
-          </div>
+          {(Number(listing.asking_price) > 0 || listing.status) && <div className="rounded-2xl border border-border bg-card px-6 py-4 text-right">
+            {Number(listing.asking_price) > 0 && <>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">Asking Price</p>
+              <p className="font-display text-3xl font-bold text-foreground">
+                ${Number(listing.asking_price).toLocaleString()}
+              </p>
+            </>}
+            {listing.status && <p className="mt-1 text-xs text-muted-foreground">{listing.status}</p>}
+          </div>}
         </div>
 
         {/* Image */}
