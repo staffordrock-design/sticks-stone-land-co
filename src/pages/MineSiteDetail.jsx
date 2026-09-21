@@ -155,6 +155,7 @@ export default function MineSiteDetail() {
   const [tdotProducerPlants, setTdotProducerPlants] = useState([]);
   const [tdotDemand, setTdotDemand] = useState([]);
   const [liveParcel, setLiveParcel] = useState(null);
+  const [ownershipVerifications, setOwnershipVerifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [reportGenerating, setReportGenerating] = useState(false);
@@ -208,6 +209,7 @@ export default function MineSiteDetail() {
           setProduction([]); setGeology([]); setContracts([]);
           setUsgsOccurrences([]); setUsgsMarketProduction([]);
           setTdotProducerPlants([]); setTdotDemand([]);
+          setOwnershipVerifications([]);
           return;
         }
 
@@ -244,6 +246,7 @@ export default function MineSiteDetail() {
           setProduction([]); setGeology([]); setContracts([]);
           setUsgsOccurrences([]); setUsgsMarketProduction([]);
           setTdotProducerPlants([]); setTdotDemand([]);
+          setOwnershipVerifications([]);
           return;
         }
 
@@ -275,6 +278,7 @@ export default function MineSiteDetail() {
         setUsgsMarketProduction(data.usgsMarketProduction || []);
         setTdotProducerPlants([...byKey.values()]);
         setTdotDemand(data.tdotDemand || []);
+        setOwnershipVerifications(data.ownershipVerifications || []);
       } catch (e) {
         if (!cancelled) setError(e?.message || "Unable to load site intelligence.");
       } finally {
@@ -292,6 +296,16 @@ export default function MineSiteDetail() {
       sameValue(p.tdec_permit_number, site.tdec_permit_number)
     ) || null;
   }, [site, parcels]);
+
+  const ownershipVerification = useMemo(() => {
+    if (!site) return null;
+    return ownershipVerifications.find((row) =>
+      sameValue(row.mining_site_id, site.id) ||
+      sameValue(row.msha_mine_id, site.msha_mine_id) ||
+      sameValue(row.parcel_id, site.parcel_id) ||
+      sameValue(row.parcel_id, parcel?.parcel_id)
+    ) || null;
+  }, [site, parcel, ownershipVerifications]);
 
   const relatedPermits = useMemo(() => {
     if (!site) return [];
@@ -448,7 +462,7 @@ export default function MineSiteDetail() {
   const mapLat = siteCoordinatesValid ? site.latitude : parcelCoordinatesValid ? parcel.latitude : null;
   const mapLng = siteCoordinatesValid ? site.longitude : parcelCoordinatesValid ? parcel.longitude : null;
   const primaryPermit = relatedPermits.find((p) => Number(p?.permitted_acres) > 0) || relatedPermits[0] || null;
-  const landOwner = parcel?.owner_name || site.parcel_owner || primaryPermit?.landowner_name || null;
+  const landOwner = ownershipVerification?.owner_name || parcel?.owner_name || site.parcel_owner || primaryPermit?.landowner_name || null;
   const siteOperator = site.operator_name && !/pending|unknown|verify|requires verification/i.test(site.operator_name) ? site.operator_name : null;
   const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
   const operator = siteOperator || permitOperator || null;
