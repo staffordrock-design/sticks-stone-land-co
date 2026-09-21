@@ -93,16 +93,14 @@ export default function Home() {
       };
 
       const premiumReady = !checkingAccess && hasProfessional;
+      const stateParam = stateFilter === "All Southeast" ? "ALL" : stateFilter;
 
       const loadMiningSiteInventory = async () => {
-        // Do not expose quarry records at all until a paid entitlement is verified.
+        // Paid-only premium query (admin fields). Falls back to the public list
+        // below if this returns nothing (e.g. preview RLS limitations).
         if (!premiumReady) return [];
         const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
         const perStateLimit = stateFilter === "All Southeast" ? 80 : 500;
-
-        // Keep the first screen fast and reliable on phones. Search still queries the
-        // full MiningSite database, so older records remain discoverable without
-        // downloading tens of thousands of rows before anything can render.
         const stateRows = await Promise.all(statesToLoad.map(async (state) => {
           const page = await safeLoad(
             `MiningSite working set ${state}`,
@@ -110,7 +108,6 @@ export default function Home() {
           );
           return (page || []).filter((site) => site?.id && isQuarryRelevant(site));
         }));
-
         const seen = new Set();
         const rows = [];
         for (const site of stateRows.flat()) {
@@ -121,31 +118,38 @@ export default function Home() {
         return rows;
       };
 
-      // Do not let one optional enrichment source blank the entire marketplace.
-      // MiningSite is the core public inventory; parcel/geology/permit/environmental
-      // data enrich the cards when available.
-      const [data, profileData, parcelData, geologyData, permitData, environmentalData, compData] = await Promise.all([
+      // Always load the public quarry list (service role) so the page populates
+      // for everyone — paid and unpaid — regardless of client-side RLS state.
+      let publicSites = [];
+      try {
+        const publicResponse = await base44.functions.invoke("get-public-quarry-list", { state: stateParam });
+        publicSites = publicResponse?.data?.sites || publicResponse?.sites || [];
+      } catch (error) {
+        console.error("Public quarry list load failed", error);
+        publicSites = [];
+      }
+
+      const [premiumSites, profileData, parcelData, geologyData, permitData, environmentalData, compData] = await Promise.all([
         loadMiningSiteInventory(),
         premiumReady ? safeLoad("QuarryPotentialProfile", premiumEntityQuery("QuarryPotentialProfile", {}, "-updated_date", limit)) : Promise.resolve([]),
         premiumReady ? safeLoad("ParcelRecord", premiumEntityQuery("ParcelRecord", {}, "-updated_date", 500)) : Promise.resolve([]),
         premiumReady ? safeLoad("GeologyRecord", premiumEntityQuery("GeologyRecord", {}, "-updated_date", limit)) : Promise.resolve([]),
         premiumReady ? safeLoad("TDECPermit", premiumEntityQuery("TDECPermit", {}, "-last_source_update", limit)) : Promise.resolve([]),
         premiumReady ? safeLoad("EnvironmentalRecord", premiumEntityQuery("EnvironmentalRecord", {}, "-last_source_update", limit)) : Promise.resolve([]),
-        // Comparable sales are public-read and drive the comp-based valuation
-        // for both paid and unpaid visitors (unpaid only sees them after unlock).
         safeLoad("QuarryComparable", base44.entities.QuarryComparable.list("-updated_date", 200)),
       ]);
 
-      // Load a small teaser set for unpaid visitors so they see real quarry data
-      // instead of a blank lock screen, creating a reason to subscribe.
+      // Merge premium fields onto the public list by id. If the premium query
+      // returns nothing, paid users still see the populated public list. Unpaid
+      // users use the public list as-is (premium fields stay absent/locked).
+      let data = publicSites;
+      if (premiumReady && premiumSites.length) {
+        const byId = new Map(premiumSites.map((s) => [s.id, s]));
+        data = publicSites.map((s) => ({ ...s, ...(byId.get(s.id) || {}) }));
+      }
+
       if (!premiumReady) {
-        try {
-          const teaserResponse = await base44.functions.invoke("get-teaser-sites", {});
-          setTeaserSites(teaserResponse?.data?.sites || teaserResponse?.sites || []);
-        } catch (error) {
-          console.error("Teaser load failed", error);
-          setTeaserSites([]);
-        }
+        setTeaserSites(publicSites);
         try {
           const sampleResponse = await base44.functions.invoke("get-sample-site", {});
           const sampleData = sampleResponse?.data || sampleResponse || {};
@@ -163,7 +167,7 @@ export default function Home() {
       const geoRecords = geologyData || [];
 
       setSites(siteList);
-      setInventoryUnavailable(premiumReady && siteList.length === 0);
+      setInventoryUnavailable(siteList.length === 0);
       setProfiles(profileData || []);
       setParcels(parcelData || []);
       setGeology(geoRecords);
@@ -420,6 +424,29 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Quarry map — visible to everyone, App Store button right above the map */}
+      <section className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mb-4">
+          <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Map</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Every mapped quarry and mine site in the S&amp;S database{!hasProfessional ? ". Premium details are locked — unlock to view owner, geology and valuation." : "."}</p>
+        </div>
+        <div className="mb-3">
+          <AppStoreBadge variant="dark" />
+        </div>
+        <Suspense fallback={<div className="h-[480px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
+          <TennesseeMineMap
+            sites={ranked.slice(0, MAP_RENDER_LIMIT)}
+            geologyMap={geologyLookup}
+            height={480}
+            loading={loading}
+            unavailable={inventoryUnavailable}
+            onRetry={loadData}
+            previewMode={!hasProfessional}
+          />
+        </Suspense>
+        <p className="mt-2 text-xs text-muted-foreground">Aerial imagery uses Esri World Imagery tiles tied to each site's coordinates; it is not a current-condition survey or exact parcel-boundary depiction.</p>
+      </section>
+
       {/* Trust band — real verified data from the database */}
       <TrustBand />
 
@@ -528,24 +555,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Southeast intelligence map — paid members only */}
-      {hasProfessional && (
-        <section className="mx-auto max-w-7xl px-6 pb-14">
-          <Suspense fallback={<div className="h-[560px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
-            <TennesseeMineMap
-              sites={ranked.slice(0, MAP_RENDER_LIMIT)}
-              geologyMap={geologyLookup}
-              height={560}
-              loading={loading}
-              unavailable={inventoryUnavailable}
-              onRetry={loadData}
-              previewMode={false}
-            />
-          </Suspense>
-          <p className="mt-2 text-xs text-muted-foreground">Aerial imagery uses Esri World Imagery tiles tied to each site's coordinates; it is not a current-condition survey or exact parcel-boundary depiction. Records with the same MSHA Mine ID are consolidated in the browsing view to avoid duplicate display.</p>
-        </section>
-      )}
-
       {/* Marketplace */}
       <section id="quarry-intelligence" className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-24">
         {!hasProfessional ? (
@@ -554,7 +563,7 @@ export default function Home() {
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-heading text-2xl font-bold text-foreground">Quarry Opportunities</h2>
-                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{teaserSites.length} shown · unlock for the full database</span>
+                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{loading ? "Loading…" : `${ranked.length.toLocaleString()} shown · unlock for the full database`}</span>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">These are live quarry records from the S&amp;S database. The owner, operator, permitted acreage, geology, valuation and opportunity score are blurred until you unlock Full Quarry Intelligence.</p>
               </div>
@@ -562,9 +571,15 @@ export default function Home() {
                 <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $69/month
               </Link>
             </div>
-            {teaserSites.length > 0 ? (
+            {loading ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {teaserSites.map((s) => (
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-72 animate-pulse rounded-2xl border border-border bg-muted/40" />
+                ))}
+              </div>
+            ) : ranked.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {ranked.slice(0, CARD_RENDER_LIMIT).map((s) => (
                   <BlurredQuarryCard key={s.id} site={s} />
                 ))}
               </div>
