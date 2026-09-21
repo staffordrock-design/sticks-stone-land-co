@@ -28,6 +28,7 @@ const PREMIUM_ENTITY_NAMES = new Set([
   'MiningSite', 'ParcelRecord', 'GeologyRecord', 'TDECPermit', 'EnvironmentalRecord',
   'ProductionRecord', 'MSHAInspection', 'MSHAViolation', 'QuarryPotentialProfile',
   'ContractIntelligence', 'ValuationRecord', 'USGSMineralOccurrence',
+  'ParcelOwnershipVerification',
 ]);
 
 function isEntitledEntitlement(row) {
@@ -198,7 +199,7 @@ export default async function(req) {
     const [
       parcels, permits, environmental, inspections, violations,
       profiles, production, geology, contracts, usgsOccurrences,
-      usgsMarketProduction, tdotProducerPlants, tdotDemand,
+      usgsMarketProduction, tdotProducerPlants, tdotDemand, ownershipVerifications,
     ] = await Promise.all([
       safeFilter('ParcelRecord', linkOr([parcelId ? { parcel_id: parcelId } : null, tdecPermit ? { tdec_permit_number: tdecPermit } : null]), '-updated_date', 50),
       safeFilter('TDECPermit', linkOr([tdecPermit ? { permit_number: tdecPermit } : null]), '-updated_date', 50),
@@ -215,6 +216,7 @@ export default async function(req) {
       String(site.state || '').toUpperCase() === 'TN' && site.county
         ? safeFilter('TDOTAggregateDemand', { $or: [{ county: site.county }, { counties: site.county }], unit: 'TON' }, '-letting_date', 200)
         : Promise.resolve([]),
+      safeFilter('ParcelOwnershipVerification', linkOr([parcelId ? { parcel_id: parcelId } : null]), '-verified_at', 20),
     ]);
 
     return Response.json({
@@ -233,6 +235,7 @@ export default async function(req) {
       usgsMarketProduction: usgsMarketProduction || [],
       tdotProducerPlants: tdotProducerPlants || [],
       tdotDemand: tdotDemand || [],
+      ownershipVerifications: ownershipVerifications || [],
     });
   } catch (error) {
     console.error('get-premium-site-data failed', error);
