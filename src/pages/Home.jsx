@@ -318,6 +318,20 @@ export default function Home() {
     setSortMode("Opportunity Priority");
   };
 
+  const scrollToOpportunities = () => {
+    if (!hasProfessional) {
+      navigate("/subscribe");
+      return;
+    }
+    requestAnimationFrame(() => {
+      const target = document.getElementById("quarry-intelligence");
+      if (!target) return;
+      const stickyHeaderOffset = 96;
+      const top = target.getBoundingClientRect().top + window.scrollY - stickyHeaderOffset;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    });
+  };
+
   return (
     <PullToRefresh onRefresh={loadData}>
     <div className="min-h-screen bg-background">
@@ -326,7 +340,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 pb-4">
           <BrandLogo />
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
-            <a href="#quarry-intelligence" className="font-medium text-foreground hover:text-sky-700">Find Opportunities</a>
+            <button type="button" onClick={scrollToOpportunities} className="font-medium text-foreground hover:text-sky-700">Find Opportunities</button>
             <Link to="/mineral-intelligence" className="hover:text-foreground">Map</Link>
             <Link to="/watchlist" className="hover:text-foreground">Saved</Link>
             <Link to="/sell" className="hover:text-foreground">List Property</Link>
@@ -377,14 +391,13 @@ export default function Home() {
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key !== "Enter") return;
-                    if (hasProfessional) document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" });
-                    else navigate("/subscribe");
+                    scrollToOpportunities();
                   }}
                   placeholder="Search quarry, county, state, rock type or MSHA ID"
                   aria-label="Search quarry records"
                   className="min-h-12 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-base font-medium text-slate-950 outline-none ring-offset-2 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400"
                 />
-                <button type="button" onClick={() => hasProfessional ? document.getElementById("quarry-intelligence")?.scrollIntoView({ behavior: "smooth" }) : navigate("/subscribe")} className="min-h-12 rounded-xl bg-sky-600 px-6 text-sm font-bold text-white shadow-lg hover:bg-sky-500">{hasProfessional ? "FIND OPPORTUNITIES" : "UNLOCK PROPERTY SEARCH — $69/MO"}</button>
+                <button type="button" onClick={scrollToOpportunities} className="min-h-12 rounded-xl bg-sky-600 px-6 text-sm font-bold text-white shadow-lg hover:bg-sky-500">{hasProfessional ? "FIND OPPORTUNITIES" : "UNLOCK PROPERTY SEARCH — $69/MO"}</button>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2 px-1 text-xs text-slate-700">
                 <span className="font-semibold">Try:</span>
@@ -532,7 +545,7 @@ export default function Home() {
       )}
 
       {/* Marketplace */}
-      <section id="quarry-intelligence" className="mx-auto max-w-7xl px-6 pb-24">
+      <section id="quarry-intelligence" className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-24">
         {!hasProfessional ? (
           <div className="rounded-2xl border border-slate-700 bg-slate-950 p-10 text-center text-white">
             <h2 className="font-heading text-2xl font-bold sm:text-3xl">The Full Quarry Database Is Locked</h2>
