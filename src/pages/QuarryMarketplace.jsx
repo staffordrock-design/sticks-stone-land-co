@@ -221,6 +221,10 @@ export default function QuarryMarketplace() {
   const [county, setCounty] = useState("All counties");
   const [commodity, setCommodity] = useState("All materials");
   const [minAcres, setMinAcres] = useState("");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [deedOnly, setDeedOnly] = useState(false);
+  const [mapView, setMapView] = useState({ zoom: 6, bounds: null });
+  const [areaBounds, setAreaBounds] = useState(null);
   const [sites, setSites] = useState([]);
   const [parcels, setParcels] = useState([]);
   const [verifications, setVerifications] = useState([]);
@@ -315,13 +319,22 @@ export default function QuarryMarketplace() {
       if (commodity !== "All materials" && site.commodity !== commodity) return false;
       const effectiveAcres = Number(parcel?.acreage || site.acreage || 0);
       if (Number.isFinite(acres) && acres > 0 && effectiveAcres < acres) return false;
+      const isVerified = verification?.status === "Verified" || Boolean(parcel?.source_url);
+      const hasDeed = Boolean(verification?.deed_book_page || parcel?.deed_book_page);
+      if (verifiedOnly && !isVerified) return false;
+      if (deedOnly && !hasDeed) return false;
       return true;
     });
-  }, [sites, query, status, county, commodity, minAcres, parcelByMine, verificationBySite]);
+  }, [sites, query, status, county, commodity, minAcres, verifiedOnly, deedOnly, parcelByMine, verificationBySite]);
 
-  const selected = filtered.find((s) => s.id === selectedId) || null;
-  const linkedParcelCount = filtered.filter((s) => s.msha_mine_id && parcelByMine.has(String(s.msha_mine_id))).length;
-  const deedCount = filtered.filter((s) => {
+  const displayed = useMemo(
+    () => areaBounds ? filtered.filter((site) => withinBounds(site, areaBounds)) : filtered,
+    [filtered, areaBounds]
+  );
+  const clusterItems = useMemo(() => clusterSites(displayed.slice(0, 450), mapView.zoom), [displayed, mapView.zoom]);
+
+  const linkedParcelCount = displayed.filter((s) => s.msha_mine_id && parcelByMine.has(String(s.msha_mine_id))).length;
+  const deedCount = displayed.filter((s) => {
     const v = verificationBySite.get(s.id) || (s.msha_mine_id ? verificationBySite.get(`msha:${s.msha_mine_id}`) : null);
     const p = s.msha_mine_id ? parcelByMine.get(String(s.msha_mine_id)) : null;
     return Boolean(v?.deed_book_page || p?.deed_book_page);
@@ -333,6 +346,9 @@ export default function QuarryMarketplace() {
     setCounty("All counties");
     setCommodity("All materials");
     setMinAcres("");
+    setVerifiedOnly(false);
+    setDeedOnly(false);
+    setAreaBounds(null);
     setSelectedId(null);
   };
 
