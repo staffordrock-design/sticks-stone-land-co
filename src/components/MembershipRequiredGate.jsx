@@ -18,6 +18,7 @@ const EXEMPT_PATHS = new Set([
   "/privacy",
   "/terms",
   "/support",
+  "/data-sources",
   "/account/delete",
   "/account-deletion",
   "/subscribe",
