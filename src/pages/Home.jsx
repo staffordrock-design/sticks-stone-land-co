@@ -1,11 +1,10 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Capacitor } from "@capacitor/core";
 import { useAuth } from "@/lib/AuthContext";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { ArrowRight, Bell, Building2, CheckCircle2, Database, Handshake, Landmark, Layers, MapPinned, ShieldCheck, TrendingUp } from "lucide-react";
+import { Layers, TrendingUp } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
@@ -31,7 +30,6 @@ const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATE_OPTIONS = ["All Southeast", ...SOUTHEAST_STATES];
 const MAP_RENDER_LIMIT = 240;
 const CARD_RENDER_LIMIT = 90;
-const BUILD_SHA = String(import.meta.env.VITE_BUILD_SHA || "local").slice(0, 7);
 
 function statusGroup(status = "") {
   const s = String(status).toLowerCase();
@@ -61,7 +59,6 @@ export default function Home() {
   const { user } = useAuth();
   const { hasProfessional, checking: checkingAccess } = useProfessionalAccess();
   const navigate = useNavigate();
-  const isNativeApp = Capacitor.isNativePlatform();
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inventoryUnavailable, setInventoryUnavailable] = useState(false);
@@ -302,12 +299,6 @@ export default function Home() {
 
   const priorityOpportunities = ranked.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).slice(0, 3);
   const featured = ranked.find((s) => isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)) || sites.find((s) => isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state));
-  const activeCount = quarrySites.filter((s) => statusGroup(s.mine_status) === "Active").length;
-  const opportunityCount = quarrySites.filter((s) => ["New / Potential", "Inactive / Idled"].includes(statusGroup(s.mine_status))).length;
-  const statesCovered = new Set(quarrySites.map((s) => String(s.state || "").trim().toUpperCase()).filter(Boolean)).size;
-  const geologyLinked = new Set(geology.map((g) => g.mining_site_id || g.msha_mine_id).filter(Boolean)).size;
-  const metricValue = (value) => !hasProfessional ? "Locked" : loading ? "…" : inventoryUnavailable ? "—" : Number(value || 0).toLocaleString();
-
   const geologyLookup = React.useMemo(() => {
     const map = {};
     for (const g of geology) {
