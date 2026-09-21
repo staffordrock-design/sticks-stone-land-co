@@ -16,16 +16,18 @@ export default function ScrollToTop() {
   const navigationType = useNavigationType();
 
   useEffect(() => {
-    if (navigationType === "POP") return;
-
     if (hash) {
       const id = getHashId(hash);
-      const timer = window.setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-      }, 50);
-      return () => window.clearTimeout(timer);
+      const timers = [50, 400, 1000].map((delay, index) => window.setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({
+          behavior: index === 0 ? "smooth" : "auto",
+          block: "start",
+        });
+      }, delay));
+      return () => timers.forEach((timer) => window.clearTimeout(timer));
     }
 
+    if (navigationType === "POP") return;
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
   }, [pathname, hash, navigationType]);
 
