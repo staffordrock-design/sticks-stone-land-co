@@ -421,10 +421,12 @@ export default function QuarryMarketplace() {
                 className="w-24 bg-transparent text-sm outline-none"
               />
             </div>
-            <DataBadge>{loading ? "Loading…" : `${filtered.length.toLocaleString()} properties`}</DataBadge>
+            <DataBadge>{loading ? "Loading…" : `${displayed.length.toLocaleString()} properties`}</DataBadge>
             <DataBadge tone="blue">{linkedParcelCount.toLocaleString()} parcel-linked</DataBadge>
             <DataBadge tone="green">{deedCount.toLocaleString()} deed refs</DataBadge>
-            {(query || status !== "All" || county !== "All counties" || commodity !== "All materials" || minAcres) && (
+            <button type="button" onClick={() => setVerifiedOnly((v) => !v)} className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black ${verifiedOnly ? "border-sky-300 bg-sky-50 text-sky-900" : "border-border bg-card text-muted-foreground"}`}><ShieldCheck className="h-4 w-4" />Courthouse linked</button>
+            <button type="button" onClick={() => setDeedOnly((v) => !v)} className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black ${deedOnly ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-border bg-card text-muted-foreground"}`}><FileText className="h-4 w-4" />Has deed ref</button>
+            {(query || status !== "All" || county !== "All counties" || commodity !== "All materials" || minAcres || verifiedOnly || deedOnly || areaBounds) && (
               <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>
             )}
             <div className="ml-auto flex rounded-xl border border-border bg-card p-1 lg:hidden">
@@ -448,7 +450,7 @@ export default function QuarryMarketplace() {
 
             <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-1 xl:grid-cols-2">
               {loading ? [...Array(8)].map((_, i) => <div key={i} className="h-72 animate-pulse rounded-2xl border border-border bg-muted/30" />) : filtered.length ? (
-                filtered.slice(0, 160).map((site) => {
+                displayed.slice(0, 160).map((site) => {
                   const parcel = site.msha_mine_id ? parcelByMine.get(String(site.msha_mine_id)) : null;
                   const verification = verificationBySite.get(site.id) || (site.msha_mine_id ? verificationBySite.get(`msha:${site.msha_mine_id}`) : null);
                   return (
@@ -471,7 +473,8 @@ export default function QuarryMarketplace() {
           <section className={`${mobileView === "list" ? "hidden lg:block" : "block"} relative min-h-[680px] bg-muted/20`}>
             <div className="sticky top-[190px] h-[calc(100vh-190px)] min-h-[620px]">
               <MapContainer center={DEFAULT_CENTER} zoom={6} minZoom={4} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
-                <MapController sites={filtered} selectedId={selectedId} />
+                <MapController sites={displayed} selectedId={selectedId} />
+                <MapViewportTracker onChange={setMapView} />
                 <LayersControl position="topright">
                   <LayersControl.BaseLayer checked name="Street">
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
@@ -485,14 +488,20 @@ export default function QuarryMarketplace() {
                   <LayersControl.Overlay name="Bedrock geology (USGS)">
                     <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.58} attribution="USGS State Geologic Map Compilation" />
                   </LayersControl.Overlay>
+                  <LayersControl.Overlay name="County boundaries (Census 2026)">
+                    <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="82,83" format="image/png" transparent opacity={0.82} attribution="U.S. Census Bureau TIGERweb ACS 2026" />
+                  </LayersControl.Overlay>
                 </LayersControl>
 
-                {filtered.slice(0, 450).map((site) => {
+                {clusterItems.map((item) => {
+                  if (item.kind === "cluster") return <ClusterBubble key={`cluster-${item.lat}-${item.lng}-${item.sites.length}`} cluster={item} />;
+                  const site = item.site;
                   const parcel = site.msha_mine_id ? parcelByMine.get(String(site.msha_mine_id)) : null;
                   const verification = verificationBySite.get(site.id) || (site.msha_mine_id ? verificationBySite.get(`msha:${site.msha_mine_id}`) : null);
                   const geo = geologyBySite.get(site.id) || (site.msha_mine_id ? geologyBySite.get(`msha:${site.msha_mine_id}`) : null);
                   const rock = geo?.primary_rock || geo?.lithology || site.commodity;
                   const color = rockCategoryColor(rock);
+                  const statusStroke = statusColor(statusGroup(site.mine_status));
                   const linked = Boolean(verification?.status === "Verified" || parcel?.source_url);
                   const owner = verification?.owner_name || parcel?.owner_name;
                   return (
@@ -500,7 +509,7 @@ export default function QuarryMarketplace() {
                       key={site.id}
                       center={[Number(site.latitude), Number(site.longitude)]}
                       radius={selectedId === site.id ? 10 : linked ? 8 : 6}
-                      pathOptions={{ color: "#fff", weight: selectedId === site.id ? 3 : 1.5, fillColor: color, fillOpacity: 0.9 }}
+                      pathOptions={{ color: statusStroke, weight: selectedId === site.id ? 5 : linked ? 3 : 2, fillColor: color, fillOpacity: 0.92 }}
                       eventHandlers={{ click: () => setSelectedId(site.id) }}
                     >
                       <Popup>
