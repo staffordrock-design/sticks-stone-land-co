@@ -80,6 +80,7 @@ export default function LeadSetup() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const paramMode = searchParams.get("mode");
+  const paramSite = searchParams.get("site");
   const [mode, setMode] = useState(() => modeFromParam(paramMode));
   const [form, setForm] = useState(initialForm);
   const [mineQuery, setMineQuery] = useState("");
@@ -100,6 +101,24 @@ export default function LeadSetup() {
     if (!paramMode) return;
     setMode(modeFromParam(paramMode));
   }, [paramMode]);
+
+  useEffect(() => {
+    if (!paramSite) return;
+    let active = true;
+    (async () => {
+      try {
+        const rows = await premiumEntityQuery("MiningSite", { id: paramSite }, "-updated_date", 1);
+        const site = rows?.[0];
+        if (active && site) {
+          setSelectedMine(site);
+          setMineQuery(site.mine_name || site.msha_mine_id || "");
+        }
+      } catch (e) {
+        console.error("Selected quarry could not be loaded", e);
+      }
+    })();
+    return () => { active = false; };
+  }, [paramSite]);
 
   useEffect(() => {
     const q = mineQuery.trim();
