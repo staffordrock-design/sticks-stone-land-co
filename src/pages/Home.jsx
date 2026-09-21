@@ -358,7 +358,6 @@ export default function Home() {
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
           <div className="flex items-center gap-3">
-            <AppStoreBadge className="hidden sm:inline-flex" />
             {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-500 sm:text-sm">Unlock — $69/mo</Link>}
             <div className="hidden text-sm font-medium text-foreground sm:block">{user?.name || user?.email || "Public Access"}</div>
           </div>
@@ -417,21 +416,15 @@ export default function Home() {
                 <Layers className="h-4 w-4" /> VIEW SAMPLE INTELLIGENCE RECORD
               </button>
             </div>
-            <div className="mt-6">
-              <AppStoreBadge variant="dark" />
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Quarry map — visible to everyone, App Store button right above the map */}
+      {/* Quarry map — visible to everyone */}
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-4">
           <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Map</h2>
           <p className="mt-1 text-sm text-muted-foreground">Every mapped quarry and mine site in the S&amp;S database{!hasProfessional ? ". Premium details are locked — unlock to view owner, geology and valuation." : "."}</p>
-        </div>
-        <div className="mb-3">
-          <AppStoreBadge variant="dark" />
         </div>
         {!hasProfessional ? (
           <div className="relative flex h-[480px] flex-col items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-slate-800 to-slate-950 p-6 text-center">
@@ -745,7 +738,10 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="mt-8 border-t border-border pt-6 text-center text-xs text-muted-foreground">
+          <div className="mt-8 flex justify-center">
+            <AppStoreBadge variant="dark" />
+          </div>
+          <div className="mt-6 border-t border-border pt-6 text-center text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} S&amp;S Rock Holdings LLC · Quarry marketplace + industrial intelligence · Source data may require independent verification.
           </div>
         </div>
