@@ -43,6 +43,17 @@ export default async function(req: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      branding_settings: {
+        display_name: 'S&S Rock Holdings',
+        background_color: '#ffffff',
+        button_color: '#0369a1',
+        border_style: 'rounded',
+        font_family: 'inter',
+        logo: {
+          type: 'url',
+          url: 'https://media.base44.com/images/public/6a78376a454093ba2f431acd/7de99d026_logo.png/v1/fill/w_1200,h_630/7de99d026_logo.png',
+        },
+      },
       line_items: [{
         price_data: {
           currency: plan.currency,
@@ -51,6 +62,7 @@ export default async function(req: Request) {
           product_data: {
             name: plan.name,
             description: plan.description,
+            images: ['https://media.base44.com/images/public/6a78376a454093ba2f431acd/7de99d026_logo.png/v1/fill/w_1200,h_630/7de99d026_logo.png'],
           },
         },
         quantity: 1,
