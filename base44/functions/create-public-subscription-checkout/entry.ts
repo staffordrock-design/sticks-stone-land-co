@@ -54,6 +54,11 @@ export default async function(req: Request) {
           url: 'https://media.base44.com/images/public/6a78376a454093ba2f431acd/7de99d026_logo.png/v1/fill/w_1200,h_630/7de99d026_logo.png',
         },
       },
+      custom_text: {
+        submit: {
+          message: 'Need help? Email contact@ssrockholdings.com or visit https://ssrockholdings.com/support',
+        },
+      },
       line_items: [{
         price_data: {
           currency: plan.currency,
