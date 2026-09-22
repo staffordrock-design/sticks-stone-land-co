@@ -43,14 +43,8 @@ export default async function(req: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      ui_mode: 'embedded_page',
       line_items: [{
-        price_data: {
-          currency: plan.currency,
-          unit_amount: plan.unitAmount,
-          recurring: { interval: plan.interval },
-          product_data: { name: plan.name },
-        },
+        price: plan.priceId,
         quantity: 1,
       }],
       customer_email: appUserEmail || undefined,
@@ -75,13 +69,12 @@ export default async function(req: Request) {
           return_to: returnTo,
         },
       },
-      return_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
+      success_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
+      cancel_url: `${origin}/subscribe?checkout=cancelled&returnTo=${encodeURIComponent(returnTo)}`,
     });
-    const publishableKey = secrets.get('STRIPE_PUBLISHABLE_KEY');
     return Response.json({
-      client_secret: session.client_secret,
+      checkout_url: session.url || '',
       session_id: session.id,
-      publishable_key: publishableKey || '',
     });
   } catch (error) {
     console.error('create-public-subscription-checkout error:', error);
