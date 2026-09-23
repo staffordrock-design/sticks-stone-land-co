@@ -38,6 +38,7 @@ const EXEMPT_PATHS = new Set([
   "/opportunities",
   "/sell",
   "/seller-portal",
+  "/search",
 ]);
 
 const FREE_ACCOUNT_PREFIXES = [

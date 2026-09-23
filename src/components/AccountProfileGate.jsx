@@ -22,6 +22,7 @@ const PUBLIC_PATHS = new Set([
   "/account-deletion",
   "/subscribe",
   "/get-started",
+  "/search",
 ]);
 
 // A completed profile is useful for account/workspace features, but it must never
