@@ -1,4 +1,4 @@
-import Stripe from 'npm:stripe';
+import Stripe from 'npm:stripe@18.5.0';
 import { secrets } from 'base44:runtime';
 
 const SUBSCRIPTION_PLANS = {
@@ -70,7 +70,6 @@ export default async function(req: Request) {
       }],
       customer_email: appUserEmail || undefined,
       client_reference_id: signedIn ? appUserId : `anonymous:${browserSessionId || randomSuffix()}`,
-      integration_identifier: `ssrockholdings_${randomSuffix()}`,
       metadata: {
         base44_app_id: Deno.env.get("BASE44_APP_ID") || '',
         purchase_type: 'subscription',
