@@ -75,7 +75,7 @@ export default function Home() {
   const [remoteSearchSites, setRemoteSearchSites] = useState([]);
   const [source, setSource] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [stateFilter, setStateFilter] = useState("TN");
+  const [stateFilter, setStateFilter] = useState("All Southeast");
   const [sortMode, setSortMode] = useState("Opportunity Priority");
 
   const loadData = async () => {
@@ -100,7 +100,7 @@ export default function Home() {
         // below if this returns nothing (e.g. preview RLS limitations).
         if (!premiumReady) return [];
         const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
-        const perStateLimit = stateFilter === "All Southeast" ? 80 : 500;
+        const perStateLimit = 500;
         const stateRows = await Promise.all(statesToLoad.map(async (state) => {
           const page = await safeLoad(
             `MiningSite working set ${state}`,
