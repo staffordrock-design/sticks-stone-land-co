@@ -42,7 +42,8 @@ export default async function(req) {
 
     const originHeader = req.headers.get('origin');
     const referer = req.headers.get('referer');
-    const origin = originHeader || (referer ? new URL(referer).origin : 'https://app.base44.com');
+    const bodyOrigin = typeof body?.origin === 'string' ? body.origin : '';
+    const origin = String(bodyOrigin || originHeader || (referer ? new URL(referer).origin : '')).trim() || 'https://industrious-stone-strata-site.base44.app';
     const stripeSecret = secrets.get('STRIPE_SECRET_KEY');
     if (!stripeSecret) return Response.json({ error: 'Stripe is not configured' }, { status: 503 });
     const stripe = new Stripe(stripeSecret, { apiVersion: '2026-06-24.dahlia' });

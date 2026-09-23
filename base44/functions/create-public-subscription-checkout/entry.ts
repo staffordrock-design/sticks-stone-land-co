@@ -26,7 +26,7 @@ function cleanReturnTo(value: unknown) {
 
 export default async function(req: Request) {
   try {
-    const { plan_code, return_to, session_id, user_id, user_email } = await req.json().catch(() => ({}));
+    const { plan_code, return_to, session_id, user_id, user_email, origin: bodyOrigin } = await req.json().catch(() => ({}));
     const plan = SUBSCRIPTION_PLANS[plan_code as keyof typeof SUBSCRIPTION_PLANS];
     const returnTo = cleanReturnTo(return_to);
     if (!plan) return Response.json({ error: 'Invalid plan' }, { status: 400 });
@@ -35,7 +35,10 @@ export default async function(req: Request) {
     if (!stripeKey) return Response.json({ error: 'Stripe is not configured' }, { status: 503 });
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
 
-    const origin = req.headers.get('origin') || 'https://ssrockholdings.com';
+    // Use the browser's actual origin (passed from the frontend) so Stripe
+    // always redirects back to the domain the visitor started on. Fall back to
+    // the request header, then the published app URL — never a marketing domain.
+    const origin = String(bodyOrigin || req.headers.get('origin') || '').trim() || 'https://industrious-stone-strata-site.base44.app';
     const browserSessionId = String(session_id || '').slice(0, 120);
     const appUserId = String(user_id || '').slice(0, 120);
     const appUserEmail = String(user_email || '').includes('@') ? String(user_email).slice(0, 160) : '';

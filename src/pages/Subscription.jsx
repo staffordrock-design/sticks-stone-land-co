@@ -356,7 +356,7 @@ export default function Subscription() {
     setBuyingId(planCode);
 
     try {
-      const response = await base44.functions.invoke("create-public-subscription-checkout", { plan_code: planCode, return_to: returnTo, session_id: getWebSubscriptionBrowserId(), user_id: user?.id || "", user_email: user?.email || "" });
+      const response = await base44.functions.invoke("create-public-subscription-checkout", { plan_code: planCode, return_to: returnTo, session_id: getWebSubscriptionBrowserId(), user_id: user?.id || "", user_email: user?.email || "", origin: window.location.origin });
       const payload = response?.data || response || {};
       if (!payload?.checkout_url) throw new Error(payload?.error || "Could not start checkout.");
 
