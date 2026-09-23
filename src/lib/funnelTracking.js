@@ -44,6 +44,7 @@ function isQualifiedUser(user) {
 
 function isBotEnvironment() {
   const ua = String(navigator?.userAgent || "");
+  if (navigator?.webdriver === true) return true;
   if (BOT_PATTERNS.some((p) => p.test(ua))) return true;
   const href = String(window?.location?.href || "");
   const ref = String(document?.referrer || "");
