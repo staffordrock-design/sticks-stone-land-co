@@ -9,6 +9,7 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import BrandLogo from "@/components/BrandLogo";
+import { base44 } from "@/api/base44Client";
 import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
@@ -265,7 +266,7 @@ export default function QuarryMarketplace() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (checking || !hasProfessional) {
+    if (checking) {
       setLoading(false);
       return;
     }
@@ -275,17 +276,27 @@ export default function QuarryMarketplace() {
       setLoading(true);
       setError("");
       try {
-        const [siteRows, parcelRows, verifyRows, geologyRows] = await Promise.all([
-          premiumEntityQuery("MiningSite", { state }, "-updated_date", 500),
-          premiumEntityQuery("ParcelRecord", { state }, "-updated_date", 500),
-          premiumEntityQuery("ParcelOwnershipVerification", {}, "-verified_at", 500),
-          premiumEntityQuery("GeologyRecord", { state }, "-updated_date", 500),
-        ]);
-        if (cancelled) return;
-        setSites((siteRows || []).filter((s) => s?.id && isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)));
-        setParcels(parcelRows || []);
-        setVerifications(verifyRows || []);
-        setGeology(geologyRows || []);
+        if (hasProfessional) {
+          const [siteRows, parcelRows, verifyRows, geologyRows] = await Promise.all([
+            premiumEntityQuery("MiningSite", { state }, "-updated_date", 500),
+            premiumEntityQuery("ParcelRecord", { state }, "-updated_date", 500),
+            premiumEntityQuery("ParcelOwnershipVerification", {}, "-verified_at", 500),
+            premiumEntityQuery("GeologyRecord", { state }, "-updated_date", 500),
+          ]);
+          if (cancelled) return;
+          setSites((siteRows || []).filter((s) => s?.id && isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)));
+          setParcels(parcelRows || []);
+          setVerifications(verifyRows || []);
+          setGeology(geologyRows || []);
+        } else {
+          const response = await base44.functions.invoke("get-public-quarry-list", { state });
+          const publicSites = response?.data?.sites || response?.sites || [];
+          if (cancelled) return;
+          setSites(publicSites.filter((s) => s?.id && isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)));
+          setParcels([]);
+          setVerifications([]);
+          setGeology([]);
+        }
       } catch (e) {
         if (!cancelled) setError(e?.message || "The quarry map could not load.");
       } finally {
@@ -386,19 +397,6 @@ export default function QuarryMarketplace() {
     return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="h-7 w-7 animate-spin" /></div>;
   }
 
-  if (!hasProfessional) {
-    return (
-      <main className="mx-auto max-w-4xl px-6 py-16">
-        <div className="rounded-3xl border border-slate-700 bg-slate-950 p-8 text-white sm:p-10">
-          <LockKeyhole className="h-8 w-8 text-sky-300" />
-          <h1 className="mt-5 font-heading text-3xl font-black">Interactive Quarry Property Map</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">The live map includes quarry locations, parcel/tax-map links, ownership records, deed references when available, geology and source-linked intelligence. Full access is included with the $69/month membership.</p>
-          <Link to="/subscribe" className="mt-7 inline-flex min-h-12 items-center justify-center rounded-xl bg-sky-600 px-6 text-sm font-bold text-white">Unlock Full Intelligence — $69/month</Link>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-[1000] border-b border-border bg-background/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 12px)" }}>
@@ -476,6 +474,12 @@ export default function QuarryMarketplace() {
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Find properties</p>
               <h1 className="mt-1 font-heading text-2xl font-black">Quarry & Mineral Property Intelligence</h1>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">Browse quarry records like commercial real estate, then open the source-linked parcel, ownership, permit and geology intelligence behind each location.</p>
+              {!hasProfessional && (
+                <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm">
+                  <p className="font-bold text-sky-950">You're seeing public quarry records.</p>
+                  <p className="mt-1 text-sky-800">Unlock ownership, parcel, deed, permit and geology intelligence for every property — <Link to="/subscribe" className="font-bold underline">$69/month</Link></p>
+                </div>
+              )}
             </div>
 
             <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-1 xl:grid-cols-2">

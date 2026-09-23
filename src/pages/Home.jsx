@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { Layers, TrendingUp, MapPin } from "lucide-react";
+import { Layers, TrendingUp, MapPin, Search, Building2 } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
@@ -330,10 +330,6 @@ export default function Home() {
   };
 
   const scrollToOpportunities = () => {
-    if (!hasProfessional) {
-      navigate("/subscribe");
-      return;
-    }
     const q = query.trim();
     navigate(q ? `/search?q=${encodeURIComponent(q)}&state=${stateFilter === "All Southeast" ? "TN" : stateFilter}` : `/search?state=${stateFilter === "All Southeast" ? "TN" : stateFilter}`);
   };
@@ -366,8 +362,8 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-slate-300 text-slate-900">
+      {/* Hero — search-first, Zillow-style */}
+      <section className="relative overflow-hidden border-b border-slate-300">
         <div className="absolute inset-0">
           <Image
             src="https://media.base44.com/images/public/6a78376a454093ba2f431acd/4d73516b6_generated_image.png"
@@ -376,51 +372,53 @@ export default function Home() {
             className="h-full w-full"
           />
         </div>
-        <div className="absolute inset-0 bg-white/60" />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/50 to-transparent" />
-        <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-24">
-          <div className="max-w-4xl">
-            <h1 className="font-heading text-4xl font-black leading-[1.02] tracking-tight text-slate-950 drop-shadow-sm sm:text-6xl lg:text-7xl">
-              <span className="block">KNOW THE ROCK.</span>
-              <span className="block">KNOW THE LAND.</span>
-              <span className="block text-sky-700">KNOW THE DEAL.</span>
+        <div className="absolute inset-0 bg-white/70" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-white/30 to-white/60" />
+        <div className="relative mx-auto max-w-5xl px-6 py-16 sm:py-24">
+          <div className="text-center">
+            <h1 className="font-heading text-4xl font-black leading-[1.05] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+              Find Quarry Opportunities<br className="hidden sm:block" /> Worth Investigating
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-semibold text-slate-800 sm:text-lg">
-              Quarry marketplace + intelligence for buyers, operators, landowners, investors, and industry professionals.
+            <p className="mx-auto mt-5 max-w-3xl text-base font-semibold text-slate-800 sm:text-lg">
+              Search quarry properties, operating mines, inactive sites, mineral opportunities, ownership, permits, geology, production, acreage, and market intelligence in one place.
             </p>
-            <p className="mt-3 max-w-2xl text-sm font-medium text-slate-700 sm:text-base">
-              Search quarry and mineral-property intelligence built from mining records, permits, ownership data, geology, GIS, production, transportation demand, and other public-source intelligence.
-            </p>
-            <div className="mt-8 max-w-2xl rounded-2xl border border-slate-300 bg-white/80 p-3 shadow-lg backdrop-blur">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key !== "Enter") return;
-                    scrollToOpportunities();
-                  }}
-                  placeholder="Search quarry, county, state, rock type or MSHA ID"
-                  aria-label="Search quarry records"
-                  className="min-h-12 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-base font-medium text-slate-950 outline-none ring-offset-2 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400"
-                />
-                <button type="button" onClick={scrollToOpportunities} className="min-h-12 rounded-xl bg-sky-600 px-6 text-sm font-bold text-white shadow-lg hover:bg-sky-500">{hasProfessional ? "FIND OPPORTUNITIES" : "UNLOCK FULL ACCESS — $69/MO"}</button>
-              </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2 px-1 text-xs text-slate-700">
-                <span className="font-semibold">Try:</span>
-                {["Tennessee", "Polk County", "Limestone", "MSHA Mine ID", "Quarry name"].map((s) => (
-                  <button key={s} type="button" onClick={() => { if (!hasProfessional) { navigate("/subscribe"); return; } setQuery(s); navigate(`/search?q=${encodeURIComponent(s)}&state=TN`); }} className="rounded-full border border-slate-300 bg-white/70 px-2.5 py-0.5 font-medium text-slate-800 hover:bg-slate-100">{s}</button>
-                ))}
-              </div>
-            </div>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-400 bg-white/70 px-5 text-sm font-bold text-slate-900 shadow-sm hover:bg-white">
-                <Layers className="h-4 w-4" /> VIEW SAMPLE INTELLIGENCE RECORD
+          </div>
+          <div className="mx-auto mt-8 max-w-3xl rounded-2xl border border-slate-300 bg-white/90 p-3 shadow-xl backdrop-blur">
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter") return;
+                  scrollToOpportunities();
+                }}
+                placeholder="Search by quarry name, county, state, MSHA ID, permit number, owner, or location"
+                aria-label="Search quarry opportunities"
+                className="min-h-14 flex-1 rounded-xl border border-slate-300 bg-white px-4 text-base font-medium text-slate-950 outline-none ring-offset-2 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-400"
+              />
+              <button type="button" onClick={scrollToOpportunities} className="inline-flex min-h-14 items-center justify-center gap-2 rounded-xl bg-sky-600 px-8 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
+                <Search className="h-4 w-4" /> Search Quarry Opportunities
               </button>
             </div>
           </div>
+          <div className="mx-auto mt-5 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">
+            <button type="button" onClick={() => navigate("/search")} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-400 bg-white/80 px-6 text-sm font-bold text-slate-900 shadow-sm hover:bg-white">
+              <TrendingUp className="h-4 w-4" /> I'm Looking to Buy or Invest
+            </button>
+            <button type="button" onClick={() => navigate("/sell")} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-400 bg-white/80 px-6 text-sm font-bold text-slate-900 shadow-sm hover:bg-white">
+              <Building2 className="h-4 w-4" /> I Own or Control Property
+            </button>
+          </div>
+          <div className="mt-4 text-center">
+            <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center justify-center gap-2 text-sm font-bold text-sky-800 hover:underline">
+              <Layers className="h-4 w-4" /> View a sample intelligence record
+            </button>
+          </div>
         </div>
       </section>
+
+      {/* Trust band — real verified data, right below hero */}
+      <TrustBand />
 
       {/* Sample intelligence record — moved to top for unpaid visitors */}
       {!hasProfessional && sampleBundle?.site && (
@@ -481,9 +479,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* Trust band — real verified data from the database */}
-      <TrustBand />
 
       {/* Audience paths */}
       <AudiencePaths />
