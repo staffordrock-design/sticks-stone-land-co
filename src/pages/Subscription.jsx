@@ -26,20 +26,6 @@ async function waitForAppleStoreAccess(attempts = 4) {
   return stableAppleSubscriptionAccess({ attempts });
 }
 
-function subscriptionSessionId() {
-  try {
-    const key = "ss_view_session";
-    let id = sessionStorage.getItem(key);
-    if (!id) {
-      id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-      sessionStorage.setItem(key, id);
-    }
-    return id;
-  } catch {
-    return `subscription-${Date.now()}`;
-  }
-}
-
 function storeProductDetail(product) {
   if (!product) return "";
   const price = product.priceString || product.localizedPrice || product.price || "";
