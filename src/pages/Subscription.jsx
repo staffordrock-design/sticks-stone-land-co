@@ -376,7 +376,7 @@ export default function Subscription() {
         try { await refreshEntitlements(); } catch { /* access is already verified by Stripe */ }
       } else {
         try {
-          const access = await verifySavedWebSubscriptionAccess(result?.sessionId);
+          const access = await verifySavedWebSubscriptionAccess();
           if (access?.active) setWebAccess(access);
         } catch { /* access was already verified by the checkout component */ }
       }
