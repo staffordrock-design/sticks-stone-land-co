@@ -22,6 +22,7 @@ import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
 import SampleIntelligenceRecord from "@/components/SampleIntelligenceRecord";
 import BlurredQuarryCard from "@/components/BlurredQuarryCard";
+import StickyUnlockBar from "@/components/StickyUnlockBar";
 import AudiencePaths from "@/components/AudiencePaths";
 import MembershipValueSection from "@/components/MembershipValueSection";
 
@@ -338,6 +339,7 @@ export default function Home() {
   };
 
   return (
+    <>
     <PullToRefresh onRefresh={loadData}>
     <div className="min-h-screen bg-background">
       {/* Top bar */}
@@ -420,6 +422,21 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Sample intelligence record — moved to top for unpaid visitors */}
+      {!hasProfessional && sampleBundle?.site && (
+        <section id="sample-record" className="mx-auto max-w-7xl px-6 py-14">
+          <div className="mb-6 text-center">
+            <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">See What a Full Quarry Record Looks Like</h2>
+            <p className="mt-2 max-w-3xl mx-auto text-sm leading-6 text-muted-foreground">
+              This sample shows the source-linked property facts S&S can assemble. Each live record displays only the information actually available for that property; missing facts are not guessed.
+            </p>
+          </div>
+          <div className="mx-auto max-w-3xl">
+            <SampleIntelligenceRecord bundle={sampleBundle} />
+          </div>
+        </section>
+      )}
+
       {/* Quarry map — visible to everyone */}
       <section className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-4">
@@ -451,23 +468,22 @@ export default function Home() {
         <p className="mt-2 text-xs text-muted-foreground">Aerial imagery uses Esri World Imagery tiles tied to each site's coordinates; it is not a current-condition survey or exact parcel-boundary depiction.</p>
       </section>
 
-      {/* Trust band — real verified data from the database */}
-      <TrustBand />
-
-      {/* Sample intelligence record — one polished public record for unpaid visitors */}
-      {!hasProfessional && sampleBundle?.site && (
-        <section id="sample-record" className="mx-auto max-w-7xl px-6 py-14">
-          <div className="mb-6 text-center">
-            <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">See What a Full Quarry Record Looks Like</h2>
-            <p className="mt-2 max-w-3xl mx-auto text-sm leading-6 text-muted-foreground">
-              This sample shows the source-linked property facts S&S can assemble. Each live record displays only the information actually available for that property; missing facts are not guessed.
-            </p>
-          </div>
-          <div className="mx-auto max-w-3xl">
-            <SampleIntelligenceRecord bundle={sampleBundle} />
+      {/* Mid-page unlock CTA for unpaid visitors */}
+      {!hasProfessional && (
+        <section className="mx-auto max-w-7xl px-6 py-10">
+          <div className="rounded-3xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-8 text-center shadow-sm sm:p-12">
+            <h2 className="font-heading text-2xl font-bold text-slate-950 sm:text-3xl">Unlock Every Quarry Record</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">You've seen the map. Now see the ownership, geology, permits, valuation and opportunity score behind every quarry. Full access unlocks immediately.</p>
+            <Link to="/subscribe" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
+              <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $69/month
+            </Link>
+            <p className="mt-3 text-xs text-slate-500">Cancel anytime. No account required.</p>
           </div>
         </section>
       )}
+
+      {/* Trust band — real verified data from the database */}
+      <TrustBand />
 
       {/* Audience paths */}
       <AudiencePaths />
@@ -748,5 +764,7 @@ export default function Home() {
       </footer>
     </div>
     </PullToRefresh>
+    {!hasProfessional && <StickyUnlockBar />}
+    </>
   );
 }
