@@ -4,7 +4,7 @@
 
 // Must exactly match the Android applicationId generated from capacitor.config.ts.
 // Keep this aligned with the Play Console package name used for S&S Rock Holdings.
-const PACKAGE_NAME = 'com.base6a78376a454093ba2f431acd.app';
+const PACKAGE_NAME = 'com.ssrockholdings.quarrymarketplace';
 
 const PRODUCT_TO_PLAN = {
   'ssrockholdings_marketplace_monthly': 'marketplace_monthly',
