@@ -12,6 +12,7 @@ import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
+import StripeEmbeddedCheckout from "@/components/StripeEmbeddedCheckout";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -60,7 +61,7 @@ export default function Subscription() {
   const [storeProducts, setStoreProducts] = useState({});
   const [storeLoading, setStoreLoading] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState("");
-  const [checkoutUrl, setCheckoutUrl] = useState("");
+  const [embeddedCheckout, setEmbeddedCheckout] = useState(null);
   const [buyingId, setBuyingId] = useState("");
   const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
   const [webAccess, setWebAccess] = useState({ active: false });
@@ -331,57 +332,71 @@ export default function Subscription() {
   };
 
   const startWebCheckout = async (planCode) => {
-    const isEmbedded = window.self !== window.top;
-    let checkoutWindow = null;
-
-    // If S&S is embedded (for example inside a website builder/webview), open a
-    // customer-initiated tab immediately so the async API call does not lose the
-    // browser's user-gesture permission. This avoids silently blocking checkout.
-    if (isEmbedded) {
-      try {
-        checkoutWindow = window.open("", "_blank");
-        if (checkoutWindow) {
-          checkoutWindow.opener = null;
-          checkoutWindow.document.title = "Opening S&S secure checkout…";
-          checkoutWindow.document.body.innerHTML = "<p style='font-family:system-ui;padding:24px'>Opening S&S secure checkout…</p>";
-        }
-      } catch {
-        checkoutWindow = null;
-      }
-    }
-
     trackSubscriptionAction(user, "subscribe_cta_clicked", "web", planCode);
     setPurchaseMessage("");
-    setCheckoutUrl("");
     setBuyingId(planCode);
 
     try {
-      const response = await base44.functions.invoke("create-public-subscription-checkout", { plan_code: planCode, return_to: returnTo, session_id: getWebSubscriptionBrowserId(), user_id: user?.id || "", user_email: user?.email || "", origin: window.location.origin });
+      const browserSessionId = getWebSubscriptionBrowserId();
+      const response = await base44.functions.invoke("create-public-subscription-checkout", {
+        plan_code: planCode,
+        return_to: returnTo,
+        session_id: browserSessionId,
+        user_id: user?.id || "",
+        user_email: user?.email || "",
+        origin: window.location.origin,
+      });
       const payload = response?.data || response || {};
-      if (!payload?.checkout_url) throw new Error(payload?.error || "Could not start checkout.");
 
-      setCheckoutUrl(payload.checkout_url);
+      if (!payload?.client_secret || !payload?.publishable_key || !payload?.session_id) {
+        throw new Error(payload?.error || "Could not start secure checkout.");
+      }
+
       trackSubscriptionAction(user, "checkout_created", "web", planCode);
-
-      if (checkoutWindow && !checkoutWindow.closed) {
-        checkoutWindow.location.replace(payload.checkout_url);
-        return;
-      }
-
-      if (isEmbedded) {
-        setPurchaseMessage("Secure checkout is ready. Tap “Open secure checkout” below to continue.");
-        return;
-      }
-
-      window.location.assign(payload.checkout_url);
+      setEmbeddedCheckout({
+        clientSecret: payload.client_secret,
+        publishableKey: payload.publishable_key,
+        sessionId: payload.session_id,
+        browserSessionId,
+      });
     } catch (error) {
-      try { checkoutWindow?.close(); } catch {}
       const message = error?.message || "Could not start checkout.";
       trackSubscriptionAction(user, "checkout_error", "web", message);
       setPurchaseMessage(message);
     } finally {
       setBuyingId("");
     }
+  };
+
+  const handleEmbeddedComplete = async (result) => {
+    setEmbeddedCheckout(null);
+
+    if (result?.active) {
+      if (user?.id) {
+        try { await refreshEntitlements(); } catch { /* access is already verified by Stripe */ }
+      } else {
+        try {
+          const access = await verifySavedWebSubscriptionAccess(result?.sessionId);
+          if (access?.active) setWebAccess(access);
+        } catch { /* access was already verified by the checkout component */ }
+      }
+
+      trackSubscriptionAction(user, "checkout_completed", "web", "embedded");
+      base44.analytics.track({ eventName: "subscription_purchased" });
+      setPurchaseMessage("Subscription confirmed. Your full quarry intelligence is active.");
+      navigate(returnTo, { replace: true });
+      return;
+    }
+
+    if (result?.pending) {
+      trackSubscriptionAction(user, "checkout_pending", "web", "embedded");
+      window.location.href = `/subscribe?checkout=success&session_id=${result.sessionId}&returnTo=${encodeURIComponent(returnTo)}`;
+      return;
+    }
+
+    const message = result?.error || "Checkout could not be confirmed yet. Please try again in a moment.";
+    trackSubscriptionAction(user, "checkout_error", "web", message);
+    setPurchaseMessage(message);
   };
 
   const manageSubscriptions = async () => {
@@ -441,17 +456,6 @@ export default function Subscription() {
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, review Apple&apos;s purchase terms, confirm, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
           {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to buy.</strong> Continue straight to secure checkout. After payment, Full Quarry Intelligence unlocks on this browser; sign in later only if you want account-based features.</div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
-          {!isNative && checkoutUrl && (
-            <a
-              href={checkoutUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => trackSubscriptionAction(user, "checkout_fallback_opened", "web")}
-              className="mt-3 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800"
-            >
-              Open secure checkout
-            </a>
-          )}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
@@ -516,6 +520,21 @@ export default function Subscription() {
           </div>}
         </div>
       </div>
+      {embeddedCheckout && (
+        <StripeEmbeddedCheckout
+          clientSecret={embeddedCheckout.clientSecret}
+          publishableKey={embeddedCheckout.publishableKey}
+          sessionId={embeddedCheckout.sessionId}
+          browserSessionId={embeddedCheckout.browserSessionId}
+          signedIn={Boolean(user?.id)}
+          onComplete={handleEmbeddedComplete}
+          onClose={() => {
+            setEmbeddedCheckout(null);
+            setPurchaseMessage("Checkout canceled — your subscription was not started and you were not charged.");
+            trackSubscriptionAction(user, "checkout_cancelled", "web", "embedded");
+          }}
+        />
+      )}
     </div>
   );
 }
