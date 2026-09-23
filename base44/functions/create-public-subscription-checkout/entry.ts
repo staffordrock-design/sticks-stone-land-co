@@ -32,7 +32,10 @@ export default async function(req: Request) {
     if (!plan) return Response.json({ error: 'Invalid plan' }, { status: 400 });
 
     const stripeKey = secrets.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) return Response.json({ error: 'Stripe is not configured' }, { status: 503 });
+    const publishableKey = secrets.get('STRIPE_PUBLISHABLE_KEY');
+    if (!stripeKey || !publishableKey) {
+      return Response.json({ error: 'Stripe checkout is not fully configured' }, { status: 503 });
+    }
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
 
     // Use the browser's actual origin (passed from the frontend) so Stripe
@@ -46,6 +49,8 @@ export default async function(req: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      ui_mode: 'embedded_page',
+      redirect_on_completion: 'if_required',
       branding_settings: {
         display_name: 'S&S Rock Holdings',
         background_color: '#ffffff',
@@ -97,12 +102,12 @@ export default async function(req: Request) {
           return_to: returnTo,
         },
       },
-      success_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
-      cancel_url: `${origin}/subscribe?checkout=cancelled&returnTo=${encodeURIComponent(returnTo)}`,
+      return_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
     });
     return Response.json({
-      checkout_url: session.url || '',
+      client_secret: session.client_secret || '',
       session_id: session.id,
+      publishable_key: publishableKey,
     });
   } catch (error) {
     console.error('create-public-subscription-checkout error:', error);
