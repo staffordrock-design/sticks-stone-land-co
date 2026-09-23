@@ -236,6 +236,7 @@ export default function Subscription() {
   const purchase = async (productId) => {
     if (!productId || (!isIOS && !isAndroid)) return;
     trackSubscriptionAction(user, "subscribe_cta_clicked", isIOS ? "apple" : "google", productId);
+    base44.analytics.track({ eventName: "buy_button_clicked", properties: { plan_code: productId, platform: isIOS ? "apple" : "google", user_email: user?.email || "anonymous" } });
     // Apple StoreKit subscriptions are tied to the Apple ID and must remain
     // purchasable without forcing an S&S account first. Android still requires
     // an account so the Google Play purchase can be linked to backend access.
@@ -333,6 +334,7 @@ export default function Subscription() {
 
   const startWebCheckout = async (planCode) => {
     trackSubscriptionAction(user, "subscribe_cta_clicked", "web", planCode);
+    base44.analytics.track({ eventName: "buy_button_clicked", properties: { plan_code: planCode, platform: "web", user_email: user?.email || "anonymous" } });
     setPurchaseMessage("");
     setBuyingId(planCode);
 
