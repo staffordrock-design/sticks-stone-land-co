@@ -171,7 +171,7 @@ function DataBadge({ children, tone = "slate" }) {
   return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${tones[tone] || tones.slate}`}>{children}</span>;
 }
 
-function PropertyCard({ site, parcel, verification, selected, onSelect }) {
+function PropertyCard({ site, parcel, verification, selected, onSelect, hasProfessional }) {
   const rock = site.commodity || "Material not classified";
   const group = statusGroup(site.mine_status);
   const owner = verification?.owner_name || parcel?.owner_name;
@@ -189,7 +189,7 @@ function PropertyCard({ site, parcel, verification, selected, onSelect }) {
           <div className="min-w-0">
             <div className="flex flex-wrap gap-2">
               <DataBadge tone={group === "Active" ? "green" : group === "Inactive / Idled" ? "amber" : "slate"}>{group}</DataBadge>
-              {verified && <DataBadge tone="blue"><ShieldCheck className="mr-1 h-3 w-3" />Courthouse-linked</DataBadge>}
+              {hasProfessional && verified && <DataBadge tone="blue"><ShieldCheck className="mr-1 h-3 w-3" />Courthouse-linked</DataBadge>}
             </div>
             <h3 className="mt-3 line-clamp-2 font-heading text-lg font-black text-foreground">{site.mine_name || "Quarry / Mine Site"}</h3>
             <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{[site.county, site.state].filter(Boolean).join(", ") || "Location on file"}</p>
@@ -202,31 +202,38 @@ function PropertyCard({ site, parcel, verification, selected, onSelect }) {
 
         <div className="mt-4 grid grid-cols-3 gap-2">
           <div className="rounded-xl bg-muted/40 p-2.5">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Parcel acres</div>
+            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Acreage</div>
             <div className="mt-1 text-sm font-black">{Number(acreage) > 0 ? Number(acreage).toLocaleString() : "—"}</div>
-          </div>
-          <div className="rounded-xl bg-muted/40 p-2.5">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Permit acres</div>
-            <div className="mt-1 text-sm font-black">{Number(site.permitted_acres) > 0 ? Number(site.permitted_acres).toLocaleString() : "—"}</div>
           </div>
           <div className="rounded-xl bg-muted/40 p-2.5">
             <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Source</div>
             <div className="mt-1 truncate text-sm font-black">{site.source || "Public"}</div>
           </div>
+          <div className="rounded-xl bg-muted/40 p-2.5">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Status</div>
+            <div className="mt-1 truncate text-sm font-black">{group}</div>
+          </div>
         </div>
 
-        <div className="mt-4 space-y-2 border-t border-border pt-3 text-xs">
-          <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Owner</span><strong className="max-w-[65%] text-right">{owner || "Open record"}</strong></div>
-          <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Parcel / tax map</span><strong className="max-w-[65%] truncate text-right">{parcelId || "—"}</strong></div>
-          <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Deed reference</span><strong>{deed || "—"}</strong></div>
-        </div>
+        {hasProfessional ? (
+          <div className="mt-4 space-y-2 border-t border-border pt-3 text-xs">
+            {owner && <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Owner</span><strong className="max-w-[65%] text-right">{owner}</strong></div>}
+            {parcelId && <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Parcel / tax map</span><strong className="max-w-[65%] truncate text-right">{parcelId}</strong></div>}
+            {deed && <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Deed reference</span><strong>{deed}</strong></div>}
+          </div>
+        ) : (
+          <div className="mt-4 space-y-2 border-t border-border pt-3 text-xs">
+            <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Owner</span><span className="inline-flex items-center gap-1 text-slate-400"><LockKeyhole className="h-3 w-3" />Locked</span></div>
+            <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Parcel / deed</span><span className="inline-flex items-center gap-1 text-slate-400"><LockKeyhole className="h-3 w-3" />Locked</span></div>
+          </div>
+        )}
       </button>
 
       <div className="mt-4 flex gap-2">
         <Link to={`/mines/${site.id}`} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-slate-950 px-3 text-xs font-bold text-white hover:bg-slate-800">
-          Open full intelligence
+          {hasProfessional ? "Open full intelligence" : "Open record"}
         </Link>
-        {(verification?.source_url || parcel?.source_url) && (
+        {hasProfessional && (verification?.source_url || parcel?.source_url) && (
           <a
             href={verification?.source_url || parcel?.source_url}
             target="_blank"
@@ -495,6 +502,7 @@ export default function QuarryMarketplace() {
                       verification={verification}
                       selected={selectedId === site.id}
                       onSelect={() => { setSelectedId(site.id); setMobileView("map"); }}
+                      hasProfessional={hasProfessional}
                     />
                   );
                 })

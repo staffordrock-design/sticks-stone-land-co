@@ -28,7 +28,7 @@ async function identifyGeology(lat: number, lon: number) {
     returnGeometry: "false",
   });
   const url = `${GEOLOGY_QUERY}?${params.toString()}`;
-  const resp = await fetch(url, { headers: { "User-Agent": "SticksAndStoneLandCo/1.0" } });
+  const resp = await fetch(url, { headers: { "User-Agent": "SSRockHoldings/1.0" } });
   if (!resp.ok) throw new Error(`Geology query failed: ${resp.status}`);
   const data = await resp.json();
   if (data?.error) throw new Error(data.error?.message || "ArcGIS geology query error");
