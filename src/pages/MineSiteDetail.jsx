@@ -454,8 +454,35 @@ export default function MineSiteDetail() {
     })();
   }, [hasProfessional, site, parcel]);
 
-  if (loading) return <div className="min-h-screen bg-background p-10 text-center text-muted-foreground">Loading site intelligence…</div>;
-  if (error || !site) return <div className="min-h-screen bg-background p-10 text-center text-destructive">{error || "Site not found."}</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-background">
+      <div className="border-b border-border" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <div className="mx-auto max-w-7xl px-6 pb-4"><div className="h-4 w-40 animate-pulse rounded bg-muted" /></div>
+      </div>
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mb-8">
+          <div className="h-3 w-48 animate-pulse rounded bg-muted" />
+          <div className="mt-3 h-9 w-80 animate-pulse rounded bg-muted" />
+          <div className="mt-2 h-4 w-48 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="mb-8 grid gap-6 lg:grid-cols-[1.4fr_0.6fr]">
+          <div className="h-[440px] animate-pulse rounded-2xl bg-muted" />
+          <div className="h-[440px] animate-pulse rounded-2xl bg-muted" />
+        </div>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {[...Array(6)].map((_, i) => <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />)}
+        </div>
+      </div>
+    </div>
+  );
+  if (error || !site) return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+      <p className="text-lg font-semibold text-destructive">{error || "Site not found."}</p>
+      <p className="text-sm text-muted-foreground">The quarry record could not be loaded. Check your connection and try again.</p>
+      <button onClick={() => window.location.reload()} className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800">Try again</button>
+      <button onClick={() => navigate("/search")} className="text-sm font-bold text-sky-700 hover:underline">Back to search</button>
+    </div>
+  );
 
   const siteCoordinatesValid = isPlausibleSoutheastCoordinate(site.latitude, site.longitude, site.state);
   const parcelCoordinatesValid = isPlausibleSoutheastCoordinate(parcel?.latitude, parcel?.longitude, site.state);
@@ -688,7 +715,7 @@ export default function MineSiteDetail() {
           </div>
         )}
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card title="Parcel & Tax Intelligence" icon={Landmark}>
+          {(ownershipVerification || parcel || liveParcel || site.parcel_id || site.parcel_owner) && (<Card title="Parcel & Tax Intelligence" icon={Landmark}>
             {(ownershipVerification || parcel || liveParcel || site.parcel_id || site.parcel_owner) ? (
               <>
                 <Row label="Parcel" value={ownershipVerification?.parcel_id || parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
@@ -713,7 +740,7 @@ export default function MineSiteDetail() {
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No parcel match is available yet for this site.</p>
             )}
-          </Card>
+          </Card>)}
 
           <Card title="Indicative Land-Value Screening" icon={DollarSign}>
             {valuation?.available && valuation.confidence !== "Low" ? (
@@ -743,7 +770,7 @@ export default function MineSiteDetail() {
             />
           </Card>
 
-          <Card title="Contract & Royalty Intelligence" icon={FileKey2}>
+          {relatedContracts.length > 0 && (<Card title="Contract & Royalty Intelligence" icon={FileKey2}>
             {relatedContracts.length ? (
               <div className="space-y-4">
                 {relatedContracts.map((c) => (
@@ -777,7 +804,7 @@ export default function MineSiteDetail() {
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No lease, royalty, option, assignment, easement, or operating agreement has been connected to this site yet. This is a high-priority diligence layer when the landowner and operator are different.</p>
             )}
-          </Card>
+          </Card>)}
 
           <Card title="Quarry Potential" icon={Gauge}>
             <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 p-4">
@@ -818,7 +845,7 @@ export default function MineSiteDetail() {
             )}
           </Card>
 
-          <Card title="Production Intelligence" icon={BarChart3}>
+          {(latestReported || latestEstimate || latestActivity || meaningfulProduction.length > 0) && (<Card title="Production Intelligence" icon={BarChart3}>
             <div className="space-y-4">
               {latestReported && (
                 <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-5">
@@ -906,9 +933,9 @@ export default function MineSiteDetail() {
                 </div>
               )}
             </div>
-          </Card>
+          </Card>)}
 
-          <Card title="TDOT Aggregate Producer Intelligence" icon={ShieldCheck}>
+          {(tdotProducer || tdotDemandSummary.totalTons > 0) && (<Card title="TDOT Aggregate Producer Intelligence" icon={ShieldCheck}>
             {tdotProducer ? (
               <>
                 <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
@@ -961,9 +988,9 @@ export default function MineSiteDetail() {
                 )}
               </div>
             )}
-          </Card>
+          </Card>)}
 
-          <Card title="Geology / Rock Identification" icon={Gem}>
+          {geologyRecord && (<Card title="Geology / Rock Identification" icon={Gem}>
             {geologyRecord ? (
               <>
                 <div className="mb-4 rounded-xl border border-slate-300 bg-slate-100/70 p-4">
@@ -989,9 +1016,9 @@ export default function MineSiteDetail() {
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No mapped geology record is connected yet. Tennessee Geological Survey bedrock/lithology data will appear here rather than guessing rock type from the mine name.</p>
             )}
-          </Card>
+          </Card>)}
 
-          <Card title="USGS Mineral Intelligence" icon={Mountain}>
+          {relatedUsgsOccurrences.length > 0 && (<Card title="USGS Mineral Intelligence" icon={Mountain}>
             {relatedUsgsOccurrences.length ? (
               <div className="space-y-4">
                 {relatedUsgsOccurrences.map((occ) => (
@@ -1026,7 +1053,7 @@ export default function MineSiteDetail() {
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">No USGS MRDS occurrence is linked to this mine yet. USGS Mineral Resources Data System records are matched by proximity and will appear here when the sync runs.</p>
             )}
-          </Card>
+          </Card>)}
 
           {(site.site_images?.length > 0 || aerialPreview) && (
             <Card title="Property & Aerial Imagery" icon={Camera}>
@@ -1050,7 +1077,7 @@ export default function MineSiteDetail() {
             </Card>
           )}
 
-          <Card title="TDEC / Permit Intelligence" icon={ShieldCheck}>
+          {relatedPermits.length > 0 && (<Card title="TDEC / Permit Intelligence" icon={ShieldCheck}>
             {relatedPermits.length ? relatedPermits.map((p) => (
               <div key={p.id} className="mb-4 rounded-xl border border-border p-4 last:mb-0">
                 <div className="font-semibold text-foreground">{p.permit_number} · {p.permit_type}</div>
@@ -1070,9 +1097,9 @@ export default function MineSiteDetail() {
                 {p.source_url && <a href={p.source_url} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-sky-800 hover:underline">Open TDEC source <ExternalLink className="h-3.5 w-3.5" /></a>}
               </div>
             )) : <p className="text-sm text-muted-foreground">No connected TDEC permit record yet.</p>}
-          </Card>
+          </Card>)}
 
-          <Card title="Environmental / Compliance" icon={Leaf}>
+          {(relatedEnvironmental.length > 0 || relatedInspections.length > 0 || relatedViolations.length > 0) && (<Card title="Environmental / Compliance" icon={Leaf}>
             {relatedEnvironmental.length || relatedInspections.length || relatedViolations.length ? (
               <div className="space-y-3 text-sm text-foreground">
                 <div>Environmental records: <strong>{relatedEnvironmental.length}</strong></div>
@@ -1093,7 +1120,7 @@ export default function MineSiteDetail() {
                 ))}
               </div>
             ) : <p className="text-sm text-muted-foreground">No connected environmental, inspection or violation records are loaded for this site yet.</p>}
-          </Card>
+          </Card>)}
         </div>
         </>) : (
           <div className="mb-8 rounded-3xl border border-sky-200 bg-sky-50/70 p-7 text-center">
