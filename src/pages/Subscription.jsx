@@ -48,24 +48,13 @@ function storeProductDetail(product) {
 }
 
 function trackSubscriptionAction(user, action, platform, detail = "") {
-  try {
-    void base44.entities.ViewerActivity.create({
-      user_id: user?.id || "anonymous",
-      user_name: user?.name || "Anonymous visitor",
-      user_email: user?.email || "",
-      user_role: user?.role || "anonymous",
-      path: `/subscribe?action=${encodeURIComponent(action)}`,
-      page_type: "subscription_action",
-      resource_id: action,
-      resource_name: [platform, detail].filter(Boolean).join(" · ").slice(0, 180),
-      referrer: document.referrer || "",
-      session_id: subscriptionSessionId(),
-      user_agent: navigator.userAgent || "",
-      viewed_at: new Date().toISOString(),
-    });
-  } catch {
-    // Conversion tracking must never block a purchase.
-  }
+  void trackFunnelEvent({
+    user,
+    path: `/subscribe?action=${encodeURIComponent(action)}`,
+    page_type: "subscription_action",
+    resource_id: action,
+    resource_name: [platform, detail].filter(Boolean).join(" · ").slice(0, 180),
+  });
 }
 
 export default function Subscription() {
@@ -85,6 +74,7 @@ export default function Subscription() {
   const [storeProducts, setStoreProducts] = useState({});
   const [storeLoading, setStoreLoading] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState("");
+  const [checkoutUrl, setCheckoutUrl] = useState("");
   const [buyingId, setBuyingId] = useState("");
   const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
   const [webAccess, setWebAccess] = useState({ active: false });
@@ -355,20 +345,51 @@ export default function Subscription() {
   };
 
   const startWebCheckout = async (planCode) => {
-    if (window.self !== window.top) {
-      setPurchaseMessage("Checkout works only from the published app. Open the site directly in your browser to subscribe.");
-      return;
+    const isEmbedded = window.self !== window.top;
+    let checkoutWindow = null;
+
+    // If S&S is embedded (for example inside a website builder/webview), open a
+    // customer-initiated tab immediately so the async API call does not lose the
+    // browser's user-gesture permission. This avoids silently blocking checkout.
+    if (isEmbedded) {
+      try {
+        checkoutWindow = window.open("", "_blank");
+        if (checkoutWindow) {
+          checkoutWindow.opener = null;
+          checkoutWindow.document.title = "Opening S&S secure checkout…";
+          checkoutWindow.document.body.innerHTML = "<p style='font-family:system-ui;padding:24px'>Opening S&S secure checkout…</p>";
+        }
+      } catch {
+        checkoutWindow = null;
+      }
     }
+
     trackSubscriptionAction(user, "subscribe_cta_clicked", "web", planCode);
     setPurchaseMessage("");
+    setCheckoutUrl("");
     setBuyingId(planCode);
+
     try {
       const response = await base44.functions.invoke("create-public-subscription-checkout", { plan_code: planCode, return_to: returnTo, session_id: getWebSubscriptionBrowserId(), user_id: user?.id || "", user_email: user?.email || "" });
       const payload = response?.data || response || {};
       if (!payload?.checkout_url) throw new Error(payload?.error || "Could not start checkout.");
+
+      setCheckoutUrl(payload.checkout_url);
       trackSubscriptionAction(user, "checkout_created", "web", planCode);
+
+      if (checkoutWindow && !checkoutWindow.closed) {
+        checkoutWindow.location.replace(payload.checkout_url);
+        return;
+      }
+
+      if (isEmbedded) {
+        setPurchaseMessage("Secure checkout is ready. Tap “Open secure checkout” below to continue.");
+        return;
+      }
+
       window.location.assign(payload.checkout_url);
     } catch (error) {
+      try { checkoutWindow?.close(); } catch {}
       const message = error?.message || "Could not start checkout.";
       trackSubscriptionAction(user, "checkout_error", "web", message);
       setPurchaseMessage(message);
@@ -434,6 +455,17 @@ export default function Subscription() {
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, review Apple&apos;s purchase terms, confirm, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
           {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to buy.</strong> Continue straight to secure checkout. After payment, Full Quarry Intelligence unlocks on this browser; sign in later only if you want account-based features.</div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
+          {!isNative && checkoutUrl && (
+            <a
+              href={checkoutUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackSubscriptionAction(user, "checkout_fallback_opened", "web")}
+              className="mt-3 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800"
+            >
+              Open secure checkout
+            </a>
+          )}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
