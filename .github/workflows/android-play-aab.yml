@@ -1,0 +1,71 @@
+name: Build Android Play AAB
+
+on:
+  push:
+    paths:
+      - '.github/workflows/android-play-aab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm install --no-save @capacitor/android@8.5.0
+          npm run build
+          rm -rf android
+          npx cap add android
+          grep -R "applicationId" android/app/build.gradle
+          grep -n "appId" capacitor.config.ts
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon
+
+      - name: Sign bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          PASS="$(openssl rand -hex 18)"
+          KEYSTORE="upload-keystore.jks"
+          ALIAS="upload"
+          keytool -genkeypair -v -keystore "$KEYSTORE" -alias "$ALIAS" -keyalg RSA -keysize 2048 -validity 10000 -storepass "$PASS" -keypass "$PASS" -dname "CN=S&S Rock Holdings, OU=Mobile, O=S&S Rock Holdings LLC, L=Benton, ST=Tennessee, C=US"
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore "$KEYSTORE" -storepass "$PASS" -keypass "$PASS" "$AAB" "$ALIAS"
+          jarsigner -verify -verbose -certs "$AAB"
+          mkdir -p play-upload
+          cp "$AAB" play-upload/SandS-Rock-Holdings-release.aab
+          cp "$KEYSTORE" play-upload/upload-keystore.jks
+          {
+            echo "S&S Rock Holdings Android upload key"
+            echo "Package: com.ssrockholdings.quarrymarketplace"
+            echo "Alias: $ALIAS"
+            echo "Keystore password: $PASS"
+            echo "Key password: $PASS"
+            echo "KEEP THIS FILE AND upload-keystore.jks PRIVATE AND SAFE."
+          } > play-upload/UPLOAD-KEY-INFO.txt
+          sha256sum play-upload/SandS-Rock-Holdings-release.aab > play-upload/SHA256.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SandS-Rock-Holdings-Google-Play
+          path: play-upload/
+          if-no-files-found: error
+          retention-days: 90
