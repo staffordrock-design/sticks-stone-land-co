@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
-import { ArrowLeft, BarChart3, Building2, Plus, Loader2, MapPin, Layers, Ruler } from "lucide-react";
+import { ArrowLeft, BarChart3, Building2, Eye, Plus, Loader2, MapPin, Layers, Ruler } from "lucide-react";
 import PullToRefresh from "@/components/PullToRefresh";
+import ListingViewsDashboard from "@/components/seller/ListingViewsDashboard";
 
 const STATUS_STYLES = {
   Submitted: "bg-slate-100 text-slate-800 border border-slate-300",
@@ -59,6 +60,18 @@ export default function SellerPortal() {
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Seller Portal</p>
         <h1 className="mt-2 font-heading text-3xl font-bold">My Property Submissions</h1>
         <p className="mt-3 max-w-2xl text-sm text-muted-foreground">Track the review status of properties you've submitted. Approved properties move into the S&S marketing pipeline and the live marketplace map.</p>
+
+        {/* Listing interest dashboard */}
+        <div className="mt-8 rounded-2xl border border-border bg-card p-5">
+          <div className="flex items-center gap-2">
+            <Eye className="h-5 w-5 text-sky-600" />
+            <h2 className="font-heading text-lg font-bold">Listing Interest</h2>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">See how many people are viewing your live marketplace listings.</p>
+          <div className="mt-4">
+            <ListingViewsDashboard user={user} />
+          </div>
+        </div>
 
         {loading ? (
           <div className="flex items-center gap-2 py-16 text-sm text-muted-foreground"><Loader2 className="h-5 w-5 animate-spin" /> Loading your submissions…</div>

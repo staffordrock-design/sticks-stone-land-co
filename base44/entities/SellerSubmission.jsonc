@@ -81,6 +81,10 @@
     },
     "submitted_at": {
       "type": "string"
+    },
+    "listing_id": {
+      "type": "string",
+      "description": "Linked published Listing ID once the submission is approved and live on the marketplace."
     }
   },
   "required": [
