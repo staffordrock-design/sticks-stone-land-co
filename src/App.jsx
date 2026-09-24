@@ -94,6 +94,12 @@ const AuthenticatedApp = () => {
   const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
+  useEffect(() => {
+    document.title = pathname === "/subscribe"
+      ? "Full Quarry Intelligence | S&S Rock Holdings"
+      : "S&S Rock Holdings — Industrial Quarry & Mineral Intelligence";
+  }, [pathname]);
+
   // Show loading spinner while checking app public settings or auth
   if ((isLoadingPublicSettings || isLoadingAuth) && !publicPath) {
     return (
