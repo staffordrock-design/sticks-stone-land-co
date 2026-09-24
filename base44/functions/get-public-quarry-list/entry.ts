@@ -8,7 +8,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 // get-premium-site-data entitlement gate for paid members.
 
 const SOUTHEAST_STATES = ['TN', 'GA', 'AL', 'KY', 'NC', 'SC', 'FL', 'MS'];
-const LIMIT = 480;
+const LIMIT = 3000;
 
 function isQuarryRelevant(site: any) {
   const commodity = String(site?.commodity || '').toLowerCase().trim();
@@ -27,7 +27,7 @@ export default async function(req: any) {
     const states = (rawState === 'ALL' || !rawState) ? SOUTHEAST_STATES : [rawState];
 
     const rows = await Promise.all(states.map((st) =>
-      svc.entities.MiningSite.filter({ state: st }, '-updated_date', 300).catch(() => [])
+      svc.entities.MiningSite.filter({ state: st }, '-updated_date', 3000).catch(() => [])
     ));
     // Distribute the sample evenly across requested states so "All Southeast"
     // shows a meaningful slice from each state rather than filling from TN first.

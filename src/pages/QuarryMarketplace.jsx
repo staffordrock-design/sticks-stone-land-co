@@ -285,10 +285,10 @@ export default function QuarryMarketplace() {
       try {
         if (hasProfessional) {
           const [siteRows, parcelRows, verifyRows, geologyRows] = await Promise.all([
-            premiumEntityQuery("MiningSite", { state }, "-updated_date", 500),
-            premiumEntityQuery("ParcelRecord", { state }, "-updated_date", 500),
-            premiumEntityQuery("ParcelOwnershipVerification", {}, "-verified_at", 500),
-            premiumEntityQuery("GeologyRecord", { state }, "-updated_date", 500),
+            premiumEntityQuery("MiningSite", { state }, "-updated_date", 3000),
+            premiumEntityQuery("ParcelRecord", { state }, "-updated_date", 3000),
+            premiumEntityQuery("ParcelOwnershipVerification", {}, "-verified_at", 3000),
+            premiumEntityQuery("GeologyRecord", { state }, "-updated_date", 3000),
           ]);
           if (cancelled) return;
           setSites((siteRows || []).filter((s) => s?.id && isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)));
@@ -379,7 +379,7 @@ export default function QuarryMarketplace() {
     () => areaBounds ? filtered.filter((site) => withinBounds(site, areaBounds)) : filtered,
     [filtered, areaBounds]
   );
-  const clusterItems = useMemo(() => clusterSites(displayed.slice(0, 450), mapView.zoom), [displayed, mapView.zoom]);
+  const clusterItems = useMemo(() => clusterSites(displayed.slice(0, 3000), mapView.zoom), [displayed, mapView.zoom]);
 
   const linkedParcelCount = displayed.filter((s) => s.msha_mine_id && parcelByMine.has(String(s.msha_mine_id))).length;
   const deedCount = displayed.filter((s) => {
@@ -491,7 +491,7 @@ export default function QuarryMarketplace() {
 
             <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-1 xl:grid-cols-2">
               {loading ? [...Array(8)].map((_, i) => <div key={i} className="h-72 animate-pulse rounded-2xl border border-border bg-muted/30" />) : displayed.length ? (
-                displayed.slice(0, 160).map((site) => {
+                displayed.slice(0, 500).map((site) => {
                   const parcel = site.msha_mine_id ? parcelByMine.get(String(site.msha_mine_id)) : null;
                   const verification = verificationBySite.get(site.id) || (site.msha_mine_id ? verificationBySite.get(`msha:${site.msha_mine_id}`) : null);
                   return (
@@ -544,7 +544,7 @@ export default function QuarryMarketplace() {
                     <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.58} attribution="USGS State Geologic Map Compilation" />
                   </LayersControl.Overlay>
                   <LayersControl.Overlay checked name="County boundaries (Census 2026)">
-                    <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="82,83" format="image/png" transparent opacity={0.82} attribution="U.S. Census Bureau TIGERweb ACS 2026" />
+                    <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="11" format="image/png" transparent opacity={0.55} attribution="U.S. Census Bureau TIGERweb ACS 2026" />
                   </LayersControl.Overlay>
                 </LayersControl>
 
