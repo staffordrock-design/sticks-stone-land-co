@@ -11,6 +11,10 @@ const SUBSCRIPTION_PLANS = {
   },
 };
 
+// Keep every website checkout on the single canonical live Stripe price.
+// This prevents a new Stripe Product/Price from being created for every checkout attempt.
+const FALLBACK_STRIPE_PRICE_ID = 'price_1U4vqOHBH3xrClLV9vFwHk8r';
+
 function randomSuffix() {
   const chars = 'abcdefghijklmnopqrstuvwxyz';
   const bytes = crypto.getRandomValues(new Uint8Array(8));
@@ -37,6 +41,7 @@ export default async function(req: Request) {
       return Response.json({ error: 'Stripe checkout is not fully configured' }, { status: 503 });
     }
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
+    const subscriptionPriceId = secrets.get('STRIPE_PRICE_ID_69') || FALLBACK_STRIPE_PRICE_ID;
 
     // Use the browser's actual origin (passed from the frontend) so Stripe
     // always redirects back to the domain the visitor started on. Fall back to
@@ -57,15 +62,7 @@ export default async function(req: Request) {
         },
       },
       line_items: [{
-        price_data: {
-          currency: plan.currency,
-          unit_amount: plan.unitAmount,
-          recurring: { interval: plan.interval },
-          product_data: {
-            name: plan.name,
-            description: plan.description,
-          },
-        },
+        price: subscriptionPriceId,
         quantity: 1,
       }],
       customer_email: appUserEmail || undefined,
