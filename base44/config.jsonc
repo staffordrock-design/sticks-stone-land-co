@@ -1,6 +1,6 @@
 {
   "name": "S&S Rock Holdings",
-  "description": "Rock & Quarry Intelligence. From the Ground Up. Search quarry properties, ownership, acreage, geology, permits, production, mineral potential, and market intelligence with S&S Rock Holdings.",
+  "description": "S&S Rock Holdings — a digital marketplace for the quarry, aggregate, and mineral extraction industries. Search GIS-mapped parcel listings with ownership, acreage, geology, permits, production, and valuation intelligence, and access secure NDA-gated data rooms.",
   "site": {
     "installCommand": "npm install",
     "buildCommand": "npm run build",
