@@ -377,7 +377,7 @@ export default function Home() {
         <div className="relative mx-auto max-w-5xl px-6 py-16 sm:py-24">
           <div className="text-center">
             <h1 className="font-heading text-4xl font-black leading-[1.05] tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
-              Find Quarry Opportunities<br className="hidden sm:block" /> Worth Investigating
+              Rock &amp; Quarry Intelligence.<br className="hidden sm:block" /> From the Ground Up.
             </h1>
             <p className="mx-auto mt-5 max-w-3xl text-base font-semibold text-slate-800 sm:text-lg">
               Search quarry properties, operating mines, inactive sites, mineral opportunities, ownership, permits, geology, production, acreage, and market intelligence in one place.
