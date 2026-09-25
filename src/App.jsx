@@ -148,7 +148,7 @@ const AuthenticatedApp = () => {
 
     const seo = pageSeo[pathname] || pageSeo["/"];
     const canonicalUrl = `https://ssrockholdings.com${pathname === "/" ? "/" : pathname}`;
-    const nonIndexable = pathname.startsWith("/admin/") || ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent", "/messages", "/profile", "/buyer-profile", "/seller-portal", "/seller-dashboard", "/opportunities"].includes(pathname);
+    const nonIndexable = pathname.startsWith("/admin/") || ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent", "/messages", "/profile", "/buyer-profile", "/seller-portal", "/seller-dashboard", "/opportunities", "/account/delete", "/account-deletion", "/get-started", "/watchlist", "/deal-investor", "/network/watchlist", "/network/deals/new", "/network/deals/activity"].includes(pathname);
 
     const setMeta = (selector, attribute, value) => {
       let tag = document.head.querySelector(selector);
