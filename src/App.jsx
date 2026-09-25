@@ -95,21 +95,88 @@ const AuthenticatedApp = () => {
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   useEffect(() => {
-    const pageTitles = {
-      "/": "S&S Rock Holdings — Industrial Quarry & Mineral Intelligence",
-      "/subscribe": "Full Quarry Intelligence | S&S Rock Holdings",
-      "/privacy": "Privacy Policy | S&S Rock Holdings",
-      "/terms": "Terms of Use | S&S Rock Holdings",
-      "/support": "Support | S&S Rock Holdings",
-      "/data-sources": "Data Sources | S&S Rock Holdings",
-      "/sell": "Sell or List a Quarry | S&S Rock Holdings",
-      "/search": "Quarry Marketplace | S&S Rock Holdings",
-      "/quarry-intelligence": "Quarry Intelligence | S&S Rock Holdings",
-      "/intelligence": "Industrial Intelligence | S&S Rock Holdings",
-      "/mineral-intelligence": "Mineral Intelligence | S&S Rock Holdings",
-      "/network": "Quarry Network | S&S Rock Holdings"
+    const pageSeo = {
+      "/": {
+        title: "S&S Rock Holdings — Rock & Quarry Intelligence From the Ground Up",
+        description: "Rock & Quarry Intelligence. From the Ground Up. Search quarry properties, ownership, acreage, geology, permits, production, mineral potential, and market intelligence."
+      },
+      "/subscribe": {
+        title: "$69 Full Quarry Intelligence | S&S Rock Holdings",
+        description: "Unlock full S&S Rock Holdings quarry intelligence for $69/month, including ownership, parcel, geology, permits, production, valuation context, and opportunity intelligence."
+      },
+      "/privacy": {
+        title: "Privacy Policy | S&S Rock Holdings",
+        description: "Read the S&S Rock Holdings privacy policy for the quarry intelligence marketplace and mobile applications."
+      },
+      "/terms": {
+        title: "Terms of Use | S&S Rock Holdings",
+        description: "Read the terms governing use of S&S Rock Holdings quarry, mineral, ownership, geology, permit, production, and marketplace intelligence."
+      },
+      "/support": {
+        title: "Support | S&S Rock Holdings",
+        description: "Get help with S&S Rock Holdings quarry intelligence, subscriptions, accounts, marketplace features, and data access."
+      },
+      "/data-sources": {
+        title: "Quarry Data Sources | S&S Rock Holdings",
+        description: "See the public and industry data sources behind S&S Rock Holdings quarry intelligence, including mine, permit, geology, ownership, parcel, and production information."
+      },
+      "/sell": {
+        title: "Sell or List a Quarry | S&S Rock Holdings",
+        description: "Submit a quarry, aggregate property, mineral property, or industrial land opportunity to S&S Rock Holdings for confidential review."
+      },
+      "/search": {
+        title: "Search Quarries & Mine Sites | S&S Rock Holdings",
+        description: "Search quarry properties, mine sites, aggregate operations, mineral occurrences, rock types, counties, states, and mine IDs with S&S Rock Holdings."
+      },
+      "/quarry-intelligence": {
+        title: "Quarry Intelligence | S&S Rock Holdings",
+        description: "Explore quarry intelligence including ownership, acreage, parcels, geology, permits, production, valuation context, and mapped mine-site data."
+      },
+      "/intelligence": {
+        title: "Industrial Quarry Intelligence | S&S Rock Holdings",
+        description: "Use quarry, aggregate, mineral, ownership, permit, geology, production, and market intelligence to research industrial property opportunities."
+      },
+      "/mineral-intelligence": {
+        title: "Mineral Intelligence | S&S Rock Holdings",
+        description: "Explore mineral occurrences, geology, rock types, mine-site context, and public-source mineral intelligence from S&S Rock Holdings."
+      },
+      "/network": {
+        title: "Quarry Industry Network | S&S Rock Holdings",
+        description: "Connect with quarry, aggregate, hauling, supplier, buyer, seller, investor, and industry professionals through the S&S Rock Holdings network."
+      }
     };
-    document.title = pageTitles[pathname] || "S&S Rock Holdings — Industrial Quarry & Mineral Intelligence";
+
+    const seo = pageSeo[pathname] || pageSeo["/"];
+    const canonicalUrl = `https://ssrockholdings.com${pathname === "/" ? "/" : pathname}`;
+    const nonIndexable = pathname.startsWith("/admin/") || ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent", "/messages", "/profile", "/buyer-profile", "/seller-portal", "/seller-dashboard", "/opportunities"].includes(pathname);
+
+    const setMeta = (selector, attribute, value) => {
+      let tag = document.head.querySelector(selector);
+      if (!tag) {
+        tag = document.createElement("meta");
+        const match = selector.match(/meta\\[(name|property)="([^"]+)"\\]/);
+        if (match) tag.setAttribute(match[1], match[2]);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute(attribute, value);
+    };
+
+    document.title = seo.title;
+    setMeta('meta[name="description"]', "content", seo.description);
+    setMeta('meta[name="robots"]', "content", nonIndexable ? "noindex, nofollow" : "index, follow");
+    setMeta('meta[property="og:title"]', "content", seo.title);
+    setMeta('meta[property="og:description"]', "content", seo.description);
+    setMeta('meta[property="og:url"]', "content", canonicalUrl);
+    setMeta('meta[name="twitter:title"]', "content", seo.title);
+    setMeta('meta[name="twitter:description"]', "content", seo.description);
+
+    let canonical = document.head.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", canonicalUrl);
   }, [pathname]);
 
   // Show loading spinner while checking app public settings or auth
