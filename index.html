@@ -29,6 +29,31 @@
 
     <link rel="manifest" href="/manifest.json" />
     <title>S&S Rock Holdings — Industrial Quarry & Mineral Intelligence Marketplace</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://ssrockholdings.com/#organization",
+            "name": "S&S Rock Holdings",
+            "legalName": "S&S Rock Holdings, LLC.",
+            "url": "https://ssrockholdings.com/",
+            "logo": "https://media.base44.com/images/public/6a78376a454093ba2f431acd/4d73516b6_generated_image.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://ssrockholdings.com/#website",
+            "url": "https://ssrockholdings.com/",
+            "name": "S&S Rock Holdings",
+            "publisher": {
+              "@id": "https://ssrockholdings.com/#organization"
+            },
+            "description": "Industrial quarry and mineral intelligence marketplace with GIS-mapped quarry listings, mine site intelligence, parcel boundaries, geology, permits, and acquisition due diligence data."
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
