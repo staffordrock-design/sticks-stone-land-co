@@ -208,9 +208,9 @@ const AuthenticatedApp = () => {
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Add your page Route elements here */}
-      <Route path="/" element={<Home />} />
-      <Route path="/search" element={<QuarryMarketplace />} />
-      <Route path="/quarry-intelligence" element={<QuarryIntelligence />} />
+      <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+      <Route path="/search" element={<PageTransition><QuarryMarketplace /></PageTransition>} />
+      <Route path="/quarry-intelligence" element={<PageTransition><QuarryIntelligence /></PageTransition>} />
       <Route path="/listings/:id" element={<PageTransition><ListingDetail /></PageTransition>} />
       <Route path="/mines/:id" element={<PageTransition><MineSiteDetail /></PageTransition>} />
       <Route path="/admin/activity" element={<RequireAdmin><AdminActivity /></RequireAdmin>} />
@@ -222,32 +222,32 @@ const AuthenticatedApp = () => {
       <Route path="/terms" element={<TermsOfUse />} />
       <Route path="/account/delete" element={<AccountDeletion />} />
       <Route path="/account-deletion" element={<AccountDeletion />} />
-      <Route path="/support" element={<Support />} />
-      <Route path="/intelligence" element={<IntelligenceHub />} />
+      <Route path="/support" element={<PageTransition><Support /></PageTransition>} />
+      <Route path="/intelligence" element={<PageTransition><IntelligenceHub /></PageTransition>} />
       <Route path="/get-started" element={<LeadSetup />} />
       <Route path="/mineral-value-guide" element={<PaidAccessGate><MineralValueGuide /></PaidAccessGate>} />
-      <Route path="/mineral-intelligence" element={<MineralIntelligence />} />
+      <Route path="/mineral-intelligence" element={<PageTransition><MineralIntelligence /></PageTransition>} />
       <Route path="/admin/seller-review" element={<RequireAdmin><AdminSellerReview /></RequireAdmin>} />
       <Route path="/admin/deals" element={<RequireAdmin><DealDesk /></RequireAdmin>} />
-      <Route path="/watchlist" element={<QuarryWatchlist />} />
+      <Route path="/watchlist" element={<PageTransition><QuarryWatchlist /></PageTransition>} />
       <Route path="/deal-investor" element={<DealInvestor />} />
-      <Route path="/sell" element={<SellProperty />} />
-      <Route path="/seller-portal" element={<RequireSignedIn><SellerPortal /></RequireSignedIn>} />
-      <Route path="/seller-dashboard" element={<RequireSignedIn><SellerDashboard /></RequireSignedIn>} />
-      <Route path="/buyer-profile" element={<RequireSignedIn><BuyerProfile /></RequireSignedIn>} />
-      <Route path="/profile" element={<RequireSignedIn><Profile /></RequireSignedIn>} />
-      <Route path="/network" element={<Network />} />
-      <Route path="/network/intelligence" element={<NetworkIntel />} />
-      <Route path="/network/company/:companySlug" element={<CompanyNetworkDetail />} />
-      <Route path="/network/watchlist" element={<NetworkWatchlist />} />
-      <Route path="/network/deals" element={<NetworkDeals />} />
-      <Route path="/network/deals/new" element={<NetworkPostDeal />} />
-      <Route path="/network/deals/activity" element={<NetworkDealActivity />} />
-      <Route path="/network/deals/:id" element={<NetworkDealDetail />} />
-      <Route path="/network/community" element={<Network />} />
-      <Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />
-      <Route path="/messages" element={<RequireSignedIn><Messages /></RequireSignedIn>} />
-      <Route path="/opportunities" element={<RequireSignedIn><MyOpportunities /></RequireSignedIn>} />
+      <Route path="/sell" element={<PageTransition><SellProperty /></PageTransition>} />
+      <Route path="/seller-portal" element={<RequireSignedIn><PageTransition><SellerPortal /></PageTransition></RequireSignedIn>} />
+      <Route path="/seller-dashboard" element={<RequireSignedIn><PageTransition><SellerDashboard /></PageTransition></RequireSignedIn>} />
+      <Route path="/buyer-profile" element={<RequireSignedIn><PageTransition><BuyerProfile /></PageTransition></RequireSignedIn>} />
+      <Route path="/profile" element={<RequireSignedIn><PageTransition><Profile /></PageTransition></RequireSignedIn>} />
+      <Route path="/network" element={<PageTransition><Network /></PageTransition>} />
+      <Route path="/network/intelligence" element={<PageTransition><NetworkIntel /></PageTransition>} />
+      <Route path="/network/company/:companySlug" element={<PageTransition><CompanyNetworkDetail /></PageTransition>} />
+      <Route path="/network/watchlist" element={<PageTransition><NetworkWatchlist /></PageTransition>} />
+      <Route path="/network/deals" element={<PageTransition><NetworkDeals /></PageTransition>} />
+      <Route path="/network/deals/new" element={<PageTransition><NetworkPostDeal /></PageTransition>} />
+      <Route path="/network/deals/activity" element={<PageTransition><NetworkDealActivity /></PageTransition>} />
+      <Route path="/network/deals/:id" element={<PageTransition><NetworkDealDetail /></PageTransition>} />
+      <Route path="/network/community" element={<PageTransition><Network /></PageTransition>} />
+      <Route path="/ownership-intelligence" element={<PageTransition><OwnershipIntelligence /></PageTransition>} />
+      <Route path="/messages" element={<RequireSignedIn><PageTransition><Messages /></PageTransition></RequireSignedIn>} />
+      <Route path="/opportunities" element={<RequireSignedIn><PageTransition><MyOpportunities /></PageTransition></RequireSignedIn>} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/data-sources" element={<DataSources />} />
       <Route path="/login" element={<Login />} />

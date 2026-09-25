@@ -140,11 +140,21 @@
   html,
   body {
     overscroll-behavior: none;
+    overscroll-behavior-y: none;
     overflow-x: hidden;
   }
 
   body {
     -webkit-tap-highlight-color: transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Disable elastic bounce on all scroll containers */
+  [class*="overflow-auto"],
+  [class*="overflow-y-auto"],
+  [class*="overflow-x-auto"],
+  [class*="overflow-scroll"] {
+    overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -155,7 +165,17 @@
   button,
   a,
   [role="tab"],
-  [role="button"] {
+  [role="button"],
+  header,
+  nav,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  [class*="badge"],
+  [class*="Badge"] {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;

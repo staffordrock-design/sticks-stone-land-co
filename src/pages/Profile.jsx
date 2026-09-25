@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Building2, CheckCircle2, Loader2, LogOut, Save, ShieldCheck, UserRound } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import BottomSheetSelect from "@/components/BottomSheetSelect";
 
 const ACCOUNT_TYPES = [
   "Buyer",
@@ -226,7 +227,7 @@ export default function Profile() {
 
       <main className="mx-auto max-w-3xl px-5 py-7">
         {!record?.profile_complete && (
-          <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-5 text-sky-950">
+          <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-5 text-sky-950 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-100">
             <div className="flex items-start gap-3">
               <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
               <div><div className="font-bold">Complete your account to continue</div><p className="mt-1 text-sm leading-6">Your quarry searches, subscriptions, saved opportunities and reports will be tied to this profile.</p></div>
@@ -243,9 +244,7 @@ export default function Profile() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Full name *"><input className="input" autoComplete="name" value={form.full_name} onChange={(e) => set("full_name", e.target.value)} required /></Field>
             <Field label="Account type *">
-              <select className="input" value={form.account_type} onChange={(e) => set("account_type", e.target.value)}>
-                {ACCOUNT_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
-              </select>
+              <BottomSheetSelect value={form.account_type} onChange={(v) => set("account_type", v)} options={ACCOUNT_TYPES} label="Account type" />
             </Field>
             <Field label="Company / organization"><div className="relative"><Building2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input className="input pl-9" autoComplete="organization" value={form.company} onChange={(e) => set("company", e.target.value)} /></div></Field>
             <Field label="Role / title"><input className="input" value={form.role_title} onChange={(e) => set("role_title", e.target.value)} /></Field>
@@ -253,7 +252,7 @@ export default function Profile() {
             <Field label="Home state"><input className="input" maxLength={2} placeholder="TN" value={form.home_state} onChange={(e) => set("home_state", e.target.value)} /></Field>
           </div>
 
-          <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-sky-950">
+          <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-sky-950 dark:border-sky-900/50 dark:bg-sky-950/40 dark:text-sky-100">
             <div className="text-xs font-bold uppercase tracking-[0.16em] text-sky-700">Quarry Network Profile</div>
             <p className="mt-1 text-sm leading-6">This is how other quarry, aggregate and mineral-industry members will know who you are.</p>
           </div>
@@ -268,7 +267,7 @@ export default function Profile() {
           <Field label="Rock / commodity interests"><input className="input" placeholder="Limestone, granite, sand & gravel…" value={form.commodities_of_interest} onChange={(e) => set("commodities_of_interest", e.target.value)} /></Field>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex items-center gap-3 rounded-2xl border border-border p-4 text-sm font-semibold"><input type="checkbox" className="h-4 w-4" checked={form.open_to_opportunities} onChange={(e) => set("open_to_opportunities", e.target.checked)} />Open to industry opportunities</label>
-            <Field label="Network visibility"><select className="input" value={form.profile_visibility} onChange={(e) => set("profile_visibility", e.target.value)}><option value="Network">Visible to S&amp;S Network</option><option value="Private">Private</option></select></Field>
+            <Field label="Network visibility"><BottomSheetSelect value={form.profile_visibility} onChange={(v) => set("profile_visibility", v)} options={[{ value: "Network", label: "Visible to S&S Network" }, { value: "Private", label: "Private" }]} label="Network visibility" /></Field>
           </div>
 
           <label className="flex items-start gap-3 rounded-2xl border border-border bg-muted/20 p-4 text-sm leading-6">
@@ -277,7 +276,7 @@ export default function Profile() {
           </label>
 
           {error && <div className="rounded-xl bg-destructive/10 p-3 text-sm font-medium text-destructive">{error}</div>}
-          {saved && <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800"><CheckCircle2 className="h-4 w-4" />Profile saved</div>}
+          {saved && <div className="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"><CheckCircle2 className="h-4 w-4" />Profile saved</div>}
 
           <button type="submit" disabled={saving} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-bold text-white disabled:opacity-50">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}

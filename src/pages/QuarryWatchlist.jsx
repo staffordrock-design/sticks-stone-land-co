@@ -1,14 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft, Bell, Bookmark, Plus, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { premiumEntityQuery } from "@/lib/subscriptionAccess";
+import BottomSheetSelect from "@/components/BottomSheetSelect";
 
 const FREQUENCIES = ["Instant", "Daily", "Weekly"];
 
 export default function QuarryWatchlist() {
   const { user } = useAuth();
+  const location = useLocation();
+  const fromTab = location.state?.fromTab;
   const [saved, setSaved] = useState([]);
   const [alerts, setAlerts] = useState([]);
   const [sites, setSites] = useState([]);
@@ -67,7 +70,7 @@ export default function QuarryWatchlist() {
   if (!user?.id) return <div className="min-h-screen bg-background px-6 py-16 text-center"><Bell className="mx-auto h-9 w-9 text-muted-foreground"/><h1 className="mt-4 font-heading text-2xl font-bold">Sign in to watch quarry opportunities</h1><p className="mt-2 text-sm text-muted-foreground">Your saved sites and alert criteria are tied to your S&amp;S account.</p><Link to="/login?returnTo=/watchlist" className="mt-6 inline-block rounded-xl bg-stone-900 px-5 py-3 text-sm font-bold text-white">Sign in</Link></div>;
 
   return <div className="min-h-screen bg-background">
-    <header className="border-b border-border"><div className="mx-auto flex max-w-6xl items-center px-6 py-4"><Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Marketplace</Link></div></header>
+    <header className="border-b border-border"><div className="mx-auto flex max-w-6xl items-center px-6 py-4">{!fromTab && <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground"><ArrowLeft className="h-4 w-4"/>Marketplace</Link>}</div></header>
     <main className="mx-auto max-w-6xl px-6 py-10">
       <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-700">Buyer workspace</p>
       <h1 className="mt-2 font-heading text-3xl font-bold">Saved Properties & Alerts</h1>
@@ -82,7 +85,7 @@ export default function QuarryWatchlist() {
           <Field label="Minimum acres"><input className="input" inputMode="decimal" value={form.min_acres} onChange={(e)=>setForm({...form,min_acres:e.target.value})} /></Field>
           <Field label="Maximum acres"><input className="input" inputMode="decimal" value={form.max_acres} onChange={(e)=>setForm({...form,max_acres:e.target.value})} /></Field>
           <Field label="Maximum price"><input className="input" inputMode="decimal" value={form.max_price} onChange={(e)=>setForm({...form,max_price:e.target.value})} /></Field>
-          <Field label="Frequency"><select className="input" value={form.frequency} onChange={(e)=>setForm({...form,frequency:e.target.value})}>{FREQUENCIES.map((f)=><option key={f}>{f}</option>)}</select></Field>
+          <Field label="Frequency"><BottomSheetSelect value={form.frequency} onChange={(v)=>setForm({...form,frequency:v})} options={FREQUENCIES} label="Frequency" /></Field>
           <div className="flex items-end"><button disabled={saving} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-sm font-bold text-white disabled:opacity-50"><Plus className="h-4 w-4"/>{saving?"Saving…":"Create alert"}</button></div>
         </form>
       </section>
@@ -95,7 +98,7 @@ export default function QuarryWatchlist() {
 
         <div className="rounded-2xl border border-border bg-card p-6">
           <div className="flex items-center gap-2"><Bell className="h-5 w-5 text-sky-700"/><h2 className="font-heading text-xl font-bold">Your active alerts</h2></div>
-          <div className="mt-4 space-y-3">{loading?<p className="text-sm text-muted-foreground">Loading…</p>:alerts.length===0?<p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">No alerts yet. Create one above to turn S&amp;S into a recurring quarry-opportunity radar.</p>:alerts.map((a)=><div key={a.id} className="rounded-xl border border-border p-4"><div className="flex items-start justify-between gap-3"><div><div className="font-semibold">{a.name}</div><div className="mt-1 text-xs text-muted-foreground">{[a.states,a.commodities,a.min_acres?`${Number(a.min_acres).toLocaleString()}+ acres`:null,a.frequency].filter(Boolean).join(" · ")}</div></div><button onClick={()=>removeAlert(a.id)} className="rounded-lg border border-border p-2 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4"/></button></div><button onClick={()=>toggleAlert(a)} className={`mt-3 rounded-full px-3 py-1.5 text-xs font-bold ${a.active?"bg-emerald-100 text-emerald-900":"bg-muted text-muted-foreground"}`}>{a.active?"Active":"Paused"}</button></div>)}</div>
+          <div className="mt-4 space-y-3">{loading?<p className="text-sm text-muted-foreground">Loading…</p>:alerts.length===0?<p className="rounded-xl border border-dashed border-border p-6 text-sm text-muted-foreground">No alerts yet. Create one above to turn S&amp;S into a recurring quarry-opportunity radar.</p>:alerts.map((a)=><div key={a.id} className="rounded-xl border border-border p-4"><div className="flex items-start justify-between gap-3"><div><div className="font-semibold">{a.name}</div><div className="mt-1 text-xs text-muted-foreground">{[a.states,a.commodities,a.min_acres?`${Number(a.min_acres).toLocaleString()}+ acres`:null,a.frequency].filter(Boolean).join(" · ")}</div></div><button onClick={()=>removeAlert(a.id)} className="rounded-lg border border-border p-2 text-muted-foreground hover:text-destructive"><Trash2 className="h-4 w-4"/></button></div><button onClick={()=>toggleAlert(a)} className={`mt-3 rounded-full px-3 py-1.5 text-xs font-bold ${a.active?"bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200":"bg-muted text-muted-foreground"}`}>{a.active?"Active":"Paused"}</button></div>)}</div>
         </div>
       </section>
     </main>
