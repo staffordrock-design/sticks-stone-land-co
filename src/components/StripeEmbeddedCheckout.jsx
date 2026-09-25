@@ -43,7 +43,10 @@ export default function StripeEmbeddedCheckout({ clientSecret, publishableKey, s
 
         checkoutRef.current = checkout;
         checkout.mount(containerRef.current);
-        setLoading(false);
+        // Keep the loading message visible briefly so customers see a clear
+        // status while Stripe's iframe finishes rendering its payment form
+        // (which can take several seconds after mount).
+        setTimeout(() => { if (!cancelled) setLoading(false); }, 3500);
       } catch (mountError) {
         console.error("Embedded checkout mount failed", mountError);
         if (!cancelled) {
@@ -132,6 +135,7 @@ export default function StripeEmbeddedCheckout({ clientSecret, publishableKey, s
             <div className="text-center">
               <Loader2 className="mx-auto h-7 w-7 animate-spin text-slate-700" />
               <p className="mt-3 text-sm font-medium text-muted-foreground">Loading secure checkout…</p>
+              <p className="mt-1 text-xs text-muted-foreground/70">This may take a few seconds. Your payment is protected by Stripe.</p>
             </div>
           </div>
         )}

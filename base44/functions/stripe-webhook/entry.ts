@@ -37,13 +37,46 @@ async function upsertWebEntitlement(base44: any, subscription: any, fallbackMeta
   const metadata = { ...(fallbackMetadata || {}), ...(subscription?.metadata || {}) };
   const userId = String(metadata.user_id || '').trim();
   const planCode = String(metadata.plan_code || '').trim();
-  if (!userId || !FULL_PLAN_CODES.has(planCode)) return null;
+  if (!FULL_PLAN_CODES.has(planCode)) return null;
 
   const subscriptionId = String(subscription?.id || '').trim();
   if (!subscriptionId) throw new Error('Stripe subscription ID missing');
 
   const status = entitlementStatus(String(subscription?.status || ''));
   const now = new Date().toISOString();
+  const isActive = ['active', 'grace_period'].includes(status);
+
+  // Always record a BillingEvent so paid status is visible in the platform
+  // dashboard — even for anonymous web checkouts that have no S&S user_id yet.
+  const billingData = {
+    user_id: userId,
+    customer_email: String(subscription?.customer_email || metadata.customer_email || ''),
+    revenue_type: 'Subscription',
+    plan_or_product: planCode,
+    amount: Number(subscription?.items?.data?.[0]?.price?.unit_amount || 6900) / 100,
+    currency: String(subscription?.currency || 'usd').toUpperCase(),
+    platform: 'Stripe',
+    status: isActive ? 'Paid' : 'Pending',
+    external_transaction_id: subscriptionId,
+    occurred_at: now,
+    notes: userId ? 'Stripe webhook verified.' : 'Anonymous web checkout — Stripe webhook verified.',
+  };
+  const existingBilling = await base44.asServiceRole.entities.BillingEvent.filter(
+    { external_transaction_id: subscriptionId },
+    '-created_date',
+    1,
+    0,
+  );
+  if (existingBilling?.[0]) {
+    await base44.asServiceRole.entities.BillingEvent.update(existingBilling[0].id, billingData);
+  } else {
+    await base44.asServiceRole.entities.BillingEvent.create(billingData);
+  }
+
+  // Entitlement requires a user_id — skip for anonymous checkouts until the
+  // buyer signs in and claims the subscription via verify-stripe-subscription.
+  if (!userId) return null;
+
   const data = {
     user_id: userId,
     plan_code: planCode,
