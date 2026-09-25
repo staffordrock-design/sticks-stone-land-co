@@ -154,7 +154,7 @@ const AuthenticatedApp = () => {
       let tag = document.head.querySelector(selector);
       if (!tag) {
         tag = document.createElement("meta");
-        const match = selector.match(/meta\\[(name|property)="([^"]+)"\\]/);
+        const match = selector.match(/meta\[(name|property)="([^"]+)"\]/);
         if (match) tag.setAttribute(match[1], match[2]);
         document.head.appendChild(tag);
       }
