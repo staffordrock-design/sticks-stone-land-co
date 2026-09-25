@@ -12,7 +12,6 @@ import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
-import StripeEmbeddedCheckout from "@/components/StripeEmbeddedCheckout";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -61,7 +60,6 @@ export default function Subscription() {
   const [storeProducts, setStoreProducts] = useState({});
   const [storeLoading, setStoreLoading] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState("");
-  const [embeddedCheckout, setEmbeddedCheckout] = useState(null);
   const [buyingId, setBuyingId] = useState("");
   const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
   const [webAccess, setWebAccess] = useState({ active: false });
@@ -350,17 +348,12 @@ export default function Subscription() {
       });
       const payload = response?.data || response || {};
 
-      if (!payload?.client_secret || !payload?.publishable_key || !payload?.session_id) {
+      if (!payload?.checkout_url) {
         throw new Error(payload?.error || "Could not start secure checkout.");
       }
 
       trackSubscriptionAction(user, "checkout_created", "web", planCode);
-      setEmbeddedCheckout({
-        clientSecret: payload.client_secret,
-        publishableKey: payload.publishable_key,
-        sessionId: payload.session_id,
-        browserSessionId,
-      });
+      window.location.href = payload.checkout_url;
     } catch (error) {
       const message = error?.message || "Could not start checkout.";
       trackSubscriptionAction(user, "checkout_error", "web", message);
@@ -368,37 +361,6 @@ export default function Subscription() {
     } finally {
       setBuyingId("");
     }
-  };
-
-  const handleEmbeddedComplete = async (result) => {
-    setEmbeddedCheckout(null);
-
-    if (result?.active) {
-      if (user?.id) {
-        try { await refreshEntitlements(); } catch { /* access is already verified by Stripe */ }
-      } else {
-        try {
-          const access = await verifySavedWebSubscriptionAccess();
-          if (access?.active) setWebAccess(access);
-        } catch { /* access was already verified by the checkout component */ }
-      }
-
-      trackSubscriptionAction(user, "checkout_completed", "web", "embedded");
-      base44.analytics.track({ eventName: "subscription_purchased" });
-      setPurchaseMessage("Subscription confirmed. Your full quarry intelligence is active.");
-      navigate(returnTo, { replace: true });
-      return;
-    }
-
-    if (result?.pending) {
-      trackSubscriptionAction(user, "checkout_pending", "web", "embedded");
-      window.location.href = `/subscribe?checkout=success&session_id=${result.sessionId}&returnTo=${encodeURIComponent(returnTo)}`;
-      return;
-    }
-
-    const message = result?.error || "Checkout could not be confirmed yet. Please try again in a moment.";
-    trackSubscriptionAction(user, "checkout_error", "web", message);
-    setPurchaseMessage(message);
   };
 
   const manageSubscriptions = async () => {
@@ -522,21 +484,6 @@ export default function Subscription() {
           </div>}
         </div>
       </div>
-      {embeddedCheckout && (
-        <StripeEmbeddedCheckout
-          clientSecret={embeddedCheckout.clientSecret}
-          publishableKey={embeddedCheckout.publishableKey}
-          sessionId={embeddedCheckout.sessionId}
-          browserSessionId={embeddedCheckout.browserSessionId}
-          signedIn={Boolean(user?.id)}
-          onComplete={handleEmbeddedComplete}
-          onClose={() => {
-            setEmbeddedCheckout(null);
-            setPurchaseMessage("Checkout canceled — your subscription was not started and you were not charged.");
-            trackSubscriptionAction(user, "checkout_cancelled", "web", "embedded");
-          }}
-        />
-      )}
     </div>
   );
 }

@@ -54,13 +54,6 @@ export default async function(req: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      ui_mode: 'embedded_page',
-      redirect_on_completion: 'if_required',
-      custom_text: {
-        submit: {
-          message: 'Need help? Email contact@ssrockholdings.com or visit https://ssrockholdings.com/support',
-        },
-      },
       line_items: [{
         price: subscriptionPriceId,
         quantity: 1,
@@ -86,12 +79,12 @@ export default async function(req: Request) {
           return_to: returnTo,
         },
       },
-      return_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
+      success_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
+      cancel_url: `${origin}/subscribe?checkout=cancelled&returnTo=${encodeURIComponent(returnTo)}`,
     });
     return Response.json({
-      client_secret: session.client_secret || '',
+      checkout_url: session.url,
       session_id: session.id,
-      publishable_key: publishableKey,
     });
   } catch (error) {
     console.error('create-public-subscription-checkout error:', error);
