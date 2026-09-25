@@ -95,9 +95,21 @@ const AuthenticatedApp = () => {
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   useEffect(() => {
-    document.title = pathname === "/subscribe"
-      ? "Full Quarry Intelligence | S&S Rock Holdings"
-      : "S&S Rock Holdings — Industrial Quarry & Mineral Intelligence";
+    const pageTitles = {
+      "/": "S&S Rock Holdings — Industrial Quarry & Mineral Intelligence",
+      "/subscribe": "Full Quarry Intelligence | S&S Rock Holdings",
+      "/privacy": "Privacy Policy | S&S Rock Holdings",
+      "/terms": "Terms of Use | S&S Rock Holdings",
+      "/support": "Support | S&S Rock Holdings",
+      "/data-sources": "Data Sources | S&S Rock Holdings",
+      "/sell": "Sell or List a Quarry | S&S Rock Holdings",
+      "/search": "Quarry Marketplace | S&S Rock Holdings",
+      "/quarry-intelligence": "Quarry Intelligence | S&S Rock Holdings",
+      "/intelligence": "Industrial Intelligence | S&S Rock Holdings",
+      "/mineral-intelligence": "Mineral Intelligence | S&S Rock Holdings",
+      "/network": "Quarry Network | S&S Rock Holdings"
+    };
+    document.title = pageTitles[pathname] || "S&S Rock Holdings — Industrial Quarry & Mineral Intelligence";
   }, [pathname]);
 
   // Show loading spinner while checking app public settings or auth
