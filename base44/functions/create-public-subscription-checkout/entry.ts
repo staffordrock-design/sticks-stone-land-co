@@ -41,7 +41,7 @@ export default async function(req: Request) {
     // Use the browser's actual origin (passed from the frontend) so Stripe
     // always redirects back to the domain the visitor started on. Fall back to
     // the request header, then the published app URL — never a marketing domain.
-    const origin = String(bodyOrigin || req.headers.get('origin') || '').trim() || 'https://industrious-stone-strata-site.base44.app';
+    const origin = String(bodyOrigin || req.headers.get('origin') || '').trim() || 'https://ssrockholdings.com';
     const browserSessionId = String(session_id || '').slice(0, 120);
     const appUserId = String(user_id || '').slice(0, 120);
     const appUserEmail = String(user_email || '').includes('@') ? String(user_email).slice(0, 160) : '';
