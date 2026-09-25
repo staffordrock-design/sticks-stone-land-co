@@ -34,7 +34,7 @@ export default async function(req: Request) {
     if (!stripeKey) return Response.json({ error: 'Stripe is not configured' }, { status: 503 });
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
 
-    const origin = String(bodyOrigin || req.headers.get('origin') || '').trim() || 'https://industrious-stone-strata-site.base44.app';
+    const origin = String(bodyOrigin || req.headers.get('origin') || '').trim() || 'https://ssrockholdings.com';
     const browserSessionId = String(session_id || '').slice(0, 120);
     const appUserId = String(user_id || '').slice(0, 120);
     const appUserEmail = String(user_email || '').includes('@') ? String(user_email).slice(0, 160) : '';
