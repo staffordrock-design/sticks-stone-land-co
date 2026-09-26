@@ -13,13 +13,13 @@ export default function PrivacyPolicy() {
       <main className="mx-auto max-w-4xl px-6 py-12">
         <div className="mb-8 flex items-center gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-stone-900 text-white"><ShieldCheck className="h-5 w-5" /></div><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Legal</p><h1 className="font-heading text-3xl font-bold">Privacy Policy</h1></div></div>
         <div className="space-y-7 text-sm leading-7 text-muted-foreground">
-          <p><strong className="text-foreground">Last updated: August 25, 2026.</strong> This Privacy Policy explains how S&amp;S Rock Holdings, LLC ("we," "us," "our") collects, uses, and protects information when you use our mobile application and related services (the "Service").</p>
+          <p><strong className="text-foreground">Last updated: September 26, 2026.</strong> This Privacy Policy explains how S&amp;S Rock Holdings, LLC ("we," "us," "our") collects, uses, and protects information when you use our mobile application and related services (the "Service").</p>
 
           <section>
             <h2 className="font-heading text-xl font-bold text-foreground">1. Information We Collect</h2>
             <div className="mt-3 space-y-3">
               <div><strong className="text-foreground">Account Information</strong><p className="mt-1">When you create an account, we collect your name, email address, company/organization name, and role (e.g., buyer, seller, broker).</p></div>
-              <div><strong className="text-foreground">Transaction &amp; Subscription Information</strong><p className="mt-1">We collect subscription plan details, billing status, and payment confirmation data. Payment card details are processed by Apple (via In-App Purchase) or our payment processor — we do not store your full payment card number.</p></div>
+              <div><strong className="text-foreground">Transaction &amp; Subscription Information</strong><p className="mt-1">We collect subscription plan details, billing status, and payment confirmation data. Payment card details are processed by Apple App Store, Google Play, or our payment processor, depending on the platform used — we do not store your full payment card number.</p></div>
               <div><strong className="text-foreground">Deal &amp; Listing Data</strong><p className="mt-1">Information you submit related to land parcels, listings, offers, deal documents, and communications with other users through the platform.</p></div>
               <div><strong className="text-foreground">Property &amp; Public Records Data</strong><p className="mt-1">Parcel ownership, permit, environmental, and mining safety records we display are sourced from public and licensed third-party data providers (including government sources such as USGS and MSHA). This is not personal information about you, but may relate to landowners or businesses referenced in listings.</p></div>
               <div><strong className="text-foreground">Usage Data</strong><p className="mt-1">Device type, app version, log data, and how you interact with the app, collected automatically for analytics and troubleshooting.</p></div>
@@ -46,7 +46,7 @@ export default function PrivacyPolicy() {
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li><strong className="text-foreground">With other users</strong> you choose to interact with (e.g., a seller you submit an offer to)</li>
               <li><strong className="text-foreground">With service providers</strong> who help us operate the Service (hosting, payment processing, analytics)</li>
-              <li><strong className="text-foreground">With Apple</strong> for subscription and payment processing via In-App Purchase</li>
+              <li><strong className="text-foreground">With Apple App Store or Google Play</strong> for subscription and payment processing when you purchase through a mobile app store</li>
               <li><strong className="text-foreground">For legal reasons</strong>, if required by law, subpoena, or to protect our rights</li>
             </ul>
           </section>
@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
             <ul className="mt-2 list-disc space-y-1 pl-5">
               <li>You can access and update your account information within the app</li>
               <li>You can request deletion of your account and associated data by contacting us (see below), subject to legal retention requirements</li>
-              <li>You can manage subscription and notification preferences within the app or your Apple ID account settings</li>
+              <li>You can manage subscription and notification preferences within the app or through your Apple ID or Google Play account settings, depending on your platform</li>
             </ul>
           </section>
 
