@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk';
 
 const REVIEW_DEMO_EMAIL = 'contact+appreview@ssrockholdings.com';
 const REVIEW_DEMO_EXPIRES_YEARS = 10;
-const REVIEW_DEMO_SOURCE = 'Apple App Review demo account';
+const REVIEW_DEMO_SOURCE = 'App Store review demo account';
 
 export default async function(req) {
   try {
