@@ -1,0 +1,152 @@
+# Corrected GitHub Actions workflow for S&S Rock Holdings Android AAB.
+#
+# Paste this content into .github/workflows/android-play-aab.yml in the GitHub
+# repository (Base44's repo-sync app cannot edit GitHub Actions files, so this
+# reference copy is kept here for you to apply manually).
+#
+# Key changes vs. the old workflow:
+#   1. NEVER generates a new upload keystore. The approved Google Play upload key
+#      (SHA1 F5:50:9D:87:DE:AF:EA:A3:59:39:24:48:C1:9A:C2:FF:5A:DC:5D:27) is
+#      supplied as a base64-encoded GitHub Actions secret and reused for every build.
+#   2. Fails the build with a clear error if the keystore secret is missing, instead
+#      of silently minting a replacement key.
+#   3. Verifies the decoded keystore's certificate SHA1 matches the approved upload
+#      key before signing, so a wrong key can never ship.
+#   4. Asserts the Android applicationId is com.ssrockholdings.quarrymarketplace.
+#
+# Required GitHub repository secrets:
+#   ANDROID_UPLOAD_KEYSTORE_BASE64   - base64 of the approved upload-keystore.jks
+#                                      (e.g. `base64 -w0 upload-keystore.jks`)
+#   ANDROID_UPLOAD_KEYSTORE_PASSWORD - keystore store password
+#   ANDROID_UPLOAD_KEY_ALIAS         - key alias inside the keystore (e.g. "upload")
+#   ANDROID_UPLOAD_KEY_PASSWORD      - password for that key alias
+#
+# The Google Play service-account JSON (GOOGLE_PLAY_SERVICE_ACCOUNT_JSON) is a
+# SEPARATE secret used only by the verify-google-subscription backend function
+# for Play Developer API access. It is NOT the upload keystore and is NOT used
+# to sign the AAB.
+
+name: Build Android Play AAB
+
+on:
+  push:
+    paths:
+      - '.github/workflows/android-play-aab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      EXPECTED_PACKAGE: com.ssrockholdings.quarrymarketplace
+      APPROVED_UPLOAD_SHA1: F5:50:9D:87:DE:AF:EA:A3:59:39:24:48:C1:9A:C2:FF:5A:DC:5D:27
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Verify persistent upload keystore secrets are present
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=0
+          [ -z "${ANDROID_UPLOAD_KEYSTORE_BASE64:-}" ] && { echo "::error::ANDROID_UPLOAD_KEYSTORE_BASE64 secret is missing. Supply the approved Google Play upload keystore (SHA1 $APPROVED_UPLOAD_SHA1) as a base64-encoded GitHub Actions secret. A replacement key will NOT be generated."; missing=1; }
+          [ -z "${ANDROID_UPLOAD_KEYSTORE_PASSWORD:-}" ] && { echo "::error::ANDROID_UPLOAD_KEYSTORE_PASSWORD secret is missing."; missing=1; }
+          [ -z "${ANDROID_UPLOAD_KEY_ALIAS:-}" ] && { echo "::error::ANDROID_UPLOAD_KEY_ALIAS secret is missing."; missing=1; }
+          [ -z "${ANDROID_UPLOAD_KEY_PASSWORD:-}" ] && { echo "::error::ANDROID_UPLOAD_KEY_PASSWORD secret is missing."; missing=1; }
+          exit $missing
+        env:
+          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm install --no-save @capacitor/android@8.5.0
+          npm run build
+          rm -rf android
+          npx cap add android
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon
+
+      - name: Assert applicationId is com.ssrockholdings.quarrymarketplace
+        shell: bash
+        run: |
+          set -euo pipefail
+          APPID=$(grep -E 'applicationId' android/app/build.gradle | head -1 | sed -E 's/.*applicationId[[:space:]]+["'"'"']([^"'"'']+)["'"'"'].*/\1/')
+          echo "applicationId from build.gradle: $APPID"
+          if [ "$APPID" != "$EXPECTED_PACKAGE" ]; then
+            echo "::error::applicationId '$APPID' does not match expected '$EXPECTED_PACKAGE'. Check capacitor.config.ts appId."
+            exit 1
+          fi
+
+      - name: Decode upload keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 -d > upload-keystore.jks
+          echo "Decoded keystore bytes: $(wc -c < upload-keystore.jks)"
+        env:
+          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+
+      - name: Verify keystore cert matches approved upload key
+        shell: bash
+        run: |
+          set -euo pipefail
+          CERT_SHA1=$(keytool -list -v -keystore upload-keystore.jks -storepass "$ANDROID_UPLOAD_KEYSTORE_PASSWORD" -alias "$ANDROID_UPLOAD_KEY_ALIAS" 2>/dev/null | grep -i 'SHA1:' | head -1 | awk '{print $2}')
+          echo "Keystore cert SHA1: $CERT_SHA1"
+          if [ -z "$CERT_SHA1" ]; then
+            echo "::error::Could not read certificate from keystore. Check ANDROID_UPLOAD_KEYSTORE_PASSWORD and ANDROID_UPLOAD_KEY_ALIAS."
+            exit 1
+          fi
+          if [ "$CERT_SHA1" != "$APPROVED_UPLOAD_SHA1" ]; then
+            echo "::error::Keystore SHA1 ($CERT_SHA1) does not match the approved Google Play upload key ($APPROVED_UPLOAD_SHA1). Refusing to sign with an unapproved key."
+            exit 1
+          fi
+          echo "Approved upload keystore confirmed."
+        env:
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+
+      - name: Sign bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAB="android/app/build/outputs/bundle/release/app-release.aab"
+          jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore upload-keystore.jks -storepass "$ANDROID_UPLOAD_KEYSTORE_PASSWORD" -keypass "$ANDROID_UPLOAD_KEY_PASSWORD" "$AAB" "$ANDROID_UPLOAD_KEY_ALIAS"
+          jarsigner -verify -verbose -certs "$AAB"
+          mkdir -p play-upload
+          cp "$AAB" play-upload/SandS-Rock-Holdings-release.aab
+          sha256sum play-upload/SandS-Rock-Holdings-release.aab > play-upload/SHA256.txt
+          {
+            echo "S&S Rock Holdings Android upload key (persistent, approved)"
+            echo "Package: $EXPECTED_PACKAGE"
+            echo "Approved upload cert SHA1: $APPROVED_UPLOAD_SHA1"
+            echo "Alias: $ANDROID_UPLOAD_KEY_ALIAS"
+            echo "This keystore is reused for every release. Do not regenerate."
+          } > play-upload/UPLOAD-KEY-INFO.txt
+        env:
+          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
+          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SandS-Rock-Holdings-Google-Play
+          path: play-upload/
+          if-no-files-found: error
+          retention-days: 90
