@@ -32,7 +32,6 @@ export default function NdaGate({ listing }) {
   const [company, setCompany] = useState("");
   const [role, setRole] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [paying, setPaying] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [googleProduct, setGoogleProduct] = useState(null);
   const [googlePurchasing, setGooglePurchasing] = useState(false);
@@ -141,23 +140,6 @@ export default function NdaGate({ listing }) {
     }
   };
 
-  const startCheckout = async () => {
-    if (isMobileNative || !user?.id) return;
-    setPaying(true);
-    try {
-      const res = await base44.functions.invoke("create-data-room-checkout", {
-        listing_id: listing.id,
-        channel: "web",
-      });
-      if (res?.data?.url) window.location.href = res.data.url;
-      else alert("Could not start checkout. Please try again.");
-    } catch {
-      alert("Could not start checkout. Please try again.");
-    } finally {
-      setPaying(false);
-    }
-  };
-
   const startGooglePurchase = async () => {
     if (!isAndroidNative || !user?.id) return;
     setGooglePurchasing(true);
@@ -240,9 +222,8 @@ export default function NdaGate({ listing }) {
           </>
         ) : (
           <>
-            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Your NDA is on file. Complete the one-time website checkout to unlock the confidential data room for this account.</p>
-            <div className="mt-5 flex items-center justify-center gap-2"><span className="font-display text-4xl font-bold text-foreground">${ACCESS_FEE}</span><span className="text-sm text-muted-foreground">one-time access</span></div>
-            <Button className="mt-5" onClick={startCheckout} disabled={paying || verifying}>{paying ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Redirecting to checkout…</> : <><CreditCard className="mr-2 h-4 w-4" />Pay ${ACCESS_FEE} & Unlock</>}</Button>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">Your NDA is on file. New confidential data-room purchases are not offered on the website. Existing authorized data-room access remains available for accounts that already have it.</p>
+            <Button className="mt-5" variant="outline" onClick={() => window.location.assign("/support")}>Contact Support</Button>
           </>
         )}
         {verifying && <p className="mt-3 text-xs text-muted-foreground">Verifying your payment…</p>}
