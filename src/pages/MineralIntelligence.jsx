@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { premiumEntityQuery } from "@/lib/subscriptionAccess";
+import { base44 } from "@/api/base44Client";
 import MineralOccurrenceMap from "@/components/MineralOccurrenceMap";
 import { Mountain, TrendingUp, MapPin, Database } from "lucide-react";
-
-const SOUTHEAST_STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 
 export default function MineralIntelligence() {
   const [occurrences, setOccurrences] = useState([]);
@@ -14,21 +12,10 @@ export default function MineralIntelligence() {
     const loadAll = async () => {
       try {
         setLoading(true);
-        const all = [];
-        for (const state of SOUTHEAST_STATES) {
-          for (let offset = 0; offset < 10000; offset += 500) {
-            const page = await premiumEntityQuery(
-              "USGSMineralOccurrence",
-              { occurrence_state: state },
-              "-created_date",
-              500,
-              offset
-            );
-            all.push(...(page || []));
-            if (!page || page.length < 500) break;
-          }
-        }
-        setOccurrences(all);
+        const response = await base44.functions.invoke("get-public-mineral-occurrences", { state: "ALL" });
+        const payload = response?.data || response || {};
+        if (payload?.error) throw new Error(payload.error);
+        setOccurrences(payload?.occurrences || []);
       } catch (err) {
         console.error("MineralIntelligence load failed", err);
         setError(err?.message || "Failed to load mineral occurrence data");
