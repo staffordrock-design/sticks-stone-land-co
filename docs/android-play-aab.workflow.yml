@@ -6,7 +6,7 @@
 #
 # Key changes vs. the old workflow:
 #   1. NEVER generates a new upload keystore. The approved Google Play upload key
-#      (SHA1 F5:50:9D:87:DE:AF:EA:A3:59:39:24:48:C1:9A:C2:FF:5A:DC:5D:27) is
+#      (SHA1 5B:38:4C:89:F2:C0:3B:FC:DA:55:0E:68:9A:30:2B:65:48:43:CD:24) is
 #      supplied as a base64-encoded GitHub Actions secret and reused for every build.
 #   2. Fails the build with a clear error if the keystore secret is missing, instead
 #      of silently minting a replacement key.
@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 30
     env:
       EXPECTED_PACKAGE: com.ssrockholdings.quarrymarketplace
-      APPROVED_UPLOAD_SHA1: F5:50:9D:87:DE:AF:EA:A3:59:39:24:48:C1:9A:C2:FF:5A:DC:5D:27
+      APPROVED_UPLOAD_SHA1: 5B:38:4C:89:F2:C0:3B:FC:DA:55:0E:68:9A:30:2B:65:48:43:CD:24
 
     steps:
       - uses: actions/checkout@v4
