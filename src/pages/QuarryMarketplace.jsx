@@ -484,7 +484,7 @@ export default function QuarryMarketplace() {
               {!hasProfessional && (
                 <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm">
                   <p className="font-bold text-sky-950">You're seeing public quarry records.</p>
-                  <p className="mt-1 text-sky-800">Unlock ownership, parcel, deed, permit and geology intelligence for every property — <Link to="/subscribe" className="font-bold underline">$69/month</Link></p>
+                  <p className="mt-1 text-sky-800">Unlock ownership, parcel, deed, permit and geology intelligence for every property — <Link to="/subscribe" className="font-bold underline">$39/month</Link></p>
                 </div>
               )}
             </div>

@@ -62,7 +62,7 @@ export default function MembershipValueSection() {
           <div className="mt-6 rounded-xl bg-slate-100 px-4 py-3 text-center text-sm font-bold text-slate-700">You're here now</div>
         </div>
 
-        {/* $69/month Membership */}
+        {/* $39/month Membership */}
         <div className="flex flex-col rounded-2xl border-2 border-sky-600 bg-card p-6 shadow-lg lg:scale-105">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -71,7 +71,7 @@ export default function MembershipValueSection() {
             </div>
             <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-800">Most Popular</span>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">$69/month · cancel anytime</p>
+          <p className="mt-1 text-sm text-muted-foreground">$39/month · cancel anytime</p>
           <div className="mt-5 flex-1 space-y-2.5">
             {MEMBER_FEATURES.map((f) => (
               <div key={f} className="flex items-start gap-2 text-sm">
@@ -81,7 +81,7 @@ export default function MembershipValueSection() {
             ))}
           </div>
           <Link to="/subscribe" className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
-            <Lock className="h-4 w-4" /> Unlock Full Intelligence — $69/month
+            <Lock className="h-4 w-4" /> Unlock Full Intelligence — $39/month
           </Link>
         </div>
 

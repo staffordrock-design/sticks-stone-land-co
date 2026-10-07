@@ -349,14 +349,14 @@ export default function Home() {
             <Link to="/sell" className="hover:text-foreground">List Property</Link>
             <Link to="/data-sources" className="hover:text-foreground">How the Data Works</Link>
             <Link to="/support" className="hover:text-foreground">Help</Link>
-            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 font-bold text-white hover:bg-sky-500">Unlock — $69/mo</Link>}
+            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 font-bold text-white hover:bg-sky-500">Unlock — $39/mo</Link>}
             {user?.role === "admin" && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
             {user?.role === "admin" && <Link to="/admin/conversions" className="font-semibold text-sky-700 hover:text-sky-800">Conversions</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
           <div className="flex items-center gap-3">
-            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-500 sm:text-sm">Unlock — $69/mo</Link>}
+            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-500 sm:text-sm">Unlock — $39/mo</Link>}
             <div className="hidden text-sm font-medium text-foreground sm:block">{user?.name || user?.email || "Public Access"}</div>
           </div>
         </div>
@@ -447,7 +447,7 @@ export default function Home() {
             <p className="mt-3 font-heading text-3xl font-bold text-white">{loading ? "…" : `${ranked.length.toLocaleString()} quarry records mapped`}</p>
             <p className="mt-2 max-w-md text-sm text-slate-200">Unlock Full Quarry Intelligence to explore every site on the interactive map with owner, geology, valuation and opportunity score.</p>
             <Link to="/subscribe" className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-              <TrendingUp className="h-4 w-4" /> Unlock — $69/month
+              <TrendingUp className="h-4 w-4" /> Unlock — $39/month
             </Link>
           </div>
         ) : (
@@ -473,7 +473,7 @@ export default function Home() {
             <h2 className="font-heading text-2xl font-bold text-slate-950 sm:text-3xl">Unlock Every Quarry Record</h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">You've seen the map. Now see the ownership, geology, permits, valuation and opportunity score behind every quarry. Full access unlocks immediately.</p>
             <Link to="/subscribe" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-              <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $69/month
+              <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
             </Link>
             <p className="mt-3 text-xs text-slate-500">Cancel anytime. No account required.</p>
           </div>
@@ -583,7 +583,7 @@ export default function Home() {
                 <p className="mt-1 text-sm text-muted-foreground">These are live quarry records from the S&amp;S database. The owner, operator, permitted acreage, geology, valuation and opportunity score are blurred until you unlock Full Quarry Intelligence.</p>
               </div>
               <Link to="/subscribe" className="inline-flex min-h-12 w-fit items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-                <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $69/month
+                <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
               </Link>
             </div>
             {loading ? (
@@ -616,7 +616,7 @@ export default function Home() {
               </p>
               <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-                  <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $69/month
+                  <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
                 </Link>
                 <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800">
                   View Sample Record
@@ -734,7 +734,7 @@ export default function Home() {
               <div className="font-heading text-sm font-bold text-foreground">Intelligence</div>
               <div className="mt-3 flex flex-col gap-2 text-sm">
                 <Link to="/data-sources" className="text-muted-foreground hover:text-foreground hover:underline">Data Sources &amp; Methodology</Link>
-                <Link to="/subscribe" className="text-muted-foreground hover:text-foreground hover:underline">Full Intelligence — $69/month</Link>
+                <Link to="/subscribe" className="text-muted-foreground hover:text-foreground hover:underline">Full Intelligence — $39/month</Link>
                 <Link to="/sell" className="text-muted-foreground hover:text-foreground hover:underline">List a Property</Link>
                 <Link to="/get-started?mode=report" className="text-muted-foreground hover:text-foreground hover:underline">Request Due Diligence</Link>
               </div>
@@ -749,8 +749,9 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <div className="mt-8 flex justify-center">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
             <AppStoreBadge variant="dark" />
+            <a href="https://play.google.com/store/apps/details?id=com.ssrockholdings.quarrymarketplace" target="_blank" rel="noreferrer" aria-label="Get S&S Rock Holdings on Google Play" className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90">Get it on Google Play</a>
           </div>
           <div className="mt-6 border-t border-border pt-6 text-center text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} S&amp;S Rock Holdings LLC · Quarry marketplace + industrial intelligence · Source data may require independent verification.

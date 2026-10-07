@@ -5,14 +5,14 @@ const SUBSCRIPTION_PLANS = {
   professional_monthly: {
     name: 'Full Quarry Intelligence',
     description: 'S&S Rock Holdings membership with full quarry records, ownership, parcel, geology, permit, production, environmental, and opportunity intelligence.',
-    unitAmount: 6900,
+    unitAmount: 3900,
     currency: 'usd',
     interval: 'month' as const,
   },
 };
 
-// Keep every website checkout on the single canonical live Stripe price.
-// This prevents a new Stripe Product/Price from being created for every checkout attempt.
+// Reuse one $39 monthly Stripe price for new purchases on the existing product.
+// Existing subscriptions retain their price until explicitly migrated.
 const FALLBACK_STRIPE_PRICE_ID = 'price_1U4vqOHBH3xrClLV9vFwHk8r';
 
 function randomSuffix() {
@@ -41,7 +41,24 @@ export default async function(req: Request) {
       return Response.json({ error: 'Stripe checkout is not fully configured' }, { status: 503 });
     }
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
-    const subscriptionPriceId = secrets.get('STRIPE_PRICE_ID_69') || FALLBACK_STRIPE_PRICE_ID;
+    const lookupKey = 'ssrockholdings_professional_monthly_usd_39';
+    const matches = await stripe.prices.list({ active: true, lookup_keys: [lookupKey], limit: 1 });
+    let monthlyPrice = matches.data[0];
+    if (!monthlyPrice) {
+      const previousPrice = await stripe.prices.retrieve(FALLBACK_STRIPE_PRICE_ID);
+      const productId = typeof previousPrice.product === 'string' ? previousPrice.product : previousPrice.product.id;
+      monthlyPrice = await stripe.prices.create({
+        product: productId,
+        currency: plan.currency,
+        unit_amount: plan.unitAmount,
+        recurring: { interval: plan.interval },
+        lookup_key: lookupKey,
+      }, { idempotencyKey: lookupKey });
+    }
+    if (monthlyPrice.unit_amount !== plan.unitAmount || monthlyPrice.currency !== plan.currency || monthlyPrice.recurring?.interval !== plan.interval) {
+      throw new Error('The monthly subscription price is not configured correctly');
+    }
+    const subscriptionPriceId = monthlyPrice.id;
 
     // Use the browser's actual origin (passed from the frontend) so Stripe
     // always redirects back to the domain the visitor started on. Fall back to

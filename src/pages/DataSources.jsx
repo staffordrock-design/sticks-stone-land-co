@@ -61,7 +61,7 @@ export default function DataSources() {
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 shadow-sm backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 16px)" }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 pb-4">
           <Link to="/"><BrandLogo /></Link>
-          <Link to="/subscribe" className="inline-flex min-h-10 items-center rounded-xl bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-500">Full Intelligence — $69/mo</Link>
+          <Link to="/subscribe" className="inline-flex min-h-10 items-center rounded-xl bg-sky-600 px-4 py-2 text-sm font-bold text-white hover:bg-sky-500">Full Intelligence — $39/mo</Link>
         </div>
       </header>
 
@@ -135,7 +135,7 @@ export default function DataSources() {
 
         <div className="mt-8 text-center">
           <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-            Unlock Full Quarry Intelligence — $69/month
+            Unlock Full Quarry Intelligence — $39/month
           </Link>
         </div>
       </section>
