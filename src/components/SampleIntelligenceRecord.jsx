@@ -178,7 +178,7 @@ export default function SampleIntelligenceRecord({ bundle }) {
       {/* CTA */}
       <div className="border-t border-border bg-slate-950 p-6 text-center">
         <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
-          <TrendingUp className="h-4 w-4" /> Unlock Full Quarry Intelligence — $38.99/month
+          <TrendingUp className="h-4 w-4" /> Unlock Full Quarry Intelligence — $39/month
         </Link>
         <p className="mt-3 text-xs text-slate-400">Cancel anytime. No account required to subscribe on web. Full database access for paid members only.</p>
       </div>
