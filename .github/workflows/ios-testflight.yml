@@ -129,7 +129,7 @@ jobs:
             echo "::error title=Apple product missing from iOS web bundle::The built app cannot recognize the current Apple subscription";
             exit 1;
           }
-          if grep -RqsE '\$49|\$139|\$390|\$89|\$189|\$389|\$1,500|\$2,500|60-second preview|Your 60-second preview|ss-quarry-preview-start|Explore review demo|ss-apple-review-demo|3-day free trial|Start 3-Day Free Trial' src dist; then
+          if grep -RqsE '\$49|\$139|\$69|\$690|\$89|\$189|\$389|\$1,500|\$2,500|60-second preview|Your 60-second preview|ss-quarry-preview-start|Explore review demo|ss-apple-review-demo|3-day free trial|Start 3-Day Free Trial' src dist; then
             echo "::error title=Retired access model found::Old pricing, trial copy, a retired preview gate, or the public review-demo bypass is present in the build";
             exit 1;
           fi
