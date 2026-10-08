@@ -25,6 +25,16 @@ function normalizeEmail(value: unknown) {
   return String(value || '').trim().toLowerCase();
 }
 
+async function verifiedGoogleAdsPurchase(session: any, active: boolean) {
+  if (!active || session?.livemode !== true || session?.status !== 'complete' || session?.payment_status !== 'paid') return null;
+  const amount = Number(session?.amount_total);
+  const currency = String(session?.currency || '').toUpperCase();
+  if (!Number.isFinite(amount) || amount <= 0 || !/^[A-Z]{3}$/.test(currency) || !session?.id) return null;
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(session.id)));
+  const transactionId = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return { verified: true, transaction_id: transactionId, value: amount / 100, currency };
+}
+
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
@@ -117,7 +127,7 @@ export default async function(req: Request) {
     if (existingBilling?.[0]) await base44.asServiceRole.entities.BillingEvent.update(existingBilling[0].id, billingData);
     else await base44.asServiceRole.entities.BillingEvent.create(billingData);
 
-    return Response.json({ verified: true, active, entitlement });
+    return Response.json({ verified: true, active, entitlement, google_ads_purchase: await verifiedGoogleAdsPurchase(session, active) });
   } catch (error) {
     console.error('verify-stripe-subscription error:', error);
     return Response.json({ error: error?.message || String(error) }, { status: 400 });
