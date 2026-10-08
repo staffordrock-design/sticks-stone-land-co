@@ -21,6 +21,16 @@ function isoFromSeconds(value: unknown) {
   return Number.isFinite(n) && n > 0 ? new Date(n * 1000).toISOString() : '';
 }
 
+async function verifiedGoogleAdsPurchase(session: any, active: boolean) {
+  if (!active || session?.livemode !== true || session?.status !== 'complete' || session?.payment_status !== 'paid') return null;
+  const amount = Number(session?.amount_total);
+  const currency = String(session?.currency || '').toUpperCase();
+  if (!Number.isFinite(amount) || amount <= 0 || !/^[A-Z]{3}$/.test(currency) || !session?.id) return null;
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(session.id)));
+  const transactionId = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return { verified: true, transaction_id: transactionId, value: amount / 100, currency };
+}
+
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
@@ -92,6 +102,7 @@ export default async function(req: Request) {
       plan_code: planCode,
       expires_at: isoFromSeconds(periodEnd),
       platform: 'web',
+      google_ads_purchase: await verifiedGoogleAdsPurchase(session, active),
     });
   } catch (error) {
     console.error('verify-public-stripe-subscription error:', error);
