@@ -12,6 +12,7 @@ import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
+import { trackVerifiedGoogleAdsPurchase } from "@/lib/googleAdsTracking";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -151,18 +152,22 @@ export default function Subscription() {
       setLoading(true);
       setPurchaseMessage("Confirming your Full Quarry Intelligence subscription…");
       try {
+        let verifiedPurchase = null;
         if (user?.id) {
           const response = await base44.functions.invoke("verify-stripe-subscription", { session_id: stripeSessionId });
           const payload = response?.data || response || {};
           if (payload?.error) throw new Error(payload.error);
           const rows = await refreshEntitlements();
           if (!findFullQuarryEntitlement(rows)) throw new Error("Payment was confirmed, but access has not refreshed yet. Please try again in a moment.");
+          verifiedPurchase = payload.google_ads_purchase;
         } else {
           const access = await verifySavedWebSubscriptionAccess(stripeSessionId);
           if (!access?.active) throw new Error(access?.error || "Payment was confirmed, but guest access has not refreshed yet. Please try again in a moment.");
           if (!cancelled) setWebAccess(access);
+          verifiedPurchase = access.google_ads_purchase;
         }
         if (!cancelled) {
+          trackVerifiedGoogleAdsPurchase(verifiedPurchase);
           setPurchaseMessage("Subscription confirmed. Your full quarry intelligence is active.");
           base44.analytics.track({ eventName: "subscription_purchased" });
           navigate(returnTo, { replace: true });
