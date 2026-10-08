@@ -3,6 +3,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Loader2, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { getWebSubscriptionBrowserId, saveWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
+import { trackVerifiedGoogleAdsPurchase } from "@/lib/googleAdsTracking";
 
 const POLL_INTERVAL_MS = 2500;
 const POLL_MAX_ATTEMPTS = 120; // ~5 minutes
@@ -90,6 +91,7 @@ export default function StripeEmbeddedCheckout({ clientSecret, publishableKey, s
               });
           const payload = response?.data || response || {};
           if (payload?.active) {
+            trackVerifiedGoogleAdsPurchase(payload.google_ads_purchase);
             completedRef.current = true;
             saveWebSubscriptionAccess({
               sessionId,
