@@ -121,15 +121,15 @@ jobs:
             echo "::error title=Apple product disconnected::The Full Quarry Intelligence product ID is missing from the app";
             exit 1;
           }
-          grep -q 'priceLabel: "\$69/month"' src/lib/subscriptionPlans.js || {
-            echo "::error title=Membership price mismatch::The client subscription catalog must show the current $69/month membership price";
+          grep -q 'priceLabel: "\$39/month"' src/lib/subscriptionPlans.js || {
+            echo "::error title=Membership price mismatch::The client subscription catalog must show the current $39/month membership price";
             exit 1;
           }
           grep -Rqs "com.ssrockholdings.marketplace.monthly" dist || {
             echo "::error title=Apple product missing from iOS web bundle::The built app cannot recognize the current Apple subscription";
             exit 1;
           }
-          if grep -RqsE '\$49|\$139|\$690|\$89|\$189|\$389|\$1,500|\$2,500|60-second preview|Your 60-second preview|ss-quarry-preview-start|Explore review demo|ss-apple-review-demo|3-day free trial|Start 3-Day Free Trial' src dist; then
+          if grep -RqsE '\$49|\$139|\$390|\$89|\$189|\$389|\$1,500|\$2,500|60-second preview|Your 60-second preview|ss-quarry-preview-start|Explore review demo|ss-apple-review-demo|3-day free trial|Start 3-Day Free Trial' src dist; then
             echo "::error title=Retired access model found::Old pricing, trial copy, a retired preview gate, or the public review-demo bypass is present in the build";
             exit 1;
           fi
@@ -338,10 +338,10 @@ jobs:
               raise SystemExit("Apple subscription sync contains errors: " + " | ".join(product_errors + report.get("errors", [])))
           product = products["com.ssrockholdings.marketplace.monthly"]
           pricing = product.get("pricing") or {}
-          if pricing.get("usa_price") != "69.00":
-              raise SystemExit(f"Apple USA subscription price is not $69.00: {pricing}")
+          if pricing.get("usa_price") != "39.00":
+              raise SystemExit(f"Apple USA subscription price is not $39.00: {pricing}")
           if pricing.get("price_failures"):
-              raise SystemExit("Apple $69 price update contains territory failures")
+              raise SystemExit("Apple $39 price update contains territory failures")
           offer = product.get("introductory_offer") or {}
           if offer.get("status") != "NO_TRIAL" or offer.get("remaining_offer_count") != 0:
               raise SystemExit(f"Apple introductory offers were not fully removed: {offer}")
