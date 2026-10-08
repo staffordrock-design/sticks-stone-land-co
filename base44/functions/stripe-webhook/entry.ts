@@ -53,7 +53,7 @@ async function upsertWebEntitlement(base44: any, subscription: any, fallbackMeta
     customer_email: String(subscription?.customer_email || metadata.customer_email || ''),
     revenue_type: 'Subscription',
     plan_or_product: planCode,
-    amount: Number(subscription?.items?.data?.[0]?.price?.unit_amount || 3900) / 100,
+    amount: Number(subscription?.items?.data?.[0]?.price?.unit_amount || 3899) / 100,
     currency: String(subscription?.currency || 'usd').toUpperCase(),
     platform: 'Stripe',
     status: isActive ? 'Paid' : 'Pending',

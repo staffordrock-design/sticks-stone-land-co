@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       line_items: [{
         price_data: {
           currency: 'usd',
-          unit_amount: 3900,
+          unit_amount: 3899,
           recurring: { interval: 'month' },
           product_data: { name: 'S&S Rock Holdings — Full Quarry Intelligence' },
         },

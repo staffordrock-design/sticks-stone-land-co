@@ -5,15 +5,15 @@ const SUBSCRIPTION_PLANS = {
   professional_monthly: {
     name: 'Full Quarry Intelligence',
     description: 'S&S Rock Holdings membership with full quarry records, ownership, parcel, geology, permit, production, environmental, and opportunity intelligence.',
-    unitAmount: 3900,
+    unitAmount: 3899,
     currency: 'usd',
     interval: 'month' as const,
   },
 };
 
-// Reuse one $39 monthly Stripe price for new purchases on the existing product.
+// Reuse one $38.99 monthly Stripe price for new purchases on the existing product.
 // Existing subscriptions retain their price until explicitly migrated.
-const FALLBACK_STRIPE_PRICE_ID = 'price_1U4vqOHBH3xrClLV9vFwHk8r';
+const FALLBACK_STRIPE_PRICE_ID = 'price_1UO6QZHBH3xrClLVaQtRZS4n';
 
 function randomSuffix() {
   const chars = 'abcdefghijklmnopqrstuvwxyz';
@@ -41,7 +41,7 @@ export default async function(req: Request) {
       return Response.json({ error: 'Stripe checkout is not fully configured' }, { status: 503 });
     }
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
-    const lookupKey = 'ssrockholdings_professional_monthly_usd_39';
+    const lookupKey = 'ssrockholdings_professional_monthly_usd_38_99';
     const matches = await stripe.prices.list({ active: true, lookup_keys: [lookupKey], limit: 1 });
     let monthlyPrice = matches.data[0];
     if (!monthlyPrice) {

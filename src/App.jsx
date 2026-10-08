@@ -101,8 +101,8 @@ const AuthenticatedApp = () => {
         description: "Rock & Quarry Intelligence. From the Ground Up. Search quarry properties, ownership, acreage, geology, permits, production, mineral potential, and market intelligence."
       },
       "/subscribe": {
-        title: "$39 Full Quarry Intelligence | S&S Rock Holdings",
-        description: "Unlock full S&S Rock Holdings quarry intelligence for $39/month, including ownership, parcel, geology, permits, production, valuation context, and opportunity intelligence."
+        title: "$38.99 Full Quarry Intelligence | S&S Rock Holdings",
+        description: "Unlock full S&S Rock Holdings quarry intelligence for $38.99/month, including ownership, parcel, geology, permits, production, valuation context, and opportunity intelligence."
       },
       "/privacy": {
         title: "Privacy Policy | S&S Rock Holdings",
