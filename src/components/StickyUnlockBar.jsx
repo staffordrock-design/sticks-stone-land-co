@@ -11,7 +11,7 @@ export default function StickyUnlockBar() {
           className="flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3.5 text-sm font-bold text-white shadow-2xl ring-1 ring-sky-400/50 hover:bg-sky-500 transition"
         >
           <Lock className="h-4 w-4 shrink-0" />
-          <span>Unlock Full Quarry Intelligence — $38.99/month</span>
+          <span>Unlock Full Quarry Intelligence — $39/month</span>
         </Link>
       </div>
     </div>
