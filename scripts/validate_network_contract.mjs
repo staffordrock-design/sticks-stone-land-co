@@ -194,10 +194,10 @@ requireText('src/components/BottomNav.jsx', [
 ]);
 
 requireText('src/components/QuarryActionBar.jsx', [
-  '/network/intelligence?site=',
-  '/network/deals/new?site=',
-  'Network intel',
-  'Post deal',
+  '/get-started?mode=buyer&site=',
+  '/get-started?mode=report&site=',
+  'Ask About This Property',
+  'Request Property Research',
 ]);
 
 requireText('src/components/AccountProfileGate.jsx', [
