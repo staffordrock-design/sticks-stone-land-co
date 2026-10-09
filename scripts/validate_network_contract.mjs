@@ -106,11 +106,11 @@ requireText('src/pages/NetworkIntel.jsx', [
 requireText('src/pages/CompanyNetworkDetail.jsx', [
   'Company Network Profile',
   'base44.entities.QuarryNetworkLink.filter({ company_key: targetKey }',
-  'base44.entities.TDECPermit.filter(byMsha',
-  'base44.entities.GeologyRecord.filter(bySite',
-  'base44.entities.EnvironmentalRecord.filter(byMsha',
-  'base44.entities.ProductionRecord.filter(bySite',
-  'base44.entities.ContractIntelligence.filter(bySite',
+  'premiumEntityQuery("TDECPermit", byMsha',
+  'premiumEntityQuery("GeologyRecord", bySite',
+  'premiumEntityQuery("EnvironmentalRecord", byMsha',
+  'premiumEntityQuery("ProductionRecord", bySite',
+  'premiumEntityQuery("ContractIntelligence", bySite',
   'Open quarry intelligence',
 ]);
 
