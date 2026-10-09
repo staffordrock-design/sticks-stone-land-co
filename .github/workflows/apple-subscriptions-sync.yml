@@ -41,6 +41,15 @@ jobs:
           ASC_REPORT_PATH: "reports/apple_subscription_sync_standalone.json"
         run: python scripts/apple_subscription_sync.py
 
+      - name: Preserve Apple subscription verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-subscription-verification
+          path: reports/apple_subscription_sync_standalone.json
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Save sanitized Apple sync report
         if: success()
         run: |
