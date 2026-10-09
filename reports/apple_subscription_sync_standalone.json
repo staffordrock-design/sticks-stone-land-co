@@ -3,7 +3,7 @@
   "authenticated": true,
   "bundle_id": "com.base6a78376a454093ba2f431acd.app",
   "errors": [],
-  "generated_at": "2026-09-13T07:44:42.383995+00:00",
+  "generated_at": "2026-10-09T04:28:22.713192+00:00",
   "group": {
     "created": false,
     "id": "22312976",
@@ -39,9 +39,9 @@
         "prices_already_at_target": 175,
         "prices_created": 0,
         "territories_available_from_equalization": 175,
-        "usa_price": "69.00"
+        "usa_price": "39.00"
       },
-      "state": "READY_TO_SUBMIT"
+      "state": "APPROVED"
     }
   }
 }
