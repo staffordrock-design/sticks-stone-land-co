@@ -189,7 +189,7 @@ requireText('src/App.jsx', [
 ]);
 
 requireText('src/components/BottomNav.jsx', [
-  '{ to: "/network", label: "Network", icon: Users',
+  '{ to: "/search", label: "Map", icon: MapPinned',
   'const alwaysOpenRoot = tab.to === "/network" || tab.to === "/intelligence";',
 ]);
 
