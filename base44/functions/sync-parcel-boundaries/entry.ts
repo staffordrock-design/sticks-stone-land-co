@@ -63,10 +63,37 @@ async function saveVerification(base44: any, site: any, status: string, details:
   return await base44.asServiceRole.entities.ParcelOwnershipVerification.create(payload);
 }
 
-async function fetchJson(url: string) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+async function fetchJson(url: string, timeoutMs = 8000) {
+  const response = await fetch(url, { signal: AbortSignal.timeout(timeoutMs) });
   if (!response.ok) throw new Error(`Parcel service ${response.status}`);
   return await response.json();
+}
+
+// The TN Comptroller assessment service is intermittent. Retry with increasing
+// timeouts so a single transient failure doesn't leave the owner name blank.
+async function fetchAssessmentWithRetry(parcelId: string): Promise<any | null> {
+  const escaped = parcelId.replace(/'/g, "''");
+  const ap = new URLSearchParams({
+    f: "json",
+    where: `GISLINK='${escaped}'`,
+    outFields: "GISLINK,PARCELID,OWNER,OWNER2,OWNJAN1,ADDRESS,MAILADDR,MAILCITY,STATE,ZIP,CALC_ACRE,LANDVAL,IMPVAL,APPRAISAL,DEEDBKPG,TAXYR,UPDATED,LASTUPD,COUNTY",
+    returnGeometry: "false",
+    resultRecordCount: "1",
+  });
+  const timeouts = [10000, 15000, 20000];
+  for (let attempt = 0; attempt < timeouts.length; attempt++) {
+    try {
+      const ad = await fetchJson(`${ASSESSMENT_SERVICE}?${ap.toString()}`, timeouts[attempt]);
+      const attributes = ad?.features?.[0]?.attributes || null;
+      if (attributes) return attributes;
+      // Empty result is not a transient error — stop retrying.
+      return null;
+    } catch (error) {
+      if (attempt === timeouts.length - 1) { console.error(`Assessment fetch failed for ${parcelId}:`, error); return null; }
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+    }
+  }
+  return null;
 }
 
 async function lookupParcel(lat: number, lng: number) {
@@ -96,18 +123,7 @@ async function lookupParcel(lat: number, lng: number) {
   const parcelId = String(props.GISLINK || props.GISLINK2 || "").trim();
   let assessment: any = null;
   if (parcelId) {
-    try {
-      const escaped = parcelId.replace(/'/g, "''");
-      const ap = new URLSearchParams({
-        f: "json",
-        where: `GISLINK='${escaped}'`,
-        outFields: "GISLINK,PARCELID,OWNER,OWNER2,OWNJAN1,ADDRESS,MAILADDR,MAILCITY,STATE,ZIP,CALC_ACRE,LANDVAL,IMPVAL,APPRAISAL,DEEDBKPG,TAXYR,UPDATED,LASTUPD,COUNTY",
-        returnGeometry: "false",
-        resultRecordCount: "1",
-      });
-      const ad = await fetchJson(`${ASSESSMENT_SERVICE}?${ap.toString()}`);
-      assessment = ad?.features?.[0]?.attributes || null;
-    } catch { /* assessment is best-effort */ }
+    assessment = await fetchAssessmentWithRetry(parcelId);
   }
 
   return { props, boundary_polygon, parcelId, assessment };
@@ -205,6 +221,90 @@ Deno.serve(async (req) => {
     const concurrency = Math.min(Math.max(Number(body?.concurrency || 2), 1), 3);
     const startedAt = Date.now();
     const TIME_BUDGET_MS = 240000; // 4 min budget, leaving 60s buffer under the 5 min function limit
+
+    // ── Backfill mode: retry just the assessment (owner) fetch for existing
+    // parcel records that already have a real GISLINK but no owner_name. This
+    // avoids re-fetching boundaries and focuses entirely on the intermittent
+    // assessment service that was silently failing. ──
+    if (body?.mode === "backfill_owners") {
+      const backfillLimit = Math.min(Math.max(Number(body?.limit || 50), 1), 100);
+      const backfillConcurrency = Math.min(Math.max(Number(body?.concurrency || 3), 1), 5);
+
+      // Load parcel records with a real GISLINK (not the TN-<siteId> fallback) but no owner.
+      const parcels: any[] = [];
+      for (let skip = 0; skip < 5000 && parcels.length < backfillLimit * 3; skip += 200) {
+        const batch = await base44.asServiceRole.entities.ParcelRecord.filter(
+          { state: "TN", owner_name: null },
+          "-updated_date", 200, skip,
+        );
+        for (const p of batch || []) {
+          const pid = String(p.parcel_id || "").trim();
+          if (pid && !pid.startsWith("TN-") && pid.length > 5) parcels.push(p);
+        }
+        if (!batch || batch.length < 200) break;
+      }
+
+      const candidates = parcels.slice(0, backfillLimit);
+      let attempted = 0, ownersFound = 0, stillMissing = 0, errors = 0;
+      const errorDetails: string[] = [];
+
+      for (let i = 0; i < candidates.length; i += backfillConcurrency) {
+        if (Date.now() - startedAt > TIME_BUDGET_MS) break;
+        const batch = candidates.slice(i, i + backfillConcurrency);
+        const results = await Promise.all(batch.map(async (parcel) => {
+          const parcelId = String(parcel.parcel_id).trim();
+          const assessment = await fetchAssessmentWithRetry(parcelId);
+          const ownerName = String(assessment?.OWNER || assessment?.OWNJAN1 || "").trim() || undefined;
+          if (!ownerName) return { id: parcel.id, found: false };
+
+          const mailingAddress = [assessment?.MAILADDR, assessment?.MAILCITY, assessment?.STATE, assessment?.ZIP]
+            .map((v) => String(v || "").trim()).filter(Boolean).join(", ") || undefined;
+          const assessmentSourceUrl = `${ASSESSMENT_SOURCE_URL}?parcel=${encodeURIComponent(parcelId)}`;
+
+          await base44.asServiceRole.entities.ParcelRecord.update(parcel.id, {
+            owner_name: ownerName,
+            property_address: String(assessment?.ADDRESS || "").trim() || parcel.property_address || undefined,
+            mailing_address: mailingAddress || parcel.mailing_address || undefined,
+            assessed_value: Number(assessment?.APPRAISAL) || parcel.assessed_value || undefined,
+            land_value: Number(assessment?.LANDVAL) || parcel.land_value || undefined,
+            improvement_value: Number(assessment?.IMPVAL) || parcel.improvement_value || undefined,
+            deed_book_page: String(assessment?.DEEDBKPG || "").trim() || parcel.deed_book_page || undefined,
+            source_name: "TN Comptroller IMPACT Property Assessment GIS",
+            source_url: assessmentSourceUrl,
+            last_source_update: String(assessment?.UPDATED || assessment?.LASTUPD || "").trim() || new Date().toISOString(),
+          });
+
+          // Also update the linked MiningSite parcel_owner if present.
+          if (parcel.msha_mine_id) {
+            const sites = await base44.asServiceRole.entities.MiningSite.filter(
+              { msha_mine_id: parcel.msha_mine_id }, "-updated_date", 1, 0,
+            );
+            if (sites?.[0] && (!sites[0].parcel_owner || sites[0].parcel_owner !== ownerName)) {
+              await base44.asServiceRole.entities.MiningSite.update(sites[0].id, { parcel_owner: ownerName });
+            }
+          }
+
+          return { id: parcel.id, found: true, owner: ownerName };
+        }));
+
+        for (const r of results) {
+          attempted++;
+          if (r.found) ownersFound++;
+          else stillMissing++;
+        }
+      }
+
+      return Response.json({
+        success: true,
+        mode: "backfill_owners",
+        candidates: candidates.length,
+        attempted,
+        owners_found: ownersFound,
+        still_missing: stillMissing,
+        elapsed_ms: Date.now() - startedAt,
+        note: "Retried only the TN Comptroller assessment (owner) fetch for parcel records that already had a real GISLINK but no owner. Boundary re-fetch was skipped.",
+      });
+    }
 
     // Load TN sites — stop early once we have enough quarry-relevant candidates without owners.
     const allSites: any[] = [];
