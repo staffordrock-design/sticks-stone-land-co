@@ -35,6 +35,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   build:
@@ -55,21 +56,58 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Verify persistent upload keystore secrets are present
+      - name: Retrieve original upload-key backup from September 23
+        uses: actions/download-artifact@v4
+        with:
+          name: SandS-Rock-Holdings-Google-Play
+          run-id: 35873007623
+          repository: ${{ github.repository }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/ssrock-original-release
+
+      - name: Verify and prepare existing Google Play upload key
         shell: bash
-        run: |
-          set -euo pipefail
-          missing=0
-          [ -z "${ANDROID_UPLOAD_KEYSTORE_BASE64:-}" ] && { echo "::error::ANDROID_UPLOAD_KEYSTORE_BASE64 secret is missing. Supply the approved Google Play upload keystore (SHA1 $APPROVED_UPLOAD_SHA1) as a base64-encoded GitHub Actions secret. A replacement key will NOT be generated."; missing=1; }
-          [ -z "${ANDROID_UPLOAD_KEYSTORE_PASSWORD:-}" ] && { echo "::error::ANDROID_UPLOAD_KEYSTORE_PASSWORD secret is missing."; missing=1; }
-          [ -z "${ANDROID_UPLOAD_KEY_ALIAS:-}" ] && { echo "::error::ANDROID_UPLOAD_KEY_ALIAS secret is missing."; missing=1; }
-          [ -z "${ANDROID_UPLOAD_KEY_PASSWORD:-}" ] && { echo "::error::ANDROID_UPLOAD_KEY_PASSWORD secret is missing."; missing=1; }
-          exit $missing
         env:
           ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
           ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
           ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          KEYSTORE="$RUNNER_TEMP/ssrock-approved-upload-keystore.jks"
+          BACKUP="$RUNNER_TEMP/ssrock-original-release"
+          if [[ -n "${ANDROID_UPLOAD_KEYSTORE_BASE64:-}" && -n "${ANDROID_UPLOAD_KEYSTORE_PASSWORD:-}" && -n "${ANDROID_UPLOAD_KEY_ALIAS:-}" && -n "${ANDROID_UPLOAD_KEY_PASSWORD:-}" ]]; then
+            printf '%s' "$ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 -d > "$KEYSTORE"
+            STOREPASS="$ANDROID_UPLOAD_KEYSTORE_PASSWORD"
+            KEYPASS="$ANDROID_UPLOAD_KEY_PASSWORD"
+            ALIAS="$ANDROID_UPLOAD_KEY_ALIAS"
+            echo "Using securely configured GitHub upload key."
+          else
+            test -s "$BACKUP/upload-keystore.jks" || { echo "::error::Original September 23 keystore backup not found."; exit 1; }
+            test -s "$BACKUP/UPLOAD-KEY-INFO.txt" || { echo "::error::Original September 23 recovery metadata missing."; exit 1; }
+            cp "$BACKUP/upload-keystore.jks" "$KEYSTORE"
+            STOREPASS="$(sed -n 's/^Keystore password: //p' "$BACKUP/UPLOAD-KEY-INFO.txt" | head -1)"
+            KEYPASS="$(sed -n 's/^Key password: //p' "$BACKUP/UPLOAD-KEY-INFO.txt" | head -1)"
+            ALIAS="$(sed -n 's/^Alias: //p' "$BACKUP/UPLOAD-KEY-INFO.txt" | head -1)"
+            echo "Recovered original upload key within the temporary build runner."
+          fi
+          test -n "$STOREPASS" && test -n "$KEYPASS" && test -n "$ALIAS" || { echo "::error::Upload key recovery information is incomplete."; exit 1; }
+          echo "::add-mask::$STOREPASS"
+          echo "::add-mask::$KEYPASS"
+          chmod 600 "$KEYSTORE"
+          CERT_SHA1="$(keytool -list -v -keystore "$KEYSTORE" -storepass "$STOREPASS" -alias "$ALIAS" 2>/dev/null | awk '/SHA1:/ {print $2; exit}')"
+          echo "Recovered upload-key certificate SHA1: $CERT_SHA1"
+          if [ "$CERT_SHA1" != "$APPROVED_UPLOAD_SHA1" ]; then
+            echo "::error::Recovered key does not match the approved Google Play upload certificate; refusing to sign."
+            exit 1
+          fi
+          {
+            echo "SSROCK_KEYSTORE=$KEYSTORE"
+            echo "SSROCK_STORE_PASSWORD=$STOREPASS"
+            echo "SSROCK_KEY_PASSWORD=$KEYPASS"
+            echo "SSROCK_KEY_ALIAS=$ALIAS"
+          } >> "$GITHUB_ENV"
+          echo "Approved original Google Play upload key verified without generating or publishing a new key."
 
       - name: Install and build
         run: |
@@ -93,40 +131,14 @@ jobs:
             exit 1
           fi
 
-      - name: Decode upload keystore
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "$ANDROID_UPLOAD_KEYSTORE_BASE64" | base64 -d > upload-keystore.jks
-          echo "Decoded keystore bytes: $(wc -c < upload-keystore.jks)"
-        env:
-          ANDROID_UPLOAD_KEYSTORE_BASE64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
 
-      - name: Verify keystore cert matches approved upload key
-        shell: bash
-        run: |
-          set -euo pipefail
-          CERT_SHA1=$(keytool -list -v -keystore upload-keystore.jks -storepass "$ANDROID_UPLOAD_KEYSTORE_PASSWORD" -alias "$ANDROID_UPLOAD_KEY_ALIAS" 2>/dev/null | grep -i 'SHA1:' | head -1 | awk '{print $2}')
-          echo "Keystore cert SHA1: $CERT_SHA1"
-          if [ -z "$CERT_SHA1" ]; then
-            echo "::error::Could not read certificate from keystore. Check ANDROID_UPLOAD_KEYSTORE_PASSWORD and ANDROID_UPLOAD_KEY_ALIAS."
-            exit 1
-          fi
-          if [ "$CERT_SHA1" != "$APPROVED_UPLOAD_SHA1" ]; then
-            echo "::error::Keystore SHA1 ($CERT_SHA1) does not match the approved Google Play upload key ($APPROVED_UPLOAD_SHA1). Refusing to sign with an unapproved key."
-            exit 1
-          fi
-          echo "Approved upload keystore confirmed."
-        env:
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
 
       - name: Sign bundle
         shell: bash
         run: |
           set -euo pipefail
           AAB="android/app/build/outputs/bundle/release/app-release.aab"
-          jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore upload-keystore.jks -storepass "$ANDROID_UPLOAD_KEYSTORE_PASSWORD" -keypass "$ANDROID_UPLOAD_KEY_PASSWORD" "$AAB" "$ANDROID_UPLOAD_KEY_ALIAS"
+          jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore "$SSROCK_KEYSTORE" -storepass "$SSROCK_STORE_PASSWORD" -keypass "$SSROCK_KEY_PASSWORD" "$AAB" "$SSROCK_KEY_ALIAS"
           jarsigner -verify -verbose -certs "$AAB"
           mkdir -p play-upload
           cp "$AAB" play-upload/SandS-Rock-Holdings-release.aab
@@ -135,13 +147,10 @@ jobs:
             echo "S&S Rock Holdings Android upload key (persistent, approved)"
             echo "Package: $EXPECTED_PACKAGE"
             echo "Approved upload cert SHA1: $APPROVED_UPLOAD_SHA1"
-            echo "Alias: $ANDROID_UPLOAD_KEY_ALIAS"
+            echo "Alias: $SSROCK_KEY_ALIAS"
             echo "This keystore is reused for every release. Do not regenerate."
           } > play-upload/UPLOAD-KEY-INFO.txt
-        env:
-          ANDROID_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
-          ANDROID_UPLOAD_KEY_ALIAS: ${{ secrets.ANDROID_UPLOAD_KEY_ALIAS }}
-          ANDROID_UPLOAD_KEY_PASSWORD: ${{ secrets.ANDROID_UPLOAD_KEY_PASSWORD }}
+          rm -f "$SSROCK_KEYSTORE"
 
       - uses: actions/upload-artifact@v4
         with:
