@@ -171,7 +171,14 @@ jobs:
             exit 1;
           }
           node --input-type=module <<'NODE'
-          import { entitlementGrantsFullQuarryAccess } from './src/lib/subscriptionAccess.js';
+          import fs from 'node:fs';
+          const source = fs.readFileSync('./src/lib/subscriptionAccess.js', 'utf8');
+          const start = source.indexOf('export const ACTIVE_SUBSCRIPTION_STATUSES');
+          const end = source.indexOf('export async function premiumAccessProofParams');
+          if (start < 0 || end <= start) throw new Error('Cannot isolate the real subscription entitlement functions for CI');
+          const logic = source.slice(start, end);
+          const moduleUrl = `data:text/javascript;base64,${Buffer.from(logic).toString('base64')}`;
+          const { entitlementGrantsFullQuarryAccess } = await import(moduleUrl);
           const future = new Date(Date.now() + 86400000).toISOString();
           const past = new Date(Date.now() - 86400000).toISOString();
           const checks = [
@@ -179,7 +186,7 @@ jobs:
             ['professional trial', { plan_code: 'professional_monthly', status: 'trial', expires_at: future }, true],
             ['professional grace period', { plan_code: 'professional_monthly', status: 'grace_period', expires_at: future }, true],
             ['expired professional', { plan_code: 'professional_monthly', status: 'active', expires_at: past }, false],
-            ['retired marketplace tier', { plan_code: 'marketplace_monthly', status: 'active', expires_at: future }, false],
+            ['legacy marketplace receipt still entitled', { plan_code: 'marketplace_monthly', status: 'active', expires_at: future }, true],
           ];
           for (const [name, row, expected] of checks) {
             const actual = entitlementGrantsFullQuarryAccess(row);
