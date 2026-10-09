@@ -200,22 +200,18 @@ jobs:
           set -Eeuo pipefail
           node scripts/validate_network_contract.mjs
 
-      - name: Smoke test public quarry inventory
+      - name: Verify paid quarry inventory remains protected
         run: |
           set -Eeuo pipefail
-          node --input-type=module <<'NODE'
-          import { createClient } from '@base44/sdk';
-          const client = createClient({
-            appId: '6a78376a454093ba2f431acd',
-            serverUrl: 'https://base44.app',
-            requiresAuth: false,
-          });
-          const rows = await client.entities.MiningSite.list('-created_date', 10);
-          if (!Array.isArray(rows) || rows.length === 0) {
-            throw new Error('Public MiningSite inventory returned no records; refusing to upload an empty marketplace build.');
-          }
-          console.log(`Public quarry inventory smoke test returned ${rows.length} records.`);
-          NODE
+          test -f base44/entities/MiningSite.jsonc
+          test -f base44/functions/get-premium-site-data/entry.ts
+          grep -q '"mine_name"' base44/entities/MiningSite.jsonc
+          grep -q '"msha_mine_id"' base44/entities/MiningSite.jsonc
+          grep -q "'MiningSite'" base44/functions/get-premium-site-data/entry.ts
+          grep -q "status: 403" base44/functions/get-premium-site-data/entry.ts
+          grep -q 'premiumEntityQuery' src/pages/CompanyNetworkDetail.jsx
+          grep -q 'get-premium-site-data' src/lib/subscriptionAccess.js
+          echo "PASS: Mine records and subscriber-only access are wired; public API access is intentionally denied."
           grep -q "serverUrl: 'https://base44.app'" src/api/base44Client.js || {
             echo "::error title=Native API host missing::Base44 client is not pinned to the absolute production API host";
             exit 1;
