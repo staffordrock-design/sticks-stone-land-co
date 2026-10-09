@@ -64,7 +64,7 @@ jobs:
             echo "::error title=Native public API host missing::The built web bundle still contains a relative public-settings API path";
             exit 1;
           }
-          grep -Rqs "Turn quarry data into money moves." dist || {
+          grep -Rqs "Rock & Quarry Intelligence. From the Ground Up." dist || {
             echo "::error title=Current Home workspace missing::The built bundle does not contain the current quarry workspace";
             exit 1;
           }
@@ -88,16 +88,12 @@ jobs:
             echo "::error title=TDOT demand missing::The built bundle does not contain the TDOT contract demand summary";
             exit 1;
           }
-          grep -Rqs "TDOTAggregateDemand" dist || {
-            echo "::error title=TDOT demand entity missing::The built bundle does not query TDOT aggregate demand records";
+          grep -Rqs 'label:"Explore"' dist || grep -Rqs 'label: "Explore"' dist || {
+            echo "::error title=Mobile Explore tab missing::The current app's Explore navigation was not bundled";
             exit 1;
           }
-          grep -Rqs 'label:"Intel"' dist || grep -Rqs 'label: "Intel"' dist || {
-            echo "::error title=Mobile Intel tab missing::The native web bundle does not expose Intelligence in the mobile tab bar";
-            exit 1;
-          }
-          grep -Rqs 'label:"Network"' dist || grep -Rqs 'label: "Network"' dist || {
-            echo "::error title=Mobile Network tab missing::The native web bundle does not expose Quarry Network in the mobile tab bar";
+          grep -Rqs 'label:"Map"' dist || grep -Rqs 'label: "Map"' dist || {
+            echo "::error title=Mobile Map tab missing::The current app's Map navigation was not bundled";
             exit 1;
           }
           if grep -Rqs "Use the full quarry intelligence toolkit" dist; then
@@ -238,7 +234,7 @@ jobs:
       - name: Verify current web bundle reached iOS
         run: |
           set -Eeuo pipefail
-          grep -Rqs "Turn quarry data into money moves." ios/App/App/public || {
+          grep -Rqs "Rock & Quarry Intelligence. From the Ground Up." ios/App/App/public || {
             echo "::error title=Capacitor copied stale web assets::The iOS public bundle does not contain the current quarry workspace";
             exit 1;
           }
@@ -287,17 +283,17 @@ jobs:
           if not build_number.isdigit():
               raise SystemExit(f'Invalid GitHub run number for iOS build: {build_number!r}')
           s = re.sub(r'PRODUCT_BUNDLE_IDENTIFIER = [^;]+;', f'PRODUCT_BUNDLE_IDENTIFIER = {bundle};', s)
-          s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.7;', s)
+          s = re.sub(r'MARKETING_VERSION = [^;]+;', 'MARKETING_VERSION = 2.130297.8;', s)
           s = re.sub(r'CURRENT_PROJECT_VERSION = [^;]+;', f'CURRENT_PROJECT_VERSION = {build_number};', s)
           p.write_text(s)
           expected_bundle_line = f'PRODUCT_BUNDLE_IDENTIFIER = {bundle};'
           if expected_bundle_line not in s:
               raise SystemExit('Expected SS Mobile bundle identifier was not present after Capacitor sync')
-          if 'MARKETING_VERSION = 2.130297.7;' not in s:
+          if 'MARKETING_VERSION = 2.130297.8;' not in s:
               raise SystemExit('Expected S&S Rock Holdings App Store marketing version was not present after Capacitor sync')
           if f'CURRENT_PROJECT_VERSION = {build_number};' not in s:
               raise SystemExit('Expected explicit iOS build number was not present after update')
-          print(f'Pinned S&S Rock Holdings bundle identifier, App Store version 2.130297.7, and build {build_number}')
+          print(f'Pinned S&S Rock Holdings bundle identifier, App Store version 2.130297.8, and build {build_number}')
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f'IOS_BUILD_NUMBER={build_number}\n')
           PY
@@ -347,15 +343,15 @@ jobs:
               raise SystemExit(f"Apple introductory offers were not fully removed: {offer}")
           with open(os.environ["GITHUB_ENV"], "a") as f:
               f.write(f"ASC_KEY_ID={key_id}\n")
-          print("Apple subscription sync check completed; continuing to build upload.")
+          print("Apple subscription $39/no-trial verification passed; continuing to build upload.")
           PY
 
-      - name: Prepare App Store version 2.130297.7 metadata
+      - name: Prepare App Store version 2.130297.8 metadata
         env:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
           ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
           ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
-          ASC_TARGET_VERSION: "2.130297.7"
+          ASC_TARGET_VERSION: "2.130297.8"
           ASC_METADATA_REPORT_PATH: "reports/apple_store_metadata_sync.json"
         run: |
           set -Eeuo pipefail
@@ -365,9 +361,9 @@ jobs:
           report = json.loads(pathlib.Path("reports/apple_store_metadata_sync.json").read_text())
           if report.get("errors"):
               raise SystemExit("App Store metadata sync contains errors: " + " | ".join(report["errors"]))
-          if report.get("target_version") != "2.130297.7" or not report.get("version_id"):
-              raise SystemExit("App Store version 2.130297.7 was not prepared correctly")
-          print("App Store version 2.130297.7 is prepared for the no-trial update.")
+          if report.get("target_version") != "2.130297.8" or not report.get("version_id"):
+              raise SystemExit("App Store version 2.130297.8 was not prepared correctly")
+          print("App Store version 2.130297.8 is prepared for the no-trial update.")
           PY
 
       - name: Preserve Apple subscription sync result
@@ -436,7 +432,7 @@ jobs:
           set -Eeuo pipefail
           APP_PUBLIC="$RUNNER_TEMP/SSRockHoldings.xcarchive/Products/Applications/App.app/public"
           test -d "$APP_PUBLIC" || { echo "::error title=Archive public bundle missing::No Capacitor public directory was found inside the archived app"; exit 1; }
-          grep -Rqs "Turn quarry data into money moves." "$APP_PUBLIC" || {
+          grep -Rqs "Rock & Quarry Intelligence. From the Ground Up." "$APP_PUBLIC" || {
             echo "::error title=Archived app is stale::The archive does not contain the current quarry workspace";
             exit 1;
           }
@@ -472,7 +468,7 @@ jobs:
           ARCHIVE_BUILD=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST")
           echo "Archive version: $ARCHIVE_VERSION"
           echo "Archive build: $ARCHIVE_BUILD"
-          test "$ARCHIVE_VERSION" = "2.130297.7" || { echo "::error title=Wrong App Store version::Expected 2.130297.7, got $ARCHIVE_VERSION"; exit 1; }
+          test "$ARCHIVE_VERSION" = "2.130297.8" || { echo "::error title=Wrong App Store version::Expected 2.130297.8, got $ARCHIVE_VERSION"; exit 1; }
           test "$ARCHIVE_BUILD" = "$IOS_BUILD_NUMBER" || { echo "::error title=Wrong iOS build number::Expected $IOS_BUILD_NUMBER, got $ARCHIVE_BUILD"; exit 1; }
 
       - name: Create App Store Connect export options
@@ -559,7 +555,7 @@ jobs:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
           ASC_ISSUER_ID: "7097918c-2758-4720-b0fa-938914c24b36"
           ASC_KEY_IDS: "Q4783H7CJ6,2A3958GU5F"
-          ASC_TARGET_VERSION: "2.130297.7"
+          ASC_TARGET_VERSION: "2.130297.8"
         run: |
           set -Eeuo pipefail
           export ASC_TARGET_BUILD="$IOS_BUILD_NUMBER"
