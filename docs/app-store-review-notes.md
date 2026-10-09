@@ -1,5 +1,12 @@
 # App Review Notes — S&S Rock Holdings
 
+## App Store Listing
+- App Name: S&S Rock Holdings
+- Subtitle: Quarry & Mineral Intelligence
+- Keywords: mine, aggregate, land, geology, MSHA, TDEC, buyer, seller, property, permit, reserves, limestone, acreage, sand
+- Description: Full quarry and mineral intelligence platform description (see apple_store_metadata_sync.py DESCRIPTION constant)
+- Promotional Text: "Search mapped quarries with ownership, geology, permits & production data. Unlock full quarry intelligence. Cancel anytime."
+
 ## 1. Current subscription model
 S&S Rock Holdings now offers one auto-renewing iOS subscription:
 

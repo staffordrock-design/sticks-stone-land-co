@@ -23,8 +23,42 @@ BLOCKING_BUNDLE_ID = "com.ssrockholdings.app"
 BLOCKING_APP_RENAME = "S&S Rock Holdings Archive"
 TARGET_VERSION = os.getenv("ASC_TARGET_VERSION", "2.130297.7")
 APP_NAME = "S&S Rock Holdings"
-SUBTITLE = "Quarry Data & Marketplace"
-KEYWORDS = "quarry,mine,aggregate,mineral,land,geology,MSHA,TDEC,buyer,seller,property,permit,reserves"
+SUBTITLE = "Quarry & Mineral Intelligence"
+KEYWORDS = "mine,aggregate,land,geology,MSHA,TDEC,buyer,seller,property,permit,reserves,limestone,acreage,sand"
+DESCRIPTION = """Know the rock. Know the land. Know the deal.
+
+S&S Rock Holdings is the industrial intelligence platform for quarry, aggregate, and mineral extraction professionals. Search mapped quarry and mine sites, research ownership and parcels, review geology and permits, and screen opportunities — all in one app.
+
+SEARCH MAPPED QUARRY SITES
+Browse quarry and mine sites on an interactive GIS map with parcel boundaries, ownership, acreage, and operating status. Filter by state, county, commodity, and rock type to find properties that match your criteria.
+
+OWNERSHIP & PARCEL INTELLIGENCE
+Access parcel-level data including owner names, assessed values, land and improvement values, deed references, and mailing addresses — sourced from state comptroller and county GIS records.
+
+GEOLOGY & ROCK TYPE
+Review the geology behind each site: primary and secondary rock types, geologic units, formations, mineralogy, and commodity interpretations from USGS and state geological survey data.
+
+PERMITS & ENVIRONMENTAL
+See active mining, NPDES, and environmental permits with permitted acreage, permittee names, effective and expiration dates, and violation history from MSHA, TDEC, EPA, and state agencies.
+
+PRODUCTION & ACTIVITY
+Understand what a site is producing. View MSHA activity records, production estimates, employee counts, and commodity breakdowns to gauge scale and activity level.
+
+OPPORTUNITY SCREENING
+Screen potential quarry land and mineral opportunities with a scoring model that evaluates geology, location, market demand, and logistics. Save and track properties on your watchlist.
+
+QUARRY NETWORK
+Connect with quarry owners, buyers, sellers, investors, and industry professionals. Post and discover deal opportunities in the quarry network.
+
+FULL QUARRY INTELLIGENCE
+Unlock the complete ownership, parcel, geology, permit, production, and opportunity intelligence behind every quarry record. Cancel anytime. No account required to purchase on iPhone.
+
+DATA SOURCES
+Mine and permit data from MSHA, TDEC, and state agencies. Parcel and ownership data from state comptroller and county GIS services. Geology from USGS MRDS and state geological surveys. Environmental records from EPA and state programs. All records are source-labeled for transparency.
+
+S&S Rock Holdings provides business intelligence and screening information. It is not a title opinion, appraisal, certified reserve estimate, engineering opinion, or environmental assessment."""
+PROMOTIONAL_TEXT = "Search mapped quarries with ownership, geology, permits & production data. Unlock full quarry intelligence. Cancel anytime."
+WHATS_NEW = "Improved quarry search, expanded parcel and ownership coverage, and faster map performance."
 ISSUER_ID = os.getenv("ASC_ISSUER_ID", "7097918c-2758-4720-b0fa-938914c24b36")
 KEY_IDS = [x.strip() for x in os.getenv("ASC_KEY_IDS", "").split(",") if x.strip()]
 PRIVATE_KEY = os.getenv("ASC_PRIVATE_KEY", "")
@@ -262,13 +296,18 @@ def update_version_keywords(client: ASC, app_id: str, version_id: str) -> None:
             "data": {
                 "type": "appStoreVersionLocalizations",
                 "id": target_loc["id"],
-                "attributes": {"keywords": KEYWORDS},
+                "attributes": {
+                    "keywords": KEYWORDS,
+                    "description": DESCRIPTION,
+                    "promotionalText": PROMOTIONAL_TEXT,
+                    "whatsNew": WHATS_NEW,
+                },
             }
         }
         try:
             client.request("PATCH", f"/v1/appStoreVersionLocalizations/{target_loc['id']}", payload=payload)
             report["version_localization_updated"] = True
-            print("Updated App Store search keywords on existing en-US version localization.")
+            print("Updated App Store keywords, description, promotional text, and what's new on en-US version localization.")
         except RuntimeError as exc:
             message = str(exc)
             if "Attribute 'keywords' cannot be edited at this time" in message or "STATE_ERROR" in message:
@@ -282,8 +321,14 @@ def update_version_keywords(client: ASC, app_id: str, version_id: str) -> None:
     if not source:
         raise RuntimeError("No prior en-US version localization was available to clone")
     src = source.get("attributes") or {}
-    clone_attrs = {"locale": "en-US", "keywords": KEYWORDS}
-    for key in ("description", "marketingUrl", "promotionalText", "supportUrl", "whatsNew"):
+    clone_attrs = {
+        "locale": "en-US",
+        "keywords": KEYWORDS,
+        "description": DESCRIPTION,
+        "promotionalText": PROMOTIONAL_TEXT,
+        "whatsNew": WHATS_NEW,
+    }
+    for key in ("marketingUrl", "supportUrl"):
         value = src.get(key)
         if value not in (None, ""):
             clone_attrs[key] = value
