@@ -174,18 +174,18 @@ requireText('base44/workflows/Quarry Network Index Refresh.jsonc', [
 ]);
 
 requireText('src/App.jsx', [
-  '<Route path="/network" element={<Network />} />',
-  '<Route path="/network/intelligence" element={<NetworkIntel />} />',
-  '<Route path="/network/company/:companySlug" element={<CompanyNetworkDetail />} />',
-  '<Route path="/network/watchlist" element={<NetworkWatchlist />} />',
-  '<Route path="/network/deals" element={<NetworkDeals />} />',
-  '<Route path="/network/deals/new" element={<NetworkPostDeal />} />',
-  '<Route path="/network/deals/activity" element={<NetworkDealActivity />} />',
-  '<Route path="/network/deals/:id" element={<NetworkDealDetail />} />',
-  '<Route path="/network/community" element={<Network />} />',
-  '<Route path="/ownership-intelligence" element={<OwnershipIntelligence />} />',
-  '<Route path="/messages" element={<RequireSignedIn><Messages /></RequireSignedIn>} />',
-  '<Route path="/profile" element={<RequireSignedIn><Profile /></RequireSignedIn>} />',
+  '<Route path="/network" element={<PageTransition><Network /></PageTransition>} />',
+  '<Route path="/network/intelligence" element={<PageTransition><NetworkIntel /></PageTransition>} />',
+  '<Route path="/network/company/:companySlug" element={<PageTransition><CompanyNetworkDetail /></PageTransition>} />',
+  '<Route path="/network/watchlist" element={<PageTransition><NetworkWatchlist /></PageTransition>} />',
+  '<Route path="/network/deals" element={<PageTransition><NetworkDeals /></PageTransition>} />',
+  '<Route path="/network/deals/new" element={<PageTransition><NetworkPostDeal /></PageTransition>} />',
+  '<Route path="/network/deals/activity" element={<PageTransition><NetworkDealActivity /></PageTransition>} />',
+  '<Route path="/network/deals/:id" element={<PageTransition><NetworkDealDetail /></PageTransition>} />',
+  '<Route path="/network/community" element={<PageTransition><Network /></PageTransition>} />',
+  '<Route path="/ownership-intelligence" element={<PageTransition><OwnershipIntelligence /></PageTransition>} />',
+  '<Route path="/messages" element={<RequireSignedIn><PageTransition><Messages /></PageTransition></RequireSignedIn>} />',
+  '<Route path="/profile" element={<RequireSignedIn><PageTransition><Profile /></PageTransition></RequireSignedIn>} />',
 ]);
 
 requireText('src/components/BottomNav.jsx', [
