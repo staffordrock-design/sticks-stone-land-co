@@ -183,7 +183,7 @@ jobs:
           const past = new Date(Date.now() - 86400000).toISOString();
           const checks = [
             ['professional active', { plan_code: 'professional_monthly', status: 'active', expires_at: future }, true],
-            ['professional trial', { plan_code: 'professional_monthly', status: 'trial', expires_at: future }, true],
+            ['no free trial entitlement', { plan_code: 'professional_monthly', status: 'trial', expires_at: future }, false],
             ['professional grace period', { plan_code: 'professional_monthly', status: 'grace_period', expires_at: future }, true],
             ['expired professional', { plan_code: 'professional_monthly', status: 'active', expires_at: past }, false],
             ['legacy marketplace receipt still entitled', { plan_code: 'marketplace_monthly', status: 'active', expires_at: future }, true],
