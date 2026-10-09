@@ -1,8 +1,7 @@
 # Corrected GitHub Actions workflow for S&S Rock Holdings Android AAB.
 #
-# Paste this content into .github/workflows/android-play-aab.yml in the GitHub
-# repository (Base44's repo-sync app cannot edit GitHub Actions files, so this
-# reference copy is kept here for you to apply manually).
+# Release build workflow: use the latest main source while keeping the
+# existing Google Play upload signing key unchanged.
 #
 # Key changes vs. the old workflow:
 #   1. NEVER generates a new upload keystore. The approved Google Play upload key
