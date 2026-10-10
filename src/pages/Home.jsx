@@ -345,6 +345,7 @@ export default function Home() {
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
             <button type="button" onClick={scrollToOpportunities} className="font-medium text-foreground hover:text-sky-700">Find Opportunities</button>
             <Link to="/search" className="hover:text-foreground">Map</Link>
+            <Link to="/land-intelligence" className="font-semibold text-sky-800 hover:text-sky-700">Land Intelligence</Link>
             <Link to="/watchlist" className="hover:text-foreground">Saved</Link>
             <Link to="/sell" className="hover:text-foreground">List Property</Link>
             <Link to="/data-sources" className="hover:text-foreground">How the Data Works</Link>
@@ -419,6 +420,18 @@ export default function Home() {
 
       {/* Trust band — real verified data, right below hero */}
       <TrustBand />
+
+      {/* Tennessee land-investigation pilot, separate from quarry listing search */}
+      <section className="mx-auto max-w-7xl px-6 pt-8">
+        <div className="flex flex-col gap-4 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-white px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-800">New · Tennessee land pilot</p>
+            <h2 className="mt-1 font-heading text-xl font-bold text-slate-950">Investigate land beyond quarry listings</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700">Explore Polk, Bradley, and McMinn County parcels using public GIS boundaries, owner fields, acreage, and available deed references. Detailed land research is part of Full Quarry Intelligence.</p>
+          </div>
+          <Link to="/land-intelligence" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Open Land Intelligence →</Link>
+        </div>
+      </section>
 
       {/* Sample intelligence record — moved to top for unpaid visitors */}
       {!hasProfessional && sampleBundle?.site && (
