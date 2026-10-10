@@ -7,8 +7,8 @@ import { ArrowLeft, ArrowRight, Database, ExternalLink, FileSearch, Layers, Load
 
 // Public Tennessee Comptroller GeoViewer parcel service. We request only what the
 // visitor is looking at and do not claim the GIS layers establish legal title.
-const PARCEL_SERVICE = "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/GeoViewer_Parcels_R/MapServer/0";
-const PARCEL_FIELDS = "GISLINK,PARID,PARCELID,OWNER,OWNJAN1,OSAP_NAME,CALC_ACRE,CAMADEEDAC,ADDRESS,LANDUSE,ZONING,APPRAISAL,PRICE,SALEDATE,DEEDBKPG,COUNTY,UPDATED";
+const PARCEL_SERVICE = "https://geoviewer.cot.tn.gov/arcgis/rest/services/GeoViewer/GeoViewer_Parcels/MapServer/0";
+const PARCEL_FIELDS = "GISLINK,PARID,PARCELID,OWNER,OWNJAN1,CALC_ACRE,CAMADEEDAC,ADDRESS,LANDUSE,ZONING,APPRAISAL,PRICE,SALEDATE,DEEDBKPG,COUNTY,TAXYR";
 const COUNTIES = {
   Polk: { center: [35.17, -84.65], zoom: 13 },
   Bradley: { center: [35.16, -84.88], zoom: 13 },
@@ -144,7 +144,7 @@ export default function LandIntelligence() {
     try {
       const clean = term.replace(/'/g, "''");
       const features = await queryParcels({
-        where: `(PARID LIKE '%${clean}%' OR GISLINK LIKE '%${clean}%' OR PARCELID LIKE '%${clean}%') AND UPPER(COUNTY) = '${county.toUpperCase()}'`,
+        where: `(PARID LIKE '%${clean}%' OR GISLINK LIKE '%${clean}%' OR PARCELID LIKE '%${clean}%') AND COUNTY = '${county.toUpperCase()}'`,
         resultRecordCount: "10",
       }, controller.signal);
       if (!controller.signal.aborted) {
@@ -188,7 +188,7 @@ export default function LandIntelligence() {
   }, [viewport]);
 
   const p = selected?.properties || {};
-  const owner = pick(p, "OWNER", "OWNJAN1", "OSAP_NAME");
+  const owner = pick(p, "OWNER", "OWNJAN1");
   const parcelNumber = pick(p, "PARID", "PARCELID", "GISLINK");
   const parcelAcres = pick(p, "CALC_ACRE", "CAMADEEDAC");
   const acreage = parcelAcres && Number.isFinite(Number(parcelAcres)) ? `${Number(parcelAcres).toLocaleString(undefined, { maximumFractionDigits: 2 })} acres` : null;
@@ -230,7 +230,7 @@ export default function LandIntelligence() {
               <MapMove county={county} selected={selected} onViewport={setViewport} />
               <ScaleControl position="bottomleft" imperial metric />
               {nearby.length > 0 && <GeoJSON key={`nearby-${viewport}`} data={{ type: "FeatureCollection", features: nearby }} style={{ color: "#38bdf8", weight: 1.5, fillOpacity: 0.03, opacity: 0.9 }} interactive={false} />}
-              {selected && <GeoJSON key={`selected-${parcelNumber || selected.id || Date.now()}`} data={selected} style={{ color: "#f59e0b", weight: 4, fillColor: "#fbbf24", fillOpacity: 0.2 }} interactive={false} />}
+              {selected && <GeoJSON key={`selected-${parcelNumber || selected.id || "unknown"}`} data={selected} style={{ color: "#f59e0b", weight: 4, fillColor: "#fbbf24", fillOpacity: 0.2 }} interactive={false} />}
             </MapContainer>
             {mapLoading && <div className="pointer-events-none absolute bottom-4 right-3 z-[500] rounded-lg bg-white/95 px-3 py-2 text-xs font-semibold shadow"><Loader2 className="mr-1 inline h-3 w-3 animate-spin" /> Loading nearby parcels</div>}
           </div>
@@ -272,7 +272,7 @@ export default function LandIntelligence() {
                 <Field label="Recorded sale price field" value={lastSale} />
                 <Field label="Sale date field" value={pick(p, "SALEDATE")} />
                 <Field label="Deed book/page reference" value={pick(p, "DEEDBKPG")} />
-                <Field label="GIS last updated" value={pick(p, "UPDATED")} />
+                <Field label="Assessment tax year" value={pick(p, "TAXYR")} />
               </dl>
               <p className="mt-4 text-xs leading-5 text-slate-500">Fields may be missing or outdated. Owner of record is not proof of legal title. A deed reference is not a complete chain of title. Confirm land use, zoning, access, minerals and acreage with the appropriate offices and licensed professionals.</p>
             </>}
