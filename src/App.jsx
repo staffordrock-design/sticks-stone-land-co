@@ -55,6 +55,7 @@ const NetworkPostDeal = lazy(() => import('./pages/NetworkPostDeal'));
 const NetworkDealDetail = lazy(() => import('./pages/NetworkDealDetail'));
 const NetworkDealActivity = lazy(() => import('./pages/NetworkDealActivity'));
 const OwnershipIntelligence = lazy(() => import('./pages/OwnershipIntelligence'));
+const LandIntelligence = lazy(() => import('./pages/LandIntelligence'));
 const Messages = lazy(() => import('./pages/Messages'));
 const IntelligenceHub = lazy(() => import('./pages/IntelligenceHub'));
 const LeadSetup = lazy(() => import('./pages/LeadSetup'));
@@ -135,6 +136,10 @@ const AuthenticatedApp = () => {
       "/intelligence": {
         title: "Industrial Quarry Intelligence | S&S Rock Holdings",
         description: "Use quarry, aggregate, mineral, ownership, permit, geology, production, and market intelligence to research industrial property opportunities."
+      },
+      "/land-intelligence": {
+        title: "Tennessee Land Intelligence | S&S Rock Holdings",
+        description: "Investigate Tennessee land parcels with public-source mapping, acreage, owner fields, tax appraisal, deed references and links to quarry geology research."
       },
       "/mineral-intelligence": {
         title: "Mineral Intelligence | S&S Rock Holdings",
@@ -246,6 +251,7 @@ const AuthenticatedApp = () => {
       <Route path="/network/deals/:id" element={<PageTransition><NetworkDealDetail /></PageTransition>} />
       <Route path="/network/community" element={<PageTransition><Network /></PageTransition>} />
       <Route path="/ownership-intelligence" element={<PageTransition><OwnershipIntelligence /></PageTransition>} />
+      <Route path="/land-intelligence" element={<PageTransition><LandIntelligence /></PageTransition>} />
       <Route path="/messages" element={<RequireSignedIn><PageTransition><Messages /></PageTransition></RequireSignedIn>} />
       <Route path="/opportunities" element={<RequireSignedIn><PageTransition><MyOpportunities /></PageTransition></RequireSignedIn>} />
       <Route path="/subscribe" element={<Subscription />} />
