@@ -23,6 +23,13 @@ const tools = [
     description: "Link operators, controllers, landowners and quarry sites across the Southeast, then move directly into deal opportunities and company watchlists.",
   },
   {
+    to: "/land-intelligence",
+    icon: MapPinned,
+    eyebrow: "Tennessee parcel research · New pilot",
+    title: "Land Intelligence Map",
+    description: "Investigate land beyond active quarries with Tennessee parcel GIS boundaries, assessor-listed ownership, acreage, sale fields and deed references.",
+  },
+  {
     to: "/ownership-intelligence",
     icon: Database,
     eyebrow: "Company concentration",
