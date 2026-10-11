@@ -13,7 +13,7 @@ const SUBSCRIPTION_PLANS = {
 
 // Reuse one $39.00 monthly Stripe price for new purchases on the existing product.
 // Existing subscriptions retain their price until explicitly migrated.
-const FALLBACK_STRIPE_PRICE_ID = 'price_1UO6QZHBH3xrClLVaQtRZS4n';
+const FALLBACK_STRIPE_PRICE_ID = 'price_1UO383HBH3xrClLV6PpcDgnJ';
 
 function randomSuffix() {
   const chars = 'abcdefghijklmnopqrstuvwxyz';
