@@ -237,7 +237,7 @@ def find_subscription_version_and_group(c: ASC, app_id: str) -> tuple[dict[str, 
             versions = c.all(f"/v1/subscriptions/{sub['id']}/versions", params={"limit": 200})
             candidates = [v for v in versions if (v.get("attributes") or {}).get("state") in REVIEWABLE_VERSION_STATES]
             if not candidates:
-                raise RuntimeError("The $69 monthly subscription has no reviewable subscription version")
+                raise RuntimeError("The $39 monthly subscription has no reviewable subscription version")
             priority = {"READY_FOR_REVIEW": 8, "PREPARE_FOR_SUBMISSION": 7, "DEVELOPER_REJECTED": 6, "DEVELOPER_ACTION_NEEDED": 5, "REJECTED": 4, "WAITING_FOR_REVIEW": 3, "IN_REVIEW": 2}
             candidates.sort(key=lambda v: (priority.get((v.get("attributes") or {}).get("state"), 0), v.get("id") or ""), reverse=True)
             chosen = candidates[0]
@@ -407,7 +407,7 @@ def main() -> None:
                 add_item(c, review_id, "subscriptionGroupVersion", "subscriptionGroupVersions", subscription_group_version_id)
             except RuntimeError as exc:
                 if "no reviewable subscription version" in str(exc).lower():
-                    report["actions"].append("No reviewable $69 subscription version remains; submitting the app version without duplicate subscription items")
+                    report["actions"].append("No reviewable $39 subscription version remains; submitting the app version without duplicate subscription items")
                     save()
                 else:
                     raise
