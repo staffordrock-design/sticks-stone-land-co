@@ -1,35 +1,35 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Building2, Layers, TrendingUp, FileSearch, ArrowRight } from "lucide-react";
+import { TrendingUp, Building2, Map as MapIcon, FileSearch, ArrowRight } from "lucide-react";
 
 const PATHS = [
   {
-    icon: Building2,
-    title: "Find Quarry Opportunities",
-    description: "Browse quarry properties and off-market targets by location, rock type, operating status, acreage and source records.",
-    cta: "Find Opportunities",
-    to: "/#quarry-intelligence",
+    icon: TrendingUp,
+    title: "Buy or Invest",
+    description: "Search quarry properties, operating mines, and off-market targets by location, rock type, status, and acreage.",
+    cta: "Search Opportunities",
+    to: "/search",
   },
   {
-    icon: Layers,
-    title: "List a Quarry Property",
-    description: "Submit an operating quarry, aggregate business, mineral interest or quarry-capable property for review.",
+    icon: Building2,
+    title: "Own or Control Property",
+    description: "Submit an operating quarry, aggregate business, mineral interest, or quarry-capable land for confidential review.",
     cta: "List a Property",
     to: "/sell",
   },
   {
-    icon: TrendingUp,
-    title: "Map & Research",
-    description: "Explore quarry locations, geology, permits and nearby market signals in one property-focused view.",
-    cta: "Open the Map",
+    icon: MapIcon,
+    title: "Research a Market",
+    description: "Explore quarry locations, geology, permits, mineral occurrences, and market demand in one property-focused view.",
+    cta: "Open Intelligence",
     to: "/mineral-intelligence",
   },
   {
     icon: FileSearch,
-    title: "Request Property Research",
-    description: "Request deeper due diligence on a quarry, land parcel, operator or potential acquisition.",
+    title: "Request Due Diligence",
+    description: "Request deeper research on a quarry, land parcel, operator, or potential acquisition. No account required.",
     cta: "Request Research",
-    to: "/get-started?mode=report",
+    to: "/due-diligence",
   },
 ];
 
@@ -37,8 +37,8 @@ export default function AudiencePaths() {
   return (
     <section className="mx-auto max-w-7xl px-6 py-14">
       <div className="mb-8 text-center">
-        <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">Quarry Real Estate, Built for Decisions</h2>
-        <p className="mt-2 max-w-2xl mx-auto text-sm text-muted-foreground">Search opportunities, compare property facts, map the land, save targets and connect with sellers from one focused marketplace.</p>
+        <h2 className="font-heading text-2xl font-bold text-foreground sm:text-3xl">What Would You Like to Do?</h2>
+        <p className="mt-2 max-w-2xl mx-auto text-sm text-muted-foreground">Source-linked intelligence, organized for diligence. Search, list, research, or request a custom report.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {PATHS.map(({ icon: Icon, title, description, cta, to }) => (

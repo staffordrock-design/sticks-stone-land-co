@@ -2,8 +2,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 
 // Public endpoint: accepts seller/property-owner lead submissions without
 // requiring an S&S account. Service role bypasses the QuarryLeadIntake RLS
-// (which normally requires data.user_id === {{user.id}}) so anonymous property
-// owners can submit their information before creating an account.
+// so anonymous property owners can submit their information before creating
+// an account.
 
 export default async function(req: any) {
   try {
@@ -23,12 +23,19 @@ export default async function(req: any) {
       name,
       email,
       phone: String(body?.phone || '').trim() || null,
+      company: String(body?.company || '').trim() || null,
       state: String(body?.state || '').trim(),
       county: String(body?.county || '').trim(),
+      city: String(body?.city || '').trim() || null,
       acreage: body?.acreage ? Number(body.acreage) : null,
       asset_type: String(body?.property_type || '').trim(),
       commodity: String(body?.commodity || '').trim(),
-      description: String(body?.consideration || '').trim(),
+      ownership_summary: String(body?.ownership_status || '').trim(),
+      description: [
+        String(body?.consideration || '').trim(),
+        String(body?.existing_permits || '').trim() ? `Existing permits: ${body.existing_permits}` : '',
+        String(body?.confidentiality || '').trim() ? `Confidentiality preference: ${body.confidentiality}` : '',
+      ].filter(Boolean).join('\n'),
       status: 'New',
       source: 'Sell Property Page',
       user_id: '',

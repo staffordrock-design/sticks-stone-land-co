@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { MapPin, Database, RefreshCw, Layers } from "lucide-react";
+import { MapPin, Database, RefreshCw, Layers, FileText } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-
-const SOURCE_FAMILIES = [
-  "MSHA",
-  "State mining & environmental agencies",
-  "County GIS / parcel records",
-  "Deeds / ownership records",
-  "USGS",
-  "Geology datasets",
-  "TDOT / transportation demand data",
-];
 
 function formatDate(value) {
   if (!value) return null;
@@ -40,30 +30,35 @@ export default function TrustBand() {
   }, []);
 
   const recordCount = stats?.recordCount ?? null;
-  const statesCovered = stats?.statesCovered ?? [];
+  const mappedCount = stats?.mappedCount ?? null;
+  const parcelLinkedCount = stats?.parcelLinkedCount ?? null;
+  const deedLinkedCount = stats?.deedLinkedCount ?? null;
   const latestRefresh = formatDate(stats?.latestRefresh);
 
-  const stats_display = [
-    {
-      icon: MapPin,
-      label: "States Covered",
-      value: loading ? "…" : statesCovered.length > 0 ? statesCovered.join(", ") : "Loading…",
-    },
+  const statsDisplay = [
     {
       icon: Database,
-      label: "Quarry / Mineral Records",
+      label: "Quarry & Mineral Records",
       value: loading ? "…" : recordCount != null ? recordCount.toLocaleString() : "—",
+      sub: "Total quarry-relevant records in the S&S database",
     },
     {
-      icon: RefreshCw,
-      label: "Data Refresh",
-      value: loading ? "…" : latestRefresh || "—",
+      icon: MapPin,
+      label: "Mapped Mine Locations",
+      value: loading ? "…" : mappedCount != null ? mappedCount.toLocaleString() : "—",
+      sub: "Records with verified latitude & longitude",
     },
     {
       icon: Layers,
-      label: "Intelligence Sources",
-      value: loading ? "…" : SOURCE_FAMILIES.length + " source families",
-      sub: SOURCE_FAMILIES,
+      label: "Parcel-Linked Records",
+      value: loading ? "…" : parcelLinkedCount != null ? parcelLinkedCount.toLocaleString() : "—",
+      sub: "Linked to a county parcel or tax-map ID",
+    },
+    {
+      icon: FileText,
+      label: "Deed-Linked Records",
+      value: loading ? "…" : deedLinkedCount != null ? deedLinkedCount.toLocaleString() : "—",
+      sub: "Parcel records with deed book & page references",
     },
   ];
 
@@ -71,26 +66,24 @@ export default function TrustBand() {
     <section className="border-b border-border bg-slate-50/80">
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-5 text-center">
-          <h2 className="font-heading text-lg font-bold text-foreground">Verified Intelligence, Built from Public Sources</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Real data from real government and public-source records — not placeholders.</p>
+          <h2 className="font-heading text-lg font-bold text-foreground">Source-Linked Intelligence, Organized for Diligence</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Real data from government and public-source records — not placeholders. Counts are distinct categories, not duplicates.</p>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats_display.map(({ icon: Icon, label, value, sub }) => (
+          {statsDisplay.map(({ icon: Icon, label, value, sub }) => (
             <div key={label} className="rounded-xl border border-border bg-background p-5 shadow-sm">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500">
                 <Icon className="h-4 w-4" />
                 {label}
               </div>
-              <div className="mt-2 font-heading text-lg font-bold text-slate-950">{value}</div>
-              {sub && (
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {sub.map((s) => (
-                    <span key={s} className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600">{s}</span>
-                  ))}
-                </div>
-              )}
+              <div className="mt-2 font-heading text-2xl font-bold text-slate-950">{value}</div>
+              <p className="mt-1 text-xs leading-4 text-muted-foreground">{sub}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+          <RefreshCw className="h-3 w-3" />
+          <span>Last database refresh: {loading ? "…" : latestRefresh || "—"}</span>
         </div>
       </div>
     </section>

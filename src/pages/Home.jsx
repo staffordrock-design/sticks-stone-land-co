@@ -402,15 +402,7 @@ export default function Home() {
               </button>
             </div>
           </div>
-          <div className="mx-auto mt-5 flex max-w-3xl flex-col gap-3 sm:flex-row sm:justify-center">
-            <button type="button" onClick={() => navigate("/search")} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-400 bg-white/80 px-6 text-sm font-bold text-slate-900 shadow-sm hover:bg-white">
-              <TrendingUp className="h-4 w-4" /> I'm Looking to Buy or Invest
-            </button>
-            <button type="button" onClick={() => navigate("/sell")} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-400 bg-white/80 px-6 text-sm font-bold text-slate-900 shadow-sm hover:bg-white">
-              <Building2 className="h-4 w-4" /> I Own or Control Property
-            </button>
-          </div>
-          <div className="mt-4 text-center">
+          <div className="mt-5 text-center">
             <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center justify-center gap-2 text-sm font-bold text-sky-800 hover:underline">
               <Layers className="h-4 w-4" /> View a sample intelligence record
             </button>
@@ -421,19 +413,10 @@ export default function Home() {
       {/* Trust band — real verified data, right below hero */}
       <TrustBand />
 
-      {/* Tennessee land-investigation pilot, separate from quarry listing search */}
-      <section className="mx-auto max-w-7xl px-6 pt-8">
-        <div className="flex flex-col gap-4 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-white px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-800">New · Tennessee land pilot</p>
-            <h2 className="mt-1 font-heading text-xl font-bold text-slate-950">Investigate land beyond quarry listings</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-700">Explore Polk, Bradley, and McMinn County parcels using public GIS boundaries, owner fields, acreage, and available deed references. Detailed land research is part of Full Quarry Intelligence.</p>
-          </div>
-          <Link to="/land-intelligence" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Open Land Intelligence →</Link>
-        </div>
-      </section>
+      {/* Audience paths — primary navigation, right below trust */}
+      <AudiencePaths />
 
-      {/* Sample intelligence record — moved to top for unpaid visitors */}
+      {/* Sample intelligence record — secondary action for unpaid visitors */}
       {!hasProfessional && sampleBundle?.site && (
         <section id="sample-record" className="mx-auto max-w-7xl px-6 py-14">
           <div className="mb-6 text-center">
@@ -447,57 +430,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* Quarry map — visible to everyone */}
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-4">
-          <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Map</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Every mapped quarry and mine site in the S&amp;S database{!hasProfessional ? ". Premium details are locked — unlock to view owner, geology and valuation." : "."}</p>
-        </div>
-        {!hasProfessional ? (
-          <div className="relative flex h-[480px] flex-col items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-slate-800 to-slate-950 p-6 text-center">
-            <MapPin className="h-10 w-10 text-sky-300" />
-            <p className="mt-3 font-heading text-3xl font-bold text-white">{loading ? "…" : `${ranked.length.toLocaleString()} quarry records mapped`}</p>
-            <p className="mt-2 max-w-md text-sm text-slate-200">Unlock Full Quarry Intelligence to explore every site on the interactive map with owner, geology, valuation and opportunity score.</p>
-            <Link to="/subscribe" className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-              <TrendingUp className="h-4 w-4" /> Unlock — $39/month
-            </Link>
-          </div>
-        ) : (
-          <Suspense fallback={<div className="h-[480px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
-            <TennesseeMineMap
-              sites={ranked.slice(0, MAP_RENDER_LIMIT)}
-              geologyMap={geologyLookup}
-              height={480}
-              loading={loading}
-              unavailable={inventoryUnavailable}
-              onRetry={loadData}
-              previewMode={false}
-            />
-          </Suspense>
-        )}
-        <p className="mt-2 text-xs text-muted-foreground">Aerial imagery uses Esri World Imagery tiles tied to each site's coordinates; it is not a current-condition survey or exact parcel-boundary depiction.</p>
-      </section>
-
-      {/* Mid-page unlock CTA for unpaid visitors */}
-      {!hasProfessional && (
-        <section className="mx-auto max-w-7xl px-6 py-10">
-          <div className="rounded-3xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-8 text-center shadow-sm sm:p-12">
-            <h2 className="font-heading text-2xl font-bold text-slate-950 sm:text-3xl">Unlock Every Quarry Record</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">You've seen the map. Now see the ownership, geology, permits, valuation and opportunity score behind every quarry. Full access unlocks immediately.</p>
-            <Link to="/subscribe" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-              <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
-            </Link>
-            <p className="mt-3 text-xs text-slate-500">Cancel anytime. No account required.</p>
-          </div>
-        </section>
-      )}
-
-      {/* Audience paths */}
-      <AudiencePaths />
-
-      {/* Membership value comparison */}
-      <MembershipValueSection />
 
       {/* Priority quarry opportunities */}
       {priorityOpportunities.length > 0 && (
@@ -732,6 +664,66 @@ export default function Home() {
         )}
       </section>
 
+      {/* Mid-page unlock CTA for unpaid visitors */}
+      {!hasProfessional && (
+        <section className="mx-auto max-w-7xl px-6 py-10">
+          <div className="rounded-3xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-8 text-center shadow-sm sm:p-12">
+            <h2 className="font-heading text-2xl font-bold text-slate-950 sm:text-3xl">Unlock Every Quarry Record</h2>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">You've seen the records. Now see the ownership, geology, permits, valuation and opportunity score behind every quarry. Full access unlocks immediately.</p>
+            <Link to="/subscribe" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
+              <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
+            </Link>
+            <p className="mt-3 text-xs text-slate-500">Cancel anytime. No account required.</p>
+          </div>
+        </section>
+      )}
+
+      {/* Quarry map — secondary, below main conversion path */}
+      <section className="mx-auto max-w-7xl px-6 py-10">
+        <div className="mb-4">
+          <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Map</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Every mapped quarry and mine site in the S&amp;S database{!hasProfessional ? ". Premium details are locked — unlock to view owner, geology and valuation." : "."}</p>
+        </div>
+        {!hasProfessional ? (
+          <div className="relative flex h-[480px] flex-col items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-slate-800 to-slate-950 p-6 text-center">
+            <MapPin className="h-10 w-10 text-sky-300" />
+            <p className="mt-3 font-heading text-3xl font-bold text-white">{loading ? "…" : `${ranked.length.toLocaleString()} quarry records mapped`}</p>
+            <p className="mt-2 max-w-md text-sm text-slate-200">Unlock Full Quarry Intelligence to explore every site on the interactive map with owner, geology, valuation and opportunity score.</p>
+            <Link to="/subscribe" className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
+              <TrendingUp className="h-4 w-4" /> Unlock — $39/month
+            </Link>
+          </div>
+        ) : (
+          <Suspense fallback={<div className="h-[480px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
+            <TennesseeMineMap
+              sites={ranked.slice(0, MAP_RENDER_LIMIT)}
+              geologyMap={geologyLookup}
+              height={480}
+              loading={loading}
+              unavailable={inventoryUnavailable}
+              onRetry={loadData}
+              previewMode={false}
+            />
+          </Suspense>
+        )}
+        <p className="mt-2 text-xs text-muted-foreground">Aerial imagery uses Esri World Imagery tiles tied to each site's coordinates; it is not a current-condition survey or exact parcel-boundary depiction.</p>
+      </section>
+
+      {/* Tennessee land-investigation pilot */}
+      <section className="mx-auto max-w-7xl px-6 py-8">
+        <div className="flex flex-col gap-4 rounded-2xl border border-sky-200 bg-gradient-to-r from-sky-50 to-white px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-800">New · Tennessee land pilot</p>
+            <h2 className="mt-1 font-heading text-xl font-bold text-slate-950">Investigate land beyond quarry listings</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-700">Explore Polk, Bradley, and McMinn County parcels using public GIS boundaries, owner fields, acreage, and available deed references. Detailed land research is part of Full Quarry Intelligence.</p>
+          </div>
+          <Link to="/land-intelligence" className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800">Open Land Intelligence →</Link>
+        </div>
+      </section>
+
+      {/* Membership value comparison */}
+      <MembershipValueSection />
+
       <footer className="border-t border-border bg-muted">
         <div className="mx-auto max-w-7xl px-6 py-10">
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -749,7 +741,7 @@ export default function Home() {
                 <Link to="/data-sources" className="text-muted-foreground hover:text-foreground hover:underline">Data Sources &amp; Methodology</Link>
                 <Link to="/subscribe" className="text-muted-foreground hover:text-foreground hover:underline">Full Intelligence — $39/month</Link>
                 <Link to="/sell" className="text-muted-foreground hover:text-foreground hover:underline">List a Property</Link>
-                <Link to="/get-started?mode=report" className="text-muted-foreground hover:text-foreground hover:underline">Request Due Diligence</Link>
+                <Link to="/due-diligence" className="text-muted-foreground hover:text-foreground hover:underline">Request Due Diligence</Link>
               </div>
             </div>
             <div>

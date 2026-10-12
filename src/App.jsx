@@ -62,6 +62,7 @@ const LeadSetup = lazy(() => import('./pages/LeadSetup'));
 const QuarryIntelligence = lazy(() => import('./pages/QuarryIntelligence'));
 const ConversionDashboard = lazy(() => import('./pages/ConversionDashboard'));
 const DataSources = lazy(() => import('./pages/DataSources'));
+const DueDiligenceRequest = lazy(() => import('./pages/DueDiligenceRequest'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -92,7 +93,7 @@ const RequireAdmin = ({ children }) => {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
+  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/due-diligence', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   useEffect(() => {
@@ -124,6 +125,10 @@ const AuthenticatedApp = () => {
       "/sell": {
         title: "Sell or List a Quarry | S&S Rock Holdings",
         description: "Submit a quarry, aggregate property, mineral property, or industrial land opportunity to S&S Rock Holdings for confidential review."
+      },
+      "/due-diligence": {
+        title: "Request Due Diligence & Research | S&S Rock Holdings",
+        description: "Request confidential due diligence research on a quarry, land parcel, operator, or potential acquisition. No account required."
       },
       "/search": {
         title: "Search Quarries & Mine Sites | S&S Rock Holdings",
@@ -256,6 +261,7 @@ const AuthenticatedApp = () => {
       <Route path="/opportunities" element={<RequireSignedIn><PageTransition><MyOpportunities /></PageTransition></RequireSignedIn>} />
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/data-sources" element={<DataSources />} />
+      <Route path="/due-diligence" element={<PageTransition><DueDiligenceRequest /></PageTransition>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
