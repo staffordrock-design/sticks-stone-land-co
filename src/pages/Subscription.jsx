@@ -13,6 +13,8 @@ import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
 import { trackVerifiedGoogleAdsPurchase } from "@/lib/googleAdsTracking";
+import FreeVsPaidComparison from "@/components/FreeVsPaidComparison";
+import SubscriptionWorkflow from "@/components/SubscriptionWorkflow";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
 
@@ -434,6 +436,8 @@ export default function Subscription() {
             </div>
           ) : null}
 
+          <SubscriptionWorkflow />
+          <FreeVsPaidComparison />
           <h2 id="subscription-options" className="mt-9 scroll-mt-6 font-heading text-xl font-bold">Subscription</h2>
           <div className="mt-4 grid max-w-2xl gap-4">
             {ACCESS_TIERS.map((tier) => {
@@ -467,8 +471,9 @@ export default function Subscription() {
 
           <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5 text-xs leading-5 text-muted-foreground">
             <p className="font-semibold text-foreground">Subscription terms</p>
-            <p className="mt-2">{isIOS ? "Apple shows the exact price and purchase terms before confirmation. " : "Your checkout provider shows the exact price and purchase terms before confirmation. "}Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} settings at any time.</p>
+            <p className="mt-2">{isIOS ? "Apple shows the exact price and purchase terms before confirmation. " : "Your checkout provider shows the exact price and purchase terms before confirmation. "}Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period. You can manage and cancel in your {isIOS ? "App Store" : isAndroid ? "Google Play" : "account"} settings at any time. Sales tax is applied where required by law and is shown before confirmation. The subscription is billed monthly and grants immediate access to all quarry intelligence features. Cancel anytime — you keep access through the end of your current billing period.</p>
             <p className="mt-3">By continuing you agree to the S&amp;S Rock Holdings <Link to="/terms" className="underline">Terms of Use</Link>{isIOS && <> and Apple&apos;s <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" className="underline" target="_blank" rel="noreferrer">standard EULA</a></>}, and <Link to="/privacy" className="underline">Privacy Policy</Link>.</p>
+            <p className="mt-3">S&amp;S Rock Holdings organizes public-source intelligence. Public-source data may require independent verification before any transaction, investment, or operational decision.</p>
           </div>
 
           {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button><button onClick={manageSubscriptions} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">Manage subscriptions</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}

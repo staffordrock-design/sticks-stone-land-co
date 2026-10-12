@@ -136,6 +136,25 @@ function Row({ label, value }) {
   );
 }
 
+function LockedSection({ title, description }) {
+  return (
+    <div className="rounded-2xl border border-sky-200 bg-sky-50/50 p-5">
+      <div className="flex items-start gap-3">
+        <div className="rounded-lg bg-slate-200 p-2 shrink-0">
+          <LockKeyhole className="h-4 w-4 text-slate-500" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-heading text-base font-bold text-slate-950">{title}</h3>
+            <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Locked</span>
+          </div>
+          <p className="mt-1 text-sm leading-5 text-slate-600">{description}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MineSiteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -201,9 +220,7 @@ export default function MineSiteDetail() {
     (async () => {
       try {
         if (!hasProfessional) {
-          // No quarry record — even the basic MiningSite identity — is loaded until
-          // a paid Full Quarry Intelligence entitlement has been verified.
-          setSite(null);
+          // Public site data is loaded by the separate public-data effect below.
           setParcels([]); setPermits([]); setEnvironmental([]);
           setInspections([]); setViolations([]); setProfiles([]);
           setProduction([]); setGeology([]); setContracts([]);
@@ -282,11 +299,36 @@ export default function MineSiteDetail() {
       } catch (e) {
         if (!cancelled) setError(e?.message || "Unable to load site intelligence.");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && hasProfessional) setLoading(false);
       }
     })();
     return () => { cancelled = true; };
   }, [id, hasProfessional, user?.id]);
+
+  // Always load public site data so the page renders for everyone — paid and unpaid.
+  useEffect(() => {
+    let cancelled = false;
+    if (hasProfessional) return;
+    setLoading(true);
+    (async () => {
+      try {
+        const response = await base44.functions.invoke("get-public-site", { mining_site_id: id });
+        const data = response?.data?.site || response?.site;
+        if (!cancelled) {
+          if (data) {
+            setSite(data);
+          } else {
+            setError("This quarry record could not be found.");
+          }
+        }
+      } catch (e) {
+        if (!cancelled) setError(e?.message || "Unable to load site.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [id, hasProfessional]);
 
   const parcel = useMemo(() => {
     if (!site) return null;
@@ -654,6 +696,7 @@ export default function MineSiteDetail() {
             {hasProfessional && <Row label="Permittee" value={permittee} />}
             {hasProfessional && <Row label="Controller" value={site.controller_name} />}
             <Row label="Address" value={[site.address, site.city, site.state, site.zip].filter(Boolean).join(", ")} />
+            <Row label="Acreage" value={Number(site.acreage) > 0 ? Number(site.acreage).toLocaleString() : "Not available"} />
             {hasProfessional && <Row label="Permitted acres" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />}
             {hasProfessional && <Row label="Permit acreage basis" value={permitAcreageBasis} />}
             {hasProfessional && <Row label="Parcel acres" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />}
@@ -1123,22 +1166,26 @@ export default function MineSiteDetail() {
           </Card>)}
         </div>
         </>) : (
-          <div className="mb-8 rounded-3xl border border-sky-200 bg-sky-50/70 p-7 text-center">
-            <LockKeyhole className="mx-auto h-8 w-8 text-slate-800" />
-            <h2 className="mt-3 font-heading text-2xl font-bold text-slate-950">Full Quarry Intelligence starts here</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700">Unlock the complete mine profile: ownership and parcel data, permitted acreage, geology and rock type, production history, MSHA/TDEC compliance, contract/royalty intelligence, valuation screening and S&amp;S opportunity analysis.</p>
-            <div className="mx-auto mt-5 max-w-md rounded-2xl border border-slate-300 bg-white p-4 text-left">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Locked premium sections</div>
-              <div className="mt-2 grid grid-cols-1 gap-1.5 text-sm text-slate-700">
-                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Ownership Intelligence — Locked</div>
-                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Geology &amp; Rock Type — Locked</div>
-                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Production Intelligence — Locked</div>
-                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Permits &amp; Compliance — Locked</div>
-                <div className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5 text-slate-400" /> Opportunity Screening — Locked</div>
+          <div className="mb-8 space-y-4">
+            <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5">
+              <div className="flex items-center gap-2">
+                <LockKeyhole className="h-5 w-5 text-slate-700" />
+                <h2 className="font-heading text-xl font-bold text-slate-950">Full Quarry Intelligence unlocks these sections</h2>
               </div>
+              <p className="mt-1 text-sm text-slate-600">Each section below is included with your $39/month membership. Cancel anytime.</p>
             </div>
-            <button onClick={() => navigate(`/subscribe?returnTo=${encodeURIComponent(`/mines/${id}`)}`)} className="mt-5 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg">Unlock Full Quarry Intelligence — $39/month</button>
-            <p className="mt-3 text-xs text-slate-500">Cancel anytime · No S&amp;S account required to buy</p>
+            <LockedSection title="Owner & Parcel Intelligence" description="See the recorded owner, parcel/tax map ID, acreage, assessed value, land value, improvement value, property address, and mailing address — all source-linked to county GIS and assessor records." />
+            <LockedSection title="Deed References" description="View deed book and page references, ownership transfer dates, and recorded easements from county register of deeds where digitized records are available." />
+            <LockedSection title="Geology Details" description="Unlock rock type, formation name, geologic age, lithology, deposit classification, and USGS MRDS mineral occurrence data connected to this site." />
+            <LockedSection title="Permit & Compliance History" description="Access TDEC surface mining permits, NPDES water permits, permitted acreage, permit status, effective/expiration dates, MSHA inspections, violations, and environmental records." />
+            <LockedSection title="Production Intelligence" description="View reported mine production, MSHA activity signals, S&S modeled production estimates, and USGS statewide production context for this commodity." />
+            <LockedSection title="Market & Transportation Demand" description="See TDOT aggregate producer listings, county-level contract demand quantities, and transportation project demand context for Tennessee sites." />
+            <LockedSection title="Comparable Quarry Information" description="Access comparable quarry sales data including sale price, price per acre, price per reserve ton, commodity, and operating status for benchmarking." />
+            <LockedSection title="Opportunity Screening" description="Unlock the S&S Opportunity Score — a 0-100 screening signal based on geology, parcel links, permits, environmental flags, location, and data coverage." />
+            <div className="rounded-2xl border border-slate-300 bg-white p-5 text-center">
+              <button onClick={() => navigate(`/subscribe?returnTo=${encodeURIComponent(`/mines/${id}`)}`)} className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-slate-800">Unlock Full Quarry Intelligence — $39/month</button>
+              <p className="mt-3 text-xs text-slate-500">Cancel anytime · No S&amp;S account required to buy</p>
+            </div>
           </div>
         )}
 

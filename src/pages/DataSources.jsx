@@ -116,6 +116,45 @@ export default function DataSources() {
           ))}
         </div>
 
+        <div className="mt-10 rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <h2 className="font-heading text-xl font-bold text-foreground">Reported, Derived, Estimated, or Requires Verification</h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">Not every field in a quarry record comes directly from a source. Understanding the difference helps you know what to trust and what to verify independently.</p>
+          <div className="mt-5 space-y-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Reported (directly from source)</p>
+              <p className="mt-1 text-sm leading-6 text-foreground">Mine identity, operator, status, inspection records, violation history, permit numbers, permittee names, permit status, effective/expiration dates, parcel IDs, owner names, assessed values, deed references, rock type, formation name, geologic age, lithology, and USGS MRDS commodity/mineralogy. These fields are copied from the cited government or public source.</p>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Derived (calculated from source data)</p>
+              <p className="mt-1 text-sm leading-6 text-foreground">Rock classification (derived from lithology), opportunity scores (derived from source coverage), and record completeness scores. These are S&amp;S interpretations based on source data, not the source data itself.</p>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Estimated (modeled by S&amp;S)</p>
+              <p className="mt-1 text-sm leading-6 text-foreground">Quarry production tonnage ranges (modeled from MSHA employee hours calibrated to USGS state production), indicative land-value screening ranges, and some acreage figures when the source does not provide them. Estimates are clearly labeled with confidence levels and methodology notes.</p>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Requires independent verification</p>
+              <p className="mt-1 text-sm leading-6 text-foreground">Current ownership and title, exact parcel boundaries, current operating status, environmental compliance status, reserve estimates, site-specific geologic conditions, and any transaction decision. S&amp;S provides screening intelligence, not certified title opinions, appraisals, reserve estimates, or engineering reports.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <h2 className="font-heading text-xl font-bold text-foreground">Database Refresh Date vs. Record Refresh Date</h2>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">Two different dates appear in S&amp;S records. Understanding the difference is important for knowing how current any specific data point is.</p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl border border-border bg-muted/20 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Database refresh date</p>
+              <p className="mt-1 text-sm leading-6 text-foreground">When S&amp;S last ran a sync against a source (e.g., MSHA, TDEC, USGS, county GIS). This tells you when the database was last updated as a whole. It does not tell you when any individual record was last refreshed from its source.</p>
+            </div>
+            <div className="rounded-xl border border-border bg-muted/20 p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Record refresh date (source checked)</p>
+              <p className="mt-1 text-sm leading-6 text-foreground">When a specific record was last verified or updated from its controlling source. This is shown as "Source checked" on each quarry record. A record may have a recent source date even if the database sync ran months ago, and vice versa.</p>
+            </div>
+          </div>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">Always check the per-record source date, not just the database sync date, to judge how current a specific data point is.</p>
+        </div>
+
         <div className="mt-10 rounded-2xl border border-slate-700 bg-slate-950 p-8 text-white">
           <h2 className="font-heading text-xl font-bold">Our Methodology</h2>
           <p className="mt-3 text-sm leading-6 text-slate-300">

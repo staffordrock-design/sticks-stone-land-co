@@ -54,6 +54,11 @@ export default async function(req: any) {
           is_verified_listing: s.is_verified_listing || false,
           listing_id: s.listing_id || null,
           site_images: Array.isArray(s.site_images) ? s.site_images : [],
+          msha_mine_id: s.msha_mine_id || null,
+          operator_name: s.operator_name || null,
+          acreage: s.acreage || null,
+          tdec_permit_number: s.tdec_permit_number || null,
+          last_source_update: s.last_source_update || null,
         });
         added++;
         if (added >= PER_STATE) break;
