@@ -215,6 +215,10 @@ function PropertyCard({ site, parcel, verification, selected, onSelect, hasProfe
           </div>
         </div>
 
+        {site.last_source_update && (
+          <div className="mt-2 text-[10px] text-muted-foreground">Source checked {formatDate(site.last_source_update)}</div>
+        )}
+
         {hasProfessional ? (
           <div className="mt-4 space-y-2 border-t border-border pt-3 text-xs">
             {owner && <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Owner</span><strong className="max-w-[65%] text-right">{owner}</strong></div>}
