@@ -309,6 +309,9 @@ export default function LeadSetup() {
       }
 
       setDone(true);
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "conversion", { send_to: "AW-18504553803/XWMZCIb8yZcdEMuq1PdE" });
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       console.error("Lead intake failed", e);

@@ -27,6 +27,9 @@ export default function Support() {
         created_at: new Date().toISOString(),
       });
       setSent(true);
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "conversion", { send_to: "AW-18504553803/Ndx2CNrUwZcdEMuq1PdE" });
+      }
     } catch (e) {
       setError(e?.message || "We could not send your support request. Please try again.");
     } finally {

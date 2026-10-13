@@ -80,6 +80,9 @@ export default function SellProperty() {
       if (payload?.error) throw new Error(payload.error);
       setDone(true);
       try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "conversion", { send_to: "AW-18504553803/XWMZCIb8yZcdEMuq1PdE" });
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err?.message || "Could not submit. Please try again.");

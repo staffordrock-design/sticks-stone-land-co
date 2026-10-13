@@ -64,6 +64,39 @@ const ConversionDashboard = lazy(() => import('./pages/ConversionDashboard'));
 const DataSources = lazy(() => import('./pages/DataSources'));
 const DueDiligenceRequest = lazy(() => import('./pages/DueDiligenceRequest'));
 
+// Google Ads gtag bootstrap — module scope so window.gtag exists before any
+// child effect fires a conversion (e.g. returning from Stripe checkout).
+if (typeof document !== 'undefined' && !window.__gads_loaded) {
+  window.__gads_loaded = true;
+  window.dataLayer = window.dataLayer || [];
+  const inIframe = (() => { try { return window.self !== window.top; } catch { return true; } })();
+  window.gtag = function gtag() {
+    window.dataLayer.push(arguments);
+    if (inIframe) {
+      try {
+        const args = Array.prototype.slice.call(arguments);
+        const cmd = args[0];
+        window.parent.postMessage({
+          type: 'base44_gtag_event',
+          event: {
+            source: 'gtag',
+            timestamp: new Date().toLocaleTimeString(),
+            command: cmd,
+            params: args.slice(1),
+            type: cmd === 'event' ? (args[1] || 'event') : cmd,
+          },
+        }, '*');
+      } catch (_e) { /* relay must not break gtag */ }
+    }
+  };
+  const s = document.createElement('script');
+  s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-18504553803';
+  s.async = true;
+  document.head.appendChild(s);
+  window.gtag('js', new Date());
+  window.gtag('config', 'AW-18504553803', { send_page_view: false });
+}
+
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center">
     <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -91,7 +124,7 @@ const RequireAdmin = ({ children }) => {
 };
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
+  const { user, isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const { pathname } = useLocation();
   const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/due-diligence', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
@@ -188,6 +221,28 @@ const AuthenticatedApp = () => {
     }
     canonical.setAttribute("href", canonicalUrl);
   }, [pathname]);
+
+  // SIGNUP conversion — fires once on a brand-new user's first authenticated render.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !user || !user.id) return;
+    const createdDate = String(user.created_date || '');
+    const createdDateUtc = /(?:Z|[+-]\d{2}:?\d{2})$/.test(createdDate) ? createdDate : createdDate + 'Z';
+    const createdAtMs = Date.parse(createdDateUtc);
+    const isNewSignup = Number.isFinite(createdAtMs) && Date.now() - createdAtMs < 24 * 60 * 60 * 1000;
+    const key = '_aw_signup_fired_AW-18504553803/v6olCJfEwZcdEMuq1PdE_' + user.id;
+    if (!isNewSignup || localStorage.getItem(key)) return;
+    let tries = 0;
+    const fire = () => {
+      if (!window.gtag) { if (tries++ < 20) setTimeout(fire, 250); return; }
+      if (localStorage.getItem(key)) return;
+      localStorage.setItem(key, '1');
+      window.gtag('event', 'conversion', {
+        send_to: 'AW-18504553803/v6olCJfEwZcdEMuq1PdE',
+        transaction_id: user.id,
+      });
+    };
+    fire();
+  }, [user]);
 
   // Show loading spinner while checking app public settings or auth
   if ((isLoadingPublicSettings || isLoadingAuth) && !publicPath) {
