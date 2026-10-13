@@ -343,6 +343,17 @@ export default function Subscription() {
     setPurchaseMessage("");
     setBuyingId(planCode);
 
+    // Open the checkout tab synchronously when framed so popup blockers
+    // preserve the user activation before the async session creation.
+    const isFramed = typeof window !== "undefined" && window.self !== window.top;
+    const checkoutTab = isFramed ? window.open("", "_blank") : null;
+    if (isFramed && !checkoutTab) {
+      setPurchaseMessage("Allow popups to continue to checkout.");
+      setBuyingId("");
+      return;
+    }
+    if (checkoutTab) checkoutTab.opener = null;
+
     try {
       const browserSessionId = getWebSubscriptionBrowserId();
       const response = await base44.functions.invoke("create-public-subscription-checkout", {
@@ -360,8 +371,13 @@ export default function Subscription() {
       }
 
       trackSubscriptionAction(user, "checkout_created", "web", planCode);
-      window.location.href = payload.checkout_url;
+      if (checkoutTab) {
+        checkoutTab.location.replace(payload.checkout_url);
+      } else {
+        window.location.assign(payload.checkout_url);
+      }
     } catch (error) {
+      if (checkoutTab) checkoutTab.close();
       const message = error?.message || "Could not start checkout.";
       trackSubscriptionAction(user, "checkout_error", "web", message);
       setPurchaseMessage(message);

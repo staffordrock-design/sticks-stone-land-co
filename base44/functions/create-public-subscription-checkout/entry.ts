@@ -62,8 +62,13 @@ export default async function(req: Request) {
 
     // Use the browser's actual origin (passed from the frontend) so Stripe
     // always redirects back to the domain the visitor started on. Fall back to
-    // the request header, then the published app URL — never a marketing domain.
-    const origin = String(bodyOrigin || req.headers.get('origin') || '').trim() || 'https://ssrockholdings.com';
+    // the server-set X-Base44-App-Url header — never a marketing domain or
+    // the request Origin header.
+    const appUrl = (req.headers.get('X-Base44-App-Url') || '').trim().replace(/\/$/, '');
+    const origin = String(bodyOrigin || '').trim() || appUrl;
+    if (!origin) {
+      return Response.json({ error: 'Could not determine the app URL for checkout redirect' }, { status: 400 });
+    }
     const browserSessionId = String(session_id || '').slice(0, 120);
     const appUserId = String(user_id || '').slice(0, 120);
     const appUserEmail = String(user_email || '').includes('@') ? String(user_email).slice(0, 160) : '';
