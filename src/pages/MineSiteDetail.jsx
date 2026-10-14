@@ -79,32 +79,40 @@ async function fetchLiveTdotProducerCandidates(mine) {
     returnGeometry: "false",
     f: "json",
   });
-  const response = await fetch(`${TDOT_PRODUCER_LAYER}/query?${params.toString()}`);
-  if (!response.ok) return [];
-  const payload = await response.json();
-  const now = new Date().toISOString();
-  return (payload?.features || []).map((feature) => {
-    const a = feature?.attributes || {};
-    return {
-      tdot_object_id: a.OBJECTID,
-      producer_code: a.PRODUCER_SUPPLIER_CODE,
-      producer_name: a.PRODUCER_SUPPLIER_NAME,
-      plant_type_code: a.PLANT_TYPE_CODE,
-      plant_type_description: a.PLANT_TYPE_DESCRIPTION,
-      status: a.STATUS,
-      street: a.STREET,
-      city: a.CITY,
-      state: a.STATE,
-      zip: a.ZIP,
-      region: a.REGION,
-      county: a.COUNTY,
-      latitude: a.LATITUDE,
-      longitude: a.LONGITUDE,
-      source_url: "https://www.tn.gov/tdot/materials-and-tests/producer-list.html",
-      last_source_update: now,
-      live_tdot: true,
-    };
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  try {
+    const response = await fetch(`${TDOT_PRODUCER_LAYER}/query?${params.toString()}`, { signal: controller.signal });
+    if (!response.ok) return [];
+    const payload = await response.json();
+    const now = new Date().toISOString();
+    return (payload?.features || []).map((feature) => {
+      const a = feature?.attributes || {};
+      return {
+        tdot_object_id: a.OBJECTID,
+        producer_code: a.PRODUCER_SUPPLIER_CODE,
+        producer_name: a.PRODUCER_SUPPLIER_NAME,
+        plant_type_code: a.PLANT_TYPE_CODE,
+        plant_type_description: a.PLANT_TYPE_DESCRIPTION,
+        status: a.STATUS,
+        street: a.STREET,
+        city: a.CITY,
+        state: a.STATE,
+        zip: a.ZIP,
+        region: a.REGION,
+        county: a.COUNTY,
+        latitude: a.LATITUDE,
+        longitude: a.LONGITUDE,
+        source_url: "https://www.tn.gov/tdot/materials-and-tests/producer-list.html",
+        last_source_update: now,
+        live_tdot: true,
+      };
+    });
+  } catch {
+    return [];
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function productionCommodityGroup(site) {

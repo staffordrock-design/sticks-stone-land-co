@@ -287,23 +287,31 @@ export default function QuarryMarketplace() {
       setLoading(true);
       setError("");
       try {
+        // Always load the public quarry list first — it uses service role and
+        // returns up to 3000 records per state with the fields the map needs.
+        const response = await base44.functions.invoke("get-public-quarry-list", { state });
+        const publicSites = response?.data?.sites || response?.sites || [];
+        if (cancelled) return;
+        setSites(publicSites.filter((s) => s?.id && isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)));
+
         if (hasProfessional) {
-          const [siteRows, parcelRows, verifyRows, geologyRows] = await Promise.all([
-            premiumEntityQuery("MiningSite", { state }, "-updated_date", 3000),
-            premiumEntityQuery("ParcelRecord", { state }, "-updated_date", 3000),
-            premiumEntityQuery("ParcelOwnershipVerification", {}, "-verified_at", 3000),
-            premiumEntityQuery("GeologyRecord", { state }, "-updated_date", 3000),
-          ]);
-          if (cancelled) return;
-          setSites((siteRows || []).filter((s) => s?.id && isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)));
-          setParcels(parcelRows || []);
-          setVerifications(verifyRows || []);
-          setGeology(geologyRows || []);
+          // Load premium parcel, verification, and geology data separately
+          // with a lower limit to avoid rate-limiting.
+          try {
+            const [parcelRows, verifyRows, geologyRows] = await Promise.all([
+              premiumEntityQuery("ParcelRecord", { state }, "-updated_date", 500),
+              premiumEntityQuery("ParcelOwnershipVerification", {}, "-verified_at", 500),
+              premiumEntityQuery("GeologyRecord", { state }, "-updated_date", 500),
+            ]);
+            if (cancelled) return;
+            setParcels(parcelRows || []);
+            setVerifications(verifyRows || []);
+            setGeology(geologyRows || []);
+          } catch (premiumError) {
+            // Premium data is supplementary — don't fail the whole page if it's rate-limited.
+            console.error("Premium data load failed", premiumError);
+          }
         } else {
-          const response = await base44.functions.invoke("get-public-quarry-list", { state });
-          const publicSites = response?.data?.sites || response?.sites || [];
-          if (cancelled) return;
-          setSites(publicSites.filter((s) => s?.id && isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)));
           setParcels([]);
           setVerifications([]);
           setGeology([]);
