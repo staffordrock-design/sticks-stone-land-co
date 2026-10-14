@@ -2,10 +2,9 @@ import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
-import { ArrowLeft, BarChart3, Camera, DollarSign, Download, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2, Mountain, TrendingUp } from "lucide-react";
+import { ArrowLeft, BarChart3, Camera, DollarSign, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2, Mountain, TrendingUp } from "lucide-react";
 import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
-import { generateQuarryReportPdf } from "@/utils/generateQuarryReportPdf";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
@@ -185,8 +184,6 @@ export default function MineSiteDetail() {
   const [ownershipVerifications, setOwnershipVerifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [reportGenerating, setReportGenerating] = useState(false);
-  const [reportMessage, setReportMessage] = useState("");
   const [showAllRecords, setShowAllRecords] = useState(false);
   const [hasProfessional, setHasProfessional] = useState(user?.role === "admin" || isReviewDemoAccount(user?.email));
 
@@ -565,69 +562,6 @@ export default function MineSiteDetail() {
   const diligenceReady = diligence.filter((item) => item.ready).length;
   const diligencePct = Math.round((diligenceReady / diligence.length) * 100);
 
-  const downloadIntelligenceReport = async (reportType = "Standard") => {
-    setReportGenerating(true);
-    setReportMessage("");
-    try {
-      const allowed = user?.role === "admin";
-      if (!allowed) {
-        if (!user?.id) {
-          navigate(`/login?returnTo=${encodeURIComponent(`/mines/${site.id}`)}`);
-          return;
-        }
-
-        const existing = await base44.entities.IntelligenceReportOrder.filter({
-          user_id: user.id,
-          mining_site_id: site.id,
-          report_type: reportType,
-          status: "Requested",
-        }, "-created_date", 1);
-
-        const order = existing?.[0] || await base44.entities.IntelligenceReportOrder.create({
-          user_id: user.id,
-          customer_email: user.email || "",
-          mining_site_id: site.id,
-          listing_id: site.listing_id || "",
-          site_name: site.mine_name || "",
-          report_type: reportType,
-          status: "Requested",
-          requested_at: new Date().toISOString(),
-          notes: `${reportType} report requested from the mine detail page. S&S will confirm scope, pricing and fulfillment directly.`,
-        });
-
-        setReportMessage(`${reportType} report request received. S&S will contact ${user.email || "your account email"} to confirm scope, pricing and delivery. Order ${order.id}.`);
-        return;
-      }
-
-      const response = await base44.functions.invoke("build-intelligence-report", { mining_site_id: site.id, report_type: reportType });
-      const result = response?.data || response;
-      if (!result?.success || !result?.payload?.site) throw new Error(result?.error || "Report package could not be assembled.");
-      const p = result.payload;
-      const packagedValuation = calculateIndicativeQuarryValue({ site: p.site, parcel: p.parcel, profile: p.profile, geology: p.geology });
-      await generateQuarryReportPdf({
-        site: p.site,
-        parcel: p.parcel,
-        geology: p.geology,
-        profile: p.profile,
-        permits: p.permits || [],
-        production: p.production || [],
-        environmental: p.environmental || [],
-        inspections: p.inspections || [],
-        violations: p.violations || [],
-        valuation: packagedValuation,
-        sourceSnapshotDate: result.source_snapshot_date,
-        reportType: p.report_type || reportType,
-        freshness: p.freshness || {},
-        nearbySites: p.nearby_sites || [],
-      });
-      setReportMessage(`PDF generated and logged as report ${result.report_order_id}.`);
-    } catch (e) {
-      setReportMessage(e?.message || "Unable to generate the PDF report.");
-    } finally {
-      setReportGenerating(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-background/90 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
@@ -641,15 +575,12 @@ export default function MineSiteDetail() {
       <main className="mx-auto max-w-7xl px-6 py-10">
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">S&amp;S Quarry Intelligence Report</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">S&amp;S Quarry Intelligence</p>
             <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">{site.mine_name}</h1>
             <p className="mt-2 text-muted-foreground">{[site.city, site.county, site.state].filter(Boolean).join(" · ")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {(!isNativeIOS() || user?.role === "admin") ? <>
-              <button onClick={() => downloadIntelligenceReport("Standard")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2 text-xs font-bold text-stone-950 transition hover:bg-sky-400 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Working…" : "Request Standard report"}</button>
-              <button onClick={() => downloadIntelligenceReport("Enhanced")} disabled={reportGenerating} className="inline-flex items-center gap-2 rounded-xl border border-sky-400 bg-stone-950 px-4 py-2 text-xs font-bold text-sky-300 transition hover:bg-stone-900 disabled:opacity-60"><Download className="h-4 w-4" />{reportGenerating ? "Working…" : "Request Enhanced report"}</button>
-            </> : <button onClick={() => navigate("/support")} className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-950"><FileSearch className="h-4 w-4" />Custom research services</button>}
+            <button onClick={() => navigate("/support")} className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-950"><FileSearch className="h-4 w-4" />Custom research services</button>
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
             {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
             <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{recordStatusLabel(site)}</span>
@@ -670,8 +601,6 @@ export default function MineSiteDetail() {
         </div>
 
         <div className="mb-6"><QuarryActionBar site={site} /></div>
-
-        {reportMessage && <div className="mb-6 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-950">{reportMessage}</div>}
 
         {!site.is_verified_listing && (
           <div className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 p-5 text-sm leading-relaxed text-stone-700">
@@ -1196,11 +1125,6 @@ export default function MineSiteDetail() {
             </div>
           </div>
         )}
-
-        <div className="mt-6 rounded-2xl border border-sky-200 bg-sky-50/60 p-6">
-          <div className="flex items-center gap-2 font-heading text-lg font-bold text-sky-950"><FileSearch className="h-5 w-5" /> About this S&amp;S Quarry Intelligence Report</div>
-          <p className="mt-2 text-sm leading-relaxed text-sky-950/80">This report is assembled by S&amp;S Rock Holdings LLC from source-labeled public and licensed data connected to this site, including mine, parcel, permit, geology, production/activity, and compliance information when available. It is a screening and business-intelligence product—not a certified reserve estimate, engineering opinion, title opinion, appraisal, environmental assessment, or guarantee that commercially recoverable stone exists.</p>
-        </div>
 
         {site.notes && (
           <div className="mt-6 rounded-2xl border border-border bg-muted/20 p-6">
