@@ -2,6 +2,7 @@
 // The gtag bootstrap lives at module scope in src/App.jsx, so window.gtag is
 // already initialized by the time this function runs.
 const SUBSCRIBE_PAID_DESTINATION = "AW-18504553803/gwFOCM7_yZcdEMuq1PdE";
+const SUBSCRIBE_PAID_DESTINATION_SECONDARY = "AW-18500427701/jB7dCJbxjZUdELW_2PVE";
 const sentThisPage = new Set();
 const RECEIPT_PREFIX = "ss_google_ads_purchase_";
 
@@ -28,6 +29,12 @@ export function trackVerifiedGoogleAdsPurchase(receipt) {
       event_callback: () => {
         try { localStorage.setItem(RECEIPT_PREFIX + id, "sent"); } catch {}
       },
+    });
+    window.gtag("event", "conversion", {
+      send_to: SUBSCRIBE_PAID_DESTINATION_SECONDARY,
+      value,
+      currency,
+      transaction_id: id,
     });
     return true;
   } catch {
