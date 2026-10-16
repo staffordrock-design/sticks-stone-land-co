@@ -5,7 +5,7 @@ const STEPS = [
   { icon: Search, title: "Search", desc: "Search every quarry, mine site, and mineral occurrence across the Southeast by name, county, state, material, or MSHA ID." },
   { icon: GitCompare, title: "Compare", desc: "Compare mapped property facts side by side — acreage, geology, permits, production, and opportunity scores." },
   { icon: FileSearch, title: "Inspect Intelligence", desc: "Open any quarry record to see ownership, parcel, deed, geology, permit, compliance, and production intelligence." },
-  { icon: Bookmark, title: "Save Target", desc: "Save the quarries worth tracking. Free accounts can save up to 2 targets; paid members get unlimited saves." },
+  { icon: Bookmark, title: "Save Target", desc: "Save the quarries worth tracking. Paid members get unlimited saves." },
   { icon: BellRing, title: "Monitor Changes", desc: "Get alerts when new data arrives for your saved targets — ownership changes, permit updates, new production data." },
   { icon: ClipboardCheck, title: "Request Diligence", desc: "Request a custom due-diligence report or professional research engagement directly from any quarry record." },
 ];

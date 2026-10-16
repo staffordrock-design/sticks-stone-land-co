@@ -13,7 +13,6 @@ import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
 import { trackVerifiedGoogleAdsPurchase } from "@/lib/googleAdsTracking";
-import FreeVsPaidComparison from "@/components/FreeVsPaidComparison";
 import SubscriptionWorkflow from "@/components/SubscriptionWorkflow";
 const STORE_TIMEOUT_MS = 15000;
 const PRODUCT_LOOKUP_TIMEOUT_MS = 7000;
@@ -453,7 +452,6 @@ export default function Subscription() {
           ) : null}
 
           <SubscriptionWorkflow />
-          <FreeVsPaidComparison />
           <h2 id="subscription-options" className="mt-9 scroll-mt-6 font-heading text-xl font-bold">Subscription</h2>
           <div className="mt-4 grid max-w-2xl gap-4">
             {ACCESS_TIERS.map((tier) => {
@@ -470,16 +468,20 @@ export default function Subscription() {
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
                   <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : `Subscribe for ${tier.priceLabel} · Secure Checkout`}</button>
-                  <div className="text-[11px] leading-4 text-muted-foreground">Your checkout provider shows the current subscription price before confirmation. The subscription renews automatically until canceled. No S&amp;S account is required to complete the purchase.</div>
+                  <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
+                  <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
                     <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : monthlyStore?.priceString ? `Unlock Full Access · ${monthlyStore.priceString}/month` : "Unlock Full Access"}</button>
-                    <div className="text-[11px] leading-4 text-muted-foreground">Apple shows the exact price and purchase terms before you approve. The subscription renews automatically until canceled.</div>
+                    <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
+                    <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
                   <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : "Continue with Google Play"}</button>
+                  <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
+                  <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                 </div>}
               </div>;
             })}
@@ -493,9 +495,6 @@ export default function Subscription() {
           </div>
 
           {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button><button onClick={manageSubscriptions} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">Manage subscriptions</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
-          <h2 className="mt-10 font-heading text-xl font-bold">Professional research services</h2>
-          <div className="mt-3 rounded-2xl border border-border bg-muted/20 p-5 text-sm leading-6 text-muted-foreground">Custom reports, due-diligence research, surveys, reserve studies and environmental work are separate professional services. Pricing is provided by S&amp;S Rock Holdings based on the scope of the request; these services are not additional app subscription tiers.</div>
-
           {user?.id && <div className="mt-8 border-t border-border pt-6">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Account</div>
             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
