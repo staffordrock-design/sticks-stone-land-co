@@ -345,6 +345,7 @@ export default function Home() {
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground lg:flex">
             <button type="button" onClick={scrollToOpportunities} className="font-medium text-foreground hover:text-sky-700">Find Opportunities</button>
             <Link to="/search" className="hover:text-foreground">Map</Link>
+            <Link to="/us-geology-map" className="hover:text-foreground">US Geology</Link>
             <Link to="/land-intelligence" className="font-semibold text-sky-800 hover:text-sky-700">Land Intelligence</Link>
             <Link to="/watchlist" className="hover:text-foreground">Saved</Link>
             <Link to="/sell" className="hover:text-foreground">List Property</Link>

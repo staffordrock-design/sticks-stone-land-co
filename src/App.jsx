@@ -63,6 +63,7 @@ const QuarryIntelligence = lazy(() => import('./pages/QuarryIntelligence'));
 const ConversionDashboard = lazy(() => import('./pages/ConversionDashboard'));
 const DataSources = lazy(() => import('./pages/DataSources'));
 const DueDiligenceRequest = lazy(() => import('./pages/DueDiligenceRequest'));
+const USGeologyMap = lazy(() => import('./pages/USGeologyMap'));
 
 // Google Ads gtag bootstrap — module scope so window.gtag exists before any
 // child effect fires a conversion (e.g. returning from Stripe checkout).
@@ -126,7 +127,7 @@ const RequireAdmin = ({ children }) => {
 const AuthenticatedApp = () => {
   const { user, isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/due-diligence', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent'].includes(pathname);
+  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/due-diligence', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent', '/us-geology-map'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   useEffect(() => {
@@ -186,6 +187,10 @@ const AuthenticatedApp = () => {
       "/network": {
         title: "Quarry Industry Network | S&S Rock Holdings",
         description: "Connect with quarry, aggregate, hauling, supplier, buyer, seller, investor, and industry professionals through the S&S Rock Holdings network."
+      },
+      "/us-geology-map": {
+        title: "US Geology Map | S&S Rock Holdings",
+        description: "Explore USGS bedrock geology, MRDS mineral deposits, Southeast quarry sites, and verified listings on a national map. Click anywhere for the Macrostrat geologic unit."
       }
     };
 
@@ -317,6 +322,7 @@ const AuthenticatedApp = () => {
       <Route path="/subscribe" element={<Subscription />} />
       <Route path="/data-sources" element={<DataSources />} />
       <Route path="/due-diligence" element={<PageTransition><DueDiligenceRequest /></PageTransition>} />
+      <Route path="/us-geology-map" element={<PageTransition><USGeologyMap /></PageTransition>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
