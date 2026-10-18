@@ -1,0 +1,74 @@
+{
+  "name": "DataLicense",
+  "type": "object",
+  "properties": {
+    "company_name": {
+      "type": "string"
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "license_key": {
+      "type": "string",
+      "description": "Globally unique key used to authenticate data API requests. Must be unique across all licenses."
+    },
+    "licensed_tables": {
+      "type": "string",
+      "description": "Comma-separated table names the license grants access to, e.g. MiningSite,USGSMineralOccurrence,Listing."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "expired"
+      ],
+      "default": "active"
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date"
+    },
+    "max_seats": {
+      "type": "number",
+      "default": 1
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "company_name",
+    "license_key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
