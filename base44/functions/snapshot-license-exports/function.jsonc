@@ -1,0 +1,14 @@
+{
+  "automations": [
+    {
+      "name": "quarterly_license_export_snapshot",
+      "description": "Snapshot licensed data tables to CSV and record a DataExportJob per active data license, quarterly.",
+      "type": "scheduled",
+      "schedule_mode": "recurring",
+      "schedule_type": "cron",
+      "cron_expression": "0 0 1 */3 *",
+      "function_args": {},
+      "is_active": true
+    }
+  ]
+}
