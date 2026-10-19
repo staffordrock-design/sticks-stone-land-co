@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Mountain, MapPinned, Bookmark, PlusCircle, UserRound } from "lucide-react";
+import { Mountain, MapPinned, Bookmark, PlusCircle, UserRound, Briefcase } from "lucide-react";
 
 const TABS = [
   { to: "/", label: "Explore", icon: Mountain, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
   { to: "/search", label: "Map", icon: MapPinned, match: (p) => p.startsWith("/search") || p.startsWith("/mineral-intelligence") || p.startsWith("/quarry-intelligence") || p.startsWith("/land-intelligence") || p.startsWith("/us-geology-map") },
   { to: "/watchlist", label: "Saved", icon: Bookmark, match: (p) => p.startsWith("/watchlist") || p.startsWith("/opportunities") },
   { to: "/sell", label: "List", icon: PlusCircle, match: (p) => p.startsWith("/sell") || p.startsWith("/seller-portal") || p.startsWith("/seller-dashboard") },
+  { to: "/enterprise", label: "Enterprise", icon: Briefcase, match: (p) => p.startsWith("/enterprise") },
   { to: "/profile", label: "Account", icon: UserRound, match: (p) => p.startsWith("/profile") || p.startsWith("/buyer-profile") || p.startsWith("/subscribe") },
 ];
 

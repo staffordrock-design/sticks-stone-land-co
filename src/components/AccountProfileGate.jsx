@@ -23,6 +23,7 @@ const PUBLIC_PATHS = new Set([
   "/subscribe",
   "/get-started",
   "/search",
+  "/enterprise",
 ]);
 
 // A completed profile is useful for account/workspace features, but it must never

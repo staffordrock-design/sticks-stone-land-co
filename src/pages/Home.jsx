@@ -349,6 +349,7 @@ export default function Home() {
             <Link to="/land-intelligence" className="font-semibold text-sky-800 hover:text-sky-700">Land Intelligence</Link>
             <Link to="/watchlist" className="hover:text-foreground">Saved</Link>
             <Link to="/sell" className="hover:text-foreground">List Property</Link>
+            <Link to="/enterprise" className="font-semibold text-sky-800 hover:text-sky-700">Enterprise</Link>
             <Link to="/data-sources" className="hover:text-foreground">How the Data Works</Link>
             <Link to="/support" className="hover:text-foreground">Help</Link>
             {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 font-bold text-white hover:bg-sky-500">Unlock — $39/mo</Link>}

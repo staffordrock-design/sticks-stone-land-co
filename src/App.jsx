@@ -64,6 +64,7 @@ const ConversionDashboard = lazy(() => import('./pages/ConversionDashboard'));
 const DataSources = lazy(() => import('./pages/DataSources'));
 const DueDiligenceRequest = lazy(() => import('./pages/DueDiligenceRequest'));
 const USGeologyMap = lazy(() => import('./pages/USGeologyMap'));
+const Enterprise = lazy(() => import('./pages/Enterprise'));
 
 // Google Ads gtag bootstrap — module scope so window.gtag exists before any
 // child effect fires a conversion (e.g. returning from Stripe checkout).
@@ -127,7 +128,7 @@ const RequireAdmin = ({ children }) => {
 const AuthenticatedApp = () => {
   const { user, isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/due-diligence', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent', '/us-geology-map'].includes(pathname);
+  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/due-diligence', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent', '/us-geology-map', '/enterprise'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   useEffect(() => {
@@ -191,6 +192,10 @@ const AuthenticatedApp = () => {
       "/us-geology-map": {
         title: "US Geology Map | S&S Rock Holdings",
         description: "Explore USGS bedrock geology, MRDS mineral deposits, Southeast quarry sites, and verified listings on a national map. Click anywhere for the Macrostrat geologic unit."
+      },
+      "/enterprise": {
+        title: "Enterprise Quarry Intelligence for Teams | S&S Rock Holdings",
+        description: "Southeast quarry intelligence for aggregates producers, investors, M&A advisors, and engineering firms. Multi-seat access, API data feed, quarterly bulk refresh, and deal advisory from S&S Rock Holdings."
       }
     };
 
@@ -323,6 +328,7 @@ const AuthenticatedApp = () => {
       <Route path="/data-sources" element={<DataSources />} />
       <Route path="/due-diligence" element={<PageTransition><DueDiligenceRequest /></PageTransition>} />
       <Route path="/us-geology-map" element={<PageTransition><USGeologyMap /></PageTransition>} />
+      <Route path="/enterprise" element={<PageTransition><Enterprise /></PageTransition>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
