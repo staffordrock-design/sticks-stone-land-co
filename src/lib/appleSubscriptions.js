@@ -54,6 +54,8 @@ const APPLE_PRODUCT_TO_PLAN = {
   // Legacy S&S Quarry Intelligence subscription. If StoreKit surfaces this
   // transaction, treat it as the same Full Quarry Intelligence membership.
   'com.ssrockholdings.quarryintelligence.monthly199': 'professional_monthly',
+  'com.ssrockholdings.marketplace.monthly': 'professional_monthly',
+  'com.ssrockholdings.professional.monthly': 'professional_monthly',
 };
 
 const APPLE_RECOGNIZED_PRODUCT_IDS = Object.keys(APPLE_PRODUCT_TO_PLAN);
