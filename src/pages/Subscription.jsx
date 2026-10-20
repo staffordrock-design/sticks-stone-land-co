@@ -216,7 +216,7 @@ export default function Subscription() {
           setStoreProducts(Object.fromEntries(products.map((p) => [p.identifier, p])));
           products.forEach((product) => trackSubscriptionAction(user, "store_product_loaded", isIOS ? "apple" : "google", storeProductDetail(product)));
           if (products.length === 0) {
-            setPurchaseMessage(`${isIOS ? "Apple" : "Google Play"} did not return an available Full Quarry Intelligence subscription. Please tap Retry subscription connection below. If it still fails, contact support@ssrockholdings.com.`);
+            setPurchaseMessage(`${isIOS ? "Apple" : "Google Play"} did not return an available Full Quarry Intelligence subscription. Please tap Retry subscription connection below. If it still fails, contact contact@ssrockholdings.com.`);
           }
         }
       } catch (error) {
