@@ -61,6 +61,7 @@ export default function Subscription() {
   const [loading, setLoading] = useState(true);
   const [storeProducts, setStoreProducts] = useState({});
   const [storeLoading, setStoreLoading] = useState(false);
+  const [storeRetry, setStoreRetry] = useState(0);
   const [purchaseMessage, setPurchaseMessage] = useState("");
   const [buyingId, setBuyingId] = useState("");
   const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
@@ -187,6 +188,7 @@ export default function Subscription() {
     let cancelled = false;
     (async () => {
       setPurchaseMessage("");
+      setStoreProducts({});
       setStoreLoading(true);
       try {
         const { isBillingSupported } = await withStoreTimeout(
@@ -213,8 +215,8 @@ export default function Subscription() {
         if (!cancelled) {
           setStoreProducts(Object.fromEntries(products.map((p) => [p.identifier, p])));
           products.forEach((product) => trackSubscriptionAction(user, "store_product_loaded", isIOS ? "apple" : "google", storeProductDetail(product)));
-          if (isIOS && products.length === 0) {
-            setPurchaseMessage("Apple is still preparing the subscription products for this build. Please try again after the App Store product setup finishes.");
+          if (products.length === 0) {
+            setPurchaseMessage(`${isIOS ? "Apple" : "Google Play"} did not return an available Full Quarry Intelligence subscription. Please tap Retry subscription connection below. If it still fails, contact support@ssrockholdings.com.`);
           }
         }
       } catch (error) {
@@ -224,7 +226,7 @@ export default function Subscription() {
       }
     })();
     return () => { cancelled = true; };
-  }, [isNative, isIOS, isAndroid]);
+  }, [isNative, isIOS, isAndroid, storeRetry]);
 
   const accountActive = useMemo(() => findFullQuarryEntitlement(entitlements), [entitlements]);
   const active = accountActive || (isIOS && appleStoreAccess?.active && appleStoreAccess?.professional ? {
@@ -269,7 +271,7 @@ export default function Subscription() {
           }
         }
         if (!appleProduct) {
-          throw new Error("Apple has not made this subscription available to TestFlight yet. Please try again shortly.");
+          throw new Error("Apple did not return an available subscription. Please retry the store connection or contact support.");
         }
         setStoreProducts((current) => ({ ...current, [productId]: appleProduct }));
 
@@ -355,14 +357,18 @@ export default function Subscription() {
 
     try {
       const browserSessionId = getWebSubscriptionBrowserId();
-      const response = await base44.functions.invoke("create-public-subscription-checkout", {
-        plan_code: planCode,
-        return_to: returnTo,
-        session_id: browserSessionId,
-        user_id: user?.id || "",
-        user_email: user?.email || "",
-        origin: window.location.origin,
-      });
+      const response = await withStoreTimeout(
+        base44.functions.invoke("create-public-subscription-checkout", {
+          plan_code: planCode,
+          return_to: returnTo,
+          session_id: browserSessionId,
+          user_id: user?.id || "",
+          user_email: user?.email || "",
+          origin: window.location.origin,
+        }),
+        "Secure checkout did not respond within 15 seconds. Please try again.",
+        15000
+      );
       const payload = response?.data || response || {};
 
       if (!payload?.checkout_url) {
@@ -440,7 +446,8 @@ export default function Subscription() {
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Get the ownership, parcel, geology, permit, production, environmental and opportunity intelligence that sits behind each quarry record. Full access unlocks immediately after purchase. {isIOS ? "Apple shows the current price and purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."}</p>
           {!active && <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">View Membership</a>}
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, review Apple&apos;s purchase terms, confirm, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
-          {!user?.id && !isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to buy.</strong> Continue straight to secure checkout. After payment, Full Quarry Intelligence unlocks on this browser; sign in later only if you want account-based features.</div>}
+          {!user?.id && !isNative && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to buy on the website.</strong> Continue straight to secure checkout. After payment, Full Quarry Intelligence unlocks on this browser; sign in later only if you want account-based features.</div>}
+          {!user?.id && isAndroid && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Google Play requires an S&amp;S login to link your subscription.</strong> You can browse public quarry information first; when you subscribe, you will be asked to sign in.</div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
@@ -473,13 +480,13 @@ export default function Subscription() {
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
-                    <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : monthlyStore?.priceString ? `Unlock Full Access · ${monthlyStore.priceString}/month` : "Unlock Full Access"}</button>
+                    <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : storeLoading ? "Loading Apple subscription…" : monthlyStore?.priceString ? `Unlock Full Access · ${monthlyStore.priceString}/month` : "Apple subscription unavailable"}</button>
                     <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
                     <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
-                  <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : "Continue with Google Play"}</button>
+                  <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : storeLoading ? "Loading Google Play subscription…" : monthlyStore ? "Continue with Google Play" : "Google Play subscription unavailable"}</button>
                   <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
                   <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                 </div>}
@@ -494,7 +501,7 @@ export default function Subscription() {
             <p className="mt-3">S&amp;S Rock Holdings organizes public-source intelligence. Public-source data may require independent verification before any transaction, investment, or operational decision.</p>
           </div>
 
-          {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button><button onClick={manageSubscriptions} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">Manage subscriptions</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
+          {isNative && (isIOS || isAndroid) && <div className="mt-5 flex flex-wrap items-center gap-3"><button onClick={restore} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><RotateCcw className="h-4 w-4"/>Restore purchases</button><button onClick={manageSubscriptions} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">Manage subscriptions</button><button onClick={() => setStoreRetry((value) => value + 1)} disabled={storeLoading} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold disabled:opacity-50">Retry subscription connection</button>{storeLoading && <span className="inline-flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading {isIOS ? "Apple" : "Google Play"} products…</span>}</div>}
           {user?.id && <div className="mt-8 border-t border-border pt-6">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Account</div>
             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
