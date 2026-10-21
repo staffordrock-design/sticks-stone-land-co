@@ -65,6 +65,7 @@ const DataSources = lazy(() => import('./pages/DataSources'));
 const DueDiligenceRequest = lazy(() => import('./pages/DueDiligenceRequest'));
 const USGeologyMap = lazy(() => import('./pages/USGeologyMap'));
 const Enterprise = lazy(() => import('./pages/Enterprise'));
+const CourthouseRecords = lazy(() => import('./pages/CourthouseRecords'));
 
 // Google Ads gtag bootstrap — module scope so window.gtag exists before any
 // child effect fires a conversion (e.g. returning from Stripe checkout).
@@ -196,12 +197,16 @@ const AuthenticatedApp = () => {
       "/enterprise": {
         title: "Enterprise Quarry Intelligence for Teams | S&S Rock Holdings",
         description: "Southeast quarry intelligence for aggregates producers, investors, M&A advisors, and engineering firms. Multi-seat access, API data feed, quarterly bulk refresh, and deal advisory from S&S Rock Holdings."
+      },
+      "/courthouse-records": {
+        title: "Courthouse Records | S&S Rock Holdings",
+        description: "Search recorded deeds, plats, and surveys by county, parcel, party, or book/page, and review chain-of-title timelines in the S&S Rock Holdings courthouse records library."
       }
     };
 
     const seo = pageSeo[pathname] || pageSeo["/"];
     const canonicalUrl = `https://ssrockholdings.com${pathname === "/" ? "/" : pathname}`;
-    const nonIndexable = pathname.startsWith("/admin/") || ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent", "/messages", "/profile", "/buyer-profile", "/seller-portal", "/seller-dashboard", "/opportunities", "/account/delete", "/account-deletion", "/get-started", "/watchlist", "/deal-investor", "/network/watchlist", "/network/deals/new", "/network/deals/activity"].includes(pathname);
+    const nonIndexable = pathname.startsWith("/admin/") || ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent", "/messages", "/profile", "/buyer-profile", "/seller-portal", "/seller-dashboard", "/opportunities", "/account/delete", "/account-deletion", "/get-started", "/watchlist", "/courthouse-records", "/deal-investor", "/network/watchlist", "/network/deals/new", "/network/deals/activity"].includes(pathname);
 
     const setMeta = (selector, attribute, value) => {
       let tag = document.head.querySelector(selector);
@@ -329,6 +334,7 @@ const AuthenticatedApp = () => {
       <Route path="/due-diligence" element={<PageTransition><DueDiligenceRequest /></PageTransition>} />
       <Route path="/us-geology-map" element={<PageTransition><USGeologyMap /></PageTransition>} />
       <Route path="/enterprise" element={<PageTransition><Enterprise /></PageTransition>} />
+      <Route path="/courthouse-records" element={<PageTransition><CourthouseRecords /></PageTransition>} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
