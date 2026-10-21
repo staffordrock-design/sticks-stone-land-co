@@ -1,0 +1,70 @@
+{
+  "name": "PlatRecord",
+  "type": "object",
+  "properties": {
+    "county": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "plat_book": {
+      "type": "string"
+    },
+    "plat_page": {
+      "type": "string"
+    },
+    "instrument_number": {
+      "type": "string"
+    },
+    "recording_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "parcel_ids": {
+      "type": "string"
+    },
+    "document_file_url": {
+      "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "derived",
+        "disputed",
+        "unknown"
+      ],
+      "default": "derived"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

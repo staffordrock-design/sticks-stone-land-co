@@ -1,0 +1,115 @@
+{
+  "name": "DeedRecord",
+  "type": "object",
+  "properties": {
+    "state": {
+      "type": "string",
+      "default": "TN"
+    },
+    "county": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "deed",
+        "mineral_deed",
+        "oil_gas_lease",
+        "deed_of_trust",
+        "plat",
+        "other"
+      ]
+    },
+    "book": {
+      "type": "string"
+    },
+    "page": {
+      "type": "string"
+    },
+    "instrument_number": {
+      "type": "string"
+    },
+    "recording_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "grantors": {
+      "type": "string"
+    },
+    "grantees": {
+      "type": "string"
+    },
+    "parcel_ids": {
+      "type": "string"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "consideration": {
+      "type": "number"
+    },
+    "legal_description": {
+      "type": "string"
+    },
+    "prior_deed_reference": {
+      "type": "string"
+    },
+    "prior_book": {
+      "type": "string"
+    },
+    "prior_page": {
+      "type": "string"
+    },
+    "mineral_severance": {
+      "type": "boolean"
+    },
+    "minerals_reserved": {
+      "type": "boolean"
+    },
+    "oil_gas_language": {
+      "type": "boolean"
+    },
+    "mineral_clause_text": {
+      "type": "string"
+    },
+    "document_file_url": {
+      "type": "string"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "derived",
+        "disputed",
+        "unknown"
+      ],
+      "default": "derived"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
