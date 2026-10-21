@@ -70,7 +70,14 @@ export default function MembershipRequiredGate({ children }) {
   const { pathname, search } = location;
   const returnTo = encodeURIComponent(`${pathname}${search || ""}`);
   const { user, isLoadingAuth, isLoadingPublicSettings, authChecked } = useAuth();
-  const [accessState, setAccessState] = useState({ loading: true, active: false, checkedPath: null });
+  const userId = user?.id || null;
+  // An access decision is only honoured for the identity it was computed for.
+  // Routes that render before auth resolves (publicPath in App.jsx, e.g.
+  // /us-geology-map) mount this gate while user is still null; without this key
+  // that pre-auth "anonymous" decision was applied at the very render where the
+  // session resolved, redirecting a signed-in owner — and any other signed-in
+  // user — to /subscribe before the admin/owner/entitlement branch could run.
+  const [accessState, setAccessState] = useState({ loading: true, active: false, checkedPath: null, checkedUserId: null });
 
   const freeAccountArea = FREE_ACCOUNT_PREFIXES.some((prefix) => pathname.startsWith(prefix));
   const publicBrowseArea = PUBLIC_BROWSE_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -80,12 +87,12 @@ export default function MembershipRequiredGate({ children }) {
     let cancelled = false;
 
     if (exempt) {
-      setAccessState({ loading: false, active: false, checkedPath: pathname });
+      setAccessState({ loading: false, active: false, checkedPath: pathname, checkedUserId: userId });
       return () => { cancelled = true; };
     }
 
     if (!user?.id) {
-      setAccessState((current) => ({ ...current, loading: true, checkedPath: null }));
+      setAccessState((current) => ({ ...current, loading: true, checkedPath: null, checkedUserId: userId }));
       (async () => {
         try {
           let active = false;
@@ -96,10 +103,10 @@ export default function MembershipRequiredGate({ children }) {
             const webAccess = await verifySavedWebSubscriptionAccess();
             active = Boolean(webAccess?.active);
           }
-          if (!cancelled) setAccessState({ loading: false, active, checkedPath: pathname });
+          if (!cancelled) setAccessState({ loading: false, active, checkedPath: pathname, checkedUserId: userId });
         } catch (error) {
           console.error("Anonymous membership check failed", error);
-          if (!cancelled) setAccessState({ loading: false, active: false, checkedPath: pathname });
+          if (!cancelled) setAccessState({ loading: false, active: false, checkedPath: pathname, checkedUserId: userId });
         }
       })();
       return () => { cancelled = true; };
@@ -108,11 +115,11 @@ export default function MembershipRequiredGate({ children }) {
     // Owner addresses pass alongside the admin role, so the owner keeps access to
     // her own app when her Apple sign-in resolves to the non-admin relay record.
     if (user?.role === "admin" || isOwner(user)) {
-      setAccessState({ loading: false, active: true, checkedPath: pathname });
+      setAccessState({ loading: false, active: true, checkedPath: pathname, checkedUserId: userId });
       return () => { cancelled = true; };
     }
 
-    setAccessState((current) => ({ ...current, loading: true, checkedPath: null }));
+    setAccessState((current) => ({ ...current, loading: true, checkedPath: null, checkedUserId: userId }));
     (async () => {
       try {
         let storeActive = false;
@@ -177,10 +184,10 @@ export default function MembershipRequiredGate({ children }) {
           }
         }
 
-        if (!cancelled) setAccessState({ loading: false, active: storeActive || accountActive || isReviewDemoAccount(user?.email), checkedPath: pathname });
+        if (!cancelled) setAccessState({ loading: false, active: storeActive || accountActive || isReviewDemoAccount(user?.email), checkedPath: pathname, checkedUserId: userId });
       } catch (error) {
         console.error("Membership access check failed", error);
-        if (!cancelled) setAccessState({ loading: false, active: false, checkedPath: pathname });
+        if (!cancelled) setAccessState({ loading: false, active: false, checkedPath: pathname, checkedUserId: userId });
       }
     })();
 
@@ -195,14 +202,17 @@ export default function MembershipRequiredGate({ children }) {
     // Store purchases on iPhone and verified guest web purchases can unlock paid
     // intelligence without forcing an S&S account. Account-only workspaces still
     // use their own RequireSignedIn route guards.
-    if (accessState.loading || accessState.checkedPath !== pathname) return loadingScreen();
+    if (accessState.loading || accessState.checkedPath !== pathname || accessState.checkedUserId !== userId) return loadingScreen();
     if (accessState.active) return children;
     return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
   }
 
   // Never redirect from a protected route using access state that was computed for a different path.
   // This is especially important when leaving /subscribe: that exempt route intentionally stores active:false.
-  if (accessState.loading || accessState.checkedPath !== pathname) return loadingScreen();
+  // The decision must also belong to the identity it was computed for: a route that
+  // renders before auth resolves would otherwise apply its pre-auth anonymous
+  // decision to the freshly resolved session and redirect a signed-in user.
+  if (accessState.loading || accessState.checkedPath !== pathname || accessState.checkedUserId !== userId) return loadingScreen();
 
   if (!accessState.active) {
     return <Navigate to={`/subscribe?returnTo=${returnTo}`} replace />;
