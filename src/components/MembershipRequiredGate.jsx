@@ -7,6 +7,7 @@ import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptio
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
+import { isOwner } from "@/lib/ownerAccess";
 import { verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 const EXEMPT_PATHS = new Set([
   "/",
@@ -104,7 +105,9 @@ export default function MembershipRequiredGate({ children }) {
       return () => { cancelled = true; };
     }
 
-    if (user?.role === "admin") {
+    // Owner addresses pass alongside the admin role, so the owner keeps access to
+    // her own app when her Apple sign-in resolves to the non-admin relay record.
+    if (user?.role === "admin" || isOwner(user)) {
       setAccessState({ loading: false, active: true, checkedPath: pathname });
       return () => { cancelled = true; };
     }

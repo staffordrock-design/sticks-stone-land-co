@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { isOwnerUser } from '../../shared/ownerAccess.ts';
 
 // ---------------------------------------------------------------------------
 // courthouse-records
@@ -52,7 +53,7 @@ function entitlementCurrent(row) {
 async function authorize(base44) {
   const user = await base44.auth.me().catch(() => null);
   if (!user?.id) return { ok: false, status: 401, error: 'Sign in to use Courthouse Records' };
-  if (user.role === 'admin') return { ok: true };
+  if (user.role === 'admin' || isOwnerUser(user)) return { ok: true };
   const rows = await base44.asServiceRole.entities.SubscriptionEntitlement
     .filter({ user_id: user.id }, '-updated_date', 20)
     .catch(() => []);

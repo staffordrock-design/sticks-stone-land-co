@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
+import { isOwner } from "@/lib/ownerAccess";
 import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 
 export default function PaidAccessGate({ children }) {
@@ -67,7 +68,8 @@ export default function PaidAccessGate({ children }) {
   const accountActive = useMemo(() => findFullQuarryEntitlement(rows), [rows]);
   const active = appleStoreActive || webGuestActive || Boolean(accountActive);
 
-  if (user?.role === "admin") return children;
+  // Owner addresses pass here too, so the owner sees the same content an admin sees.
+  if (user?.role === "admin" || isOwner(user)) return children;
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="h-7 w-7 animate-spin text-slate-700" /></div>;

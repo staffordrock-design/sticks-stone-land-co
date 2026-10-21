@@ -15,6 +15,7 @@ import PaidAccessGate from './components/PaidAccessGate';
 import AccountProfileGate from './components/AccountProfileGate';
 import MembershipRequiredGate from './components/MembershipRequiredGate';
 import { isNativeIOS } from '@/lib/appleSubscriptions';
+import { isOwner } from '@/lib/ownerAccess';
 // Add page imports here
 const Home = lazy(() => import('./pages/Home'));
 const QuarryMarketplace = lazy(() => import('./pages/QuarryMarketplace'));
@@ -122,7 +123,9 @@ const RequireAdmin = ({ children }) => {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
 
   if (isLoadingAuth || isLoadingPublicSettings) return <PageLoader />;
-  if (!user?.id || user.role !== "admin") return <Navigate to="/" replace />;
+  // Owner addresses count as admin here too, so the owner keeps access to her own
+  // admin tools when her Apple sign-in resolves to the non-admin relay record.
+  if (!user?.id || (user.role !== "admin" && !isOwner(user))) return <Navigate to="/" replace />;
   return children;
 };
 

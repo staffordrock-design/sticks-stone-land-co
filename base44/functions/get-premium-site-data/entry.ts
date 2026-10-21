@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { verifyApplePurchases } from '../../shared/appleVerify.ts';
+import { isOwnerUser } from '../../shared/ownerAccess.ts';
 
 // ---------------------------------------------------------------------------
 // Server-side entitlement gate for premium quarry intelligence data.
@@ -37,7 +38,7 @@ function isEntitledEntitlement(row) {
 }
 
 async function checkSignedInUser(base44, user) {
-  if (user?.role === 'admin') return true;
+  if (user?.role === 'admin' || isOwnerUser(user)) return true;
   if (!user?.id) return false;
   try {
     const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, '-updated_date', 20);
@@ -130,7 +131,7 @@ export default async function(req) {
     const user = await base44.auth.me().catch(() => null);
     let entitled = false;
 
-    if (user?.role === 'admin') {
+    if (user?.role === 'admin' || isOwnerUser(user)) {
       entitled = true;
     } else if (user?.id) {
       entitled = await checkSignedInUser(base44, user);
