@@ -2,12 +2,20 @@ import React, { useEffect, useState } from "react";
 import { Layers, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import USGeologyMap from "@/components/USGeologyMap";
+import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 
 export default function USGeologyMapPage() {
   const [sites, setSites] = useState([]);
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // Public page: the map, basemaps, quarry markers and listings are free to view.
+  // The premium overlays and geologic-unit detail are locked in place by the map
+  // component, which receives the access answer only once it belongs to the
+  // identity currently signed in (useProfessionalAccess stamps it with the user id).
+  const { hasProfessional, checking } = useProfessionalAccess();
+  const locked = !hasProfessional;
+  const showUnlockPrompt = !checking && !hasProfessional;
 
   useEffect(() => {
     let cancelled = false;
@@ -54,8 +62,9 @@ export default function USGeologyMapPage() {
           National Geology & Mineral Deposit Map
         </h1>
         <p className="mt-3 max-w-3xl text-base leading-relaxed text-muted-foreground">
-          Explore USGS bedrock geology and MRDS mineral deposits across the continental United States, with Southeast quarry
-          sites and verified S&amp;S listings overlaid. Click any location to look up the mapped geologic unit from Macrostrat.
+          {locked
+            ? "Explore Southeast quarry sites and verified S&S listings on the national map. Basemaps and quarry markers are free to browse; the USGS geology and mineral-deposit overlays and the click-anywhere geologic-unit lookup are part of Full Quarry Intelligence."
+            : "Explore USGS bedrock geology and MRDS mineral deposits across the continental United States, with Southeast quarry sites and verified S&S listings overlaid. Click any location to look up the mapped geologic unit from Macrostrat."}
         </p>
       </section>
 
@@ -69,11 +78,19 @@ export default function USGeologyMapPage() {
             <p className="text-sm font-medium text-destructive">{error}</p>
           </div>
         ) : (
-          <USGeologyMap sites={sites} listings={listings} height={640} />
+          <USGeologyMap
+            sites={sites}
+            listings={listings}
+            height={640}
+            locked={locked}
+            showUnlockPrompt={showUnlockPrompt}
+          />
         )}
         <p className="mt-3 text-xs text-muted-foreground">
-          Quarry sites show Southeast US data (TN, GA, AL, KY, NC, SC, FL, MS). Geology and MRDS layers are national.
-          Click anywhere on the map for the Macrostrat geologic unit at that point.
+          Quarry sites show Southeast US data (TN, GA, AL, KY, NC, SC, FL, MS).
+          {locked
+            ? " Basemaps and quarry markers are public; the geology and mineral-deposit layers unlock with Full Quarry Intelligence."
+            : " Geology and MRDS layers are national. Click anywhere on the map for the Macrostrat geologic unit at that point."}
         </p>
       </section>
     </div>

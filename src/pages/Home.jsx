@@ -24,6 +24,7 @@ import SampleIntelligenceRecord from "@/components/SampleIntelligenceRecord";
 import BlurredQuarryCard from "@/components/BlurredQuarryCard";
 import AudiencePaths from "@/components/AudiencePaths";
 import MembershipValueSection from "@/components/MembershipValueSection";
+import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
 
 const SOURCES = ["All", "MSHA", "TDEC", "County GIS", "Register of Deeds", "Other"];
 const STATUS_GROUPS = ["All", "For Sale", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -427,7 +428,7 @@ export default function Home() {
             </p>
           </div>
           <div className="mx-auto max-w-3xl">
-            <SampleIntelligenceRecord bundle={sampleBundle} />
+            <SampleIntelligenceRecord bundle={sampleBundle} sampleSiteId={SAMPLE_RECORD_ID} />
           </div>
         </section>
       )}

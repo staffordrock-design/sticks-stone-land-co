@@ -5,23 +5,41 @@ import { isNativeIOS, stableAppleSubscriptionAccess } from "@/lib/appleSubscript
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
+import { isOwner } from "@/lib/ownerAccess";
 
-// Shared subscription-entitlement check used by the Quarry Intelligence feature.
-// Same logic as MineSiteDetail's hasProfessional, extracted into a reusable hook.
+// Shared subscription-entitlement check used by the quarry intelligence pages.
+//
+// Access signals, in the same order everywhere: admin role, owner email
+// (src/lib/ownerAccess.js), review demo account, Apple/web store purchase, then
+// an active Full Quarry Intelligence entitlement on the signed-in account.
+//
+// The answer is stamped with the user id it was computed for and is only
+// reported once it belongs to the identity currently signed in. Pages that mount
+// before auth resolves (public paths) would otherwise apply their anonymous
+// "not subscribed" answer to the freshly resolved session and lock a signed-in
+// owner, admin or subscriber out of what they paid for.
 export function useProfessionalAccess() {
   const { user } = useAuth();
-  const [hasProfessional, setHasProfessional] = useState(
-    user?.role === "admin" || isReviewDemoAccount(user?.email)
-  );
-  const [checking, setChecking] = useState(true);
+  const userId = user?.id ?? null;
+  const grantsImmediately = user?.role === "admin" || isOwner(user) || isReviewDemoAccount(user?.email);
+
+  const [state, setState] = useState(() => (
+    grantsImmediately
+      ? { hasProfessional: true, checking: false, checkedUserId: user?.id ?? null }
+      : { hasProfessional: false, checking: true, checkedUserId: null }
+  ));
 
   useEffect(() => {
     let cancelled = false;
-    if (user?.role === "admin" || isReviewDemoAccount(user?.email)) {
-      setHasProfessional(true);
-      setChecking(false);
+
+    if (user?.role === "admin" || isOwner(user) || isReviewDemoAccount(user?.email)) {
+      setState({ hasProfessional: true, checking: false, checkedUserId: user?.id ?? null });
       return () => { cancelled = true; };
     }
+
+    // Drop the previous identity's answer before resolving this one.
+    setState((current) => ({ ...current, checking: true, checkedUserId: null }));
+
     (async () => {
       try {
         let appleProfessional = false;
@@ -43,8 +61,7 @@ export function useProfessionalAccess() {
             } catch (_) {}
           }
           if (!cancelled) {
-            setHasProfessional(appleProfessional || webActive);
-            setChecking(false);
+            setState({ hasProfessional: appleProfessional || webActive, checking: false, checkedUserId: null });
           }
           return;
         }
@@ -56,18 +73,21 @@ export function useProfessionalAccess() {
         );
         const activeProfessional = hasFullQuarryEntitlement(rows || []);
         if (!cancelled) {
-          setHasProfessional(appleProfessional || activeProfessional);
-          setChecking(false);
+          setState({ hasProfessional: appleProfessional || activeProfessional, checking: false, checkedUserId: user.id });
         }
       } catch {
         if (!cancelled) {
-          setHasProfessional(false);
-          setChecking(false);
+          setState({ hasProfessional: false, checking: false, checkedUserId: userId });
         }
       }
     })();
+
     return () => { cancelled = true; };
   }, [user?.id, user?.email, user?.role]);
 
-  return { hasProfessional, checking };
+  const resolved = state.checkedUserId === userId;
+  return {
+    hasProfessional: resolved ? state.hasProfessional : false,
+    checking: resolved ? state.checking : true,
+  };
 }

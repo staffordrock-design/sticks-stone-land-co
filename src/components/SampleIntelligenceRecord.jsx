@@ -24,7 +24,7 @@ function formatDate(value) {
   return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 }
 
-export default function SampleIntelligenceRecord({ bundle }) {
+export default function SampleIntelligenceRecord({ bundle, sampleSiteId }) {
   if (!bundle?.site) return null;
 
   const { site, geology, parcel, permits = [], environmental = [], profile } = bundle;
@@ -175,12 +175,12 @@ export default function SampleIntelligenceRecord({ bundle }) {
         </div>
       </div>
 
-      {/* CTA */}
+      {/* CTA — opens the one record that is unlocked in full for everyone */}
       <div className="border-t border-border bg-slate-950 p-6 text-center">
-        <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
-          <TrendingUp className="h-4 w-4" /> Unlock Full Quarry Intelligence — $39/month
+        <Link to={`/mines/${sampleSiteId}`} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
+          <ArrowRight className="h-4 w-4" /> View a full sample record
         </Link>
-        <p className="mt-3 text-xs text-slate-400">Cancel anytime. No account required to subscribe on web. Full database access for paid members only.</p>
+        <p className="mt-3 text-xs text-slate-400">One source-linked record, unlocked in full — owner, parcel, deed, permit, geology, production and opportunity screening, exactly as it exists in the database.</p>
       </div>
     </div>
   );

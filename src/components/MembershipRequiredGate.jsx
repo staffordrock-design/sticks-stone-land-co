@@ -41,17 +41,25 @@ const EXEMPT_PATHS = new Set([
   "/seller-portal",
   "/search",
   "/enterprise",
+  // National geology map is free to view: map, basemaps, quarry markers and
+  // listings. The premium overlays and geologic-unit detail are locked in place
+  // by the page itself, which also resolves the access answer for the signed-in
+  // identity so owner/admin/subscribers still see everything unlocked.
+  "/us-geology-map",
 ]);
 
 const FREE_ACCOUNT_PREFIXES = [
   "/network/deals/",
 ];
 
-// Property listings remain publicly viewable so buyers can evaluate what is
-// for sale before subscribing. Mine detail intelligence is gated behind a
-// subscription — the Home page cards serve as the free teaser.
+// Property listings and mine-site detail pages remain publicly viewable so
+// buyers can evaluate a property before subscribing. The pages keep premium
+// fields locked in place and each page decides locked vs unlocked display from
+// the same access signals (admin role, owner email, active Full Quarry
+// Intelligence entitlement) — no redirect out to /subscribe.
 const PUBLIC_BROWSE_PREFIXES = [
   "/listings/",
+  "/mines/",
 ];
 
 function loadingScreen() {

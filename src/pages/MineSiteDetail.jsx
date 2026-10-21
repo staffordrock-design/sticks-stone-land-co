@@ -7,14 +7,17 @@ import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quar
 import { calculateOpportunityScore } from "@/utils/opportunityScore";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
-import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { stableAppleSubscriptionAccess, isNativeIOS, signedAppTransaction } from "@/lib/appleSubscriptions";
-import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import productionEstimatesQ1 from "@/data/productionEstimatesQ1_2026.json";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import QuarryActionBar from "@/components/QuarryActionBar";
 import MarketValuationChart from "@/components/MarketValuationChart";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
+import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
+import { isSampleRecord, SAMPLE_RECORD_LABEL } from "@/lib/sampleRecord";
+import LockedPremiumSections from "@/components/mines/LockedPremiumSections";
+import LockedValue from "@/components/mines/LockedValue";
+import UnlockBanner from "@/components/mines/UnlockBanner";
 
 function worldImageryTile(lat, lng, state, zoom = 15) {
   if (!isPlausibleSoutheastCoordinate(lat, lng, state)) return null;
@@ -143,25 +146,6 @@ function Row({ label, value }) {
   );
 }
 
-function LockedSection({ title, description }) {
-  return (
-    <div className="rounded-2xl border border-sky-200 bg-sky-50/50 p-5">
-      <div className="flex items-start gap-3">
-        <div className="rounded-lg bg-slate-200 p-2 shrink-0">
-          <LockKeyhole className="h-4 w-4 text-slate-500" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-heading text-base font-bold text-slate-950">{title}</h3>
-            <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Locked</span>
-          </div>
-          <p className="mt-1 text-sm leading-5 text-slate-600">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function MineSiteDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -185,40 +169,15 @@ export default function MineSiteDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAllRecords, setShowAllRecords] = useState(false);
-  const [hasProfessional, setHasProfessional] = useState(user?.role === "admin" || isReviewDemoAccount(user?.email));
-
-  useEffect(() => {
-    let cancelled = false;
-    if (user?.role === "admin" || isReviewDemoAccount(user?.email)) {
-      setHasProfessional(true);
-      return () => { cancelled = true; };
-    }
-    (async () => {
-      try {
-        let appleProfessional = false;
-        if (isNativeIOS()) {
-          try {
-            const access = await stableAppleSubscriptionAccess({ attempts: 4 });
-            appleProfessional = Boolean(access?.active && access?.professional);
-          } catch (error) {
-            console.error("Apple professional entitlement check failed", error);
-          }
-        }
-
-        if (!user?.id) {
-          if (!cancelled) setHasProfessional(appleProfessional);
-          return;
-        }
-
-        const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 20);
-        const activeProfessional = hasFullQuarryEntitlement(rows || []);
-        if (!cancelled) setHasProfessional(appleProfessional || activeProfessional);
-      } catch {
-        if (!cancelled) setHasProfessional(false);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [user?.id, user?.email, user?.role]);
+  // Access signals live in one shared place (admin role, owner email, store/web
+  // purchase, active Full Quarry Intelligence entitlement), stamped with the user
+  // id they were resolved for, so a pre-auth answer can never lock out a
+  // signed-in owner, admin or subscriber on this public path.
+  const { hasProfessional: professionalAccess, checking: checkingAccess } = useProfessionalAccess();
+  // The one sample record is deliberately unlocked for every visitor.
+  const isSample = isSampleRecord(id);
+  const hasProfessional = professionalAccess || isSample;
+  const accessPending = checkingAccess && !isSample;
 
   useEffect(() => {
     let cancelled = false;
@@ -501,7 +460,7 @@ export default function MineSiteDetail() {
     })();
   }, [hasProfessional, site, parcel]);
 
-  if (loading) return (
+  if (loading || accessPending) return (
     <div className="min-h-screen bg-background">
       <div className="border-b border-border" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="mx-auto max-w-7xl px-6 pb-4"><div className="h-4 w-40 animate-pulse rounded bg-muted" /></div>
@@ -573,6 +532,13 @@ export default function MineSiteDetail() {
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-10">
+        {isSample && (
+          <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-300 bg-emerald-50 px-5 py-4">
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-700" />
+            <span className="font-heading text-sm font-black tracking-[0.08em] text-emerald-950">{SAMPLE_RECORD_LABEL}</span>
+            <span className="text-sm text-emerald-800">Every field on this record is unlocked for all visitors, exactly as it exists in the database, so you can see what a complete S&amp;S quarry intelligence record contains.</span>
+          </div>
+        )}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.22em] text-muted-foreground">S&amp;S Quarry Intelligence</p>
@@ -629,16 +595,16 @@ export default function MineSiteDetail() {
             <Row label="Mine type" value={site.mine_type} />
             <Row label={siteOperator ? "MSHA operator" : "Operator"} value={operator} />
             {hasProfessional && permitOperator && siteOperator && permitOperator !== siteOperator && <Row label="Permit operator" value={permitOperator} />}
-            {hasProfessional && <Row label="Land owner" value={landOwner} />}
-            {hasProfessional && <Row label="Permittee" value={permittee} />}
-            {hasProfessional && <Row label="Controller" value={site.controller_name} />}
+            <Row label="Land owner" value={hasProfessional ? landOwner : <LockedValue />} />
+            <Row label="Permittee" value={hasProfessional ? permittee : <LockedValue />} />
+            <Row label="Controller" value={hasProfessional ? site.controller_name : <LockedValue />} />
             <Row label="Address" value={[site.address, site.city, site.state, site.zip].filter(Boolean).join(", ")} />
             <Row label="Acreage" value={Number(site.acreage) > 0 ? Number(site.acreage).toLocaleString() : "Not available"} />
-            {hasProfessional && <Row label="Permitted acres" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />}
-            {hasProfessional && <Row label="Permit acreage basis" value={permitAcreageBasis} />}
-            {hasProfessional && <Row label="Parcel acres" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />}
+            <Row label="Permitted acres" value={hasProfessional ? (Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit") : <LockedValue />} />
+            <Row label="Permit acreage basis" value={hasProfessional ? permitAcreageBasis : <LockedValue />} />
+            <Row label="Parcel acres" value={hasProfessional ? (Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null) : <LockedValue />} />
             <Row label="Category" value={site.category} />
-            {hasProfessional && <Row label="Parcel" value={site.parcel_id} />}
+            <Row label="Parcel" value={hasProfessional ? site.parcel_id : <LockedValue />} />
             <Row label="TDEC permit" value={site.tdec_permit_number} />
             <Row label="NPDES permit" value={site.npdes_permit_number} />
             <Row label="Source checked" value={displayDate(site.last_source_update)} />
@@ -1103,26 +1069,11 @@ export default function MineSiteDetail() {
           </Card>)}
         </div>
         </>) : (
-          <div className="mb-8 space-y-4">
-            <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5">
-              <div className="flex items-center gap-2">
-                <LockKeyhole className="h-5 w-5 text-slate-700" />
-                <h2 className="font-heading text-xl font-bold text-slate-950">Full Quarry Intelligence unlocks these sections</h2>
-              </div>
-              <p className="mt-1 text-sm text-slate-600">Each section below is included with your $39/month membership. Cancel anytime.</p>
-            </div>
-            <LockedSection title="Owner & Parcel Intelligence" description="See the recorded owner, parcel/tax map ID, acreage, assessed value, land value, improvement value, property address, and mailing address — all source-linked to county GIS and assessor records." />
-            <LockedSection title="Deed References" description="View deed book and page references, ownership transfer dates, and recorded easements from county register of deeds where digitized records are available." />
-            <LockedSection title="Geology Details" description="Unlock rock type, formation name, geologic age, lithology, deposit classification, and USGS MRDS mineral occurrence data connected to this site." />
-            <LockedSection title="Permit & Compliance History" description="Access TDEC surface mining permits, NPDES water permits, permitted acreage, permit status, effective/expiration dates, MSHA inspections, violations, and environmental records." />
-            <LockedSection title="Production Intelligence" description="View reported mine production, MSHA activity signals, S&S modeled production estimates, and USGS statewide production context for this commodity." />
-            <LockedSection title="Market & Transportation Demand" description="See TDOT aggregate producer listings, county-level contract demand quantities, and transportation project demand context for Tennessee sites." />
-            <LockedSection title="Comparable Quarry Information" description="Access comparable quarry sales data including sale price, price per acre, price per reserve ton, commodity, and operating status for benchmarking." />
-            <LockedSection title="Opportunity Screening" description="Unlock the S&S Opportunity Score — a 0-100 screening signal based on geology, parcel links, permits, environmental flags, location, and data coverage." />
-            <div className="rounded-2xl border border-slate-300 bg-white p-5 text-center">
-              <button onClick={() => navigate(`/subscribe?returnTo=${encodeURIComponent(`/mines/${id}`)}`)} className="rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-slate-800">Unlock Full Quarry Intelligence — $39/month</button>
-              <p className="mt-3 text-xs text-slate-500">Cancel anytime · No S&amp;S account required to buy</p>
-            </div>
+          // Locked view: the same premium sections render in place with their
+          // values obscured, followed by this page's single unlock prompt.
+          <div className="mb-8 space-y-6">
+            <UnlockBanner returnTo={`/mines/${id}`} />
+            <LockedPremiumSections />
           </div>
         )}
 

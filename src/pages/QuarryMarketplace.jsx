@@ -12,6 +12,7 @@ import BrandLogo from "@/components/BrandLogo";
 import { base44 } from "@/api/base44Client";
 import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
+import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { rockCategoryColor, rockCategoryFor } from "../../base44/shared/rockTypes";
 
@@ -497,6 +498,11 @@ export default function QuarryMarketplace() {
                 <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm">
                   <p className="font-bold text-sky-950">You're seeing public quarry records.</p>
                   <p className="mt-1 text-sky-800">Unlock ownership, parcel, deed, permit and geology intelligence for every property — <Link to="/subscribe" className="font-bold underline">$39/month</Link></p>
+                  <p className="mt-1 text-xs text-sky-800">
+                    Not sure yet?{" "}
+                    <Link to={`/mines/${SAMPLE_RECORD_ID}`} className="font-bold text-sky-900 underline">View a full sample record</Link>{" "}
+                    — one record unlocked in full, so you can see exactly what's inside.
+                  </p>
                 </div>
               )}
             </div>

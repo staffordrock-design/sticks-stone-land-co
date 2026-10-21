@@ -25,6 +25,12 @@ const FULL_APPLE_PRODUCTS = new Set([
   'com.ssrockholdings.quarryintelligence.monthly199',
   'com.ssrockholdings.professional.monthly',
 ]);
+
+// The one public sample record. Its full premium bundle is served to every
+// visitor so anyone can see a complete quarry intelligence record in full.
+// Mirrored client-side in src/lib/sampleRecord.js — keep the ID in sync.
+const PUBLIC_SAMPLE_SITE_ID = '6a79fe40925c52c762c59a12';
+
 const PREMIUM_ENTITY_NAMES = new Set([
   'MiningSite', 'ParcelRecord', 'GeologyRecord', 'TDECPermit', 'EnvironmentalRecord',
   'ProductionRecord', 'MSHAInspection', 'MSHAViolation', 'QuarryPotentialProfile',
@@ -132,6 +138,9 @@ export default async function(req) {
     let entitled = false;
 
     if (user?.role === 'admin' || isOwnerUser(user)) {
+      entitled = true;
+    } else if (operation === 'site' && String(mining_site_id || '') === PUBLIC_SAMPLE_SITE_ID) {
+      // The one public sample record is readable by everyone — no account, no plan.
       entitled = true;
     } else if (user?.id) {
       entitled = await checkSignedInUser(base44, user);

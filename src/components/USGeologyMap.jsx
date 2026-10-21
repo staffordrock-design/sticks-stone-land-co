@@ -4,6 +4,7 @@ import {
   CircleMarker, LayersControl, MapContainer, Popup, TileLayer, Tooltip, WMSTileLayer, useMap, useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
+import { LockKeyhole } from "lucide-react";
 import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -121,7 +122,9 @@ function GeologyClickHandler() {
   return null;
 }
 
-export default function USGeologyMap({ sites = [], listings = [], height = 640 }) {
+// `locked` hides the premium USGS overlays and the geologic-unit lookup;
+// `showUnlockPrompt` adds the page's single unlock prompt once access is resolved.
+export default function USGeologyMap({ sites = [], listings = [], height = 640, locked = false, showUnlockPrompt = false }) {
   const [zoom, setZoom] = useState(4);
   const [showQuarries, setShowQuarries] = useState(true);
   const [showListings, setShowListings] = useState(true);
@@ -143,7 +146,7 @@ export default function USGeologyMap({ sites = [], listings = [], height = 640 }
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">USGS + Macrostrat</p>
           <p className="mt-1 text-sm text-foreground">
             National bedrock geology, MRDS mineral deposits, Southeast quarry sites, and verified listings.
-            <span className="ml-1 font-semibold text-sky-700">Click anywhere for the mapped geologic unit.</span>
+            {!locked && <span className="ml-1 font-semibold text-sky-700">Click anywhere for the mapped geologic unit.</span>}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -164,10 +167,32 @@ export default function USGeologyMap({ sites = [], listings = [], height = 640 }
         </div>
       </div>
 
+      {showUnlockPrompt && (
+        <div className="border-b border-border bg-sky-50/70 px-5 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="rounded-lg bg-slate-200 p-2"><LockKeyhole className="h-4 w-4 text-slate-500" /></div>
+              <div>
+                <p className="text-sm font-bold text-slate-950">Premium map layers are locked in place</p>
+                <p className="mt-1 max-w-2xl text-xs leading-5 text-slate-600">
+                  Basemaps, quarry markers and verified listings stay free to explore. Full Quarry Intelligence adds the USGS bedrock geology overlay, the MRDS mineral-deposit overlay and the click-anywhere geologic-unit lookup.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/subscribe"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-sky-600 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-sky-500"
+            >
+              Unlock Full Quarry Intelligence — $39/month
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="relative">
         <MapContainer center={US_CENTER} zoom={4} minZoom={3} style={{ height, width: "100%" }} scrollWheelZoom>
           <MapViewportTracker onChange={setZoom} />
-          <GeologyClickHandler />
+          {!locked && <GeologyClickHandler />}
 
           <LayersControl position="topright">
             <LayersControl.BaseLayer checked name="USGS Topographic">
@@ -180,12 +205,16 @@ export default function USGeologyMap({ sites = [], listings = [], height = 640 }
               <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" />
             </LayersControl.BaseLayer>
 
-            <LayersControl.Overlay name="Bedrock geology (USGS SGMC)">
-              <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.6} attribution="USGS State Geologic Map Compilation" />
-            </LayersControl.Overlay>
-            <LayersControl.Overlay name="MRDS mineral deposits (USGS)">
-              <WMSTileLayer url={USGS_MRDS_WMS} layers="mrds-high,mrds-low" format="image/png" transparent opacity={0.85} attribution="USGS Mineral Resources Data System (MRDS)" />
-            </LayersControl.Overlay>
+            {/* Premium overlays: only mounted for entitled visitors (an array keeps
+                react-leaflet's layer control reading real layer children). */}
+            {!locked && [
+              <LayersControl.Overlay key="sgmc" name="Bedrock geology (USGS SGMC)">
+                <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.6} attribution="USGS State Geologic Map Compilation" />
+              </LayersControl.Overlay>,
+              <LayersControl.Overlay key="mrds" name="MRDS mineral deposits (USGS)">
+                <WMSTileLayer url={USGS_MRDS_WMS} layers="mrds-high,mrds-low" format="image/png" transparent opacity={0.85} attribution="USGS Mineral Resources Data System (MRDS)" />
+              </LayersControl.Overlay>,
+            ]}
           </LayersControl>
 
           {showQuarries && clusterItems.map((item) => {
