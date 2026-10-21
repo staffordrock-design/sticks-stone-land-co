@@ -6,6 +6,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 // NotificationQueue (reusing the app's existing notification pattern).
 
 const OWNER_EMAIL = 'contact@ssrockholdings.com';
+// Only the Enterprise page's own source labels are accepted. Anything else
+// (including a missing value) falls back to the general enterprise-page source.
+const ALLOWED_SOURCES = new Set(['Enterprise Page', 'Enterprise Page — Workup']);
 
 export default async function(req: any) {
   try {
@@ -17,6 +20,8 @@ export default async function(req: any) {
     const email = String(body?.email || '').trim();
     const company = String(body?.company || '').trim();
     const message = String(body?.message || '').trim();
+    const requestedSource = String(body?.source || '').trim();
+    const source = ALLOWED_SOURCES.has(requestedSource) ? requestedSource : 'Enterprise Page';
 
     if (!name || !email || !message) {
       return Response.json({ error: 'Name, email, and message are required.' }, { status: 400 });
@@ -28,7 +33,7 @@ export default async function(req: any) {
       company: company || null,
       interest: message,
       notes: `Enterprise page inquiry — ${message}`,
-      source: 'Enterprise Page',
+      source,
       status: 'New',
       created_at: new Date().toISOString(),
     });

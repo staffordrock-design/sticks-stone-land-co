@@ -27,8 +27,13 @@ export default function Enterprise() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  // Only the Quarry Site Workup CTA changes this, so the SalesLead records which
+  // offer the inquiry came from. General inquiries keep the enterprise-page source.
+  const [inquirySource, setInquirySource] = useState("Enterprise Page");
 
   const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+
+  const handleWorkupOrder = () => setInquirySource("Enterprise Page — Workup");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,6 +49,7 @@ export default function Enterprise() {
         company: form.company.trim(),
         email: form.email.trim(),
         message: form.message.trim(),
+        source: inquirySource,
       });
       const payload = res?.data || res || {};
       if (payload?.error) throw new Error(payload.error);
@@ -107,6 +113,34 @@ export default function Enterprise() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* QUARRY SITE WORKUP — single-site research offer */}
+      <section className="mx-auto max-w-7xl px-6 py-14">
+        <div className="overflow-hidden rounded-3xl border border-slate-700 bg-slate-950 p-8 text-white sm:p-10">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-300">Site-level research</p>
+              <h2 className="mt-2 font-heading text-2xl font-black sm:text-3xl">Quarry Site Workup</h2>
+              <p className="mt-3 text-sm font-semibold leading-6 text-slate-200">One site, fully worked up.</p>
+              <ul className="mt-5 space-y-2.5 text-sm leading-6 text-slate-200">
+                <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />Current ownership and chain of title from courthouse records</li>
+                <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />Permits and regulatory status</li>
+                <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />Geology and mineral potential (limestone, granite, sandstone and other resources)</li>
+                <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />Nearby operating quarries and transportation routes</li>
+              </ul>
+              <p className="mt-5 text-sm leading-6 text-slate-300">Delivered as a written research report.</p>
+            </div>
+            <div className="flex flex-col justify-center gap-4 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+              <div>
+                <p className="font-heading text-3xl font-black text-white">$1,950 per site</p>
+                <p className="mt-2 text-sm font-semibold text-sky-200">5-business-day turnaround</p>
+              </div>
+              <a href="#contact" onClick={handleWorkupOrder} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-500">Order a Site Workup <ArrowRight className="h-4 w-4" /></a>
+              <p className="text-sm leading-6 text-slate-300">Need the whole Southeast, not one site? That's the Enterprise license.</p>
+            </div>
           </div>
         </div>
       </section>
