@@ -22,7 +22,6 @@ import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
 import SampleIntelligenceRecord from "@/components/SampleIntelligenceRecord";
 import BlurredQuarryCard from "@/components/BlurredQuarryCard";
-import StickyUnlockBar from "@/components/StickyUnlockBar";
 import AudiencePaths from "@/components/AudiencePaths";
 import MembershipValueSection from "@/components/MembershipValueSection";
 
@@ -353,7 +352,6 @@ export default function Home() {
             <Link to="/courthouse-records" className="hover:text-foreground">Records</Link>
             <Link to="/data-sources" className="hover:text-foreground">How the Data Works</Link>
             <Link to="/support" className="hover:text-foreground">Help</Link>
-            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 font-bold text-white hover:bg-sky-500">Unlock — $39/mo</Link>}
             {user?.role === "admin" && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
             {user?.role === "admin" && <Link to="/admin/conversions" className="font-semibold text-sky-700 hover:text-sky-800">Conversions</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
@@ -563,9 +561,6 @@ export default function Home() {
                 Unlock to search and browse every quarry, every county, every state — with owner/operator, permitted acreage, mapped geology, valuation and opportunity score on every record.
               </p>
               <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Link to="/subscribe" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-                  <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
-                </Link>
                 <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800">
                   View Sample Record
                 </button>
@@ -673,9 +668,6 @@ export default function Home() {
           <div className="rounded-3xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-8 text-center shadow-sm sm:p-12">
             <h2 className="font-heading text-2xl font-bold text-slate-950 sm:text-3xl">Unlock Every Quarry Record</h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">You've seen the records. Now see the ownership, geology, permits, valuation and opportunity score behind every quarry. Full access unlocks immediately.</p>
-            <Link to="/subscribe" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-              <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
-            </Link>
             <p className="mt-3 text-xs text-slate-500">Cancel anytime. No account required.</p>
           </div>
         </section>
@@ -768,7 +760,6 @@ export default function Home() {
       </footer>
     </div>
     </PullToRefresh>
-    {!hasProfessional && <StickyUnlockBar />}
     </>
   );
 }
