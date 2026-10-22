@@ -10,14 +10,16 @@ export function isNativeAndroid() {
 export function googleProductIds() {
   return ACCESS_TIERS.flatMap((tier) => [
     SUBSCRIPTION_PRODUCTS.google[tier.code]?.monthly,
+    ...(SUBSCRIPTION_PRODUCTS.google[tier.code]?.monthlyFallbacks || []),
     SUBSCRIPTION_PRODUCTS.google[tier.code]?.annual,
   ]).filter(Boolean);
 }
 
 export async function verifyGoogleTransactions(purchases, { reconcile = false } = {}) {
   const items = (purchases || [])
-    .filter((p) => googleProductIds().includes(p?.productId))
-    .map((p) => ({ productId: p.productId, purchaseToken: p.purchaseToken }))
+    // Capgo transactions expose productIdentifier (productId is an older alias).
+    .map((p) => ({ productId: p?.productIdentifier || p?.productId, purchaseToken: p?.purchaseToken }))
+    .filter((p) => googleProductIds().includes(p.productId))
     .filter((p) => p.productId && p.purchaseToken);
 
   const response = await base44.functions.invoke('verify-google-subscription', {
