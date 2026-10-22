@@ -1,13 +1,17 @@
 export const SUBSCRIPTION_PRODUCTS = {
   apple: {
     professional: {
-      monthly: "com.ssrockholdings.mobile.quarryintelligence.monthly199",
+      // Current $39/month product documented in app-store-review-notes.md.
+      monthly: "com.ssrockholdings.marketplace.monthly",
+      // Restore older purchases, but only sell a legacy product if its current price matches.
+      monthlyFallbacks: ["com.ssrockholdings.mobile.quarryintelligence.monthly199"],
       annual: null,
     },
   },
   google: {
     professional: {
       monthly: "ssrockholdings_professional_monthly",
+      monthlyFallbacks: ["ssrockholdings_marketplace_monthly"],
       annual: null,
     },
   },
