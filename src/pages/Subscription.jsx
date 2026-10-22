@@ -474,7 +474,7 @@ export default function Subscription() {
               const monthlyId = SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.monthly;
               const candidateIds = [monthlyId, ...(SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.monthlyFallbacks || [])].filter(Boolean);
               const matchingProducts = candidateIds.map((id) => storeProducts[id]).filter(Boolean);
-              // Never sell a legacy USD subscription with the old $69/$199 price.
+              // Reject obsolete-priced legacy offers; only the current USD monthly price is purchasable.
               const allowedPrice = (product) => {
                 const label = String(product.priceString || product.localizedPrice || "").trim();
                 const currency = String(product.currencyCode || product.currency || "").toUpperCase();
