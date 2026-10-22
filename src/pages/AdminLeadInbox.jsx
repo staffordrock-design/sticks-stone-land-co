@@ -112,7 +112,7 @@ export default function AdminLeadInbox() {
     <div className="min-h-screen bg-background pb-28 lg:pb-10">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 pb-4 sm:px-6">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+          <Link to="/search" className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" /> Quarries
           </Link>
           <button onClick={load} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground disabled:opacity-50">

@@ -405,7 +405,7 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-5 text-center">
-            <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center justify-center gap-2 text-sm font-bold text-sky-800 hover:underline">
+            <button type="button" onClick={() => navigate(`/mines/${SAMPLE_RECORD_ID}`)} className="inline-flex min-h-12 items-center justify-center gap-2 text-sm font-bold text-sky-800 hover:underline">
               <Layers className="h-4 w-4" /> View a sample intelligence record
             </button>
           </div>
