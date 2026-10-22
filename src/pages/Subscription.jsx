@@ -464,11 +464,23 @@ export default function Subscription() {
             {ACCESS_TIERS.map((tier) => {
               const storeKey = isIOS ? "apple" : "google";
               const monthlyId = SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.monthly;
-              const monthlyStore = storeProducts[monthlyId];
+              const candidateIds = [monthlyId, ...(SUBSCRIPTION_PRODUCTS[storeKey]?.[tier.code]?.monthlyFallbacks || [])].filter(Boolean);
+              const matchingProducts = candidateIds.map((id) => storeProducts[id]).filter(Boolean);
+              // Never sell a legacy USD subscription with the old $69/$199 price.
+              const allowedPrice = (product) => {
+                const label = String(product.priceString || product.localizedPrice || "").trim();
+                const currency = String(product.currencyCode || product.currency || "").toUpperCase();
+                if (!label || (currency && currency !== "USD") || (!currency && !label.startsWith("$"))) return true;
+                const amount = Number(label.replace(/[^0-9.]/g, ""));
+                return Number.isFinite(amount) && (Math.abs(amount - 39) < 0.001 || Math.abs(amount - 38.99) < 0.001);
+              };
+              const monthlyStore = matchingProducts.find(allowedPrice);
+              const buyProductId = monthlyStore ? (isAndroid ? monthlyStore.planIdentifier : monthlyStore.identifier) : monthlyId;
+              const priceMismatch = matchingProducts.length > 0 && !monthlyStore;
               return <div key={tier.code} className={`rounded-2xl border p-6 ${tier.featured ? "border-sky-300 bg-sky-50/40" : "border-border"}`}>
                 <div className="text-lg font-bold">{tier.name}</div>
                 <div className="mt-2 flex items-baseline gap-2">
-                  <span className="font-heading text-3xl font-bold text-foreground">{isNative && isIOS && monthlyStore?.priceString ? `${monthlyStore.priceString}/month` : tier.priceLabel}</span>
+                  <span className="font-heading text-3xl font-bold text-foreground">{isNative && monthlyStore?.priceString ? `${monthlyStore.priceString}/month` : tier.priceLabel}</span>
                   <span className="text-xs text-muted-foreground">{tier.priceSublabel}</span>
                 </div>
                 <div className="mt-2 text-sm font-semibold text-muted-foreground">One monthly membership · full quarry records · immediate access · cancel anytime</div>
@@ -480,13 +492,15 @@ export default function Subscription() {
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
-                    <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Apple…" : storeLoading ? "Loading Apple subscription…" : monthlyStore?.priceString ? `Unlock Full Access · ${monthlyStore.priceString}/month` : "Apple subscription unavailable"}</button>
+                    <button onClick={() => purchase(buyProductId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === buyProductId ? "Connecting to Apple…" : storeLoading ? "Loading Apple subscription…" : monthlyStore?.priceString ? `Unlock Full Access · ${monthlyStore.priceString}/month` : "Apple subscription unavailable"}</button>
+                    {priceMismatch && <p role="alert" className="text-sm text-red-700">Apple returned an unexpected subscription price. Purchases are disabled until store pricing is corrected.</p>}
                     <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
                     <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
-                  <button onClick={() => purchase(monthlyId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === monthlyId ? "Connecting to Google Play…" : storeLoading ? "Loading Google Play subscription…" : monthlyStore ? "Continue with Google Play" : "Google Play subscription unavailable"}</button>
+                  <button onClick={() => purchase(buyProductId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === buyProductId ? "Connecting to Google Play…" : storeLoading ? "Loading Google Play subscription…" : monthlyStore ? "Continue with Google Play" : "Google Play subscription unavailable"}</button>
+                  {priceMismatch && <p role="alert" className="text-sm text-red-700">Google Play returned an unexpected subscription price. Purchases are disabled until store pricing is corrected.</p>}
                   <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
                   <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                 </div>}
