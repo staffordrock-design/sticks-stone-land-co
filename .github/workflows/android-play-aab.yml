@@ -28,8 +28,13 @@
 name: Build Android Play AAB
 
 on:
-  # Manual until the Google Play Console upload certificate and private upload key are verified.
+  # Explicit one-file trigger for the approved signing-key-protected Android build.
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".android-aab-trigger"
 
 permissions:
   contents: read
@@ -76,6 +81,23 @@ jobs:
           npm run build
           rm -rf android
           npx cap add android
+          # Generated Capacitor Android defaults to versionCode 1. Assign a
+          # monotonically increasing release code below Play's maximum.
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, re
+          path = Path('android/app/build.gradle')
+          content = path.read_text()
+          release_code = 100000000 + int(os.environ['GITHUB_RUN_NUMBER'])
+          updated, count = re.subn(r'(?m)^(\s*versionCode\s+)\d+', lambda m: m.group(1) + str(release_code), content)
+          if count != 1:
+              raise SystemExit(f'Could not set Android versionCode: matches={count}')
+          updated, name_count = re.subn(r'(?m)^(\s*versionName\s+)["\'][^"\']+["\']', lambda m: m.group(1) + '"2.130297.9"', updated)
+          if name_count != 1:
+              raise SystemExit(f'Could not set Android versionName: matches={name_count}')
+          path.write_text(updated)
+          print(f'Android release versionName=2.130297.9 versionCode={release_code}')
+          PY
           cd android
           chmod +x gradlew
           ./gradlew bundleRelease --no-daemon
