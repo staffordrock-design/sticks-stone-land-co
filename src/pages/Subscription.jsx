@@ -213,7 +213,9 @@ export default function Subscription() {
           await new Promise((resolve) => setTimeout(resolve, 900 * attempt));
         }
         if (!cancelled) {
-          setStoreProducts(Object.fromEntries(products.map((p) => [p.identifier, p])));
+          // On Google Play, identifier is the BASE PLAN and planIdentifier is the PRODUCT ID.
+          // Key by product ID so the subscribe button finds the subscription correctly.
+          setStoreProducts(Object.fromEntries(products.filter((p) => (isAndroid ? p.planIdentifier : p.identifier)).map((p) => [isAndroid ? p.planIdentifier : p.identifier, p])));
           products.forEach((product) => trackSubscriptionAction(user, "store_product_loaded", isIOS ? "apple" : "google", storeProductDetail(product)));
           if (products.length === 0) {
             setPurchaseMessage(`${isIOS ? "Apple" : "Google Play"} did not return an available Full Quarry Intelligence subscription. Please tap Retry subscription connection below. If it still fails, contact contact@ssrockholdings.com.`);
@@ -307,9 +309,15 @@ export default function Subscription() {
         setPurchaseMessage("Purchase confirmed by Apple. Your full S&S quarry intelligence is active.");
         navigate(returnTo, { replace: true });
       } else {
+        const googleProduct = storeProducts[productId];
+        if (!googleProduct?.identifier || googleProduct?.planIdentifier !== productId) {
+          throw new Error("Google Play did not return an eligible subscription base plan. Please retry the store connection.");
+        }
         const transaction = await withStoreTimeout(
           NativePurchases.purchaseProduct({
             productIdentifier: productId,
+            planIdentifier: googleProduct.identifier,
+            ...(googleProduct.offerToken ? { offerToken: googleProduct.offerToken } : {}),
             productType: PURCHASE_TYPE.SUBS,
             quantity: 1,
           }),
