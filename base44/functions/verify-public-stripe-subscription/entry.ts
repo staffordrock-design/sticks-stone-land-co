@@ -47,6 +47,10 @@ export default async function(req: Request) {
 
     const session: any = await stripe.checkout.sessions.retrieve(sessionId, { expand: ['subscription'] });
     if (session?.mode !== 'subscription') return Response.json({ error: 'Checkout session is not a subscription', active: false }, { status: 400 });
+    // Checkout alone is not proof of payment; only complete paid sessions unlock data.
+    if (session?.status !== 'complete' || session?.payment_status !== 'paid') {
+      return Response.json({ verified: false, active: false, status: 'awaiting_payment' });
+    }
 
     const checkoutFlow = String(session?.metadata?.checkout_flow || '');
     const expectedBrowserSessionId = String(session?.metadata?.browser_session_id || '');
