@@ -4,6 +4,7 @@ import { Crown, Loader2, LockKeyhole } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
+import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { isOwner } from "@/lib/ownerAccess";
@@ -34,13 +35,19 @@ export default function PaidAccessGate({ children }) {
           }
         }
 
+        // A browser checkout remains valid immediately after the customer
+        // signs in; do not lock them out while the receipt is linked to their account.
+        if (!isNativeIOS() && !isNativeAndroid()) {
+          const webAccess = await verifySavedWebSubscriptionAccess();
+          if (!cancelled) setWebGuestActive(Boolean(webAccess?.active));
+        }
         if (!user?.id) {
-          if (!isNativeIOS()) {
-            const webAccess = await verifySavedWebSubscriptionAccess();
-            if (!cancelled) setWebGuestActive(Boolean(webAccess?.active));
-          }
           if (!cancelled) setRows([]);
           return;
+        }
+        if (isNativeAndroid()) {
+          try { await syncCurrentGoogleSubscriptions(); }
+          catch (error) { console.error("Google entitlement recovery failed", error); }
         }
 
         if (isReviewDemoAccount(user?.email)) {
