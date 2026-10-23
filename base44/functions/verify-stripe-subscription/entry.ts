@@ -51,6 +51,9 @@ export default async function(req: Request) {
 
     const session: any = await stripe.checkout.sessions.retrieve(sessionId, { expand: ['subscription'] });
     if (session?.mode !== 'subscription') return Response.json({ error: 'Checkout session is not a subscription' }, { status: 400 });
+    if (session?.status !== 'complete' || session?.payment_status !== 'paid') {
+      return Response.json({ verified: false, active: false, error: 'Payment has not completed yet' }, { status: 409 });
+    }
 
     const sessionUserId = String(session?.metadata?.user_id || session?.client_reference_id || '');
     const anonymousCheckout = String(session?.metadata?.checkout_flow || '') === 'anonymous_web' || sessionUserId.startsWith('anonymous:');
@@ -60,7 +63,7 @@ export default async function(req: Request) {
 
     const buyerEmail = normalizeEmail(session?.customer_details?.email || session?.customer_email);
     const userEmail = normalizeEmail(user.email);
-    if (anonymousCheckout && buyerEmail && userEmail && buyerEmail !== userEmail) {
+    if (anonymousCheckout && (!buyerEmail || !userEmail || buyerEmail !== userEmail)) {
       return Response.json({ error: `This checkout was paid with ${buyerEmail}. Sign in or create the S&S account with that email to activate access.` }, { status: 403 });
     }
 
