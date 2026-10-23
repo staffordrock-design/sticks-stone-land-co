@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, stableAppleSubscriptionAccess } from "@/lib/appleSubscriptions";
+import { isNativeAndroid } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
@@ -54,7 +55,7 @@ export function useProfessionalAccess() {
 
         if (!user?.id) {
           let webActive = false;
-          if (!isNativeIOS()) {
+          if (!isNativeIOS() && !isNativeAndroid()) {
             try {
               const webAccess = await verifySavedWebSubscriptionAccess();
               webActive = Boolean(webAccess?.active);
@@ -72,8 +73,15 @@ export function useProfessionalAccess() {
           20
         );
         const activeProfessional = hasFullQuarryEntitlement(rows || []);
+        // A visitor can purchase on the website before creating an account.
+        // Preserve their verified browser purchase while account migration runs.
+        let webProfessional = false;
+        if (!activeProfessional && !isNativeIOS() && !isNativeAndroid()) {
+          const webAccess = await verifySavedWebSubscriptionAccess();
+          webProfessional = Boolean(webAccess?.active);
+        }
         if (!cancelled) {
-          setState({ hasProfessional: appleProfessional || activeProfessional, checking: false, checkedUserId: user.id });
+          setState({ hasProfessional: appleProfessional || activeProfessional || webProfessional, checking: false, checkedUserId: user.id });
         }
       } catch {
         if (!cancelled) {
