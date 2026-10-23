@@ -39,8 +39,10 @@ const PREMIUM_ENTITY_NAMES = new Set([
 ]);
 
 function isEntitledEntitlement(row) {
-  if (!row) return false;
-  return FULL_QUARRY_PLANS.has(row.plan_code) && ACTIVE_STATUSES.has(row.status);
+  if (!row || !FULL_QUARRY_PLANS.has(row.plan_code) || !ACTIVE_STATUSES.has(row.status)) return false;
+  if (!row.expires_at) return true;
+  const expiresAt = Date.parse(row.expires_at);
+  return Number.isFinite(expiresAt) && expiresAt > Date.now();
 }
 
 async function checkSignedInUser(base44, user) {
