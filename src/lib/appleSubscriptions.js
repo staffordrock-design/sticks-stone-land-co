@@ -55,7 +55,6 @@ const APPLE_PRODUCT_TO_PLAN = {
   // Legacy S&S Quarry Intelligence subscription. If StoreKit surfaces this
   // transaction, treat it as the same Full Quarry Intelligence membership.
   'com.ssrockholdings.mobile.quarryintelligence.monthly199': 'professional_monthly',
-  'com.ssrockholdings.quarryintelligence.monthly199': 'professional_monthly',
   'com.ssrockholdings.marketplace.monthly': 'professional_monthly',
   'com.ssrockholdings.professional.monthly': 'professional_monthly',
 };

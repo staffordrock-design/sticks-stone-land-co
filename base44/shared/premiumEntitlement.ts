@@ -22,7 +22,6 @@ export const ACTIVE_STATUSES = new Set(['active', 'grace_period']);
 export const FULL_APPLE_PRODUCTS = new Set([
   'com.ssrockholdings.marketplace.monthly',
   'com.ssrockholdings.mobile.quarryintelligence.monthly199',
-  'com.ssrockholdings.quarryintelligence.monthly199',
   'com.ssrockholdings.professional.monthly',
 ]);
 

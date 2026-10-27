@@ -3,13 +3,10 @@ import { verifyApplePurchases, sha256Hex, isoFromMillis } from '../../shared/app
 
 const PRODUCT_TO_PLAN = {
   'com.ssrockholdings.mobile.quarryintelligence.monthly199': 'professional_monthly',
-  'com.ssrockholdings.quarryintelligence.monthly199': 'professional_monthly',
   'com.ssrockholdings.marketplace.monthly': 'professional_monthly',
   'com.ssrockholdings.marketplace.annual': 'marketplace_annual',
   'com.ssrockholdings.professional.monthly': 'professional_monthly',
   'com.ssrockholdings.professional.annual': 'professional_annual',
-  'com.ssrockholdings.deal.monthly': 'deal_monthly',
-  'com.ssrockholdings.deal.annual': 'deal_annual',
 };
 
 export default async function(req) {
