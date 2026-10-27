@@ -26,12 +26,16 @@ export default async function(req: any) {
     const rawState = String(body?.state || 'TN').toUpperCase();
     const states = (rawState === 'ALL' || !rawState) ? SOUTHEAST_STATES : [rawState];
 
-    const rows = await Promise.all(states.map((st) =>
-      svc.entities.MiningSite.filter({ state: st }, '-updated_date', 3000).catch(() => [])
-    ));
     // Distribute the sample evenly across requested states so "All Southeast"
     // shows a meaningful slice from each state rather than filling from TN first.
     const PER_STATE = Math.ceil(LIMIT / states.length);
+    // Only the first PER_STATE relevant rows per state are kept, so reading the
+    // full 3,000 rows for each of 8 states was wasted work on every map load.
+    // Read with headroom for coal and other filtered-out rows.
+    const perStateRead = Math.min(3000, Math.max(400, PER_STATE * 2));
+    const rows = await Promise.all(states.map((st) =>
+      svc.entities.MiningSite.filter({ state: st }, '-updated_date', perStateRead).catch(() => [])
+    ));
     const seen = new Set();
     const out: any[] = [];
     for (const stateRows of rows) {

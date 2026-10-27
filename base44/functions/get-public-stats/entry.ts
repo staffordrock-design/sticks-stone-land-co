@@ -14,10 +14,21 @@ function hasValue(v: any) {
   return v !== null && v !== undefined && String(v).trim() !== '';
 }
 
+// These are inventory-wide counts that only change when a data sync runs, but
+// computing them scans the whole mine and parcel inventory. Cache the payload
+// per warm instance so a page visit doesn't rescan the database each time.
+let statsCache: any = null;
+let statsCachedAt = 0;
+const STATS_TTL_MS = 10 * 60 * 1000;
+
 export default async function(req: any) {
   try {
     const base44 = createClientFromRequest(req);
     const svc = base44.asServiceRole;
+
+    if (statsCache && Date.now() - statsCachedAt < STATS_TTL_MS) {
+      return Response.json(statsCache);
+    }
 
     const allSites = await svc.entities.MiningSite.filter({}, '-updated_date', 10000).catch(() => []);
 
@@ -71,7 +82,7 @@ export default async function(req: any) {
       'TDOT / transportation demand data',
     ];
 
-    return Response.json({
+    const payload = {
       recordCount,
       mappedCount,
       parcelLinkedCount,
@@ -80,7 +91,10 @@ export default async function(req: any) {
       statesCovered,
       latestRefresh,
       sources,
-    });
+    };
+    statsCache = payload;
+    statsCachedAt = Date.now();
+    return Response.json(payload);
   } catch (error) {
     console.error('get-public-stats error:', error);
     return Response.json({

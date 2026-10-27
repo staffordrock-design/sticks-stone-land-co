@@ -79,7 +79,13 @@ export default function Home() {
   const [stateFilter, setStateFilter] = useState("All Southeast");
   const [sortMode, setSortMode] = useState("Opportunity Priority");
 
+  const loadSeq = React.useRef(0);
+
   const loadData = async () => {
+    // Guards the deferred enrichment below: a newer load (state change, refresh)
+    // must not be overwritten by a slow response from the previous one.
+    const seq = ++loadSeq.current;
+    const stale = () => seq !== loadSeq.current;
     setLoading(true);
     setInventoryUnavailable(false);
     try {
@@ -99,24 +105,15 @@ export default function Home() {
       const loadMiningSiteInventory = async () => {
         // Paid-only premium query (admin fields). Falls back to the public list
         // below if this returns nothing (e.g. preview RLS limitations).
+        // One batched request per view instead of one per state: eight parallel
+        // round trips held up first paint and the backend rate limit.
         if (!premiumReady) return [];
         const statesToLoad = stateFilter === "All Southeast" ? SOUTHEAST_STATES : [stateFilter];
-        const perStateLimit = 500;
-        const stateRows = await Promise.all(statesToLoad.map(async (state) => {
-          const page = await safeLoad(
-            `MiningSite working set ${state}`,
-            premiumEntityQuery("MiningSite", { state }, "-updated_date", perStateLimit)
-          );
-          return (page || []).filter((site) => site?.id && isQuarryRelevant(site));
-        }));
-        const seen = new Set();
-        const rows = [];
-        for (const site of stateRows.flat()) {
-          if (seen.has(site.id)) continue;
-          seen.add(site.id);
-          rows.push(site);
-        }
-        return rows;
+        const rows = await safeLoad(
+          "MiningSite working set",
+          premiumEntityQuery("MiningSite", { state: { $in: statesToLoad } }, "-updated_date", 1200)
+        );
+        return (rows || []).filter((site) => site?.id && isQuarryRelevant(site));
       };
 
       // Always load the public quarry list (service role) so the page populates
@@ -130,15 +127,9 @@ export default function Home() {
         publicSites = [];
       }
 
-      const [premiumSites, profileData, parcelData, geologyData, permitData, environmentalData, compData] = await Promise.all([
-        loadMiningSiteInventory(),
-        premiumReady ? safeLoad("QuarryPotentialProfile", premiumEntityQuery("QuarryPotentialProfile", {}, "-updated_date", limit)) : Promise.resolve([]),
-        premiumReady ? safeLoad("ParcelRecord", premiumEntityQuery("ParcelRecord", {}, "-updated_date", 500)) : Promise.resolve([]),
-        premiumReady ? safeLoad("GeologyRecord", premiumEntityQuery("GeologyRecord", {}, "-updated_date", limit)) : Promise.resolve([]),
-        premiumReady ? safeLoad("TDECPermit", premiumEntityQuery("TDECPermit", {}, "-last_source_update", limit)) : Promise.resolve([]),
-        premiumReady ? safeLoad("EnvironmentalRecord", premiumEntityQuery("EnvironmentalRecord", {}, "-last_source_update", limit)) : Promise.resolve([]),
-        safeLoad("QuarryComparable", base44.entities.QuarryComparable.list("-updated_date", 200)),
-      ]);
+      // Phase 1 — only what the list needs to paint: the public inventory plus a
+      // single premium merge call.
+      const premiumSites = await loadMiningSiteInventory();
 
       // Merge premium fields onto the public list by id. If the premium query
       // returns nothing, paid users still see the populated public list. Unpaid
@@ -165,16 +156,39 @@ export default function Home() {
       }
 
       const siteList = Array.from(new Map((data || []).map((site) => [site.id, site])).values());
-      const geoRecords = geologyData || [];
 
       setSites(siteList);
       setInventoryUnavailable(siteList.length === 0);
-      setProfiles(profileData || []);
-      setParcels(parcelData || []);
-      setGeology(geoRecords);
-      setPermits(permitData || []);
-      setEnvironmental(environmentalData || []);
+      // Paint the list now; the page becomes usable while enrichment continues.
+      setLoading(false);
+
+      // Phase 2 — supplementary datasets, one request at a time. Firing all of
+      // them alongside the public list and stats burst past the backend limit
+      // (the intermittent 500s) and held the page until the slowest returned.
+      const compData = await safeLoad("QuarryComparable", base44.entities.QuarryComparable.list("-updated_date", 200));
+      if (stale()) return;
       setComps(compData || []);
+      if (!premiumReady) return;
+
+      const profileData = await safeLoad("QuarryPotentialProfile", premiumEntityQuery("QuarryPotentialProfile", {}, "-updated_date", limit));
+      if (stale()) return;
+      setProfiles(profileData || []);
+
+      const parcelData = await safeLoad("ParcelRecord", premiumEntityQuery("ParcelRecord", {}, "-updated_date", 500));
+      if (stale()) return;
+      setParcels(parcelData || []);
+
+      const geologyData = await safeLoad("GeologyRecord", premiumEntityQuery("GeologyRecord", {}, "-updated_date", limit));
+      if (stale()) return;
+      setGeology(geologyData || []);
+
+      const permitData = await safeLoad("TDECPermit", premiumEntityQuery("TDECPermit", {}, "-last_source_update", limit));
+      if (stale()) return;
+      setPermits(permitData || []);
+
+      const environmentalData = await safeLoad("EnvironmentalRecord", premiumEntityQuery("EnvironmentalRecord", {}, "-last_source_update", limit));
+      if (stale()) return;
+      setEnvironmental(environmentalData || []);
     } catch (error) {
       console.error("Home quarry inventory load failed", error);
       setInventoryUnavailable(true);
@@ -182,7 +196,13 @@ export default function Home() {
       setLoading(false);
     }
   };
-  useEffect(() => { loadData(); }, [stateFilter, hasProfessional, checkingAccess]);
+  // Wait for the membership answer before the first fetch. Firing while it was
+  // still open ran the whole load twice (public-only, then again with premium),
+  // doubling every request on the home page.
+  useEffect(() => {
+    if (checkingAccess) return;
+    loadData();
+  }, [stateFilter, hasProfessional, checkingAccess]);
 
   useEffect(() => {
     trackFunnelEvent({ page_type: "homepage", resource_id: "homepage_viewed", path: "/" });

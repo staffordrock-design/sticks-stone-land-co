@@ -14,19 +14,24 @@ export default function TrustBand() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      try {
-        const response = await base44.functions.invoke("get-public-stats", {});
-        const data = response?.data || response || {};
-        if (!cancelled) setStats(data);
-      } catch (error) {
-        console.error("Public stats load failed", error);
-        if (!cancelled) setStats(null);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+    // Statistics are an inventory-wide aggregate. Letting them start on mount
+    // put a full database scan in front of the page's own first paint, so the
+    // band fills in a moment after the page itself is usable.
+    const timer = setTimeout(() => {
+      (async () => {
+        try {
+          const response = await base44.functions.invoke("get-public-stats", {});
+          const data = response?.data || response || {};
+          if (!cancelled) setStats(data);
+        } catch (error) {
+          console.error("Public stats load failed", error);
+          if (!cancelled) setStats(null);
+        } finally {
+          if (!cancelled) setLoading(false);
+        }
+      })();
+    }, 1200);
+    return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
   const recordCount = stats?.recordCount ?? null;

@@ -14,6 +14,7 @@ import ActivityTracker from './components/ActivityTracker';
 import PaidAccessGate from './components/PaidAccessGate';
 import AccountProfileGate from './components/AccountProfileGate';
 import MembershipRequiredGate from './components/MembershipRequiredGate';
+import AppLoadingScreen from './components/AppLoadingScreen';
 import { isNativeIOS } from '@/lib/appleSubscriptions';
 import { isOwner } from '@/lib/ownerAccess';
 // Add page imports here
@@ -101,11 +102,7 @@ if (typeof document !== 'undefined' && !window.__gads_loaded) {
   window.gtag('config', 'AW-18504553803', { send_page_view: false });
 }
 
-const PageLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center">
-    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-  </div>
-);
+const PageLoader = () => <AppLoadingScreen />;
 
 const RequireSignedIn = ({ children }) => {
   const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
@@ -264,11 +261,7 @@ const AuthenticatedApp = () => {
 
   // Show loading spinner while checking app public settings or auth
   if ((isLoadingPublicSettings || isLoadingAuth) && !publicPath) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   // Handle authentication errors

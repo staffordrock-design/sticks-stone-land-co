@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import AppLoadingScreen from "@/components/AppLoadingScreen";
 import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptions } from "@/lib/appleSubscriptions";
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
@@ -63,14 +63,7 @@ const PUBLIC_BROWSE_PREFIXES = [
 ];
 
 function loadingScreen() {
-  return (
-    <div className="fixed inset-0 z-[125] flex items-center justify-center bg-background">
-      <div className="text-center">
-        <Loader2 className="mx-auto h-7 w-7 animate-spin text-slate-700" />
-        <p className="mt-3 text-sm font-medium text-muted-foreground">Checking your membership…</p>
-      </div>
-    </div>
-  );
+  return <AppLoadingScreen message="Checking your membership…" />;
 }
 
 export default function MembershipRequiredGate({ children }) {

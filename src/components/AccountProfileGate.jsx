@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import AppLoadingScreen from "@/components/AppLoadingScreen";
 import { useAuth } from "@/lib/AuthContext";
 import { isNativeIOS } from "@/lib/appleSubscriptions";
 
@@ -34,14 +34,7 @@ const PUBLIC_PATHS = new Set([
 const PROFILE_REQUIRED_PATHS = new Set([]);
 
 function loadingScreen() {
-  return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-background">
-      <div className="text-center">
-        <Loader2 className="mx-auto h-7 w-7 animate-spin text-slate-700" />
-        <p className="mt-3 text-sm font-medium text-muted-foreground">Opening your S&amp;S account…</p>
-      </div>
-    </div>
-  );
+  return <AppLoadingScreen message="Opening your S&S account…" />;
 }
 
 export default function AccountProfileGate({ children }) {
