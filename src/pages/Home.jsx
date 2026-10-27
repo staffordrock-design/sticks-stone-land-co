@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
+import AppLoadingScreen from "@/components/AppLoadingScreen";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
@@ -58,7 +59,7 @@ function isQuarryRelevant(site) {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, isLoadingAuth } = useAuth();
   const { hasProfessional, checking: checkingAccess } = useProfessionalAccess();
   const navigate = useNavigate();
   const [sites, setSites] = useState([]);
@@ -353,6 +354,16 @@ export default function Home() {
     const q = query.trim();
     navigate(q ? `/search?q=${encodeURIComponent(q)}&state=${stateFilter === "All Southeast" ? "TN" : stateFilter}` : `/search?state=${stateFilter === "All Southeast" ? "TN" : stateFilter}`);
   };
+
+  // Identity first. The home route is public, so the app shell and membership
+  // gate render it immediately — before auth and the access answer resolve. From
+  // that unresolved state the page used to paint the public/locked variant
+  // ("Public Access", the unlock button, locked premium sections) and only flip
+  // to the signed-in owner view once the checks finished. Hold a neutral loading
+  // state until we know who is signed in, then pick the variant once.
+  if (isLoadingAuth || checkingAccess) {
+    return <AppLoadingScreen message="Loading quarry intelligence…" />;
+  }
 
   return (
     <>
