@@ -16,7 +16,7 @@ import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
-import { premiumEntityQuery } from "@/lib/subscriptionAccess";
+import { premiumEntityQuery, premiumAccessProofParams } from "@/lib/subscriptionAccess";
 import { base44 } from "@/api/base44Client";
 import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
@@ -121,7 +121,12 @@ export default function Home() {
       // for everyone — paid and unpaid — regardless of client-side RLS state.
       let publicSites = [];
       try {
-        const publicResponse = await base44.functions.invoke("get-public-quarry-list", { state: stateParam });
+        // The proof params let the endpoint decide entitlement server-side and,
+        // for entitled viewers only, include the stored S&S score and estimate.
+        const publicResponse = await base44.functions.invoke("get-public-quarry-list", {
+          state: stateParam,
+          ...(await premiumAccessProofParams()),
+        });
         publicSites = publicResponse?.data?.sites || publicResponse?.sites || [];
       } catch (error) {
         console.error("Public quarry list load failed", error);
@@ -138,7 +143,10 @@ export default function Home() {
       let data = publicSites;
       if (premiumReady && premiumSites.length) {
         const byId = new Map(premiumSites.map((s) => [s.id, s]));
-        data = publicSites.map((s) => ({ ...s, ...(byId.get(s.id) || {}) }));
+        // Premium row first, public row second: both come from the same record,
+        // so the public row's stored screening values are never blanked out by a
+        // premium row that did not carry them.
+        data = publicSites.map((s) => ({ ...(byId.get(s.id) || {}), ...s }));
       }
 
       if (!premiumReady) {

@@ -1,116 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { secrets } from 'base44:runtime';
-import { verifyApplePurchases } from '../../shared/appleVerify.ts';
-import { isOwnerUser } from '../../shared/ownerAccess.ts';
+import { evaluatePremiumEntitlement, PREMIUM_ENTITY_NAMES } from '../../shared/premiumEntitlement.ts';
 
-// ---------------------------------------------------------------------------
-// Server-side entitlement gate for premium quarry intelligence data.
-//
-// Premium entities (Parcel, Geology, Permits, Environmental, MSHA, Production,
-// Profiles, Contracts, Valuation, USGS occurrences) are locked to admin-only
-// RLS. This function is the sole legitimate read path for paid subscribers.
-//
-// Entitlement is recognised for:
-//   1. Admin users
-//   2. Signed-in users with an active SubscriptionEntitlement
-//   3. Anonymous Apple StoreKit purchasers (verified transaction JWS)
-//   4. Anonymous web Stripe purchasers (verified checkout session)
-// ---------------------------------------------------------------------------
-
-const FULL_QUARRY_PLANS = new Set(['professional_monthly', 'marketplace_monthly']);
-const ACTIVE_STATUSES = new Set(['active', 'grace_period']);
-const FULL_APPLE_PRODUCTS = new Set([
-  'com.ssrockholdings.marketplace.monthly',
-  'com.ssrockholdings.mobile.quarryintelligence.monthly199',
-  'com.ssrockholdings.quarryintelligence.monthly199',
-  'com.ssrockholdings.professional.monthly',
-]);
+// Entitlement rules (admin, owner accounts, active subscription, verified Apple
+// or Stripe purchase) live in base44/shared/premiumEntitlement.ts so this gate
+// and the public quarry list cannot drift apart.
 
 // The one public sample record. Its full premium bundle is served to every
 // visitor so anyone can see a complete quarry intelligence record in full.
 // Mirrored client-side in src/lib/sampleRecord.js — keep the ID in sync.
 const PUBLIC_SAMPLE_SITE_ID = '6a79fe40925c52c762c59a12';
-
-const PREMIUM_ENTITY_NAMES = new Set([
-  'MiningSite', 'ParcelRecord', 'GeologyRecord', 'TDECPermit', 'EnvironmentalRecord',
-  'ProductionRecord', 'MSHAInspection', 'MSHAViolation', 'QuarryPotentialProfile',
-  'ContractIntelligence', 'ValuationRecord', 'USGSMineralOccurrence',
-  'ParcelOwnershipVerification',
-]);
-
-function isEntitledEntitlement(row) {
-  if (!row || !FULL_QUARRY_PLANS.has(row.plan_code) || !ACTIVE_STATUSES.has(row.status)) return false;
-  if (!row.expires_at) return true;
-  const expiresAt = Date.parse(row.expires_at);
-  return Number.isFinite(expiresAt) && expiresAt > Date.now();
-}
-
-async function checkSignedInUser(base44, user) {
-  if (user?.role === 'admin' || isOwnerUser(user)) return true;
-  if (!user?.id) return false;
-  try {
-    const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, '-updated_date', 20);
-    return (rows || []).some(isEntitledEntitlement);
-  } catch {
-    return false;
-  }
-}
-
-async function appleTransactionsActive(jwsList, signedAppTransaction, expectedUserId) {
-  if (!Array.isArray(jwsList) || !jwsList.length) return false;
-  try {
-    const { verified } = await verifyApplePurchases({
-      signedTransactions: jwsList.filter((v) => typeof v === 'string' && v.length > 50).slice(0, 20),
-      signedAppTransaction: typeof signedAppTransaction === 'string' ? signedAppTransaction : '',
-      expectedUserId: expectedUserId || undefined,
-    });
-    return (verified || []).some(({ transaction, productId }) => {
-      if (!FULL_APPLE_PRODUCTS.has(String(productId || ''))) return false;
-      if (transaction?.revocationDate) return false;
-      const expiresMs = Number(transaction?.expiresDate || 0);
-      if (!Number.isFinite(expiresMs) || expiresMs <= Date.now()) return false;
-      const discount = String(transaction?.offerDiscountType || '').toUpperCase();
-      const price = Number(transaction?.price);
-      const freeTrial = discount === 'FREE_TRIAL' || (Number(transaction?.offerType) === 1 && price === 0);
-      return !freeTrial;
-    });
-  } catch {
-    return false;
-  }
-}
-
-async function stripeSessionActive(sessionId, browserSessionId) {
-  if (!sessionId || !browserSessionId) return false;
-  const key = secrets.get('STRIPE_SECRET_KEY');
-  if (!key) return false;
-  try {
-    const resp = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`, {
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Stripe-Version': '2025-10-29.clover',
-      },
-    });
-    if (!resp.ok) return false;
-    const session = await resp.json();
-    if (String(session?.metadata?.checkout_flow || '') !== 'anonymous_web') return false;
-    if (String(session?.metadata?.browser_session_id || '') !== String(browserSessionId)) return false;
-    if (session.payment_status !== 'paid') return false;
-    if (!session.subscription) return false;
-    const subResp = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(session.subscription)}`, {
-      headers: {
-        Authorization: `Bearer ${key}`,
-        'Stripe-Version': '2025-10-29.clover',
-      },
-    });
-    if (!subResp.ok) return false;
-    const sub = await subResp.json();
-    const planCode = String(sub?.metadata?.plan_code || session?.metadata?.plan_code || '');
-    if (!FULL_QUARRY_PLANS.has(planCode)) return false;
-    return sub.status === 'active' || sub.status === 'past_due';
-  } catch {
-    return false;
-  }
-}
 
 export default async function(req) {
   try {
@@ -139,23 +37,18 @@ export default async function(req) {
     const user = await base44.auth.me().catch(() => null);
     let entitled = false;
 
-    if (user?.role === 'admin' || isOwnerUser(user)) {
-      entitled = true;
-    } else if (operation === 'site' && String(mining_site_id || '') === PUBLIC_SAMPLE_SITE_ID) {
+    if (operation === 'site' && String(mining_site_id || '') === PUBLIC_SAMPLE_SITE_ID) {
       // The one public sample record is readable by everyone — no account, no plan.
       entitled = true;
-    } else if (user?.id) {
-      entitled = await checkSignedInUser(base44, user);
-    }
-
-    // Anonymous Apple StoreKit
-    if (!entitled && Array.isArray(apple_transactions)) {
-      entitled = await appleTransactionsActive(apple_transactions, apple_app_transaction, user?.id);
-    }
-
-    // Anonymous web Stripe
-    if (!entitled && stripe_session_id && stripe_browser_session_id) {
-      entitled = await stripeSessionActive(stripe_session_id, stripe_browser_session_id);
+    } else {
+      entitled = await evaluatePremiumEntitlement({
+        base44,
+        user,
+        appleTransactions: apple_transactions,
+        appleAppTransaction: apple_app_transaction,
+        stripeSessionId: stripe_session_id,
+        stripeBrowserSessionId: stripe_browser_session_id,
+      });
     }
 
     if (!entitled) {

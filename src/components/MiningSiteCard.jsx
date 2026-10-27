@@ -49,7 +49,8 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
   const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location image" : null;
   // A record with no stored score has nothing to show — never print a placeholder number.
   const hasStoredScore = Number.isFinite(Number(opportunity?.score)) && opportunity?.score !== null;
-  const showOpportunity = !previewMode && hasStoredScore && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
+  // Any card with a stored screening score shows it; a record without one shows nothing.
+  const showOpportunity = !previewMode && hasStoredScore;
   const rawOwner = parcel?.owner_name || site.parcel_owner;
   const owner = rawOwner && !/pending|unknown|verify/i.test(rawOwner) ? rawOwner : null;
   const parcelAcreage = parcel?.acreage ?? site.acreage;
