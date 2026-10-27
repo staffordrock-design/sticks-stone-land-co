@@ -115,7 +115,49 @@ async function subscriptionIdFromInvoice(invoice: any) {
   );
 }
 
+// One record per Stripe event, keyed by the event id, so a second delivery of the
+// same event (a retry, or the same event arriving at more than one registered
+// endpoint) can never be applied twice. The description records which host the
+// verified delivery arrived on, for auditing the webhook setup.
+async function recordWebhookEvent(base44: any, data: {
+  eventId: string;
+  eventType: string;
+  status: 'Processed' | 'Failed' | 'Ignored';
+  message?: string;
+  host?: string;
+}) {
+  try {
+    const existing = await base44.asServiceRole.entities.WebhookEvent.filter(
+      { provider: 'Stripe', external_event_id: data.eventId },
+      '-created_date',
+      1,
+      0,
+    );
+    const now = new Date().toISOString();
+    const payload = {
+      provider: 'Stripe',
+      external_event_id: data.eventId,
+      event_type: data.eventType,
+      status: data.status,
+      received_at: existing?.[0]?.received_at || now,
+      processed_at: data.status === 'Processed' ? now : existing?.[0]?.processed_at || '',
+      error_message: String(data.message || '').slice(0, 900),
+      description: `Verified delivery via ${data.host || 'unknown host'}`,
+    };
+    if (existing?.[0]) {
+      await base44.asServiceRole.entities.WebhookEvent.update(existing[0].id, payload);
+    } else {
+      await base44.asServiceRole.entities.WebhookEvent.create(payload);
+    }
+  } catch (error) {
+    console.error('stripe-webhook: event log write failed', error);
+  }
+}
+
 export default async function(req: Request) {
+  let seenEventId = '';
+  let seenEventType = '';
+  let seenHost = '';
   try {
     const stripeKey = secrets.get('STRIPE_SECRET_KEY');
     const webhookSecret = secrets.get('STRIPE_WEBHOOK_SECRET');
@@ -131,6 +173,40 @@ export default async function(req: Request) {
     const rawBody = await req.text();
     const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
     const object: any = event.data.object;
+    const deliveryHost = req.headers.get('host') || req.headers.get('x-forwarded-host') || '';
+    seenEventId = String(event.id || '');
+    seenEventType = String(event.type || '');
+    seenHost = deliveryHost;
+
+    // Idempotency: if this event was already applied, acknowledge and stop.
+    try {
+      const seen = await base44.asServiceRole.entities.WebhookEvent.filter(
+        { provider: 'Stripe', external_event_id: event.id },
+        '-created_date',
+        1,
+        0,
+      );
+      if (seen?.[0]?.status === 'Processed') {
+        return Response.json({ received: true, duplicate: true });
+      }
+    } catch (error) {
+      console.error('stripe-webhook: duplicate check failed', error);
+    }
+
+    // Base44's merchant self-test checkout is not a customer order.
+    if (
+      (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') &&
+      String(object?.metadata?.base44_test_checkout || '') === 'true'
+    ) {
+      await recordWebhookEvent(base44, {
+        eventId: event.id,
+        eventType: event.type,
+        status: 'Ignored',
+        message: 'Base44 self-test checkout',
+        host: deliveryHost,
+      });
+      return Response.json({ received: true, ignored: true });
+    }
 
     if (event.type === 'checkout.session.completed') {
       const subscriptionId = String(object?.subscription || '');
@@ -152,9 +228,32 @@ export default async function(req: Request) {
       }
     }
 
+    if (seenEventId) {
+      await recordWebhookEvent(base44, {
+        eventId: seenEventId,
+        eventType: seenEventType,
+        status: 'Processed',
+        host: seenHost,
+      });
+    }
+
     return Response.json({ received: true });
   } catch (error) {
     console.error('stripe-webhook error:', error);
+    if (seenEventId) {
+      try {
+        const base44 = createClientFromRequest(req);
+        await recordWebhookEvent(base44, {
+          eventId: seenEventId,
+          eventType: seenEventType,
+          status: 'Failed',
+          message: error?.message || String(error),
+          host: seenHost,
+        });
+      } catch (logError) {
+        console.error('stripe-webhook: failure log write failed', logError);
+      }
+    }
     return Response.json({ error: error?.message || String(error) }, { status: 400 });
   }
 }
