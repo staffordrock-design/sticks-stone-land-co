@@ -103,7 +103,7 @@ export function storedValuation(site) {
   }
 
   const detail = [
-    acres && acres > 0 ? `${Number(acres).toLocaleString()} acres` : null,
+    acres && acres > 0 ? `${Math.round(Number(acres)).toLocaleString()} acres` : null,
     perAcreLow && perAcreHigh && perAcreLow > 0 && perAcreHigh > 0
       ? `${Number(perAcreLow).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}–${Number(perAcreHigh).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}/ac`
       : null,
