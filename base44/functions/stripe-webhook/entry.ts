@@ -174,7 +174,8 @@ export default async function(req: Request) {
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
     const rawBody = await req.text();
     rawBodyLength = rawBody.length;
-    const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    // The runtime's crypto is async-only, so the async verifier is required here.
+    const event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
     const object: any = event.data.object;
     const deliveryHost = req.headers.get('host') || req.headers.get('x-forwarded-host') || '';
     seenEventId = String(event.id || '');
