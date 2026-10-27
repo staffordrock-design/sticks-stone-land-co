@@ -1,0 +1,61 @@
+{
+  "name": "PublicInventoryStats",
+  "type": "object",
+  "properties": {
+    "recordCount": {
+      "type": "number",
+      "description": "Quarry-relevant mine records in the inventory at the time this snapshot was computed."
+    },
+    "mappedCount": {
+      "type": "number",
+      "description": "Quarry-relevant records with valid latitude and longitude."
+    },
+    "parcelLinkedCount": {
+      "type": "number"
+    },
+    "deedLinkedCount": {
+      "type": "number"
+    },
+    "enrichedCount": {
+      "type": "number"
+    },
+    "statesCovered": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "latestRefresh": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "computed_at": {
+      "type": "string",
+      "description": "When this inventory snapshot was computed. The homepage reads this stored snapshot so counts stay stable between loads."
+    }
+  },
+  "required": [],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

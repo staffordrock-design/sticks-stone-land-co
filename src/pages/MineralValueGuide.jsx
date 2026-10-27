@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Database, Gem, Gauge, Landmark, Layers3, MapPin, Mountain, Search, ShieldCheck, TrendingUp } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { calculateOpportunityScore } from "@/utils/opportunityScore";
+import { storedOpportunity } from "@/lib/storedScreening";
 import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 
 const STATES = ["All Southeast", "TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
@@ -107,7 +107,7 @@ export default function MineralValueGuide() {
     const sitePermits = permitsFor(site);
     const env = environmentalFor(site);
     const profile = profileFor(site);
-    const opportunity = calculateOpportunityScore({ site, geology: geo, permits: sitePermits, environmental: env, profile });
+    const opportunity = storedOpportunity(site, { geology: geo });
     const permittedAcres = sitePermits.find((p) => Number(p.permitted_acres) > 0)?.permitted_acres ?? site.permitted_acres;
     return { site, geo, permits: sitePermits, env, profile, opportunity, permittedAcres };
   }).sort((a, b) => Number(b.opportunity?.score || 0) - Number(a.opportunity?.score || 0)), [filtered, geology, permits, environmental, profiles]);

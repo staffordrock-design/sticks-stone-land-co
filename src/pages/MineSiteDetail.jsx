@@ -3,8 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 import { ArrowLeft, BarChart3, Camera, DollarSign, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2, Mountain, TrendingUp } from "lucide-react";
-import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
-import { calculateOpportunityScore } from "@/utils/opportunityScore";
+import { formatCompactMoney } from "@/utils/quarryValuation";
+import { storedValuation, storedOpportunity } from "@/lib/storedScreening";
 import { classifyRock, rockQualityTier } from "../../base44/shared/rockTypes.js";
 import { useAuth } from "@/lib/AuthContext";
 import { stableAppleSubscriptionAccess, isNativeIOS, signedAppTransaction } from "@/lib/appleSubscriptions";
@@ -503,8 +503,9 @@ export default function MineSiteDetail() {
   const permittedAcreage = primaryPermit?.permitted_acres ?? site.permitted_acres;
   const permitAcreageBasis = primaryPermit?.acreage_basis || site.permitted_acres_basis || null;
   const parcelAcreage = parcel?.acreage ?? liveParcel?.acreage ?? site.acreage;
-  const valuation = calculateIndicativeQuarryValue({ site, parcel, profile, geology: geologyRecord });
-  const opportunity = calculateOpportunityScore({ site, parcel, geology: geologyRecord, permits: relatedPermits, environmental: relatedEnvironmental, profile });
+  // Stored values only: the score and range are computed once, off-page.
+  const valuation = storedValuation(site);
+  const opportunity = storedOpportunity(site, { parcel, geology: geologyRecord });
   const aerialPreview = worldImageryTile(mapLat, mapLng, site.state);
   const diligence = [
     { label: "Mine / operating record", ready: Boolean(site.msha_mine_id || site.mine_status), detail: site.msha_mine_id ? `MSHA ${site.msha_mine_id}` : site.mine_status },

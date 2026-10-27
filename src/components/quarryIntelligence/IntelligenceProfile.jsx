@@ -6,8 +6,9 @@ import {
   ShieldCheck, TrendingUp,
 } from "lucide-react";
 import IntelligenceSection from "./IntelligenceSection";
-import { calculateOpportunityScore, opportunityBandClasses } from "@/utils/opportunityScore";
-import { calculateIndicativeQuarryValue, formatCompactMoney } from "@/utils/quarryValuation";
+import { opportunityBandClasses } from "@/utils/opportunityScore";
+import { formatCompactMoney } from "@/utils/quarryValuation";
+import { storedValuation, storedOpportunity } from "@/lib/storedScreening";
 
 function money(v) {
   if (v == null || v === "") return "—";
@@ -74,8 +75,8 @@ export default function IntelligenceProfile({
 }) {
   if (!site) return null;
 
-  const opportunity = calculateOpportunityScore({ site, parcel: parcel || liveParcel, geology, permits, environmental, profile });
-  const valuation = calculateIndicativeQuarryValue({ site, parcel: parcel || liveParcel, profile, geology });
+  const opportunity = storedOpportunity(site, { parcel: parcel || liveParcel, geology });
+  const valuation = storedValuation(site);
   const sources = compileSources({ site, parcel, liveParcel, geology, permits, environmental, profile });
 
   const landOwner = parcel?.owner_name || liveParcel?.owner || site.parcel_owner || null;

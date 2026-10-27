@@ -268,6 +268,42 @@
           }
         }
       }
+    },
+    "screening_opportunity_score": {
+      "type": "number",
+      "description": "Stored S&S Opportunity Score (0-100), computed once from the complete source data. Display this value; never recompute it per page load."
+    },
+    "screening_band": {
+      "type": "string",
+      "description": "Stored band label for screening_opportunity_score (Very High / High / Moderate / Early)."
+    },
+    "screening_value_low": {
+      "type": "number",
+      "description": "Stored S&S Estimate range low, in USD, computed once from comparable sales/regional benchmarks."
+    },
+    "screening_value_mid": {
+      "type": "number",
+      "description": "Stored S&S Estimate range midpoint, in USD."
+    },
+    "screening_value_high": {
+      "type": "number",
+      "description": "Stored S&S Estimate range high, in USD."
+    },
+    "screening_value_per_acre_low": {
+      "type": "number",
+      "description": "Stored S&S Estimate low value per acre, in USD."
+    },
+    "screening_value_per_acre_high": {
+      "type": "number",
+      "description": "Stored S&S Estimate high value per acre, in USD."
+    },
+    "screening_value_confidence": {
+      "type": "string",
+      "description": "Confidence level stored with the S&S Estimate range (High / Medium / Low)."
+    },
+    "screening_computed_at": {
+      "type": "string",
+      "description": "When the stored Opportunity Score and S&S Estimate were computed."
     }
   },
   "required": [

@@ -11,8 +11,7 @@ import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";
 import PullToRefresh from "@/components/PullToRefresh";
 import BrandLogo from "@/components/BrandLogo";
-import { calculateIndicativeQuarryValue } from "@/utils/quarryValuation";
-import { calculateOpportunityScore } from "@/utils/opportunityScore";
+import { storedValuation, storedOpportunity } from "@/lib/storedScreening";
 import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
@@ -79,6 +78,7 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [stateFilter, setStateFilter] = useState("All Southeast");
   const [sortMode, setSortMode] = useState("Opportunity Priority");
+  const [mappedTotal, setMappedTotal] = useState(null);
 
   const loadSeq = React.useRef(0);
 
@@ -205,6 +205,23 @@ export default function Home() {
     loadData();
   }, [stateFilter, hasProfessional, checkingAccess]);
 
+  // Mapped total comes from the stored inventory snapshot, not from however many
+  // records this visit happened to load, so the number is identical every load.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await base44.functions.invoke("get-public-stats", {});
+        const data = response?.data || response || {};
+        const count = Number(data?.mappedCount);
+        if (!cancelled && Number.isFinite(count) && count > 0) setMappedTotal(count);
+      } catch (error) {
+        console.error("Mapped total load failed", error);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     trackFunnelEvent({ page_type: "homepage", resource_id: "homepage_viewed", path: "/" });
   }, []);
@@ -313,13 +330,11 @@ export default function Home() {
   const geologyForSite = (s) => geology.find((g) => g.mining_site_id === s.id || (s.msha_mine_id && g.msha_mine_id === s.msha_mine_id) || (s.parcel_id && g.parcel_id === s.parcel_id));
   const permitsForSite = (s) => permits.filter((p) => (s.msha_mine_id && p.msha_mine_id === s.msha_mine_id) || (s.tdec_permit_number && p.permit_number === s.tdec_permit_number));
   const environmentalForSite = (s) => environmental.filter((r) => (s.msha_mine_id && r.msha_mine_id === s.msha_mine_id) || (s.npdes_permit_number && r.npdes_permit_number === s.npdes_permit_number));
-  const opportunityForSite = (s) => calculateOpportunityScore({
-    site: s,
+  // Stored, not recalculated: the score is computed once with the complete source
+  // data so the same record always shows the same number.
+  const opportunityForSite = (s) => storedOpportunity(s, {
     parcel: parcelForSite(s),
     geology: geologyForSite(s),
-    permits: permitsForSite(s),
-    environmental: environmentalForSite(s),
-    profile: profileForSite(s),
   });
   const opportunityPriorityScore = (s) => (opportunityForSite(s)?.score || 0) * 10 + completenessScore(s);
   const ranked = [...filtered].sort((a, b) => {
@@ -483,7 +498,7 @@ export default function Home() {
               const sitePermits = permitsForSite(s);
               const siteEnvironmental = environmentalForSite(s);
               const opportunity = opportunityForSite(s);
-              const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord, comps });
+              const valuation = storedValuation(s);
               return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} emphasizeOpportunity previewMode={!hasProfessional} />;
             })}
           </div>
@@ -679,7 +694,7 @@ export default function Home() {
                 const sitePermits = permitsForSite(s);
                 const siteEnvironmental = environmentalForSite(s);
                 const opportunity = opportunityForSite(s);
-                const valuation = calculateIndicativeQuarryValue({ site: s, parcel, profile, geology: geologyRecord, comps });
+                const valuation = storedValuation(s);
                 return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} previewMode={!hasProfessional} />;
               })}
             </div>
@@ -730,6 +745,7 @@ export default function Home() {
               unavailable={inventoryUnavailable}
               onRetry={loadData}
               previewMode={false}
+              totalMappedCount={mappedTotal}
             />
           </Suspense>
         )}

@@ -12,7 +12,7 @@ const SOUTHEAST_CENTER = [34.6, -85.4];
 // showing what rock formation is underground across the US.
 const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
 
-export default function TennesseeMineMap({ sites = [], geologyMap = {}, height = 520, previewMode = false, loading = false, unavailable = false, onRetry }) {
+export default function TennesseeMineMap({ sites = [], geologyMap = {}, height = 520, previewMode = false, loading = false, unavailable = false, onRetry, totalMappedCount = null }) {
   const mappedSites = useMemo(
     () => sites.filter((site) => isPlausibleSoutheastCoordinate(site.latitude, site.longitude, site.state)),
     [sites]
@@ -30,7 +30,7 @@ export default function TennesseeMineMap({ sites = [], geologyMap = {}, height =
               ? "Loading mapped mine and quarry records…"
               : unavailable
                 ? "Mapped records temporarily unavailable"
-                : `${mappedSites.length.toLocaleString()} mapped mine and quarry records${previewMode ? " · detailed geology available with membership" : " · markers colored by rock type"}`}
+                : `${(Number.isFinite(Number(totalMappedCount)) ? Number(totalMappedCount) : mappedSites.length).toLocaleString()} mapped mine and quarry records${previewMode ? " · detailed geology available with membership" : " · markers colored by rock type"}`}
           </p>
         </div>
         <p className="text-xs text-muted-foreground">
