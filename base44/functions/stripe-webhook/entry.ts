@@ -158,7 +158,9 @@ export default async function(req: Request) {
   let seenEventId = '';
   let seenEventType = '';
   let seenHost = '';
+  let rawBodyLength = 0;
   try {
+    console.log('stripe-webhook: delivery received from host', req.headers.get('host') || req.headers.get('x-forwarded-host') || 'unknown');
     const stripeKey = secrets.get('STRIPE_SECRET_KEY');
     const webhookSecret = secrets.get('STRIPE_WEBHOOK_SECRET');
     if (!stripeKey || !webhookSecret) {
@@ -171,6 +173,7 @@ export default async function(req: Request) {
     const base44 = createClientFromRequest(req);
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
     const rawBody = await req.text();
+    rawBodyLength = rawBody.length;
     const event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
     const object: any = event.data.object;
     const deliveryHost = req.headers.get('host') || req.headers.get('x-forwarded-host') || '';
@@ -240,15 +243,18 @@ export default async function(req: Request) {
     return Response.json({ received: true });
   } catch (error) {
     console.error('stripe-webhook error:', error);
-    if (seenEventId) {
+    {
       try {
         const base44 = createClientFromRequest(req);
+        // A delivery that fails before the event is parsed has no event id — key
+        // it per host so the same rejection updates one row instead of piling up.
+        const host = seenHost || req.headers.get('host') || req.headers.get('x-forwarded-host') || 'unknown';
         await recordWebhookEvent(base44, {
-          eventId: seenEventId,
-          eventType: seenEventType,
+          eventId: seenEventId || `unverified_delivery:${host}`,
+          eventType: seenEventId ? seenEventType : 'signature_rejected',
           status: 'Failed',
-          message: error?.message || String(error),
-          host: seenHost,
+          message: `${error?.message || String(error)} (payload ${rawBodyLength} bytes)`,
+          host,
         });
       } catch (logError) {
         console.error('stripe-webhook: failure log write failed', logError);
