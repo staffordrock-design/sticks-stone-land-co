@@ -22,7 +22,11 @@ function bandFor(score) {
   return "Early";
 }
 
+// Missing values must stay missing. Number(null) and Number("") are 0, so a
+// plain Number() coercion turned "this record has no stored value" into a real
+// 0 and the cards displayed "$0 – $0 · 0 acres · $0–$0/ac" as if it were data.
 function num(value) {
+  if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -85,14 +89,25 @@ export function storedValuation(site) {
   const high = num(site.screening_value_high);
   const mid = num(site.screening_value_mid);
   const acres = num(site.acreage);
+  const perAcreLow = num(site.screening_value_per_acre_low);
+  const perAcreHigh = num(site.screening_value_per_acre_high);
 
-  if (low == null || high == null) {
+  // No stored range (or a non-positive one) means there is no estimate for this
+  // record. Withhold it rather than rendering a zero that reads as a valuation.
+  if (low == null || high == null || low <= 0 || high <= 0) {
     return {
       available: false,
       acres,
-      reason: "The S&S Estimate range is being calculated for this record and will show a stored value once complete.",
+      reason: "No stored S&S Estimate range exists for this record yet.",
     };
   }
+
+  const detail = [
+    acres && acres > 0 ? `${Number(acres).toLocaleString()} acres` : null,
+    perAcreLow && perAcreHigh && perAcreLow > 0 && perAcreHigh > 0
+      ? `${Number(perAcreLow).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}–${Number(perAcreHigh).toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}/ac`
+      : null,
+  ].filter(Boolean);
 
   return {
     available: true,
@@ -100,9 +115,10 @@ export function storedValuation(site) {
     low,
     mid: mid ?? Math.round((low + high) / 2),
     high,
-    perAcreLow: num(site.screening_value_per_acre_low),
-    perAcreHigh: num(site.screening_value_per_acre_high),
+    perAcreLow,
+    perAcreHigh,
     confidence: site.screening_value_confidence || "Low",
+    detail,
     basis: [
       "comparable sales / regional market benchmark",
       acres ? `${Number(acres).toLocaleString()} acres` : null,

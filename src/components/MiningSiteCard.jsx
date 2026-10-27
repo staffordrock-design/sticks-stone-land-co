@@ -47,7 +47,9 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
   const aerialPreview = worldImageryTile(site.latitude, site.longitude, site.state);
   const heroImage = site.site_images?.[0] || aerialPreview;
   const heroLabel = site.site_images?.[0] ? "Property photo" : aerialPreview ? "Aerial location image" : null;
-  const showOpportunity = !previewMode && Boolean(opportunity) && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
+  // A record with no stored score has nothing to show — never print a placeholder number.
+  const hasStoredScore = Number.isFinite(Number(opportunity?.score)) && opportunity?.score !== null;
+  const showOpportunity = !previewMode && hasStoredScore && (emphasizeOpportunity || ["New / Potential", "Inactive / Idled"].includes(opportunity.status));
   const rawOwner = parcel?.owner_name || site.parcel_owner;
   const owner = rawOwner && !/pending|unknown|verify/i.test(rawOwner) ? rawOwner : null;
   const parcelAcreage = parcel?.acreage ?? site.acreage;
@@ -122,9 +124,9 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
             <div className="mt-1 font-heading text-2xl font-bold text-sky-950">
               {formatCompactMoney(valuation.low)} – {formatCompactMoney(valuation.high)}
             </div>
-            <div className="mt-0.5 text-[10px] text-sky-700">
-              {Number(valuation.acres).toLocaleString()} acres · {formatCompactMoney(valuation.perAcreLow)}–{formatCompactMoney(valuation.perAcreHigh)}/ac
-            </div>
+            {valuation.detail?.length > 0 && (
+              <div className="mt-0.5 text-[10px] text-sky-700">{valuation.detail.join(" · ")}</div>
+            )}
           </div>
         ) : null}
 
