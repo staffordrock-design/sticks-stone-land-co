@@ -1,0 +1,93 @@
+{
+  "name": "AbandonedCheckout",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "description": "Buyer email captured before checkout, used for receipt and one recovery reminder."
+    },
+    "plan_code": {
+      "type": "string"
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "Stripe Checkout session created for this attempt."
+    },
+    "checkout_url": {
+      "type": "string",
+      "description": "Resume link for the session while it is still open (Stripe sessions expire after 24 hours)."
+    },
+    "resume_url": {
+      "type": "string",
+      "description": "Link actually sent in the recovery email."
+    },
+    "amount_cents": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "started",
+        "email_sent",
+        "email_failed",
+        "recovered",
+        "dismissed"
+      ],
+      "default": "started"
+    },
+    "buyer_type": {
+      "type": "string",
+      "enum": [
+        "account",
+        "guest"
+      ]
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "browser_session_id": {
+      "type": "string"
+    },
+    "reminder_count": {
+      "type": "number",
+      "default": 0
+    },
+    "email_sent_at": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string",
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "email",
+    "stripe_session_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

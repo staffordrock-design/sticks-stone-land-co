@@ -1,4 +1,5 @@
 import Stripe from 'npm:stripe@18.5.0';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
 import { secrets } from 'base44:runtime';
 
 const SUBSCRIPTION_PLANS = {
@@ -30,7 +31,7 @@ function cleanReturnTo(value: unknown) {
 
 export default async function(req: Request) {
   try {
-    const { plan_code, return_to, session_id, user_id, user_email, origin: bodyOrigin } = await req.json().catch(() => ({}));
+    const { plan_code, return_to, session_id, user_id, user_email, email: guestEmailInput, origin: bodyOrigin } = await req.json().catch(() => ({}));
     const plan = SUBSCRIPTION_PLANS[plan_code as keyof typeof SUBSCRIPTION_PLANS];
     const returnTo = cleanReturnTo(return_to);
     if (!plan) return Response.json({ error: 'Invalid plan' }, { status: 400 });
@@ -72,6 +73,9 @@ export default async function(req: Request) {
     const browserSessionId = String(session_id || '').slice(0, 120);
     const appUserId = String(user_id || '').slice(0, 120);
     const appUserEmail = String(user_email || '').includes('@') ? String(user_email).slice(0, 160) : '';
+    // Guests type their email before checkout so an unfinished purchase can be recovered.
+    const guestEmail = String(guestEmailInput || '').includes('@') ? String(guestEmailInput).slice(0, 160) : '';
+    const buyerEmail = appUserEmail || guestEmail;
     const signedIn = Boolean(appUserId && appUserEmail);
 
     const session = await stripe.checkout.sessions.create({
@@ -80,7 +84,7 @@ export default async function(req: Request) {
         price: subscriptionPriceId,
         quantity: 1,
       }],
-      customer_email: appUserEmail || undefined,
+      customer_email: buyerEmail || undefined,
       client_reference_id: signedIn ? appUserId : `anonymous:${browserSessionId || randomSuffix()}`,
       metadata: {
         base44_app_id: Deno.env.get("BASE44_APP_ID") || '',
@@ -104,6 +108,28 @@ export default async function(req: Request) {
       success_url: `${origin}/subscribe?checkout=success&session_id={CHECKOUT_SESSION_ID}&returnTo=${encodeURIComponent(returnTo)}`,
       cancel_url: `${origin}/subscribe?checkout=cancelled&returnTo=${encodeURIComponent(returnTo)}`,
     });
+    // Record the checkout start so an unpaid session can be recovered by email.
+    if (buyerEmail) {
+      try {
+        const base44 = createClientFromRequest(req);
+        await base44.asServiceRole.entities.AbandonedCheckout.create({
+          email: buyerEmail,
+          plan_code,
+          stripe_session_id: session.id,
+          checkout_url: session.url || '',
+          amount_cents: typeof session.amount_total === 'number' ? session.amount_total : plan.unitAmount,
+          currency: session.currency || plan.currency,
+          status: 'started',
+          buyer_type: signedIn ? 'account' : 'guest',
+          user_id: signedIn ? appUserId : '',
+          browser_session_id: browserSessionId,
+          reminder_count: 0,
+        });
+      } catch (recordError) {
+        console.error('AbandonedCheckout record failed:', recordError);
+      }
+    }
+
     return Response.json({
       checkout_url: session.url,
       session_id: session.id,

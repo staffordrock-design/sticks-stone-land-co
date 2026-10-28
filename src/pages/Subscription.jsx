@@ -66,6 +66,7 @@ export default function Subscription() {
   const [buyingId, setBuyingId] = useState("");
   const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
   const [webAccess, setWebAccess] = useState({ active: false });
+  const [guestEmail, setGuestEmail] = useState("");
   const isNative = Capacitor.isNativePlatform();
   const isIOS = Capacitor.getPlatform() === "ios";
   const isAndroid = isNativeAndroid();
@@ -348,6 +349,12 @@ export default function Subscription() {
   };
 
   const startWebCheckout = async (planCode) => {
+    // Captured before checkout so an interrupted purchase can be recovered by email.
+    const buyerEmail = String(user?.email || guestEmail || "").trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(buyerEmail)) {
+      setPurchaseMessage("Enter the email address for your receipt first — we use it to send your access receipt and one reminder if checkout is interrupted.");
+      return;
+    }
     trackSubscriptionAction(user, "subscribe_cta_clicked", "web", planCode);
     base44.analytics.track({ eventName: "buy_button_clicked", properties: { plan_code: planCode, platform: "web", user_email: user?.email || "anonymous" } });
     setPurchaseMessage("");
@@ -373,6 +380,7 @@ export default function Subscription() {
           session_id: browserSessionId,
           user_id: user?.id || "",
           user_email: user?.email || "",
+          email: buyerEmail,
           origin: window.location.origin,
         }),
         "Secure checkout did not respond within 15 seconds. Please try again.",
@@ -469,6 +477,22 @@ export default function Subscription() {
 
           <SubscriptionWorkflow />
           <h2 id="subscription-options" className="mt-9 scroll-mt-6 font-heading text-xl font-bold">Subscription</h2>
+          {!isNative && !user?.id && (
+            <div className="mt-4 max-w-md rounded-2xl border border-border bg-muted/20 p-4">
+              <label htmlFor="checkout-email" className="text-sm font-bold text-foreground">Email for your receipt</label>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">No account needed. Your access receipt goes here, and we can send one reminder if checkout gets interrupted.</p>
+              <input
+                id="checkout-email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="you@company.com"
+                className="input mt-2"
+              />
+            </div>
+          )}
           <div className="mt-4 grid max-w-2xl gap-4">
             {ACCESS_TIERS.map((tier) => {
               const storeKey = isIOS ? "apple" : "google";

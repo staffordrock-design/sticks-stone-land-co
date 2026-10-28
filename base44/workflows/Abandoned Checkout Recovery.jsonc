@@ -1,0 +1,45 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 * * * *",
+      "one_time_date": null,
+      "timezone": "America/New_York",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Abandoned Checkout Recovery",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "abandoned_checkout_recovery",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "send_recovery_emails": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "send-abandoned-checkout-recovery",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Send recovery emails",
+            "description": "One reminder per unpaid checkout"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Every hour, emails buyers who started the $39 membership checkout and never paid, once per abandoned checkout."
+}
