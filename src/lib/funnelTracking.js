@@ -10,6 +10,8 @@ const BOT_PATTERNS = [
 
 const ADMIN_EMAILS = new Set([
   "staffordrock@icloud.com",
+  "contact@ssrockholdings.com",
+  "karringtonstafford@gmail.com",
   "contact+appreview@ssrockholdings.com",
 ]);
 
@@ -22,7 +24,7 @@ const PREVIEW_PATTERNS = [
 
 function getSessionId() {
   try {
-    const key = "ss_funnel_session";
+    const key = "ss_view_session";
     let id = sessionStorage.getItem(key);
     if (!id) {
       id = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;

@@ -27,6 +27,8 @@ const BOT_PATTERNS = [
 
 const ADMIN_EMAILS = new Set([
   'staffordrock@icloud.com',
+  'contact@ssrockholdings.com',
+  'karringtonstafford@gmail.com',
   'contact+appreview@ssrockholdings.com',
 ]);
 
@@ -51,6 +53,7 @@ function isAdminActivity(record: any): boolean {
   const role = String(record?.user_role || '').toLowerCase();
   if (ADMIN_EMAILS.has(email)) return true;
   if (role === 'admin') return true;
+  if (['6a78376a454093ba2f431ace','6a83be5a6f033f818145ab59','6a832a01e8e76c3871c9be33'].includes(String(record?.user_id || record?.created_by_id || ''))) return true;
   return false;
 }
 
@@ -75,17 +78,19 @@ function funnelStep(record: any): string | null {
   const pageType = String(record?.page_type || '');
   const resourceId = String(record?.resource_id || '');
 
-  if (resourceId === 'checkout_completed' || resourceId === 'store_entitlement_activated') return 'paid_subscriber';
-  if (resourceId === 'store_confirmation_returned' || resourceId === 'store_backend_verification_succeeded') return 'backend_verification_succeeded';
+  if (resourceId === 'checkout_completed') return 'checkout_completed';
+  if (resourceId === 'store_entitlement_activated') return 'entitlement_activated';
+  if (resourceId === 'store_backend_verification_succeeded') return 'backend_verification_succeeded';
   if (resourceId === 'store_purchase_sheet_opening') return 'apple_purchase_sheet_opened';
   if (resourceId === 'checkout_created') return 'checkout_started';
   if (resourceId === 'store_product_loaded') return 'apple_product_loaded';
+  if (resourceId === 'store_purchase_cancelled' || resourceId === 'checkout_cancelled') return 'purchase_canceled';
+  if (/error$/.test(resourceId)) return 'purchase_error';
   if (resourceId === 'subscribe_cta_clicked') return 'subscribe_clicked';
-  if (path === '/subscribe' || pageType === 'subscription_page' || pageType === 'subscription_action') return 'paywall_viewed';
+  if (pageType === 'quarry_teaser' || resourceId === 'quarry_teaser') return 'quarry_teaser_viewed';
+  if (path.split('?')[0] === '/subscribe' || pageType === 'subscription_page') return 'paywall_viewed';
   if (path.startsWith('/mines/')) return 'premium_intelligence_attempted';
-  if (path === '/' && pageType === 'homepage') return 'homepage_viewed';
   if (path === '/') return 'homepage_viewed';
-  if (pageType === 'quarry_teaser' || (path === '/' && resourceId === 'quarry_teaser')) return 'quarry_teaser_viewed';
   return null;
 }
 
@@ -131,13 +136,13 @@ function addRecordToMetrics(metrics: any, record: any) {
   }
 }
 
-function summarizeMetrics(metrics: any) {
+function summarizeMetrics(metrics: any, payments: any[] = []) {
   const m = (key: string) => metrics[key]?.size || 0;
   const visitors = m('unique_visitors');
   const paywall = m('paywall_viewed');
   const subscribeClick = m('subscribe_clicked');
-  const checkoutStarted = m('checkout_started') + m('apple_product_loaded');
-  const paid = m('paid_subscriber');
+  const checkoutStarted = new Set([...metrics.checkout_started, ...metrics.apple_purchase_sheet_opened]).size;
+  const paid = new Set(payments.map(p => p.user_id || p.customer_email || p.external_transaction_id)).size;
 
   return {
     unique_visitors: visitors,
@@ -155,7 +160,8 @@ function summarizeMetrics(metrics: any) {
     entitlement_activated: m('entitlement_activated'),
     checkout_completed: m('checkout_completed'),
     paid_subscribers: paid,
-    revenue: metrics.revenue,
+    revenue: payments.filter(p => String(p.currency).toUpperCase() === 'USD').reduce((sum, p) => sum + Number(p.amount || 0), 0),
+    revenue_note: 'Verified recorded USD payments; excludes legacy subscription/session snapshots. Other currencies are not summed.',
     conversion: {
       visitor_to_paywall: visitors > 0 ? Math.round((paywall / visitors) * 1000) / 10 : 0,
       paywall_to_subscribe: paywall > 0 ? Math.round((subscribeClick / paywall) * 1000) / 10 : 0,
@@ -207,6 +213,12 @@ export default async function(req: Request) {
       base44.asServiceRole.entities.ViewerActivity.list('-viewed_at', 500),
     ]);
 
+    const billing = await base44.asServiceRole.entities.BillingEvent.filter({ status: 'Paid', revenue_type: 'Subscription' }, '-occurred_at', 500, 0);
+    const payments = (billing || []).filter(p =>
+      !ADMIN_EMAILS.has(String(p.customer_email || '').toLowerCase()) &&
+      !['6a78376a454093ba2f431ace','6a83be5a6f033f818145ab59','6a832a01e8e76c3871c9be33'].includes(String(p.user_id || '')) &&
+      (p.platform !== 'Stripe' || String(p.external_transaction_id || '').startsWith('in_'))
+    );
     const todayMetrics = emptyMetrics();
     const weekMetrics = emptyMetrics();
     const allTimeMetrics = emptyMetrics();
@@ -222,9 +234,10 @@ export default async function(req: Request) {
     }
 
     return Response.json({
-      today: summarizeMetrics(todayMetrics),
-      last_7_days: summarizeMetrics(weekMetrics),
+      today: summarizeMetrics(todayMetrics, payments.filter(p => p.occurred_at >= todayStart)),
+      last_7_days: summarizeMetrics(weekMetrics, payments.filter(p => p.occurred_at >= sevenDaysAgo)),
       all_time: summarizeMetrics(allTimeMetrics),
+      history_note: 'Traffic history below is a bounded recent sample, not lifetime traffic. Anonymous testing that does not identify itself cannot always be excluded.',
       excluded: {
         note: 'Bots (Googlebot, Facebook/Meta crawlers, HeadlessChrome, etc.), admin/owner testing, Base44 preview URLs, and Apple review accounts are excluded from qualified traffic.',
       },

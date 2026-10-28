@@ -1,3 +1,4 @@
+import { recordPaidStripeInvoice } from '../../shared/stripeEntitlement.ts';
 import { createClientFromRequest } from 'npm:@base44/sdk';
 import Stripe from 'npm:stripe';
 import { secrets } from 'base44:runtime';
@@ -108,27 +109,16 @@ export default async function(req: Request) {
       await base44.asServiceRole.entities.SubscriptionEntitlement.create(entitlement);
     }
 
-    const billingData = {
-      user_id: user.id,
-      customer_email: user.email || buyerEmail || '',
-      revenue_type: 'Subscription',
-      plan_or_product: planCode,
-      amount: Number(session?.amount_total || 0) / 100,
-      currency: String(session?.currency || 'usd').toUpperCase(),
-      platform: 'Stripe',
-      status: active ? 'Paid' : 'Pending',
-      external_transaction_id: String(session.id),
-      occurred_at: new Date().toISOString(),
-      notes: anonymousCheckout ? 'Anonymous web checkout attached after account creation.' : 'Web subscription checkout verified.',
-    };
-    const existingBilling = await base44.asServiceRole.entities.BillingEvent.filter(
-      { external_transaction_id: String(session.id) },
-      '-created_date',
-      1,
-      0,
-    );
-    if (existingBilling?.[0]) await base44.asServiceRole.entities.BillingEvent.update(existingBilling[0].id, billingData);
-    else await base44.asServiceRole.entities.BillingEvent.create(billingData);
+    const invoiceId = typeof session.invoice === 'string' ? session.invoice : session.invoice?.id;
+    if (invoiceId) {
+      const invoice = await stripe.invoices.retrieve(invoiceId);
+      await recordPaidStripeInvoice(base44, invoice, {
+        ...subscription.metadata,
+        user_id: user.id,
+        customer_email: String(session?.customer_details?.email || session?.customer_email || ''),
+        plan_code: planCode,
+      });
+    }
 
     return Response.json({ verified: true, active, entitlement, google_ads_purchase: await verifiedGoogleAdsPurchase(session, active) });
   } catch (error) {

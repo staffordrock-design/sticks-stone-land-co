@@ -49,11 +49,11 @@ function PeriodSection({ title, data }) {
     <div className="mb-10">
       <h2 className="mb-4 font-heading text-2xl font-bold text-foreground">{title}</h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <MetricCard icon={Users} label="Visitors" value={data.unique_visitors} />
+        <MetricCard icon={Users} label="Tracked sessions" value={data.unique_visitors} />
         <MetricCard icon={Eye} label="Paywall Views" value={data.paywall_viewed} />
         <MetricCard icon={MousePointerClick} label="Subscribe Clicks" value={data.subscribe_clicked} />
-        <MetricCard icon={CreditCard} label="Checkout Starts" value={data.checkout_started + data.apple_product_loaded} />
-        <MetricCard icon={CheckCircle2} label="Paid Subscribers" value={data.paid_subscribers} />
+        <MetricCard icon={CreditCard} label="Checkout Starts" value={data.checkout_started + data.apple_purchase_sheet_opened} />
+        <MetricCard icon={CheckCircle2} label="Paying customers" value={data.paid_subscribers} />
         <MetricCard icon={DollarSign} label="Revenue" value={`$${data.revenue.toLocaleString()}`} />
       </div>
 
@@ -142,7 +142,8 @@ export default function ConversionDashboard() {
             </div>
             <PeriodSection title="Today" data={data.today} />
             <PeriodSection title="Last 7 Days" data={data.last_7_days} />
-            <PeriodSection title="All Time" data={data.all_time} />
+            <p className="mb-4 text-sm text-muted-foreground">{data.history_note}</p>
+            <PeriodSection title="Recent traffic sample (up to 500 events; payments excluded)" data={data.all_time} />
           </>
         ) : null}
       </main>
