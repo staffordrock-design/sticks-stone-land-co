@@ -11,9 +11,9 @@ export default function UnlockBanner({ returnTo }) {
       <span className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-sky-800">
         <Crown className="h-3.5 w-3.5" />Full Quarry Intelligence
       </span>
-      <h2 className="mt-3 font-heading text-xl font-bold text-foreground">Unlock every blocked value above</h2>
+      <h2 className="mt-3 font-heading text-xl font-bold text-foreground">Unlock the available intelligence for this property</h2>
       <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-        The locked fields on this record — and every other quarry record — include recorded owner and operator, parcel and deed data, permitted acreage, geology, permits and compliance history, production context, valuation screening and the S&amp;S opportunity score.
+        Membership reveals linked ownership, parcel, deed, permit, geology, production and screening data where available. Check the coverage indicators above first. A locked field is not a promise that its source data exists.
       </p>
       <Link
         to={href}
