@@ -238,7 +238,7 @@ export default async function(req: Request) {
       today: summarizeMetrics(todayMetrics, payments.filter(p => p.occurred_at >= todayStart)),
       last_7_days: summarizeMetrics(weekMetrics, payments.filter(p => p.occurred_at >= sevenDaysAgo)),
       all_time: summarizeMetrics(allTimeMetrics, payments.filter(p => p.occurred_at >= String((allTimeRecords || []).at(-1)?.viewed_at || '9999'))),
-      history_note: 'Traffic history below is a bounded recent sample, not lifetime traffic; payment totals use that sample's time window. Anonymous testing that does not identify itself cannot always be excluded.',
+      history_note: 'Traffic history below is a bounded recent sample, not lifetime traffic; payment totals use the same sample time window. Anonymous testing that does not identify itself cannot always be excluded.',
       excluded: {
         note: 'Bots (Googlebot, Facebook/Meta crawlers, HeadlessChrome, etc.), admin/owner testing, Base44 preview URLs, and Apple review accounts are excluded from qualified traffic.',
       },
