@@ -51,7 +51,7 @@ export default function SampleIntelligenceRecord({ bundle, sampleSiteId }) {
   }
   if (geology?.primary_rock || geology?.lithology) {
     findings.push({
-      text: `Primary rock type: ${geology.primary_rock || geology.lithology}${geology.formation_name ? ` (${geology.formation_name})` : ""}`,
+      text: `Mapped regional geology: ${geology.primary_rock || geology.lithology}${geology.formation_name ? ` (${geology.formation_name})` : ""}`,
       source: geology.source_agency || "USGS / State Geology",
       date: formatDate(geology.last_source_update) || refreshDate,
     });
