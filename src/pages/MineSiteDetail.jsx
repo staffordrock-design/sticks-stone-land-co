@@ -963,7 +963,7 @@ export default function MineSiteDetail() {
                     {geologyRecord.geologic_age ? ` · ${geologyRecord.geologic_age}` : ""}
                   </div>
                 </div>
-                <Row label="Primary rock" value=Mapped geology: {geologyRecord.primary_rock} />
+                <Row label="Mapped primary rock" value={geologyRecord.primary_rock} />
                 <Row label="Secondary" value={geologyRecord.secondary_rock} />
                 <Row label="Formation" value={geologyRecord.formation_name || "Not separately identified in mapped source"} />
                 <Row label="Geologic unit" value={geologyRecord.geologic_unit} />
