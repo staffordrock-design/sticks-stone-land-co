@@ -28,12 +28,13 @@ export default async function(req: any) {
         return rows.length > 0;
       } catch { return null; }
     };
-    const parcelLinks = site.parcel_id ? [{ parcel_id: site.parcel_id }] : [];
+    const parcelLinks = site.parcel_id ? [{ parcel_id: site.parcel_id, state: site.state, county: site.county }] : [];
     const [parcel, geology, permits, environmental, production, deeds] = await Promise.all([
       has('ParcelRecord', parcelLinks), has('GeologyRecord', parcelLinks),
       has('TDECPermit', site.tdec_permit_number ? [{ permit_number: site.tdec_permit_number }] : []),
       has('EnvironmentalRecord', site.npdes_permit_number ? [{ npdes_permit_number: site.npdes_permit_number }] : []),
-      has('ProductionRecord'), has('DeedRecord', parcelLinks),
+      has('ProductionRecord'),
+      site.parcel_id ? svc.entities.DeedRecord.filter({ state: site.state, county: site.county, parcel_ids: site.parcel_id }, '-updated_date', 1, 0).then(rows => rows.length > 0).catch(() => null) : Promise.resolve(false),
     ]);
     return Response.json({
       coverage: { parcel, geology, permits, environmental, production, deeds },

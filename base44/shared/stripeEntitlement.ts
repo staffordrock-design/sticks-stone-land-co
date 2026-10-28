@@ -134,7 +134,7 @@ export async function recordPaidStripeInvoice(base44: any, invoice: any, metadat
   const existing = await base44.asServiceRole.entities.BillingEvent.filter({ external_transaction_id: key }, '-created_date', 1, 0);
   const paidAt = invoice?.status_transitions?.paid_at || invoice?.created;
   const data = {
-    user_id: String(metadata.user_id || ''),
+    user_id: String(metadata.user_id || existing?.[0]?.user_id || ''),
     customer_email: String(invoice.customer_email || metadata.customer_email || ''),
     revenue_type: 'Subscription', plan_or_product: plan,
     amount: Number(invoice.amount_paid) / 100,

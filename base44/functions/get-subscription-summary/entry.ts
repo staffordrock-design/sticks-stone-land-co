@@ -1,6 +1,7 @@
 import { createClientFromRequest } from "npm:@base44/sdk";
 
 const INTERNAL_EMAIL_PATTERNS = [
+  /^staffordrock@icloud\.com$/i,
   /^contact@ssrockholdings\.com$/i,
   /^contact\+appreview@ssrockholdings\.com$/i,
   /^karringtonstafford@gmail\.com$/i,
@@ -38,6 +39,8 @@ function isPaidBilling(row: any) {
   const status = String(row?.status || "").toLowerCase();
   const revenueType = String(row?.revenue_type || "").toLowerCase();
   if (status !== "paid") return false;
+  if (row.platform === "Stripe" && !String(row.external_transaction_id || "").startsWith("in_")) return false;
+  if (["6a78376a454093ba2f431ace", "6a83be5a6f033f818145ab59", "6a832a01e8e76c3871c9be33"].includes(String(row.user_id || ""))) return false;
   if (revenueType !== "subscription") return false;
   if (isInternalEmail(row?.customer_email)) return false;
   return true;
@@ -86,6 +89,8 @@ function queryAction(path: any) {
 export default async function(req: Request) {
   try {
     const base44 = createClientFromRequest(req);
+    const viewer = await base44.auth.me().catch(() => null);
+    if (viewer?.role !== "admin") return Response.json({ error: "Admin access required" }, { status: 403 });
     const [entitlements, receipts, billingEvents, summaries, funnel, activities] = await Promise.all([
       listAll(base44.asServiceRole.entities.SubscriptionEntitlement, "-updated_date"),
       listAll(base44.asServiceRole.entities.StoreReceipt, "-created_date"),
