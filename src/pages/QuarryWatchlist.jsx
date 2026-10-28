@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ArrowLeft, Bell, Bookmark, LockKeyhole, Plus, Trash2, TrendingUp } from "lucide-react";
 import { base44 } from "@/api/base44Client";

@@ -2,8 +2,8 @@ import { selectSummaryPermit } from "@/lib/sourceInterpretation";
 import React from "react";
 import { Link } from "react-router-dom";
 import {
-  Lock, MapPin, Building2, Mountain, FileText, Calendar, ShieldCheck,
-  TrendingUp, Gem, Landmark, Leaf, Gauge, AlertTriangle, ArrowRight,
+  Lock, MapPin, Building2, FileText, Calendar, ShieldCheck,
+  TrendingUp, Gem, Landmark, Gauge, AlertTriangle, ArrowRight,
   CheckCircle2, Database, Layers,
 } from "lucide-react";
 

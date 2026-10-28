@@ -5,7 +5,6 @@ import { base44 } from "@/api/base44Client";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import IntelligenceMap from "@/components/quarryIntelligence/IntelligenceMap";
 import IntelligenceProfile from "@/components/quarryIntelligence/IntelligenceProfile";
-import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { premiumEntityQuery, premiumSiteData } from "@/lib/subscriptionAccess";
 
 const FOCUS_STATE = "TN";

@@ -5,7 +5,7 @@ import AppLoadingScreen from "@/components/AppLoadingScreen";
 import MiningSiteCard from "@/components/MiningSiteCard";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
-import { Layers, TrendingUp, MapPin, Search, Building2 } from "lucide-react";
+import { Layers, TrendingUp, MapPin, Search } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 import QuarrySearchAutocomplete from "@/components/QuarrySearchAutocomplete";

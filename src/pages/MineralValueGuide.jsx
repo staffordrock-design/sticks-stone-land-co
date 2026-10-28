@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Database, Gem, Gauge, Landmark, Layers3, MapPin, Mountain, Search, ShieldCheck, TrendingUp } from "lucide-react";
-import { base44 } from "@/api/base44Client";
 import { storedOpportunity } from "@/lib/storedScreening";
 import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 

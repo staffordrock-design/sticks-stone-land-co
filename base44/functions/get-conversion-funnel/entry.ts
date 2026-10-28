@@ -153,6 +153,7 @@ function summarizeMetrics(metrics: any, payments: any[] = []) {
     subscribe_clicked: subscribeClick,
     apple_product_loaded: m('apple_product_loaded'),
     checkout_started: m('checkout_started'),
+    checkout_started_total: checkoutStarted,
     apple_purchase_sheet_opened: m('apple_purchase_sheet_opened'),
     purchase_canceled: m('purchase_canceled'),
     purchase_error: m('purchase_error'),
@@ -214,7 +215,7 @@ export default async function(req: Request) {
     ]);
 
     const billing = await base44.asServiceRole.entities.BillingEvent.filter({ status: 'Paid', revenue_type: 'Subscription' }, '-occurred_at', 500, 0);
-    const payments = (billing || []).filter(p =>
+    const payments = [...new Map((billing || []).map(p => [p.external_transaction_id || p.id, p])).values()].filter(p =>
       !ADMIN_EMAILS.has(String(p.customer_email || '').toLowerCase()) &&
       !['6a78376a454093ba2f431ace','6a83be5a6f033f818145ab59','6a832a01e8e76c3871c9be33'].includes(String(p.user_id || '')) &&
       (p.platform !== 'Stripe' || String(p.external_transaction_id || '').startsWith('in_'))
@@ -236,8 +237,8 @@ export default async function(req: Request) {
     return Response.json({
       today: summarizeMetrics(todayMetrics, payments.filter(p => p.occurred_at >= todayStart)),
       last_7_days: summarizeMetrics(weekMetrics, payments.filter(p => p.occurred_at >= sevenDaysAgo)),
-      all_time: summarizeMetrics(allTimeMetrics),
-      history_note: 'Traffic history below is a bounded recent sample, not lifetime traffic. Anonymous testing that does not identify itself cannot always be excluded.',
+      all_time: summarizeMetrics(allTimeMetrics, payments.filter(p => p.occurred_at >= String((allTimeRecords || []).at(-1)?.viewed_at || '9999'))),
+      history_note: 'Traffic history below is a bounded recent sample, not lifetime traffic; payment totals use that sample's time window. Anonymous testing that does not identify itself cannot always be excluded.',
       excluded: {
         note: 'Bots (Googlebot, Facebook/Meta crawlers, HeadlessChrome, etc.), admin/owner testing, Base44 preview URLs, and Apple review accounts are excluded from qualified traffic.',
       },

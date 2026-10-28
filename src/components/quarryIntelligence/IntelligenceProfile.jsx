@@ -1,14 +1,12 @@
 import { selectSummaryPermit } from "@/lib/sourceInterpretation";
 import React from "react";
 import { Link } from "react-router-dom";
-import {
-  AlertTriangle, BarChart3, Building2, CheckCircle2, ExternalLink, FileKey2,
-  Gauge, Gem, Globe, Landmark, Leaf, LockKeyhole, MapPinned, Mountain,
+import { Building2, ExternalLink, FileKey2,
+  Gauge, Gem, Globe, Landmark, Leaf, LockKeyhole, Mountain,
   ShieldCheck, TrendingUp,
 } from "lucide-react";
 import IntelligenceSection from "./IntelligenceSection";
 import { opportunityBandClasses } from "@/utils/opportunityScore";
-import { formatCompactMoney } from "@/utils/quarryValuation";
 import { storedValuation, storedOpportunity } from "@/lib/storedScreening";
 
 function money(v) {

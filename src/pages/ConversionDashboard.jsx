@@ -52,9 +52,9 @@ function PeriodSection({ title, data }) {
         <MetricCard icon={Users} label="Tracked sessions" value={data.unique_visitors} />
         <MetricCard icon={Eye} label="Paywall Views" value={data.paywall_viewed} />
         <MetricCard icon={MousePointerClick} label="Subscribe Clicks" value={data.subscribe_clicked} />
-        <MetricCard icon={CreditCard} label="Checkout Starts" value={data.checkout_started + data.apple_purchase_sheet_opened} />
+        <MetricCard icon={CreditCard} label="Checkout Starts" value={data.checkout_started_total ?? (data.checkout_started + data.apple_purchase_sheet_opened)} />
         <MetricCard icon={CheckCircle2} label="Paying customers" value={data.paid_subscribers} />
-        <MetricCard icon={DollarSign} label="Revenue" value={`$${data.revenue.toLocaleString()}`} />
+        <MetricCard icon={DollarSign} label="Recorded payments (USD)" value={`$${data.revenue.toLocaleString()}`} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -96,6 +96,20 @@ export default function ConversionDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [reconciling, setReconciling] = useState(false);
+  const [reconcileMessage, setReconcileMessage] = useState("");
+  const reconcile = async () => {
+    setReconciling(true); setReconcileMessage("");
+    try {
+      const response = await base44.functions.invoke("reconcile-subscription-payments", {});
+      const result = response.data;
+      if (result.error) throw new Error(result.error);
+      setReconcileMessage(`Checked ${result.checked} invoices; reconciled ${result.recorded} paid invoices over ${result.days} days.${result.truncated ? " Result capped at 1,000 invoices." : ""}`);
+      const refreshed = await base44.functions.invoke("get-conversion-funnel", {});
+      setData(refreshed.data);
+    } catch (e) { setReconcileMessage(e?.message || "Reconciliation failed. No success is assumed."); }
+    finally { setReconciling(false); }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -140,10 +154,11 @@ export default function ConversionDashboard() {
               </div>
               <p className="mt-1 text-xs text-sky-900/80">{data.excluded?.note}</p>
             </div>
-            <PeriodSection title="Today" data={data.today} />
+            <div className="mb-6 rounded-xl border border-border p-4"><button type="button" onClick={reconcile} disabled={reconciling} className="min-h-11 rounded-lg bg-slate-900 px-4 text-sm font-bold text-white disabled:opacity-50">{reconciling ? "Checking Stripe invoices…" : "Reconcile live Stripe payments"}</button><p className="mt-2 text-xs text-muted-foreground">Checks the last 90 days and repairs app payment records. Does not charge, cancel or change customer subscriptions. Revenue here is recorded gross payments, not net revenue after refunds.</p>{reconcileMessage && <p role="status" className="mt-2 text-sm">{reconcileMessage}</p>}</div>
+            <PeriodSection title="Today (UTC)" data={data.today} />
             <PeriodSection title="Last 7 Days" data={data.last_7_days} />
             <p className="mb-4 text-sm text-muted-foreground">{data.history_note}</p>
-            <PeriodSection title="Recent traffic sample (up to 500 events; payments excluded)" data={data.all_time} />
+            <PeriodSection title="Recent sample (up to 500 events)" data={data.all_time} />
           </>
         ) : null}
       </main>
