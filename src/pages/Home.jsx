@@ -2,9 +2,7 @@ import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import AppLoadingScreen from "@/components/AppLoadingScreen";
-import MiningSiteCard from "@/components/MiningSiteCard";
-const ParcelMap = lazy(() => import("@/components/ParcelMap"));
-const TennesseeMineMap = lazy(() => import("@/components/TennesseeMineMap"));
+const QuarryMapCanvas = lazy(() => import("@/components/quarryMap/QuarryMapCanvas"));
 import { Layers, TrendingUp, MapPin, Search } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
@@ -21,7 +19,6 @@ import { base44 } from "@/api/base44Client";
 import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
 import SampleIntelligenceRecord from "@/components/SampleIntelligenceRecord";
-import BlurredQuarryCard from "@/components/BlurredQuarryCard";
 import AudiencePaths from "@/components/AudiencePaths";
 import MembershipValueSection from "@/components/MembershipValueSection";
 import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
@@ -363,6 +360,14 @@ export default function Home() {
     return map;
   }, [geology]);
 
+  const parcelByMine = React.useMemo(() => {
+    const map = new Map();
+    for (const p of parcels) {
+      if (p.msha_mine_id) map.set(String(p.msha_mine_id), p);
+    }
+    return map;
+  }, [parcels]);
+
   const featuredGeology = featured ? geologyLookup[featured.id] || (featured.msha_mine_id ? geologyLookup[`msha:${featured.msha_mine_id}`] : null) : null;
   const filtersActive = Boolean(query || source !== "All" || statusFilter !== "All" || stateFilter !== "All Southeast" || sortMode !== "Opportunity Priority");
   const clearFilters = () => {
@@ -466,6 +471,53 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Interactive quarry map — the primary way to browse records */}
+      <section id="quarry-intelligence" className="mx-auto max-w-7xl scroll-mt-28 px-4 py-10 sm:px-6">
+        <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-700">Map intelligence</p>
+            <h2 className="mt-1 font-heading text-2xl font-bold text-foreground">Explore Quarries on the Map</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+              {loading ? "Loading mapped quarry records…" : inventoryUnavailable ? "Mapped records temporarily unavailable." : `${filtered.length.toLocaleString()} quarry records match your filters. Tap a marker for the key facts, then open the full record.`}
+            </p>
+          </div>
+          {!hasProfessional && (
+            <Link to="/subscribe" className="inline-flex min-h-12 w-fit items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
+              <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
+            </Link>
+          )}
+        </div>
+
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <BottomSheetSelect value={stateFilter} onChange={setStateFilter} options={STATE_OPTIONS} label="Filter by state" />
+          <BottomSheetSelect value={source} onChange={setSource} options={SOURCES} label="Filter by source" />
+          {STATUS_GROUPS.map((s) => (
+            <button key={s} onClick={() => setStatusFilter(s)} className={`inline-flex min-h-[44px] items-center rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-slate-800 text-white shadow-sm" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
+          ))}
+          {filtersActive && <button type="button" onClick={clearFilters} className="ml-1 text-xs font-bold text-sky-800 hover:underline">Clear filters</button>}
+        </div>
+
+        <div className="relative h-[70vh] min-h-[520px] overflow-hidden rounded-2xl border border-border bg-muted/20">
+          {inventoryUnavailable && !loading ? (
+            <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+              <p className="font-semibold text-foreground">Quarry records could not load.</p>
+              <p className="max-w-md text-sm text-muted-foreground">The database is still intact. Check the connection and try again.</p>
+              <button type="button" onClick={loadData} className="min-h-11 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white">Try again</button>
+            </div>
+          ) : (
+            <Suspense fallback={<div className="h-full w-full animate-pulse bg-muted/30" />}>
+              <QuarryMapCanvas
+                sites={filtered}
+                geologyMap={geologyLookup}
+                parcelByMine={parcelByMine}
+                premium={hasProfessional}
+              />
+            </Suspense>
+          )}
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">Marker color = rock type · ring = operating status · zoom out to cluster. Base maps: OpenStreetMap, Esri World Imagery, USGS, Census TIGERweb. Aerial imagery is not a current-condition survey or parcel-boundary depiction.</p>
+      </section>
+
       {/* Trust band — real verified data, right below hero */}
       <TrustBand />
 
@@ -487,236 +539,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Priority quarry opportunities */}
-      {priorityOpportunities.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 py-14">
-          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-sky-700">Opportunity first</p>
-              <h2 className="mt-1 font-heading text-2xl font-bold text-foreground">Priority Quarry Opportunities</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">New and idled mine records are surfaced first, then ranked using available source coverage such as geology, parcel links, permits, location, acreage and verified screening data when present.</p>
-            </div>
-            <span className="text-xs text-muted-foreground">Screening priority only · not an appraisal or sale listing</span>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {priorityOpportunities.map((s) => {
-              const parcel = parcelForSite(s);
-              const geologyRecord = geologyForSite(s);
-              const profile = profileForSite(s);
-              const sitePermits = permitsForSite(s);
-              const siteEnvironmental = environmentalForSite(s);
-              const opportunity = opportunityForSite(s);
-              const valuation = storedValuation(s);
-              return <MiningSiteCard key={`priority-${s.id}`} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} emphasizeOpportunity previewMode={!hasProfessional} />;
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* Featured parcel with map */}
-      {featured && (
-        <section className="mx-auto max-w-7xl px-6 py-14">
-          <div className="mb-6 flex items-end justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Featured Mine Site
-              </p>
-              <h2 className="mt-1 font-heading text-2xl font-bold text-foreground">
-                {featured.mine_name}
-              </h2>
-            </div>
-          </div>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Suspense fallback={<div className="h-[420px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
-              <ParcelMap
-                lat={featured.latitude}
-                lng={featured.longitude}
-                rockType={featuredGeology?.primary_rock || featuredGeology?.lithology || featured.commodity}
-                height={420}
-                previewMode={!hasProfessional}
-              />
-            </Suspense>
-            <div className="flex flex-col justify-center rounded-2xl border border-border bg-card p-8">
-              <span className="inline-flex w-fit items-center rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-900">
-                {featured.source}
-              </span>
-              <h3 className="mt-4 font-heading text-2xl font-bold text-foreground">
-                {featured.county ? `${featured.county}, ` : ""}
-                {featured.state}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {featured.commodity ? `Commodity: ${featured.commodity}. ` : ""}
-                This Public Quarry Information shows the site and public mine identity. Open the full intelligence record to see owner/operator, permitted footprint, geology, regulatory and production context.
-              </p>
-              <div className="mt-6 grid grid-cols-3 gap-4 border-t border-border pt-6">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Detail level</p>
-                  <p className="mt-1 font-display text-sm font-bold text-foreground">Public Record</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Status</p>
-                  <p className="mt-1 font-display text-sm font-semibold text-foreground">
-                    {featured.mine_status || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">Source</p>
-                  <p className="mt-1 font-display text-sm font-semibold text-foreground">
-                    {featured.source}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Marketplace */}
-      <section id="quarry-intelligence" className="mx-auto max-w-7xl scroll-mt-28 px-6 pb-24">
-        {!hasProfessional ? (
-          <>
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <h2 className="font-heading text-2xl font-bold text-foreground">Quarry Opportunities</h2>
-                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{loading ? "Loading…" : `${ranked.length.toLocaleString()} records available`}</span>
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">These are live quarry records from the S&amp;S database. The owner, operator, permitted acreage, geology, valuation and opportunity score are blurred until you unlock Full Quarry Intelligence.</p>
-              </div>
-              <Link to="/subscribe" className="inline-flex min-h-12 w-fit items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-                <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
-              </Link>
-            </div>
-            {loading ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-72 animate-pulse rounded-2xl border border-border bg-muted/40" />
-                ))}
-              </div>
-            ) : ranked.length > 0 ? (
-              <>
-                <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-5 text-center">
-                  <p className="font-heading text-2xl font-bold text-sky-950">{ranked.length.toLocaleString()} quarry records available</p>
-                  <p className="mt-1 text-sm text-sky-800">Here's a 3-record preview. Membership unlocks the available intelligence for each record. Coverage varies by property and source.</p>
-                </div>
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {ranked.slice(0, 3).map((s) => (
-                    <BlurredQuarryCard key={s.id} site={s} />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">
-                Quarry records are loading. Try again in a moment.
-              </div>
-            )}
-            <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-950 p-8 text-center text-white">
-              <h3 className="font-heading text-xl font-bold sm:text-2xl">This is a small sample of the full database</h3>
-              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Search the S&S database across eight Southeast states. Ownership, parcels, permits, geology and screening are included where linked; missing fields stay marked as unavailable.
-              </p>
-              <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800">
-                  View Sample Record
-                </button>
-              </div>
-              <p className="mt-4 text-xs text-slate-400">Cancel anytime. No account required to subscribe on web.</p>
-            </div>
-          </>
-        ) : (
-          <>
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-heading text-2xl font-bold text-foreground">Find Quarry Opportunities</h2>
-              <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-700">{loading ? "Loading results…" : inventoryUnavailable ? "Records temporarily unavailable" : `${ranked.length.toLocaleString()} results`}</span>
-              {filtersActive && <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>}
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">Browse the marketplace like commercial real estate: search by quarry, county, state, rock type or mine ID; filter by operating status; compare mapped property facts; and save the opportunities worth investigating. Verified seller listings are clearly separated from off-market intelligence records.</p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <QuarrySearchAutocomplete sites={quarrySites} query={query} setQuery={setQuery} />
-            <div className="flex flex-col gap-2">
-              <BottomSheetSelect
-                value={stateFilter}
-                onChange={setStateFilter}
-                options={STATE_OPTIONS}
-                label="Filter by state"
-              />
-              <BottomSheetSelect
-                value={sortMode}
-                onChange={setSortMode}
-                options={["Opportunity Priority", "Most Complete", "Largest Acreage", "Name A–Z"]}
-                label="Sort opportunities"
-              />
-              <div className="flex flex-wrap gap-1.5">
-                {STATUS_GROUPS.map((s) => (
-                  <button key={s} onClick={() => setStatusFilter(s)} className={`inline-flex min-h-[44px] items-center rounded-full px-3.5 py-1.5 text-xs font-medium transition ${statusFilter === s ? "bg-slate-800 text-white shadow-sm" : "border border-border bg-card text-muted-foreground hover:bg-muted"}`}>{s}</button>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {SOURCES.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setSource(s)}
-                    className={`inline-flex min-h-[44px] items-center rounded-full px-3.5 py-1.5 text-xs font-medium transition ${
-                      source === s
-                        ? "bg-slate-900 text-slate-50 shadow-sm"
-                        : "border border-border bg-card text-muted-foreground hover:bg-muted"
-                    }`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {loading ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="h-72 animate-pulse rounded-2xl border border-border bg-muted/40"
-              />
-            ))}
-          </div>
-        ) : inventoryUnavailable ? (
-          <div className="rounded-2xl border border-dashed border-border p-10 text-center">
-            <p className="font-semibold text-foreground">Quarry records could not load.</p>
-            <p className="mt-2 text-sm text-muted-foreground">The database is still intact. Check the connection and try again.</p>
-            <button type="button" onClick={loadData} className="mt-4 min-h-11 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white">Try again</button>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border p-16 text-center text-muted-foreground">
-            No mine sites match your search.
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {ranked.slice(0, CARD_RENDER_LIMIT).map((s) => {
-                const profile = profileForSite(s);
-                const parcel = parcelForSite(s);
-                const geologyRecord = geologyForSite(s);
-                const sitePermits = permitsForSite(s);
-                const siteEnvironmental = environmentalForSite(s);
-                const opportunity = opportunityForSite(s);
-                const valuation = storedValuation(s);
-                return <MiningSiteCard key={s.id} site={s} valuation={valuation} geology={geologyRecord} parcel={parcel} permits={sitePermits} environmental={siteEnvironmental} opportunity={opportunity} previewMode={!hasProfessional} />;
-              })}
-            </div>
-            {ranked.length > CARD_RENDER_LIMIT && (
-              <div className="mt-8 rounded-2xl border border-border bg-muted/20 p-5 text-center text-sm text-muted-foreground">
-                Showing the first {CARD_RENDER_LIMIT} results for speed. Use search or choose a state to query the full quarry database without loading every record onto the phone at once.
-              </div>
-            )}
-          </>
-        )}
-          </>
-        )}
-      </section>
-
       {/* Mid-page unlock CTA for unpaid visitors */}
       {!hasProfessional && (
         <section className="mx-auto max-w-7xl px-6 py-10">
@@ -727,38 +549,6 @@ export default function Home() {
           </div>
         </section>
       )}
-
-      {/* Quarry map — secondary, below main conversion path */}
-      <section className="mx-auto max-w-7xl px-6 py-10">
-        <div className="mb-4">
-          <h2 className="font-heading text-2xl font-bold text-foreground">Southeast Quarry Map</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Every mapped quarry and mine site in the S&amp;S database{!hasProfessional ? ". Premium details are locked — unlock to view owner, geology and valuation." : "."}</p>
-        </div>
-        {!hasProfessional ? (
-          <div className="relative flex h-[480px] flex-col items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-slate-800 to-slate-950 p-6 text-center">
-            <MapPin className="h-10 w-10 text-sky-300" />
-            <p className="mt-3 font-heading text-3xl font-bold text-white">{loading ? "…" : mappedTotal != null ? `${mappedTotal.toLocaleString()} mapped mine locations across the Southeast` : "Mapped location count unavailable"}</p>
-            <p className="mt-2 max-w-md text-sm text-slate-200">Unlock Full Quarry Intelligence to explore every site on the interactive map with owner, geology, valuation and opportunity score.</p>
-            <Link to="/subscribe" className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-              <TrendingUp className="h-4 w-4" /> Unlock — $39/month
-            </Link>
-          </div>
-        ) : (
-          <Suspense fallback={<div className="h-[480px] rounded-xl border border-border bg-muted/30 animate-pulse" />}>
-            <TennesseeMineMap
-              sites={ranked.slice(0, MAP_RENDER_LIMIT)}
-              geologyMap={geologyLookup}
-              height={480}
-              loading={loading}
-              unavailable={inventoryUnavailable}
-              onRetry={loadData}
-              previewMode={false}
-              totalMappedCount={mappedTotal}
-            />
-          </Suspense>
-        )}
-        <p className="mt-2 text-xs text-muted-foreground">Aerial imagery uses Esri World Imagery tiles tied to each site's coordinates; it is not a current-condition survey or exact parcel-boundary depiction.</p>
-      </section>
 
       {/* Tennessee land-investigation pilot */}
       <section className="mx-auto max-w-7xl px-6 py-8">

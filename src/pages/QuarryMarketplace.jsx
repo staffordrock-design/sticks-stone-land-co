@@ -1,33 +1,25 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  Building2, Database, ExternalLink, FileText, Layers3, List, Loader2,
-  LockKeyhole, Map as MapIcon, MapPin, Mountain, Search, ShieldCheck, SlidersHorizontal, X
+  FileText, Layers3, Loader2, MapPin, Search, ShieldCheck, SlidersHorizontal, X,
 } from "lucide-react";
-import {
-  CircleMarker, LayersControl, MapContainer, Popup, TileLayer, Tooltip, useMap, useMapEvents, WMSTileLayer
-} from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import BrandLogo from "@/components/BrandLogo";
+import QuarryMapCanvas from "@/components/quarryMap/QuarryMapCanvas";
 import { base44 } from "@/api/base44Client";
 import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
-import { rockCategoryColor, rockCategoryFor } from "../../base44/shared/rockTypes";
 
 const STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATUS_OPTIONS = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
-const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
-const CENSUS_COUNTY_WMS = "https://tigerweb.geo.census.gov/arcgis/services/TIGERweb/tigerWMS_ACS2026/MapServer/WMSServer";
-const DEFAULT_CENTER = [34.6, -85.4];
-const STATE_FIPS = { "01": "AL", "12": "FL", "13": "GA", "21": "KY", "28": "MS", "37": "NC", "45": "SC", "47": "TN" };
 
-function statusColor(group) {
-  if (group === "Active") return "#15803d";
-  if (group === "Inactive / Idled") return "#d97706";
-  if (group === "Historical / Abandoned") return "#64748b";
-  return "#2563eb";
+function statusGroup(status = "") {
+  const s = String(status).toLowerCase();
+  if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Inactive / Idled";
+  if (s.includes("historical") || s.includes("abandon")) return "Historical / Abandoned";
+  if (s.includes("active")) return "Active";
+  return "New / Potential";
 }
 
 function withinBounds(site, bounds) {
@@ -38,220 +30,13 @@ function withinBounds(site, bounds) {
   return lat >= bounds.south && lat <= bounds.north && lng >= bounds.west && lng <= bounds.east;
 }
 
-function clusterSites(sites, zoom) {
-  if (zoom >= 9) return sites.map((site) => ({ kind: "site", site }));
-  const cell = zoom <= 5 ? 1.25 : zoom === 6 ? 0.7 : zoom === 7 ? 0.35 : 0.18;
-  const groups = new Map();
-  for (const site of sites) {
-    const lat = Number(site.latitude);
-    const lng = Number(site.longitude);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-    const key = `${Math.floor(lat / cell)}:${Math.floor(lng / cell)}`;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(site);
-  }
-  return Array.from(groups.values()).map((group) => {
-    if (group.length === 1) return { kind: "site", site: group[0] };
-    return {
-      kind: "cluster",
-      sites: group,
-      lat: group.reduce((sum, s) => sum + Number(s.latitude), 0) / group.length,
-      lng: group.reduce((sum, s) => sum + Number(s.longitude), 0) / group.length,
-    };
-  });
-}
-
-function statusGroup(status = "") {
-  const s = String(status).toLowerCase();
-  if (s.includes("intermittent") || s.includes("temporarily idled") || s.includes("nonproducing") || s.includes("non-producing") || s.includes("inactive")) return "Inactive / Idled";
-  if (s.includes("historical") || s.includes("abandon")) return "Historical / Abandoned";
-  if (s.includes("active")) return "Active";
-  return "New / Potential";
-}
-
-function formatDate(value) {
-  if (!value) return "Not dated";
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString();
-}
-
-function MapViewportTracker({ onChange }) {
-  useMapEvents({
-    moveend(event) {
-      const map = event.target;
-      const b = map.getBounds();
-      onChange({
-        zoom: map.getZoom(),
-        bounds: { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() },
-      });
-    },
-    zoomend(event) {
-      const map = event.target;
-      const b = map.getBounds();
-      onChange({
-        zoom: map.getZoom(),
-        bounds: { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() },
-      });
-    },
-  });
-  return null;
-}
-
-function CountyClickPicker({ enabled, onCounty }) {
-  useMapEvents({
-    async click(event) {
-      if (!enabled) return;
-      const { lat, lng } = event.latlng;
-      try {
-        const params = new URLSearchParams({
-          where: "1=1",
-          geometry: `${lng},${lat}`,
-          geometryType: "esriGeometryPoint",
-          inSR: "4326",
-          spatialRel: "esriSpatialRelIntersects",
-          outFields: "STATE,BASENAME,NAME",
-          returnGeometry: "false",
-          f: "json",
-        });
-        const response = await fetch(`https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query?${params.toString()}`);
-        const data = await response.json();
-        const attributes = data?.features?.[0]?.attributes;
-        if (attributes?.BASENAME) onCounty({ county: attributes.BASENAME, state: STATE_FIPS[String(attributes.STATE || "").padStart(2, "0")] || null });
-      } catch {
-        // County selection remains optional if Census TIGERweb is temporarily unavailable.
-      }
-    },
-  });
-  return null;
-}
-
-function ClusterBubble({ cluster }) {
-  const map = useMap();
-  const count = cluster.sites.length;
-  return (
-    <CircleMarker
-      center={[cluster.lat, cluster.lng]}
-      radius={Math.min(24, 10 + Math.log2(count + 1) * 3)}
-      pathOptions={{ color: "#fff", weight: 2.5, fillColor: "#0f172a", fillOpacity: 0.92 }}
-      eventHandlers={{ click: () => map.flyTo([cluster.lat, cluster.lng], Math.min(11, map.getZoom() + 2), { duration: 0.5 }) }}
-    >
-      <Tooltip permanent direction="center" className="ss-map-cluster-count">{count}</Tooltip>
-    </CircleMarker>
-  );
-}
-
-function MapController({ sites, selectedId }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!sites.length) return;
-    const selected = sites.find((s) => s.id === selectedId);
-    if (selected) {
-      map.flyTo([Number(selected.latitude), Number(selected.longitude)], Math.max(map.getZoom(), 11), { duration: 0.6 });
-      return;
-    }
-    const points = sites
-      .slice(0, 250)
-      .map((s) => [Number(s.latitude), Number(s.longitude)])
-      .filter(([lat, lng]) => Number.isFinite(lat) && Number.isFinite(lng));
-    if (!points.length) return;
-    if (points.length === 1) map.setView(points[0], 10);
-    else map.fitBounds(points, { padding: [28, 28], maxZoom: 9 });
-  }, [map, selectedId, sites]);
-
-  return null;
-}
-
 function DataBadge({ children, tone = "slate" }) {
   const tones = {
     slate: "border-slate-200 bg-slate-50 text-slate-700",
     green: "border-emerald-200 bg-emerald-50 text-emerald-800",
     blue: "border-sky-200 bg-sky-50 text-sky-800",
-    amber: "border-amber-200 bg-amber-50 text-amber-800",
   };
   return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-bold ${tones[tone] || tones.slate}`}>{children}</span>;
-}
-
-function PropertyCard({ site, parcel, verification, selected, onSelect, hasProfessional }) {
-  const rock = site.commodity || "Material not classified";
-  const group = statusGroup(site.mine_status);
-  const owner = verification?.owner_name || parcel?.owner_name;
-  const parcelId = verification?.parcel_id || parcel?.parcel_id || site.parcel_id;
-  const acreage = parcel?.acreage || site.acreage;
-  const deed = verification?.deed_book_page || parcel?.deed_book_page;
-  const verified = verification?.status === "Verified" || Boolean(parcel?.source_url);
-
-  return (
-    <article
-      className={`rounded-2xl border bg-card p-4 transition ${selected ? "border-sky-500 ring-2 ring-sky-100" : "border-border hover:border-slate-300"}`}
-    >
-      <button type="button" onClick={onSelect} className="w-full text-left">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex flex-wrap gap-2">
-              <DataBadge tone={group === "Active" ? "green" : group === "Inactive / Idled" ? "amber" : "slate"}>{group}</DataBadge>
-              {hasProfessional && verified && <DataBadge tone="blue"><ShieldCheck className="mr-1 h-3 w-3" />Courthouse-linked</DataBadge>}
-            </div>
-            <h3 className="mt-3 line-clamp-2 font-heading text-lg font-black text-foreground">{site.mine_name || "Quarry / Mine Site"}</h3>
-            <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" />{[site.county, site.state].filter(Boolean).join(", ") || "Location on file"}</p>
-          </div>
-          <div className="rounded-xl bg-slate-950 px-2.5 py-2 text-center text-white">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-300">Rock</div>
-            <div className="mt-0.5 max-w-[95px] truncate text-xs font-bold">{rock}</div>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-muted/40 p-2.5">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Acreage</div>
-            <div className="mt-1 text-sm font-black">{Number(acreage) > 0 ? Number(acreage).toLocaleString() : "—"}</div>
-          </div>
-          <div className="rounded-xl bg-muted/40 p-2.5">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Source</div>
-            <div className="mt-1 truncate text-sm font-black">{site.source || "Public"}</div>
-          </div>
-          <div className="rounded-xl bg-muted/40 p-2.5">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Status</div>
-            <div className="mt-1 truncate text-sm font-black">{group}</div>
-          </div>
-        </div>
-
-        {site.last_source_update && (
-          <div className="mt-2 text-[10px] text-muted-foreground">Source checked {formatDate(site.last_source_update)}</div>
-        )}
-
-        {hasProfessional ? (
-          <div className="mt-4 space-y-2 border-t border-border pt-3 text-xs">
-            {owner && <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Owner</span><strong className="max-w-[65%] text-right">{owner}</strong></div>}
-            {parcelId && <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Parcel / tax map</span><strong className="max-w-[65%] truncate text-right">{parcelId}</strong></div>}
-            {deed && <div className="flex items-start justify-between gap-3"><span className="text-muted-foreground">Deed reference</span><strong>{deed}</strong></div>}
-          </div>
-        ) : (
-          <div className="mt-4 space-y-2 border-t border-border pt-3 text-xs">
-            <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Owner</span><span className="inline-flex items-center gap-1 text-slate-400"><LockKeyhole className="h-3 w-3" />Locked</span></div>
-            <div className="flex items-center justify-between gap-3"><span className="text-muted-foreground">Parcel / deed</span><span className="inline-flex items-center gap-1 text-slate-400"><LockKeyhole className="h-3 w-3" />Locked</span></div>
-          </div>
-        )}
-      </button>
-
-      <div className="mt-4 flex gap-2">
-        <Link to={`/mines/${site.id}`} className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl bg-slate-950 px-3 text-xs font-bold text-white hover:bg-slate-800">
-          {hasProfessional ? "Open full intelligence" : "Open record"}
-        </Link>
-        {hasProfessional && (verification?.source_url || parcel?.source_url) && (
-          <a
-            href={verification?.source_url || parcel?.source_url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-3 text-xs font-bold"
-            title="Open source record"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
-        )}
-      </div>
-    </article>
-  );
 }
 
 export default function QuarryMarketplace() {
@@ -274,7 +59,6 @@ export default function QuarryMarketplace() {
   const [geology, setGeology] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [mobileView, setMobileView] = useState("list");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -288,16 +72,12 @@ export default function QuarryMarketplace() {
       setLoading(true);
       setError("");
       try {
-        // Always load the public quarry list first — it uses service role and
-        // returns up to 3000 records per state with the fields the map needs.
         const response = await base44.functions.invoke("get-public-quarry-list", { state });
         const publicSites = response?.data?.sites || response?.sites || [];
         if (cancelled) return;
         setSites(publicSites.filter((s) => s?.id && isPlausibleSoutheastCoordinate(s.latitude, s.longitude, s.state)));
 
         if (hasProfessional) {
-          // Load premium parcel, verification, and geology data separately
-          // with a lower limit to avoid rate-limiting.
           try {
             const [parcelRows, verifyRows, geologyRows] = await Promise.all([
               premiumEntityQuery("ParcelRecord", { state }, "-updated_date", 500),
@@ -309,7 +89,6 @@ export default function QuarryMarketplace() {
             setVerifications(verifyRows || []);
             setGeology(geologyRows || []);
           } catch (premiumError) {
-            // Premium data is supplementary — don't fail the whole page if it's rate-limited.
             console.error("Premium data load failed", premiumError);
           }
         } else {
@@ -389,10 +168,9 @@ export default function QuarryMarketplace() {
   }, [sites, query, status, county, commodity, minAcres, verifiedOnly, deedOnly, parcelByMine, verificationBySite]);
 
   const displayed = useMemo(
-    () => areaBounds ? filtered.filter((site) => withinBounds(site, areaBounds)) : filtered,
+    () => (areaBounds ? filtered.filter((site) => withinBounds(site, areaBounds)) : filtered),
     [filtered, areaBounds]
   );
-  const clusterItems = useMemo(() => clusterSites(displayed.slice(0, 3000), mapView.zoom), [displayed, mapView.zoom]);
 
   const linkedParcelCount = displayed.filter((s) => s.msha_mine_id && parcelByMine.has(String(s.msha_mine_id))).length;
   const deedCount = displayed.filter((s) => {
@@ -418,9 +196,9 @@ export default function QuarryMarketplace() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-[1000] border-b border-border bg-background/95 backdrop-blur" style={{ paddingTop: "env(safe-area-inset-top, 12px)" }}>
-        <div className="mx-auto max-w-[1600px] px-4 pb-3 sm:px-6">
+    <div className="flex min-h-[100dvh] flex-col bg-background">
+      <header className="border-b border-border bg-background px-4 pb-3 sm:px-6" style={{ paddingTop: "env(safe-area-inset-top, 14px)" }}>
+        <div className="mx-auto max-w-[1600px]">
           <div className="flex items-center justify-between gap-3">
             <BrandLogo />
             <div className="hidden items-center gap-2 md:flex">
@@ -470,17 +248,20 @@ export default function QuarryMarketplace() {
               />
             </div>
             <DataBadge>{loading ? "Loading…" : `${displayed.length.toLocaleString()} properties`}</DataBadge>
-            <DataBadge tone="blue">{linkedParcelCount.toLocaleString()} parcel-linked</DataBadge>
-            <DataBadge tone="green">{deedCount.toLocaleString()} deed refs</DataBadge>
-            <button type="button" onClick={() => setVerifiedOnly((v) => !v)} className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black ${verifiedOnly ? "border-sky-300 bg-sky-50 text-sky-900" : "border-border bg-card text-muted-foreground"}`}><ShieldCheck className="h-4 w-4" />Courthouse linked</button>
-            <button type="button" onClick={() => setDeedOnly((v) => !v)} className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black ${deedOnly ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-border bg-card text-muted-foreground"}`}><FileText className="h-4 w-4" />Has deed ref</button>
+            {hasProfessional && <DataBadge tone="blue">{linkedParcelCount.toLocaleString()} parcel-linked</DataBadge>}
+            {hasProfessional && <DataBadge tone="green">{deedCount.toLocaleString()} deed refs</DataBadge>}
+            {hasProfessional && (
+              <>
+                <button type="button" onClick={() => setVerifiedOnly((v) => !v)} className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black ${verifiedOnly ? "border-sky-300 bg-sky-50 text-sky-900" : "border-border bg-card text-muted-foreground"}`}><ShieldCheck className="h-4 w-4" />Courthouse linked</button>
+                <button type="button" onClick={() => setDeedOnly((v) => !v)} className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black ${deedOnly ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-border bg-card text-muted-foreground"}`}><FileText className="h-4 w-4" />Has deed ref</button>
+              </>
+            )}
             {(query || status !== "All" || county !== "All counties" || commodity !== "All materials" || minAcres || verifiedOnly || deedOnly || areaBounds) && (
               <button type="button" onClick={clearFilters} className="text-xs font-bold text-sky-800 hover:underline">Clear filters</button>
             )}
-            <div className="ml-auto flex rounded-xl border border-border bg-card p-1 lg:hidden">
-              <button type="button" onClick={() => setMobileView("list")} className={`inline-flex min-h-9 items-center gap-1 rounded-lg px-3 text-xs font-bold ${mobileView === "list" ? "bg-slate-950 text-white" : ""}`}><List className="h-4 w-4" />List</button>
-              <button type="button" onClick={() => setMobileView("map")} className={`inline-flex min-h-9 items-center gap-1 rounded-lg px-3 text-xs font-bold ${mobileView === "map" ? "bg-slate-950 text-white" : ""}`}><MapIcon className="h-4 w-4" />Map</button>
-            </div>
+            {!hasProfessional && (
+              <Link to="/subscribe" className="ml-auto text-xs font-bold text-sky-800 hover:underline">Unlock ownership, geology &amp; deed detail — $39/month</Link>
+            )}
           </div>
         </div>
       </header>
@@ -488,172 +269,82 @@ export default function QuarryMarketplace() {
       {error ? (
         <div className="mx-auto max-w-4xl px-6 py-10"><div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">{error}</div></div>
       ) : (
-        <main className="mx-auto grid max-w-[1600px] lg:grid-cols-[minmax(360px,44%)_1fr]">
-          <section className={`${mobileView === "map" ? "hidden lg:block" : "block"} border-r border-border bg-background`}>
-            <div className="border-b border-border px-4 py-4 sm:px-6">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-sky-700">Find properties</p>
-              <h1 className="mt-1 font-heading text-2xl font-black">Quarry & Mineral Property Intelligence</h1>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">Browse quarry records like commercial real estate, then open the source-linked parcel, ownership, permit and geology intelligence behind each location.</p>
-              {!hasProfessional && (
-                <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3 text-sm">
-                  <p className="font-bold text-sky-950">You're seeing public quarry records.</p>
-                  <p className="mt-1 text-sky-800">Unlock ownership, parcel, deed, permit and geology intelligence for every property — <Link to="/subscribe" className="font-bold underline">$39/month</Link></p>
-                  <p className="mt-1 text-xs text-sky-800">
-                    Not sure yet?{" "}
-                    <Link to={`/mines/${SAMPLE_RECORD_ID}`} className="font-bold text-sky-900 underline">View a full sample record</Link>{" "}
-                    — one record unlocked in full, so you can see exactly what's inside.
-                  </p>
-                </div>
-              )}
+        <main className="relative min-h-[540px] flex-1">
+          <div className="absolute inset-0">
+            <QuarryMapCanvas
+              sites={displayed}
+              geologyMap={geologyBySite}
+              parcelByMine={parcelByMine}
+              verificationBySite={verificationBySite}
+              premium={hasProfessional}
+              selectedId={selectedId}
+              onSelectSite={setSelectedId}
+              onViewport={setMapView}
+              countyPickMode={countyPickMode}
+              onCountyPick={({ county: pickedCounty, state: pickedState }) => {
+                if (pickedState && pickedState !== state) {
+                  setState(pickedState);
+                  setCounty(pickedCounty);
+                } else {
+                  setCounty(pickedCounty);
+                }
+                setAreaBounds(null);
+                setCountyPickMode(false);
+              }}
+            />
+          </div>
+
+          <div className="pointer-events-none absolute left-1/2 top-3 z-[600] flex w-full max-w-full -translate-x-1/2 flex-wrap items-center justify-center gap-2 px-3">
+            {mapView.bounds && (
+              <button
+                type="button"
+                onClick={() => { setAreaBounds(mapView.bounds); setSelectedId(null); }}
+                className="pointer-events-auto min-h-11 rounded-xl border border-slate-300 bg-white/95 px-4 text-xs font-black text-slate-900 shadow-lg backdrop-blur hover:bg-white"
+              >
+                Search this map area
+              </button>
+            )}
+            {areaBounds && (
+              <button
+                type="button"
+                onClick={() => setAreaBounds(null)}
+                className="pointer-events-auto min-h-11 rounded-xl border border-slate-300 bg-white/95 px-4 text-xs font-black text-sky-800 shadow-lg backdrop-blur hover:bg-white"
+              >
+                Show all filtered properties
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setCountyPickMode((v) => !v)}
+              className={`pointer-events-auto min-h-11 rounded-xl border px-4 text-xs font-black shadow-lg backdrop-blur ${countyPickMode ? "border-sky-500 bg-sky-600 text-white" : "border-slate-300 bg-white/95 text-slate-900 hover:bg-white"}`}
+            >
+              {countyPickMode ? "Tap a county on the map" : "Pick county from map"}
+            </button>
+          </div>
+
+          <div className="pointer-events-none absolute bottom-4 left-4 z-[500] max-w-xs rounded-2xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
+            <div className="flex items-center gap-2 text-xs font-black"><Layers3 className="h-4 w-4" />Map intelligence</div>
+            <div className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground"><MapPin className="h-3 w-3" />Tap a marker for owner, parcel, deed and geology detail; zoom out to cluster.</div>
+            <div className="mt-2 border-t border-border pt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status ring</div>
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-green-700" />Active</span>
+              <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-amber-600" />Inactive / idled</span>
+              <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-slate-500" />Historical</span>
+              <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-blue-600" />New / potential</span>
             </div>
+          </div>
 
-            <div className="grid gap-3 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-1 xl:grid-cols-2">
-              {loading ? [...Array(8)].map((_, i) => <div key={i} className="h-72 animate-pulse rounded-2xl border border-border bg-muted/30" />) : displayed.length ? (
-                displayed.slice(0, 500).map((site) => {
-                  const parcel = site.msha_mine_id ? parcelByMine.get(String(site.msha_mine_id)) : null;
-                  const verification = verificationBySite.get(site.id) || (site.msha_mine_id ? verificationBySite.get(`msha:${site.msha_mine_id}`) : null);
-                  return (
-                    <PropertyCard
-                      key={site.id}
-                      site={site}
-                      parcel={parcel}
-                      verification={verification}
-                      selected={selectedId === site.id}
-                      onSelect={() => { setSelectedId(site.id); setMobileView("map"); }}
-                      hasProfessional={hasProfessional}
-                    />
-                  );
-                })
-              ) : (
-                <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground sm:col-span-2 lg:col-span-1 xl:col-span-2">No properties match these filters.</div>
-              )}
+          {!hasProfessional && (
+            <div className="absolute bottom-4 right-4 z-[500] max-w-[240px] rounded-2xl border border-sky-200 bg-white/95 p-3 shadow-lg backdrop-blur">
+              <p className="text-xs font-bold text-sky-950">Public quarry records</p>
+              <p className="mt-1 text-[11px] leading-4 text-sky-800">Ownership, deeds, geology and opportunity scoring are inside the paid record.</p>
+              <Link to={`/mines/${SAMPLE_RECORD_ID}`} className="mt-2 inline-block text-[11px] font-bold text-sky-900 underline">View a full sample record</Link>
             </div>
-          </section>
-
-          <section className={`${mobileView === "list" ? "hidden lg:block" : "block"} relative min-h-[680px] bg-muted/20`}>
-            <div className="sticky top-[190px] h-[calc(100vh-190px)] min-h-[620px]">
-              <MapContainer center={DEFAULT_CENTER} zoom={6} minZoom={4} style={{ height: "100%", width: "100%" }} scrollWheelZoom>
-                <MapController sites={displayed} selectedId={selectedId} />
-                <MapViewportTracker onChange={setMapView} />
-                <CountyClickPicker
-                  enabled={countyPickMode}
-                  onCounty={({ county: pickedCounty, state: pickedState }) => {
-                    if (pickedState && pickedState !== state) {
-                      setState(pickedState);
-                      setCounty(pickedCounty);
-                    } else {
-                      setCounty(pickedCounty);
-                    }
-                    setAreaBounds(null);
-                    setCountyPickMode(false);
-                  }}
-                />
-                <LayersControl position="topright">
-                  <LayersControl.BaseLayer checked name="Street">
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
-                  </LayersControl.BaseLayer>
-                  <LayersControl.BaseLayer name="Satellite / aerial">
-                    <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" />
-                  </LayersControl.BaseLayer>
-                  <LayersControl.BaseLayer name="USGS Topographic">
-                    <TileLayer url="https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}" attribution="&copy; USGS National Map" />
-                  </LayersControl.BaseLayer>
-                  <LayersControl.Overlay name="Bedrock geology (USGS)">
-                    <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.58} attribution="USGS State Geologic Map Compilation" />
-                  </LayersControl.Overlay>
-                  <LayersControl.Overlay checked name="County boundaries (Census 2026)">
-                    <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="11" format="image/png" transparent opacity={0.55} attribution="U.S. Census Bureau TIGERweb ACS 2026" />
-                  </LayersControl.Overlay>
-                </LayersControl>
-
-                {clusterItems.map((item) => {
-                  if (item.kind === "cluster") return <ClusterBubble key={`cluster-${item.lat}-${item.lng}-${item.sites.length}`} cluster={item} />;
-                  const site = item.site;
-                  const parcel = site.msha_mine_id ? parcelByMine.get(String(site.msha_mine_id)) : null;
-                  const verification = verificationBySite.get(site.id) || (site.msha_mine_id ? verificationBySite.get(`msha:${site.msha_mine_id}`) : null);
-                  const geo = geologyBySite.get(site.id) || (site.msha_mine_id ? geologyBySite.get(`msha:${site.msha_mine_id}`) : null);
-                  const rock = geo?.primary_rock || geo?.lithology || site.commodity;
-                  const color = rockCategoryColor(rock);
-                  const statusStroke = statusColor(statusGroup(site.mine_status));
-                  const linked = Boolean(verification?.status === "Verified" || parcel?.source_url);
-                  const owner = verification?.owner_name || parcel?.owner_name;
-                  return (
-                    <CircleMarker
-                      key={site.id}
-                      center={[Number(site.latitude), Number(site.longitude)]}
-                      radius={selectedId === site.id ? 10 : linked ? 8 : 6}
-                      pathOptions={{ color: statusStroke, weight: selectedId === site.id ? 5 : linked ? 3 : 2, fillColor: color, fillOpacity: 0.92 }}
-                      eventHandlers={{ click: () => setSelectedId(site.id) }}
-                    >
-                      <Popup>
-                        <div className="min-w-[240px]">
-                          <div className="text-xs font-bold uppercase tracking-wider text-slate-500">{linked ? "Courthouse-linked quarry record" : "Quarry intelligence record"}</div>
-                          <strong className="mt-1 block text-base">{site.mine_name || "Quarry / Mine Site"}</strong>
-                          <div>{[site.county, site.state].filter(Boolean).join(", ")}</div>
-                          {rock && <div className="mt-2"><strong>Rock:</strong> {rock} <span className="text-xs text-slate-500">({rockCategoryFor(rock)})</span></div>}
-                          {owner && <div><strong>Owner:</strong> {owner}</div>}
-                          {(verification?.parcel_id || parcel?.parcel_id) && <div><strong>Parcel:</strong> {verification?.parcel_id || parcel?.parcel_id}</div>}
-                          {(verification?.deed_book_page || parcel?.deed_book_page) && <div><strong>Deed:</strong> {verification?.deed_book_page || parcel?.deed_book_page}</div>}
-                          <div className="mt-2 text-xs text-slate-500">Source checked {formatDate(verification?.verified_at || parcel?.last_source_update || site.last_source_update)}</div>
-                          <Link to={`/mines/${site.id}`} className="mt-3 inline-block font-bold text-sky-800">Open full intelligence →</Link>
-                        </div>
-                      </Popup>
-                    </CircleMarker>
-                  );
-                })}
-              </MapContainer>
-
-              <div className="absolute left-1/2 top-4 z-[600] flex -translate-x-1/2 flex-wrap items-center justify-center gap-2 px-3">
-                {mapView.bounds && (
-                  <button
-                    type="button"
-                    onClick={() => { setAreaBounds(mapView.bounds); setSelectedId(null); }}
-                    className="min-h-11 rounded-xl border border-slate-300 bg-white/95 px-4 text-xs font-black text-slate-900 shadow-lg backdrop-blur hover:bg-white"
-                  >
-                    Search this map area
-                  </button>
-                )}
-                {areaBounds && (
-                  <button
-                    type="button"
-                    onClick={() => setAreaBounds(null)}
-                    className="min-h-11 rounded-xl border border-slate-300 bg-white/95 px-4 text-xs font-black text-sky-800 shadow-lg backdrop-blur hover:bg-white"
-                  >
-                    Show all filtered properties
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setCountyPickMode((v) => !v)}
-                  className={`min-h-11 rounded-xl border px-4 text-xs font-black shadow-lg backdrop-blur ${countyPickMode ? "border-sky-500 bg-sky-600 text-white" : "border-slate-300 bg-white/95 text-slate-900 hover:bg-white"}`}
-                >
-                  {countyPickMode ? "Tap a county on the map" : "Pick county from map"}
-                </button>
-              </div>
-
-              <div className="pointer-events-none absolute bottom-5 left-5 z-[500] max-w-sm rounded-2xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
-                <div className="flex items-center gap-2 text-xs font-black"><Layers3 className="h-4 w-4" />Map intelligence</div>
-                <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1"><Mountain className="h-3 w-3" />USGS geology</span>
-                  <span className="flex items-center gap-1"><Building2 className="h-3 w-3" />Parcel ownership</span>
-                  <span className="flex items-center gap-1"><FileText className="h-3 w-3" />Deed references</span>
-                  <span className="flex items-center gap-1"><Database className="h-3 w-3" />Mine / permit data</span>
-                </div>
-                <div className="mt-3 border-t border-border pt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status ring</div>
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
-                  <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-green-700" />Active</span>
-                  <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-amber-600" />Inactive / idled</span>
-                  <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-slate-500" />Historical</span>
-                  <span className="flex items-center gap-1"><i className="h-2.5 w-2.5 rounded-full bg-blue-600" />New / potential</span>
-                </div>
-                <div className="mt-2 text-[10px] leading-4 text-muted-foreground">Zoomed-out markers cluster automatically. Exact parcel outlines appear inside records when source geometry is available.</div>
-              </div>
-            </div>
-          </section>
+          )}
         </main>
       )}
 
-      <div className="border-t border-border bg-card px-6 py-5 text-center text-[11px] leading-5 text-muted-foreground">
+      <div className="border-t border-border bg-card px-6 py-4 text-center text-[11px] leading-5 text-muted-foreground">
         Parcel, tax-map, deed, permit, geology and mine records are source-linked screening information. They are not a title opinion, legal description, survey, appraisal, reserve estimate or guarantee of current ownership.
       </div>
     </div>
