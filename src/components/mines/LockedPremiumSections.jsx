@@ -66,7 +66,7 @@ export default function LockedPremiumSections() {
       <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5">
         <h2 className="font-heading text-xl font-bold text-slate-950">Full Quarry Intelligence unlocks these sections</h2>
         <p className="mt-1 text-sm leading-6 text-slate-600">
-          Every section below is part of the $39/month membership. Values are shown obscured so you can see exactly which intelligence layers exist for this record.
+          These are examples of membership sections, not confirmation that data exists for this property. Use the coverage indicators above; missing source records remain unavailable after purchase.
         </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
