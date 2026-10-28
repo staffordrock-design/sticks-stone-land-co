@@ -1,3 +1,4 @@
+import { selectSummaryPermit, ownershipStatusLabel } from "@/lib/sourceInterpretation";
 import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -494,7 +495,7 @@ export default function MineSiteDetail() {
   const parcelCoordinatesValid = isPlausibleSoutheastCoordinate(parcel?.latitude, parcel?.longitude, site.state);
   const mapLat = siteCoordinatesValid ? site.latitude : parcelCoordinatesValid ? parcel.latitude : null;
   const mapLng = siteCoordinatesValid ? site.longitude : parcelCoordinatesValid ? parcel.longitude : null;
-  const primaryPermit = relatedPermits.find((p) => Number(p?.permitted_acres) > 0) || relatedPermits[0] || null;
+  const primaryPermit = selectSummaryPermit(relatedPermits, site);
   const landOwner = ownershipVerification?.owner_name || parcel?.owner_name || site.parcel_owner || primaryPermit?.landowner_name || null;
   const siteOperator = site.operator_name && !/pending|unknown|verify|requires verification/i.test(site.operator_name) ? site.operator_name : null;
   const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
@@ -537,7 +538,7 @@ export default function MineSiteDetail() {
           <div className="mb-6 flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-300 bg-emerald-50 px-5 py-4">
             <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-700" />
             <span className="font-heading text-sm font-black tracking-[0.08em] text-emerald-950">{SAMPLE_RECORD_LABEL}</span>
-            <span className="text-sm text-emerald-800">Every field on this record is unlocked for all visitors, exactly as it exists in the database, so you can see what a complete S&amp;S quarry intelligence record contains.</span>
+            <span className="text-sm text-emerald-800">Every field on this record is unlocked for all visitors, exactly as it exists in the database, so you can inspect the available layers and the gaps before subscribing.</span>
           </div>
         )}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -554,7 +555,7 @@ export default function MineSiteDetail() {
             {hasProfessional && geologyRecord?.primary_rock && (
               <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800">
                 <Gem className="h-3.5 w-3.5" />
-                {geologyRecord.primary_rock}
+                Mapped geology: {geologyRecord.primary_rock}
                 {geologyRecord.geologic_age ? ` · ${geologyRecord.geologic_age}` : ""}
               </span>
             )}
@@ -568,6 +569,7 @@ export default function MineSiteDetail() {
         </div>
 
         <div className="mb-6"><QuarryActionBar site={site} /></div>
+        {hasProfessional && geologyRecord && <p className="mb-6 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950">MSHA commodity describes the reported mined material. Mapped regional geology describes the unit at the map location and may differ; it is not a deposit assay or a verified mineable reserve.</p>}
 
         {!site.is_verified_listing && (
           <div className="mb-6 rounded-2xl border border-stone-200 bg-stone-50 p-5 text-sm leading-relaxed text-stone-700">
@@ -603,6 +605,7 @@ export default function MineSiteDetail() {
             <Row label="Acreage" value={Number(site.acreage) > 0 ? Number(site.acreage).toLocaleString() : "Not available"} />
             <Row label="Permitted acres" value={hasProfessional ? (Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit") : <LockedValue />} />
             <Row label="Permit acreage basis" value={hasProfessional ? permitAcreageBasis : <LockedValue />} />
+            {hasProfessional && <><Row label="Summary permit" value={[primaryPermit?.permit_number, primaryPermit?.status].filter(Boolean).join(" · ")} /><p className="mt-3 text-xs text-muted-foreground">The summary prefers a source-labeled active permit. Other linked permits below may cover different activities or footprints; their acreages are not added. Confirm the controlling permit with the agency.</p></>}
             <Row label="Parcel acres" value={hasProfessional ? (Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null) : <LockedValue />} />
             <Row label="Category" value={site.category} />
             <Row label="Parcel" value={hasProfessional ? site.parcel_id : <LockedValue />} />
@@ -667,7 +670,7 @@ export default function MineSiteDetail() {
               <>
                 <Row label="Parcel" value={ownershipVerification?.parcel_id || parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
                 <Row label="Owner" value={ownershipVerification?.owner_name || landOwner || liveParcel?.owner} />
-                <Row label="Verification status" value={ownershipVerification?.status} />
+                <Row label="Verification status" value={ownershipStatusLabel(ownershipVerification, landOwner || liveParcel?.owner)} />
                 <Row label="Parcel acreage" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />
                 <Row label="Permitted acreage" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />
                 <Row label="Property address" value={ownershipVerification?.property_address || parcel?.property_address || liveParcel?.situs_address || site.address} />
@@ -948,7 +951,7 @@ export default function MineSiteDetail() {
                     {geologyRecord.geologic_age ? ` · ${geologyRecord.geologic_age}` : ""}
                   </div>
                 </div>
-                <Row label="Primary rock" value={geologyRecord.primary_rock} />
+                <Row label="Primary rock" value=Mapped geology: {geologyRecord.primary_rock} />
                 <Row label="Secondary" value={geologyRecord.secondary_rock} />
                 <Row label="Formation" value={geologyRecord.formation_name || "Not separately identified in mapped source"} />
                 <Row label="Geologic unit" value={geologyRecord.geologic_unit} />

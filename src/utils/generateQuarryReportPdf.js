@@ -1,3 +1,4 @@
+import { selectSummaryPermit } from "@/lib/sourceInterpretation";
 function text(value, fallback = "Not available from connected source") {
   if (value === null || value === undefined || value === "") return fallback;
   return String(value);
@@ -60,7 +61,7 @@ export async function generateQuarryReportPdf({ site, parcel, geology, profile, 
     y += Math.max(16, parts.length * 12 + 3);
   };
 
-  const primaryPermit = permits.find((p) => Number(p?.permitted_acres) > 0) || permits[0] || null;
+  const primaryPermit = selectSummaryPermit(permits, site);
   const landOwner = parcel?.owner_name || site?.parcel_owner || primaryPermit?.landowner_name;
   const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
   const operator = permitOperator || site?.operator_name;

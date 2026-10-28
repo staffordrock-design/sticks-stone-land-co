@@ -1,3 +1,4 @@
+import { selectSummaryPermit } from "@/lib/sourceInterpretation";
 import React from "react";
 import { Link } from "react-router-dom";
 import {
@@ -83,7 +84,7 @@ export default function IntelligenceProfile({
   const operator = site.operator_name && !/pending|unknown|verify/i.test(site.operator_name) ? site.operator_name : null;
   const controller = site.controller_name || null;
   const permittee = permits?.find((p) => p.permittee_name)?.permittee_name || site.permittee_name || null;
-  const primaryPermit = permits?.find((p) => Number(p?.permitted_acres) > 0) || permits?.[0] || null;
+  const primaryPermit = selectSummaryPermit(permits, site);
   const permittedAcreage = primaryPermit?.permitted_acres ?? site.permitted_acres;
   const parcelAcreage = parcel?.acreage ?? liveParcel?.acreage ?? site.acreage;
   const rockType = geology?.primary_rock || geology?.lithology || site.commodity || null;

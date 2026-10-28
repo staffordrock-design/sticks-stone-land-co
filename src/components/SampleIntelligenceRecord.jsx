@@ -1,3 +1,4 @@
+import { selectSummaryPermit } from "@/lib/sourceInterpretation";
 import React from "react";
 import { Link } from "react-router-dom";
 import {
@@ -30,7 +31,7 @@ export default function SampleIntelligenceRecord({ bundle, sampleSiteId }) {
   const { site, geology, parcel, permits = [], environmental = [], profile } = bundle;
   const location = [site.county ? `${site.county}, ` : "", site.state].join("");
   const refreshDate = formatDate(site.last_source_update || site.updated_date);
-  const primaryPermit = permits.find((p) => Number(p?.permitted_acres) > 0) || permits[0] || null;
+  const primaryPermit = selectSummaryPermit(permits, site);
 
   // Build "Why This Record Matters" findings dynamically from the sample data
   const findings = [];
@@ -97,8 +98,9 @@ export default function SampleIntelligenceRecord({ bundle, sampleSiteId }) {
           <InfoField label="MSHA Mine ID" value={site.msha_mine_id} />
           <InfoField label="Operator" value={site.operator_name} />
           <InfoField label="Acreage" value={site.acreage ? Number(site.acreage).toLocaleString() + " ac" : null} />
-          <InfoField label="Material / Rock Type" value={geology?.primary_rock || geology?.lithology || site.commodity} />
-          <InfoField label="Permit Number" value={site.tdec_permit_number || primaryPermit?.permit_number} />
+          <InfoField label="MSHA reported commodity" value={site.commodity} />
+          <InfoField label="Mapped regional geology" value={geology?.primary_rock || geology?.lithology} />
+          <InfoField label="Permit Number" value={primaryPermit?.permit_number || site.tdec_permit_number} />
           <InfoField label="Permit Type" value={primaryPermit?.permit_type} />
           <InfoField label="Data Source" value={site.source} />
         </div>
@@ -155,7 +157,7 @@ export default function SampleIntelligenceRecord({ bundle, sampleSiteId }) {
       {/* Locked intelligence sections */}
       <div className="border-t border-border p-6">
         <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
-          <Lock className="h-4 w-4" /> Full Intelligence — Locked
+          <Lock className="h-4 w-4" /> Available membership layers — coverage varies by property
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {LOCKED_SECTIONS.map(({ icon: Icon, label, desc }) => (
@@ -180,7 +182,7 @@ export default function SampleIntelligenceRecord({ bundle, sampleSiteId }) {
         <Link to={`/mines/${sampleSiteId}`} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-sky-500">
           <ArrowRight className="h-4 w-4" /> View a full sample record
         </Link>
-        <p className="mt-3 text-xs text-slate-400">One source-linked record, unlocked in full — owner, parcel, deed, permit, geology, production and opportunity screening, exactly as it exists in the database.</p>
+        <p className="mt-3 text-xs text-slate-400">Open this same sample in full. Review its linked data, source dates and unavailable fields before buying; other properties have different coverage.</p>
       </div>
     </div>
   );

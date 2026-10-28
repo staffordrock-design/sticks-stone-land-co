@@ -1,3 +1,4 @@
+import { selectSummaryPermit } from "@/lib/sourceInterpretation";
 import React from "react";
 import { Link } from "react-router-dom";
 import { MapPin, Mountain, ArrowUpRight, BadgeCheck, Camera, Gem, ShieldCheck, Gauge, Landmark, Leaf, LockKeyhole } from "lucide-react";
@@ -54,7 +55,7 @@ export default function MiningSiteCard({ site, valuation, geology, parcel, permi
   const rawOwner = parcel?.owner_name || site.parcel_owner;
   const owner = rawOwner && !/pending|unknown|verify/i.test(rawOwner) ? rawOwner : null;
   const parcelAcreage = parcel?.acreage ?? site.acreage;
-  const primaryPermit = permits.find((p) => Number(p?.permitted_acres) > 0) || permits[0] || null;
+  const primaryPermit = selectSummaryPermit(permits, site);
   const siteOperator = site.operator_name && !/pending|unknown|verify|requires verification/i.test(site.operator_name) ? site.operator_name : null;
   const permitOperator = primaryPermit?.operator_name && !/pending|unknown|verify|requires verification/i.test(primaryPermit.operator_name) ? primaryPermit.operator_name : null;
   const operator = siteOperator || permitOperator;
