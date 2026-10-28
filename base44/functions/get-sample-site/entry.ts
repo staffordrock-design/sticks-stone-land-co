@@ -5,39 +5,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 // only premium data exposed without an entitlement — a single designated
 // sample record. All other premium data stays behind get-premium-site-data.
 
-function isQuarryRelevant(site) {
-  const commodity = String(site?.commodity || '').toLowerCase().trim();
-  if (!commodity) return true;
-  if (commodity.includes('coal')) return false;
-  return ['stone', 'limestone', 'sand', 'gravel', 'aggregate', 'marble', 'granite', 'slate', 'shale', 'quartz', 'clay', 'dolomite', 'rock', 'lime'].some((term) => commodity.includes(term));
-}
-
-function completeness(s) {
-  return [s.mine_name, s.mine_status, s.commodity, s.operator_name, s.county, s.latitude, s.longitude, s.tdec_permit_number, s.npdes_permit_number, s.parcel_id, s.acreage].filter((v) => v !== null && v !== undefined && String(v).trim() !== '').length;
-}
-
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
     const svc = base44.asServiceRole;
 
-    // Get active TN quarries with valid coordinates, pick the most complete one.
-    const rows = await svc.entities.MiningSite.filter({ state: 'TN' }, '-updated_date', 200).catch(() => []);
-    const quarrySites = (rows || []).filter((s) => {
-      if (!s?.id || !isQuarryRelevant(s)) return false;
-      const lat = Number(s.latitude);
-      const lng = Number(s.longitude);
-      return Number.isFinite(lat) && Number.isFinite(lng) && lat >= 24 && lat <= 40 && lng >= -92 && lng <= -78;
-    });
-
-    if (quarrySites.length === 0) {
-      return Response.json({ site: null, geology: null, parcel: null, permits: [], environmental: [], profile: null });
-    }
-
-    // Prefer active sites, then pick the most complete record.
-    const active = quarrySites.filter((s) => /active/i.test(String(s.mine_status || '')));
-    const pool = (active.length > 0 ? active : quarrySites).slice(0, 30);
-    const sample = pool.sort((a, b) => completeness(b) - completeness(a))[0];
+    // Keep the preview and full public sample on the same designated record.
+    const sample = await svc.entities.MiningSite.get('6a79fe40925c52c762c59a12');
+    if (!sample) return Response.json({ error: 'Sample record unavailable' }, { status: 503 });
 
     const mshaId = sample.msha_mine_id || null;
     const parcelId = sample.parcel_id || null;

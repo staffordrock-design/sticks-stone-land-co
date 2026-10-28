@@ -13,7 +13,7 @@ const FREE_FEATURES = [
 ];
 
 const PAID_FEATURES = [
-  "Full searchable database — every quarry, every county, every state",
+  "Full searchable S&S database across eight Southeast states",
   "Full quarry and property records with all fields unlocked",
   "Ownership and parcel intelligence (owner, deed, tax-map, acreage)",
   "Geology and rock type (formation, age, lithology, USGS MRDS)",

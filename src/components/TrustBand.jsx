@@ -51,7 +51,7 @@ export default function TrustBand() {
       icon: MapPin,
       label: "Mapped Mine Locations",
       value: loading ? "…" : mappedCount != null ? mappedCount.toLocaleString() : "—",
-      sub: "Records with verified latitude & longitude",
+      sub: "Records with usable mapped coordinates; not surveyed boundaries",
     },
     {
       icon: Layers,
@@ -72,7 +72,7 @@ export default function TrustBand() {
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="mb-5 text-center">
           <h2 className="font-heading text-lg font-bold text-foreground">Source-Linked Intelligence, Organized for Diligence</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Real data from government and public-source records — not placeholders. Counts are distinct categories, not duplicates.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Government and public-source records, with coverage shown below. Mapped, parcel-linked and deed-linked records are overlapping subsets of the total.</p>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {statsDisplay.map(({ icon: Icon, label, value, sub }) => (
@@ -86,6 +86,7 @@ export default function TrustBand() {
             </div>
           ))}
         </div>
+        <p className="mt-4 text-center text-sm text-muted-foreground">Coverage varies by property. A membership unlocks available linked data, not missing ownership, deeds or boundaries. Search your county and open a record to check available layers before subscribing.</p>
         <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
           <RefreshCw className="h-3 w-3" />
           <span>Last database refresh: {loading ? "…" : latestRefresh || "—"}</span>

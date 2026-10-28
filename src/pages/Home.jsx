@@ -597,7 +597,7 @@ export default function Home() {
               <>
                 <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-5 text-center">
                   <p className="font-heading text-2xl font-bold text-sky-950">{ranked.length.toLocaleString()} quarry records available</p>
-                  <p className="mt-1 text-sm text-sky-800">Here's a 3-record preview. Unlock Full Quarry Intelligence to view every record with owner, operator, geology, valuation and opportunity score.</p>
+                  <p className="mt-1 text-sm text-sky-800">Here's a 3-record preview. Membership unlocks the available intelligence for each record. Coverage varies by property and source.</p>
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {ranked.slice(0, 3).map((s) => (
@@ -613,7 +613,7 @@ export default function Home() {
             <div className="mt-8 rounded-2xl border border-slate-700 bg-slate-950 p-8 text-center text-white">
               <h3 className="font-heading text-xl font-bold sm:text-2xl">This is a small sample of the full database</h3>
               <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Unlock to search and browse every quarry, every county, every state — with owner/operator, permitted acreage, mapped geology, valuation and opportunity score on every record.
+                Search the S&S database across eight Southeast states. Ownership, parcels, permits, geology and screening are included where linked; missing fields stay marked as unavailable.
               </p>
               <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <button type="button" onClick={() => document.getElementById("sample-record")?.scrollIntoView({ behavior: "smooth" })} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-600 bg-slate-900/50 px-6 py-3 text-sm font-bold text-white hover:bg-slate-800">
@@ -722,7 +722,7 @@ export default function Home() {
         <section className="mx-auto max-w-7xl px-6 py-10">
           <div className="rounded-3xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-8 text-center shadow-sm sm:p-12">
             <h2 className="font-heading text-2xl font-bold text-slate-950 sm:text-3xl">Unlock Every Quarry Record</h2>
-            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">You've seen the records. Now see the ownership, geology, permits, valuation and opportunity score behind every quarry. Full access unlocks immediately.</p>
+            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-700 sm:text-base">Unlock the available ownership, geology, permits and screening behind the records. Check coverage for your target first; membership does not guarantee every field on every property.</p>
             <p className="mt-3 text-xs text-slate-500">Cancel anytime. No account required.</p>
           </div>
         </section>
@@ -737,7 +737,7 @@ export default function Home() {
         {!hasProfessional ? (
           <div className="relative flex h-[480px] flex-col items-center justify-center overflow-hidden rounded-xl border border-border bg-gradient-to-br from-slate-800 to-slate-950 p-6 text-center">
             <MapPin className="h-10 w-10 text-sky-300" />
-            <p className="mt-3 font-heading text-3xl font-bold text-white">{loading ? "…" : `${ranked.length.toLocaleString()} quarry records mapped`}</p>
+            <p className="mt-3 font-heading text-3xl font-bold text-white">{loading ? "…" : mappedTotal != null ? `${mappedTotal.toLocaleString()} mapped mine locations across the Southeast` : "Mapped location count unavailable"}</p>
             <p className="mt-2 max-w-md text-sm text-slate-200">Unlock Full Quarry Intelligence to explore every site on the interactive map with owner, geology, valuation and opportunity score.</p>
             <Link to="/subscribe" className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-600 px-8 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
               <TrendingUp className="h-4 w-4" /> Unlock — $39/month

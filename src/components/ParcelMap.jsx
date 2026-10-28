@@ -142,7 +142,7 @@ export default function ParcelMap({ lat, lng, polygon, ownerName, parcelId, acre
       {effectiveRockType && (
         <div className="pointer-events-none absolute bottom-3 left-3 z-[500]">
           <div className="rounded-lg border border-border bg-card/95 px-3 py-2 shadow-sm backdrop-blur">
-            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Underground Rock</div>
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Mapped regional geology</div>
             <div className="mt-1 flex items-center gap-1.5">
               <span className="inline-block h-3 w-3 rounded-full border border-white/40" style={{ backgroundColor: rockColor }} />
               <span className="text-sm font-bold text-foreground">{effectiveRockType}</span>

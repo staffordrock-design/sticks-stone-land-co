@@ -2,9 +2,9 @@ import React from "react";
 import { Search, GitCompare, FileSearch, Bookmark, BellRing, ClipboardCheck } from "lucide-react";
 
 const STEPS = [
-  { icon: Search, title: "Search", desc: "Search every quarry, mine site, and mineral occurrence across the Southeast by name, county, state, material, or MSHA ID." },
+  { icon: Search, title: "Search", desc: "Search the S&S quarry and mine database across eight Southeast states by name, county, state, material or MSHA ID." },
   { icon: GitCompare, title: "Compare", desc: "Compare mapped property facts side by side — acreage, geology, permits, production, and opportunity scores." },
-  { icon: FileSearch, title: "Inspect Intelligence", desc: "Open any quarry record to see ownership, parcel, deed, geology, permit, compliance, and production intelligence." },
+  { icon: FileSearch, title: "Inspect Intelligence", desc: "Open a quarry record to review its available ownership, parcel, geology, permit, compliance and production layers. Availability varies by property." },
   { icon: Bookmark, title: "Save Target", desc: "Save the quarries worth tracking. Paid members get unlimited saves." },
   { icon: BellRing, title: "Monitor Changes", desc: "Get alerts when new data arrives for your saved targets — ownership changes, permit updates, new production data." },
   { icon: ClipboardCheck, title: "Request Diligence", desc: "Request a custom due-diligence report or professional research engagement directly from any quarry record." },
@@ -36,9 +36,9 @@ export default function SubscriptionWorkflow() {
       </div>
       <div className="mt-5 rounded-xl border border-sky-200 bg-sky-50 p-4">
         <p className="text-sm leading-6 text-sky-950">
-          <strong>Before:</strong> You see a quarry name, county, and status — nothing else.
+          <strong>Before:</strong> Browse public mine identity, location and status, then check linked-data coverage before buying.
           <br />
-          <strong>After:</strong> You see the recorded owner, parcel boundary, deed reference, geology and rock type, permitted acreage, TDEC and NPDES permits, MSHA inspections and violations, production history, TDOT demand, comparable sales, and a 0–100 opportunity score — all source-linked and ready for diligence.
+          <strong>After:</strong> Membership unlocks the linked ownership, parcel, deed, geology, permit, production and screening information available for each property. Missing records remain unavailable. Mapped geology is not a deposit assay; source dates and confidence appear with the data.
         </p>
       </div>
     </div>
