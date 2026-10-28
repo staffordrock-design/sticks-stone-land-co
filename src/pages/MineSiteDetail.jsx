@@ -167,6 +167,7 @@ export default function MineSiteDetail() {
   const [tdotDemand, setTdotDemand] = useState([]);
   const [liveParcel, setLiveParcel] = useState(null);
   const [ownershipVerifications, setOwnershipVerifications] = useState([]);
+  const [publicCoverage, setPublicCoverage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAllRecords, setShowAllRecords] = useState(false);
