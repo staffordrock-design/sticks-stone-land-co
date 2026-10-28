@@ -1,6 +1,6 @@
 import { selectSummaryPermit, ownershipStatusLabel } from "@/lib/sourceInterpretation";
 import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 const ParcelMap = lazy(() => import("@/components/ParcelMap"));
 import { ArrowLeft, BarChart3, Camera, DollarSign, ExternalLink, FileSearch, Gauge, Gem, Landmark, Leaf, MapPinned, ShieldCheck, LockKeyhole, CheckCircle2, AlertTriangle, FileKey2, Mountain, TrendingUp } from "lucide-react";
