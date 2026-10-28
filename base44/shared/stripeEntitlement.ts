@@ -44,33 +44,8 @@ export async function upsertWebEntitlement(base44: any, subscription: any, fallb
 
   const status = entitlementStatus(String(subscription?.status || ''));
   const now = new Date().toISOString();
-  const isActive = ['active', 'grace_period'].includes(status);
-
-  const billingData = {
-    user_id: userId,
-    customer_email: String(subscription?.customer_email || metadata.customer_email || ''),
-    revenue_type: 'Subscription',
-    plan_or_product: planCode,
-    amount: Number(subscription?.items?.data?.[0]?.price?.unit_amount || 3900) / 100,
-    currency: String(subscription?.currency || 'usd').toUpperCase(),
-    platform: 'Stripe',
-    status: isActive ? 'Paid' : 'Pending',
-    external_transaction_id: subscriptionId,
-    occurred_at: now,
-    notes: userId ? 'Stripe webhook verified.' : 'Anonymous web checkout — Stripe webhook verified.',
-  };
-  const existingBilling = await base44.asServiceRole.entities.BillingEvent.filter(
-    { external_transaction_id: subscriptionId },
-    '-created_date',
-    1,
-    0,
-  );
-  if (existingBilling?.[0]) {
-    await base44.asServiceRole.entities.BillingEvent.update(existingBilling[0].id, billingData);
-  } else {
-    await base44.asServiceRole.entities.BillingEvent.create(billingData);
-  }
-
+  // Lifecycle status controls access only. Revenue comes from paid invoices,
+  // never from subscription creation, grace periods or cancellation.
   // Entitlement needs a user_id — anonymous checkouts are claimed later via
   // verify-stripe-subscription once the buyer signs in.
   if (!userId) return null;
@@ -148,4 +123,27 @@ export async function recordWebhookEvent(base44: any, data: {
   } catch (error) {
     console.error('stripe webhook: event log write failed', error);
   }
+}
+// One immutable payment identity per invoice across checkout, webhook and reconcile.
+// Zero-dollar invoices, test money and failed invoices are not paid revenue.
+export async function recordPaidStripeInvoice(base44: any, invoice: any, metadata: any = {}) {
+  if (invoice?.livemode !== true || invoice?.status !== 'paid' || Number(invoice?.amount_paid || 0) <= 0 || !invoice?.id) return null;
+  const plan = String(metadata.plan_code || '');
+  if (!FULL_PLAN_CODES.has(plan)) return null;
+  const key = String(invoice.id);
+  const existing = await base44.asServiceRole.entities.BillingEvent.filter({ external_transaction_id: key }, '-created_date', 1, 0);
+  const paidAt = invoice?.status_transitions?.paid_at || invoice?.created;
+  const data = {
+    user_id: String(metadata.user_id || ''),
+    customer_email: String(invoice.customer_email || metadata.customer_email || ''),
+    revenue_type: 'Subscription', plan_or_product: plan,
+    amount: Number(invoice.amount_paid) / 100,
+    currency: String(invoice.currency || '').toUpperCase(),
+    platform: 'Stripe', status: 'Paid', external_transaction_id: key,
+    occurred_at: isoFromSeconds(paidAt),
+    notes: 'Verified live paid Stripe invoice. Subscription cancellation does not erase this payment.',
+  };
+  if (existing?.[0]) await base44.asServiceRole.entities.BillingEvent.update(existing[0].id, data);
+  else await base44.asServiceRole.entities.BillingEvent.create(data);
+  return data;
 }

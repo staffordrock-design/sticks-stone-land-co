@@ -170,6 +170,7 @@ export default function Subscription() {
         }
         if (!cancelled) {
           trackVerifiedGoogleAdsPurchase(verifiedPurchase);
+          trackSubscriptionAction(user, "checkout_completed", "web", verifiedPurchase?.transaction_id || "verified-access");
           setPurchaseMessage("Subscription confirmed. Your full quarry intelligence is active.");
           base44.analytics.track({ eventName: "subscription_purchased" });
           navigate(returnTo, { replace: true });

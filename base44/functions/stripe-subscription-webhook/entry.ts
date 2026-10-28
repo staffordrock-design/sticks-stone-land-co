@@ -3,6 +3,7 @@ import Stripe from 'npm:stripe@23.0.1';
 import { secrets } from 'base44:runtime';
 import {
   upsertWebEntitlement,
+  recordPaidStripeInvoice,
   recordWebhookEvent,
   subscriptionIdFromInvoice,
 } from '../../shared/stripeEntitlement.ts';
@@ -66,18 +67,24 @@ export default async function (req: Request): Promise<Response> {
       if (subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         await upsertWebEntitlement(base44, subscription, object?.metadata || {});
+        if (object.invoice) {
+          const invoice = await stripe.invoices.retrieve(String(object.invoice));
+          await recordPaidStripeInvoice(base44, invoice, { ...object.metadata, ...subscription.metadata });
+        }
       }
     } else if (
       event.type === 'customer.subscription.created' ||
       event.type === 'customer.subscription.updated' ||
       event.type === 'customer.subscription.deleted'
     ) {
-      await upsertWebEntitlement(base44, object);
+      const current = await stripe.subscriptions.retrieve(String(object.id));
+      await upsertWebEntitlement(base44, current);
     } else if (event.type === 'invoice.payment_succeeded' || event.type === 'invoice.payment_failed') {
       const subscriptionId = subscriptionIdFromInvoice(object);
       if (subscriptionId) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         await upsertWebEntitlement(base44, subscription);
+        if (event.type === 'invoice.payment_succeeded') await recordPaidStripeInvoice(base44, object, subscription.metadata);
       }
     }
 

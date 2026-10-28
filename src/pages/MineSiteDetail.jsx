@@ -279,7 +279,9 @@ export default function MineSiteDetail() {
     (async () => {
       try {
         const response = await base44.functions.invoke("get-public-site", { mining_site_id: id });
-        const data = response?.data?.site || response?.site;
+        const payload = response?.data || response || {};
+        const data = payload.site;
+        if (!cancelled) setPublicCoverage(payload.coverage || null);
         if (!cancelled) {
           if (data) {
             setSite(data);
@@ -570,6 +572,15 @@ export default function MineSiteDetail() {
         </div>
 
         <div className="mb-6"><QuarryActionBar site={site} /></div>
+        {!hasProfessional && <section className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 p-5">
+          <h2 className="font-heading text-lg font-bold text-sky-950">Check this property's coverage before subscribing</h2>
+          <p className="mt-2 text-sm text-sky-950">These indicators show linked records, not verified completeness or current title. Membership reveals available details; it does not create missing data.</p>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {[["parcel", "Parcel / tax"], ["deeds", "Deed records"], ["geology", "Mapped geology"], ["permits", "Permits"], ["environmental", "Environmental"], ["production", "Production / activity"]].map(([key, label]) => <div key={key} className="rounded-xl border border-sky-100 bg-white p-3 text-sm"><strong>{label}</strong><div className="mt-1 text-slate-600">{publicCoverage?.[key] === true ? "Linked records available" : publicCoverage?.[key] === false ? "No linked records found" : "Availability could not be confirmed"}</div></div>)}
+          </div>
+          <Link to={`/subscribe?returnTo=${encodeURIComponent("/mines/" + id)}`} className="mt-4 inline-flex min-h-11 items-center rounded-xl bg-sky-700 px-5 text-sm font-bold text-white">Unlock available intelligence · $39/month</Link>
+        </section>}
+
         {hasProfessional && geologyRecord && <p className="mb-6 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-950">MSHA commodity describes the reported mined material. Mapped regional geology describes the unit at the map location and may differ; it is not a deposit assay or a verified mineable reserve.</p>}
 
         {!site.is_verified_listing && (
