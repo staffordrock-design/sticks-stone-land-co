@@ -46,6 +46,12 @@ export default function QuarryMarketplace() {
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [status, setStatus] = useState("All");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showMinerals, setShowMinerals] = useState(false);
+  const [showParcels, setShowParcels] = useState(false);
+  const [minerals, setMinerals] = useState([]);
+  const [mineralsLoading, setMineralsLoading] = useState(false);
+  const [mineralError, setMineralError] = useState("");
+  const [parcelStatus, setParcelStatus] = useState("");
   const [county, setCounty] = useState("All counties");
   const [commodity, setCommodity] = useState("All materials");
   const [minAcres, setMinAcres] = useState("");
@@ -113,6 +119,38 @@ export default function QuarryMarketplace() {
     if (state) next.state = state;
     setSearchParams(next, { replace: true });
   }, [query, state, setSearchParams]);
+
+  // The public USGS layer is a bounded, state-scoped, opt-in data request.
+  // Do not read the admin-only occurrence entity directly or expose premium records.
+  useEffect(() => {
+    if (!showMinerals) {
+      setMinerals([]);
+      setMineralError("");
+      setMineralsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setMinerals([]);
+    setMineralsLoading(true);
+    setMineralError("");
+    (async () => {
+      try {
+        const response = await base44.functions.invoke("get-public-mineral-occurrences", { state });
+        const payload = response?.data || response || {};
+        if (payload?.error) throw new Error(payload.error);
+        if (!Array.isArray(payload.occurrences)) throw new Error("No mineral dataset returned");
+        if (!cancelled) setMinerals(payload.occurrences.filter((o) =>
+          Number.isFinite(Number(o.latitude)) && Number.isFinite(Number(o.longitude))
+          && Number(o.latitude) > 20 && Number(o.latitude) < 45 && Number(o.longitude) < -70
+        ));
+      } catch {
+        if (!cancelled) setMineralError("USGS mineral layer is temporarily unavailable.");
+      } finally {
+        if (!cancelled) setMineralsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [showMinerals, state]);
 
   const parcelByMine = useMemo(() => {
     const map = new Map();
@@ -223,7 +261,7 @@ export default function QuarryMarketplace() {
               {query && <button type="button" onClick={() => setQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2"><X className="h-4 w-4" /></button>}
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:flex">
-              <select value={state} onChange={(e) => { setState(e.target.value); setCounty("All counties"); setAreaBounds(null); setCountyPickMode(false); }} className="min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold">
+              <select value={state} onChange={(e) => { setState(e.target.value); setCounty("All counties"); setAreaBounds(null); setCountyPickMode(false); setShowParcels(false); }} className="min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold">
                 {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
               <button type="button" onClick={() => setShowAdvancedFilters((v) => !v)} aria-expanded={showAdvancedFilters} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-bold md:hidden">
@@ -288,6 +326,9 @@ export default function QuarryMarketplace() {
               onSelectSite={setSelectedId}
               onViewport={setMapView}
               countyPickMode={countyPickMode}
+              minerals={showMinerals ? minerals : []}
+              showParcels={showParcels && state === "TN"}
+              onParcelStatus={setParcelStatus}
               onCountyPick={({ county: pickedCounty, state: pickedState }) => {
                 if (pickedState && pickedState !== state) {
                   setState(pickedState);
@@ -301,6 +342,23 @@ export default function QuarryMarketplace() {
             />
           </div>
 
+          <div className="pointer-events-none absolute left-3 top-[76px] z-[600] flex max-w-[min(230px,65vw)] flex-col items-start gap-2 sm:top-3">
+            <button type="button" onClick={() => setShowMinerals((v) => !v)} aria-pressed={showMinerals}
+              className={`pointer-events-auto min-h-11 rounded-xl border px-3 text-xs font-bold shadow-md backdrop-blur ${showMinerals ? "border-violet-700 bg-violet-700 text-white" : "border-slate-200 bg-white/95 text-slate-900"}`}>
+              {showMinerals ? "✓ " : ""}USGS mineral deposits
+            </button>
+            {showMinerals && (
+              <div role="status" className="rounded-lg bg-white/95 px-2 py-1 text-[11px] font-semibold text-slate-700 shadow">
+                {mineralsLoading ? "Loading mineral records…" : mineralError || `${minerals.length.toLocaleString()} occurrences in ${state}`}
+              </div>
+            )}
+            <button type="button" onClick={() => { setShowParcels((v) => !v); setParcelStatus(""); }} disabled={state !== "TN"} aria-pressed={showParcels}
+              title={state === "TN" ? "Tennessee parcel boundaries (zoom 14+)" : "Parcel geometry currently available for Tennessee only"}
+              className={`pointer-events-auto min-h-11 rounded-xl border px-3 text-xs font-bold shadow-md backdrop-blur disabled:cursor-not-allowed disabled:opacity-60 ${showParcels ? "border-sky-700 bg-sky-700 text-white" : "border-slate-200 bg-white/95 text-slate-900"}`}>
+              {showParcels ? "✓ " : ""}TN parcel outlines
+            </button>
+            {showParcels && state === "TN" && <div role="status" className="rounded-lg bg-white/95 px-2 py-1 text-[11px] leading-4 text-slate-700 shadow">{parcelStatus || "Zoom in to see parcel outlines. Public GIS, not a survey."}</div>}
+          </div>
           <div className="pointer-events-none absolute left-1/2 top-3 z-[600] flex w-full max-w-full -translate-x-1/2 flex-wrap items-center justify-center gap-2 px-3">
             {mapView.bounds && (
               <button
@@ -352,7 +410,7 @@ export default function QuarryMarketplace() {
       )}
 
       <div className="border-t border-border bg-card px-6 py-4 text-center text-[11px] leading-5 text-muted-foreground">
-        Parcel, tax-map, deed, permit, geology and mine records are source-linked screening information. They are not a title opinion, legal description, survey, appraisal, reserve estimate or guarantee of current ownership.
+        Parcel, tax-map, deed, permit, geology and mine records are source-linked screening information. Tennessee GIS parcel outlines are approximate and not a legal survey. USGS occurrence locations do not establish recoverable mineral reserves. Records are not a title opinion, legal description, survey, appraisal, reserve estimate or guarantee of current ownership.
       </div>
     </div>
   );
