@@ -1,8 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   CircleMarker,
-  LayersControl,
   MapContainer,
   Popup,
   TileLayer,
@@ -86,16 +85,28 @@ function ZoomWatcher({ onZoom }) {
 }
 
 function ViewportReporter({ onChange }) {
-  useMapEvents({
-    moveend(event) {
-      const map = event.target;
+  const map = useMap();
+  useEffect(() => {
+    const report = () => {
       const b = map.getBounds();
       onChange({
         zoom: map.getZoom(),
         bounds: { south: b.getSouth(), west: b.getWest(), north: b.getNorth(), east: b.getEast() },
       });
-    },
-  });
+    };
+    report();
+    map.on("moveend", report);
+    return () => map.off("moveend", report);
+  }, [map, onChange]);
+  return null;
+}
+
+function MapSizeWatcher({ resizeKey }) {
+  const map = useMap();
+  useEffect(() => {
+    const handle = requestAnimationFrame(() => map.invalidateSize());
+    return () => cancelAnimationFrame(handle);
+  }, [map, resizeKey]);
   return null;
 }
 
@@ -132,7 +143,7 @@ function CountyClickPicker({ enabled, onCounty }) {
   return null;
 }
 
-function ClusterBubble({ cluster }) {
+function ClusterBubble({ cluster, onNavigate }) {
   const map = useMap();
   const count = cluster.sites.length;
   return (
@@ -140,7 +151,7 @@ function ClusterBubble({ cluster }) {
       center={[cluster.lat, cluster.lng]}
       radius={Math.min(24, 10 + Math.log2(count + 1) * 3)}
       pathOptions={{ color: "#fff", weight: 2.5, fillColor: "#0f172a", fillOpacity: 0.92 }}
-      eventHandlers={{ click: () => map.flyTo([cluster.lat, cluster.lng], Math.min(11, map.getZoom() + 2), { duration: 0.5 }) }}
+      eventHandlers={{ click: () => { onNavigate?.(); map.flyTo([cluster.lat, cluster.lng], Math.min(11, map.getZoom() + 2), { duration: 0.5 }); } }}
     >
       <Tooltip permanent direction="center" className="ss-map-cluster-count">{count}</Tooltip>
     </CircleMarker>
@@ -198,16 +209,17 @@ function MineralDepositLayer({ minerals, zoom }) {
   });
 }
 
-function MapController({ sites, selectedId }) {
+function MapController({ sites, selectedId, viewportKey }) {
   const map = useMap();
+  const lastFitted = useRef(null);
 
+  // Frame new state inventory once. Closing a popup, filtering a result, or
+  // selecting a quarry should never suddenly zoom the user's map back out.
   useEffect(() => {
     if (!sites.length) return;
-    const selected = sites.find((s) => s.id === selectedId);
-    if (selected) {
-      map.flyTo([Number(selected.latitude), Number(selected.longitude)], Math.max(map.getZoom(), 11), { duration: 0.6 });
-      return;
-    }
+    const key = viewportKey == null ? sites : viewportKey;
+    if (lastFitted.current === key) return;
+    lastFitted.current = key;
     const points = sites
       .slice(0, 250)
       .map((s) => [Number(s.latitude), Number(s.longitude)])
@@ -215,6 +227,12 @@ function MapController({ sites, selectedId }) {
     if (!points.length) return;
     if (points.length === 1) map.setView(points[0], 10);
     else map.fitBounds(points, { padding: [28, 28], maxZoom: 9 });
+  }, [map, sites, viewportKey]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const selected = sites.find((s) => s.id === selectedId);
+    if (selected) map.flyTo([Number(selected.latitude), Number(selected.longitude)], Math.max(map.getZoom(), 11), { duration: 0.6 });
   }, [map, selectedId, sites]);
 
   return null;
@@ -284,6 +302,11 @@ export default function QuarryMapCanvas({
   selectedId = null,
   onSelectSite,
   onViewport,
+  viewportKey = null,
+  resizeKey = null,
+  baseLayer = "street",
+  showGeology = false,
+  showCountyBoundaries = false,
   countyPickMode = false,
   onCountyPick,
   minerals = EMPTY_SITES,
@@ -308,34 +331,23 @@ export default function QuarryMapCanvas({
       style={{ height: "100%", width: "100%" }}
       scrollWheelZoom
     >
-      <MapController sites={mappedSites} selectedId={selectedId} />
+      <MapController sites={mappedSites} selectedId={selectedId} viewportKey={viewportKey} />
+      <MapSizeWatcher resizeKey={resizeKey} />
       <ZoomWatcher onZoom={handleZoom} />
       {onViewport && <ViewportReporter onChange={onViewport} />}
       {onCountyPick && <CountyClickPicker enabled={countyPickMode} onCounty={onCountyPick} />}
       {showParcels && <TennesseeParcelLayer onStatus={onParcelStatus} />}
       {minerals.length > 0 && <MineralDepositLayer minerals={minerals} zoom={zoom} />}
 
-      <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="Street">
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Satellite / aerial">
-          <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="USGS Topographic">
-          <TileLayer url="https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}" attribution="&copy; USGS National Map" />
-        </LayersControl.BaseLayer>
-        <LayersControl.Overlay name="Bedrock geology (USGS)">
-          <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.58} attribution="USGS State Geologic Map Compilation" />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay checked name="County boundaries (Census)">
-          <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="11" format="image/png" transparent opacity={0.55} attribution="U.S. Census Bureau TIGERweb" />
-        </LayersControl.Overlay>
-      </LayersControl>
+      {baseLayer === "satellite"
+        ? <TileLayer key="satellite" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" />
+        : <TileLayer key="street" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />}
+      {showGeology && <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.58} attribution="USGS State Geologic Map Compilation" />}
+      {showCountyBoundaries && <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="11" format="image/png" transparent opacity={0.55} attribution="U.S. Census Bureau TIGERweb" />}
 
       {clusterItems.map((item) => {
         if (item.kind === "cluster") {
-          return <ClusterBubble key={`cluster-${item.lat}-${item.lng}-${item.sites.length}`} cluster={item} />;
+          return <ClusterBubble onNavigate={() => onSelectSite?.(null)} key={`cluster-${item.lat}-${item.lng}-${item.sites.length}`} cluster={item} />;
         }
         const site = item.site;
         const geo = lookupRow(geologyMap, site.id) || (site.msha_mine_id ? lookupRow(geologyMap, `msha:${site.msha_mine_id}`) : null);
@@ -358,9 +370,9 @@ export default function QuarryMapCanvas({
             }}
             eventHandlers={{ click: () => onSelectSite?.(site.id) }}
           >
-            <Popup>
-              <SitePopup site={site} geo={geo} parcel={parcel} verification={verification} premium={premium} />
-            </Popup>
+            {onSelectSite
+              ? <Tooltip direction="top" permanent={isSelected} opacity={1}>{site.mine_name || "Quarry / mine site"}</Tooltip>
+              : <Popup><SitePopup site={site} geo={geo} parcel={parcel} verification={verification} premium={premium} /></Popup>}
           </CircleMarker>
         );
       })}
