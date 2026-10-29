@@ -129,14 +129,18 @@ const RequireAdmin = ({ children }) => {
 const AuthenticatedApp = () => {
   const { user, isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const { pathname } = useLocation();
-  const publicPath = isNativeIOS() || ['/', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/due-diligence', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent', '/us-geology-map', '/enterprise'].includes(pathname);
+  const publicPath = isNativeIOS() || ['/', '/discover', '/search', '/subscribe', '/privacy', '/terms', '/support', '/data-sources', '/sell', '/due-diligence', '/get-started', '/account/delete', '/account-deletion', '/login', '/register', '/forgot-password', '/reset-password', '/oauth/consent', '/us-geology-map', '/enterprise'].includes(pathname);
   const hideBottomNav = ["/login", "/register", "/forgot-password", "/reset-password", "/oauth/consent"].includes(pathname);
 
   useEffect(() => {
     const pageSeo = {
       "/": {
-        title: "S&S Rock Holdings — Rock & Quarry Intelligence From the Ground Up",
-        description: "Rock & Quarry Intelligence. From the Ground Up. Search quarry properties, ownership, acreage, geology, permits, production, mineral potential, and market intelligence."
+        title: "Interactive Quarry Map | S&S Rock Holdings",
+        description: "Explore a live interactive quarry map across the Southeast. Search mines and aggregate properties by location, status and rock type, then investigate ownership, parcels, geology, and permits."
+      },
+      "/discover": {
+        title: "Explore Quarry Intelligence | S&S Rock Holdings",
+        description: "Discover what S&S Rock Holdings offers: quarry intelligence, property research, mineral data, and a full sample record."
       },
       "/subscribe": {
         title: "$39 Full Quarry Intelligence | S&S Rock Holdings",
@@ -284,7 +288,8 @@ const AuthenticatedApp = () => {
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Add your page Route elements here */}
-      <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+      <Route path="/" element={<PageTransition><QuarryMarketplace /></PageTransition>} />
+      <Route path="/discover" element={<PageTransition><Home /></PageTransition>} />
       <Route path="/search" element={<PageTransition><QuarryMarketplace /></PageTransition>} />
       <Route path="/quarry-intelligence" element={<PageTransition><QuarryIntelligence /></PageTransition>} />
       <Route path="/listings/:id" element={<PageTransition><ListingDetail /></PageTransition>} />
