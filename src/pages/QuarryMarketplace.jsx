@@ -70,7 +70,7 @@ function QuarryDetail({ site, parcel, verification, premium, onClose }) {
   const deed = verification?.deed_book_page || parcel?.deed_book_page;
   const acres = acreageFor(site, parcel);
   return (
-    <section aria-label="Selected quarry" className="pointer-events-auto w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:p-5">
+    <section aria-label="Selected quarry" className="pointer-events-auto max-h-[60dvh] w-full overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl sm:max-h-[75dvh] sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-[0.15em] text-sky-700">{site.is_verified_listing && site.listing_id ? "Verified seller listing" : "Quarry record"}</p>
@@ -458,7 +458,7 @@ export default function QuarryMarketplace() {
           </aside>
         )}
 
-        <div className="absolute bottom-4 right-3 z-[560] flex flex-col items-end gap-2 sm:bottom-5 sm:right-5">
+        <div className={"absolute bottom-4 right-3 z-[560] flex-col items-end gap-2 sm:bottom-5 sm:right-5 sm:flex " + ((selectedSite || resultsOpen) ? "hidden" : "flex")}>
           {layersOpen && (
             <div className="w-[235px] max-w-[65vw] rounded-2xl border border-slate-200 bg-white p-3 shadow-2xl">
               <div className="mb-2 flex items-center justify-between"><strong className="text-sm text-slate-900">Map layers</strong><button type="button" onClick={() => setLayersOpen(false)} aria-label="Close layers" className="flex h-8 w-8 items-center justify-center text-slate-500"><X className="h-4 w-4" /></button></div>
