@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
-  ArrowUpRight, Bookmark, Check, ChevronDown, FileText, Layers3, List,
-  Loader2, Map as MapIcon, MapPin, Search, ShieldCheck, SlidersHorizontal,
+  ArrowUpRight, Bookmark, ChevronDown, Layers3, List,
+  Loader2, Map as MapIcon, MapPin, Search, SlidersHorizontal,
   X,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
