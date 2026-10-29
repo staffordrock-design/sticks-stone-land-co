@@ -13,6 +13,7 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { rockCategoryColor, rockCategoryFor } from "@/lib/rockTypes";
+import TennesseeParcelLayer from "./TennesseeParcelLayer";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 
 const USGS_GEOLOGY_WMS = "https://mrdata.usgs.gov/services/sgmc/wms";
@@ -20,6 +21,7 @@ const CENSUS_COUNTY_WMS = "https://tigerweb.geo.census.gov/arcgis/services/TIGER
 const DEFAULT_CENTER = [34.6, -85.4];
 const STATE_FIPS = { "01": "AL", "12": "FL", "13": "GA", "21": "KY", "28": "MS", "37": "NC", "45": "SC", "47": "TN" };
 const EMPTY = new Map();
+const EMPTY_SITES = [];
 
 function statusGroup(status = "") {
   const s = String(status).toLowerCase();
@@ -145,6 +147,57 @@ function ClusterBubble({ cluster }) {
   );
 }
 
+function MineralCluster({ group }) {
+  const map = useMap();
+  return (
+    <CircleMarker
+      center={[group.lat, group.lng]}
+      radius={Math.min(22, 9 + Math.log2(group.sites.length + 1) * 2.7)}
+      pathOptions={{ color: "#fff", weight: 2, fillColor: "#6d28d9", fillOpacity: 0.9 }}
+      eventHandlers={{ click: () => map.flyTo([group.lat, group.lng], Math.min(11, map.getZoom() + 2), { duration: 0.45 }) }}
+    >
+      <Tooltip permanent direction="center" className="ss-map-cluster-count">{group.sites.length}</Tooltip>
+    </CircleMarker>
+  );
+}
+
+function MineralDepositLayer({ minerals, zoom }) {
+  const grouped = useMemo(() => clusterSites(minerals.slice(0, 1500), zoom), [minerals, zoom]);
+  return grouped.map((item) => {
+    if (item.kind === "cluster") {
+      return <MineralCluster key={`usgs-cluster-${item.lat}-${item.lng}-${item.sites.length}`} group={item} />;
+    }
+    const occurrence = item.site;
+    const source = String(occurrence.source_url || "");
+    const trustedSource = /^https:\/\/mrdata\.usgs\.gov\//i.test(source) ? source : null;
+    return (
+      <CircleMarker
+        key={`usgs-${occurrence.mrds_id || occurrence.id}`}
+        center={[Number(occurrence.latitude), Number(occurrence.longitude)]}
+        radius={zoom >= 10 ? 6 : 4}
+        pathOptions={{ color: "#ffffff", weight: 1.5, fillColor: "#7c3aed", fillOpacity: 0.9 }}
+      >
+        <Tooltip direction="top"><span className="text-xs font-semibold">USGS: {occurrence.occurrence_name || "Mineral occurrence"}</span></Tooltip>
+        <Popup>
+          <div className="min-w-[225px] space-y-1 text-xs">
+            <strong className="block text-sm">{occurrence.occurrence_name || "Mineral occurrence"}</strong>
+            <div><b>USGS MRDS:</b> {occurrence.mrds_id || "Unlisted"}</div>
+            <div><b>Commodity:</b> {occurrence.commodity_list || occurrence.commodity || "Not reported"}</div>
+            {occurrence.deposit_type && <div><b>Deposit type:</b> {occurrence.deposit_type}</div>}
+            {occurrence.development_status && <div><b>Reported status:</b> {occurrence.development_status}</div>}
+            {occurrence.match_status && <div><b>S&S match:</b> {occurrence.match_status}</div>}
+            {occurrence.mining_site_id && occurrence.match_status === "matched" && (
+              <Link to={`/mines/${occurrence.mining_site_id}`} className="block font-semibold text-sky-700 underline">View related mine record</Link>
+            )}
+            {trustedSource && <a href={trustedSource} target="_blank" rel="noopener noreferrer" className="block font-semibold text-violet-700 underline">View USGS source</a>}
+            <p className="pt-1 text-[11px] text-slate-500">Historical/recorded mineral occurrence; not proof of current reserves, grade, recoverability or land rights.</p>
+          </div>
+        </Popup>
+      </CircleMarker>
+    );
+  });
+}
+
 function MapController({ sites, selectedId }) {
   const map = useMap();
 
@@ -233,6 +286,9 @@ export default function QuarryMapCanvas({
   onViewport,
   countyPickMode = false,
   onCountyPick,
+  minerals = EMPTY_SITES,
+  showParcels = false,
+  onParcelStatus,
 }) {
   const [zoom, setZoom] = useState(6);
 
@@ -256,6 +312,8 @@ export default function QuarryMapCanvas({
       <ZoomWatcher onZoom={handleZoom} />
       {onViewport && <ViewportReporter onChange={onViewport} />}
       {onCountyPick && <CountyClickPicker enabled={countyPickMode} onCounty={onCountyPick} />}
+      {showParcels && <TennesseeParcelLayer onStatus={onParcelStatus} />}
+      {minerals.length > 0 && <MineralDepositLayer minerals={minerals} zoom={zoom} />}
 
       <LayersControl position="topright">
         <LayersControl.BaseLayer checked name="Street">
