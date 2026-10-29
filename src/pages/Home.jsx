@@ -523,6 +523,16 @@ export default function Home() {
       {/* Audience paths — primary navigation, right below trust */}
       <AudiencePaths />
 
+      {/* Specialist tools stay accessible without crowding the main map tab bar. */}
+      <section className="mx-auto max-w-7xl px-6 pb-10">
+        <h2 className="mb-3 text-sm font-bold text-slate-800">More industry tools</h2>
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Link to="/courthouse-records" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-blue-800 hover:border-blue-300">Courthouse &amp; deed records →</Link>
+          <Link to="/enterprise" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-blue-800 hover:border-blue-300">Enterprise intelligence →</Link>
+          <Link to="/network" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-blue-800 hover:border-blue-300">Industry network →</Link>
+        </div>
+      </section>
+
       {/* Sample intelligence record — secondary action for unpaid visitors */}
       {!hasProfessional && sampleBundle?.site && (
         <section id="sample-record" className="mx-auto max-w-7xl px-6 py-14">
