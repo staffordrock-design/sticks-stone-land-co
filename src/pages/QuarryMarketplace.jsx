@@ -12,6 +12,7 @@ import { premiumEntityQuery } from "@/lib/subscriptionAccess";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
+import { rockCategoryColor } from "@/lib/rockTypes";
 
 const STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATUSES = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -473,7 +474,18 @@ export default function QuarryMarketplace() {
                   {layer.label}
                 </label>
               ))}
-              <button type="button" onClick={() => { setCountyPickMode((v) => !v); setLayersOpen(false); }} className="mt-2 w-full rounded-lg bg-slate-100 px-2 py-2.5 text-xs font-bold text-slate-800">{countyPickMode ? "Cancel county picker" : "Pick county on map"}</button>
+              <div className="mt-3 border-t border-slate-200 pt-3">
+                <p className="text-[11px] font-bold text-slate-900">Marker colors · rock type</p>
+                <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-2">
+                  {["Limestone", "Granite", "Quartzite", "Sandstone", "Sand & gravel", "Clay"].map((rock) => (
+                    <div key={rock} className="flex items-center gap-1.5 text-[10px] text-slate-700">
+                      <span className="h-3 w-3 shrink-0 rounded-full border border-white shadow-sm" style={{ backgroundColor: rockCategoryColor(rock) }} />
+                      <span>{rock}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button type="button" onClick={() => { setCountyPickMode((v) => !v); setLayersOpen(false); }} className="mt-3 w-full rounded-lg bg-slate-100 px-2 py-2.5 text-xs font-bold text-slate-800">{countyPickMode ? "Cancel county picker" : "Pick county on map"}</button>
               {showMinerals && <p className="mt-2 text-[11px] text-slate-500">{mineralsLoading ? "Loading mineral records…" : mineralError || minerals.length.toLocaleString() + " mineral points loaded"}</p>}
               {showParcels && state === "TN" && <p className="mt-1 text-[11px] text-slate-500">{parcelStatus || "Zoom to level 14 for approximate parcel boundaries."}</p>}
               <Link to="/data-sources" className="mt-3 block border-t border-slate-100 pt-2 text-[11px] font-bold text-blue-700">Data sources and limitations</Link>
