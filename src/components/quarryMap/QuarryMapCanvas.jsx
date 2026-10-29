@@ -341,7 +341,7 @@ export default function QuarryMapCanvas({
 
       {baseLayer === "satellite"
         ? <TileLayer key="satellite" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" />
-        : <TileLayer key="street" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />}
+        : <TileLayer key="street" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" />}
       {showGeology && <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.58} attribution="USGS State Geologic Map Compilation" />}
       {showCountyBoundaries && <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="11" format="image/png" transparent opacity={0.55} attribution="U.S. Census Bureau TIGERweb" />}
 
