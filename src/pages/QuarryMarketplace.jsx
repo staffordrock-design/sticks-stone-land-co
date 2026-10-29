@@ -45,6 +45,7 @@ export default function QuarryMarketplace() {
   const [state, setState] = useState(searchParams.get("state") || "TN");
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [status, setStatus] = useState("All");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [county, setCounty] = useState("All counties");
   const [commodity, setCommodity] = useState("All materials");
   const [minAcres, setMinAcres] = useState("");
@@ -203,9 +204,12 @@ export default function QuarryMarketplace() {
             <BrandLogo />
             <div className="hidden items-center gap-2 md:flex">
               <DataBadge tone="blue"><ShieldCheck className="mr-1 h-3 w-3" />Source-linked</DataBadge>
+              <Link to="/discover" className="text-xs font-bold text-sky-800 hover:underline">Discover S&amp;S</Link>
               <Link to="/data-sources" className="text-xs font-bold text-muted-foreground hover:text-foreground">How the data works</Link>
             </div>
           </div>
+
+          <p className="mt-1 text-xs font-medium text-muted-foreground">Explore quarry locations, rock types and mineral opportunities right on the map.</p>
 
           <div className="mt-3 flex flex-col gap-2 lg:flex-row">
             <div className="relative flex-1">
@@ -222,20 +226,23 @@ export default function QuarryMarketplace() {
               <select value={state} onChange={(e) => { setState(e.target.value); setCounty("All counties"); setAreaBounds(null); setCountyPickMode(false); }} className="min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold">
                 {STATES.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
-              <select value={county} onChange={(e) => setCounty(e.target.value)} className="min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold">
+              <button type="button" onClick={() => setShowAdvancedFilters((v) => !v)} aria-expanded={showAdvancedFilters} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-bold md:hidden">
+                <SlidersHorizontal className="h-4 w-4" />{showAdvancedFilters ? "Hide filters" : "Filters"}
+              </button>
+              <select value={county} onChange={(e) => setCounty(e.target.value)} className={`${showAdvancedFilters ? "" : "hidden"} min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold md:block`}>
                 {counties.map((c) => <option key={c}>{c}</option>)}
               </select>
-              <select value={commodity} onChange={(e) => setCommodity(e.target.value)} className="min-h-12 min-w-0 rounded-xl border border-border bg-card px-3 text-sm font-bold">
+              <select value={commodity} onChange={(e) => setCommodity(e.target.value)} className={`${showAdvancedFilters ? "" : "hidden"} min-h-12 min-w-0 rounded-xl border border-border bg-card px-3 text-sm font-bold md:block`}>
                 {commodities.map((c) => <option key={c}>{c}</option>)}
               </select>
-              <select value={status} onChange={(e) => setStatus(e.target.value)} className="min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold">
+              <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${showAdvancedFilters ? "" : "hidden"} min-h-12 rounded-xl border border-border bg-card px-3 text-sm font-bold md:block`}>
                 {STATUS_OPTIONS.map((s) => <option key={s}>{s}</option>)}
               </select>
             </div>
           </div>
 
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <div className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-card px-3">
+            <div className={`${showAdvancedFilters ? "" : "hidden"} min-h-10 items-center gap-2 rounded-xl border border-border bg-card px-3 md:inline-flex`}>
               <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
               <input
                 type="number"
@@ -252,8 +259,8 @@ export default function QuarryMarketplace() {
             {hasProfessional && <DataBadge tone="green">{deedCount.toLocaleString()} deed refs</DataBadge>}
             {hasProfessional && (
               <>
-                <button type="button" onClick={() => setVerifiedOnly((v) => !v)} className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black ${verifiedOnly ? "border-sky-300 bg-sky-50 text-sky-900" : "border-border bg-card text-muted-foreground"}`}><ShieldCheck className="h-4 w-4" />Courthouse linked</button>
-                <button type="button" onClick={() => setDeedOnly((v) => !v)} className={`inline-flex min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black ${deedOnly ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-border bg-card text-muted-foreground"}`}><FileText className="h-4 w-4" />Has deed ref</button>
+                <button type="button" onClick={() => setVerifiedOnly((v) => !v)} className={`${showAdvancedFilters ? "inline-flex" : "hidden"} min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black md:inline-flex ${verifiedOnly ? "border-sky-300 bg-sky-50 text-sky-900" : "border-border bg-card text-muted-foreground"}`}><ShieldCheck className="h-4 w-4" />Courthouse linked</button>
+                <button type="button" onClick={() => setDeedOnly((v) => !v)} className={`${showAdvancedFilters ? "inline-flex" : "hidden"} min-h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-black md:inline-flex ${deedOnly ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-border bg-card text-muted-foreground"}`}><FileText className="h-4 w-4" />Has deed ref</button>
               </>
             )}
             {(query || status !== "All" || county !== "All counties" || commodity !== "All materials" || minAcres || verifiedOnly || deedOnly || areaBounds) && (
@@ -322,7 +329,7 @@ export default function QuarryMarketplace() {
             </button>
           </div>
 
-          <div className="pointer-events-none absolute bottom-4 left-4 z-[500] max-w-xs rounded-2xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
+          <div className="pointer-events-none absolute bottom-4 left-4 z-[500] hidden max-w-xs rounded-2xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur md:block">
             <div className="flex items-center gap-2 text-xs font-black"><Layers3 className="h-4 w-4" />Map intelligence</div>
             <div className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground"><MapPin className="h-3 w-3" />Tap a marker for owner, parcel, deed and geology detail; zoom out to cluster.</div>
             <div className="mt-2 border-t border-border pt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status ring</div>
@@ -335,7 +342,7 @@ export default function QuarryMarketplace() {
           </div>
 
           {!hasProfessional && (
-            <div className="absolute bottom-4 right-4 z-[500] max-w-[240px] rounded-2xl border border-sky-200 bg-white/95 p-3 shadow-lg backdrop-blur">
+            <div className="absolute bottom-20 right-3 z-[500] max-w-[215px] rounded-2xl border border-sky-200 bg-white/95 p-3 shadow-lg backdrop-blur sm:bottom-4 sm:right-4 sm:max-w-[240px]">
               <p className="text-xs font-bold text-sky-950">Public quarry records</p>
               <p className="mt-1 text-[11px] leading-4 text-sky-800">Ownership, deeds, geology and opportunity scoring are inside the paid record.</p>
               <Link to={`/mines/${SAMPLE_RECORD_ID}`} className="mt-2 inline-block text-[11px] font-bold text-sky-900 underline">View a full sample record</Link>
