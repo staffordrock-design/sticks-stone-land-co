@@ -349,7 +349,7 @@ export default function QuarryMarketplace() {
             </button>
             {showMinerals && (
               <div role="status" className="rounded-lg bg-white/95 px-2 py-1 text-[11px] font-semibold text-slate-700 shadow">
-                {mineralsLoading ? "Loading mineral records…" : mineralError || `${minerals.length.toLocaleString()} occurrences in ${state}`}
+                {mineralsLoading ? "Loading mineral records…" : mineralError || (minerals.length ? `${minerals.length.toLocaleString()} USGS occurrences shown (${state}, up to 1,500)` : "No USGS records returned; try another state or reload.")}
               </div>
             )}
             <button type="button" onClick={() => { setShowParcels((v) => !v); setParcelStatus(""); }} disabled={state !== "TN"} aria-pressed={showParcels}
