@@ -209,7 +209,7 @@ function MineralDepositLayer({ minerals, zoom }) {
   });
 }
 
-function MapController({ sites, selectedId, viewportKey }) {
+function MapController({ sites, selectedId, viewportKey, selectionOffsetPx }) {
   const map = useMap();
   const lastFitted = useRef(null);
 
@@ -232,8 +232,21 @@ function MapController({ sites, selectedId, viewportKey }) {
   useEffect(() => {
     if (!selectedId) return;
     const selected = sites.find((s) => s.id === selectedId);
-    if (selected) map.flyTo([Number(selected.latitude), Number(selected.longitude)], Math.max(map.getZoom(), 11), { duration: 0.6 });
-  }, [map, selectedId, sites]);
+    if (!selected) return;
+    const lat = Number(selected.latitude);
+    const lng = Number(selected.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    const targetZoom = Math.max(map.getZoom(), 12);
+    // Shift the center south so the marker sits above the property card that
+    // covers the bottom of the map on phones.
+    if (selectionOffsetPx) {
+      const point = map.project([lat, lng], targetZoom);
+      const shifted = map.unproject([point.x, point.y + selectionOffsetPx], targetZoom);
+      map.flyTo(shifted, targetZoom, { duration: 0.7 });
+      return;
+    }
+    map.flyTo([lat, lng], targetZoom, { duration: 0.7 });
+  }, [map, selectedId, sites, selectionOffsetPx]);
 
   return null;
 }
@@ -300,10 +313,12 @@ export default function QuarryMapCanvas({
   verificationBySite = EMPTY,
   premium = false,
   selectedId = null,
+  hoveredId = null,
   onSelectSite,
   onViewport,
   viewportKey = null,
   resizeKey = null,
+  selectionOffsetPx = 0,
   baseLayer = "street",
   showGeology = false,
   showCountyBoundaries = false,
@@ -328,10 +343,23 @@ export default function QuarryMapCanvas({
       center={DEFAULT_CENTER}
       zoom={6}
       minZoom={4}
+      maxZoom={19}
+      zoomSnap={0.5}
+      zoomDelta={0.5}
+      wheelPxPerZoomLevel={90}
+      zoomAnimation
+      fadeAnimation
+      markerZoomAnimation
+      preferCanvas
       style={{ height: "100%", width: "100%" }}
       scrollWheelZoom
     >
-      <MapController sites={mappedSites} selectedId={selectedId} viewportKey={viewportKey} />
+      <MapController
+        sites={mappedSites}
+        selectedId={selectedId}
+        viewportKey={viewportKey}
+        selectionOffsetPx={selectionOffsetPx}
+      />
       <MapSizeWatcher resizeKey={resizeKey} />
       <ZoomWatcher onZoom={handleZoom} />
       {onViewport && <ViewportReporter onChange={onViewport} />}
@@ -339,9 +367,16 @@ export default function QuarryMapCanvas({
       {showParcels && <TennesseeParcelLayer onStatus={onParcelStatus} />}
       {minerals.length > 0 && <MineralDepositLayer minerals={minerals} zoom={zoom} />}
 
-      {baseLayer === "satellite"
-        ? <TileLayer key="satellite" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" />
-        : <TileLayer key="street" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" />}
+      {baseLayer === "satellite" ? (
+        <>
+          <TileLayer key="satellite" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" attribution="Imagery &copy; Esri, Maxar, Earthstar Geographics" maxZoom={19} keepBuffer={4} />
+          <TileLayer key="satellite-labels" url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}" attribution="" maxZoom={19} opacity={0.9} />
+        </>
+      ) : baseLayer === "topo" ? (
+        <TileLayer key="topo" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}" attribution="Topographic tiles &copy; Esri" maxZoom={19} keepBuffer={4} />
+      ) : (
+        <TileLayer key="street" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}" attribution="Tiles &copy; Esri" maxZoom={19} keepBuffer={4} />
+      )}
       {showGeology && <WMSTileLayer url={USGS_GEOLOGY_WMS} layers="SGMC" format="image/png" transparent opacity={0.58} attribution="USGS State Geologic Map Compilation" />}
       {showCountyBoundaries && <WMSTileLayer url={CENSUS_COUNTY_WMS} layers="11" format="image/png" transparent opacity={0.55} attribution="U.S. Census Bureau TIGERweb" />}
 
@@ -356,24 +391,34 @@ export default function QuarryMapCanvas({
         const rock = geo?.primary_rock || geo?.lithology || site.commodity;
         const linked = Boolean(verification?.status === "Verified" || parcel?.source_url);
         const isSelected = selectedId === site.id;
+        const isHovered = hoveredId === site.id;
 
         return (
-          <CircleMarker
-            key={site.id}
-            center={[Number(site.latitude), Number(site.longitude)]}
-            radius={isSelected ? 10 : linked ? 8 : 6}
-            pathOptions={{
-              color: statusColor(statusGroup(site.mine_status)),
-              weight: isSelected ? 5 : linked ? 3 : 2,
-              fillColor: rockCategoryColor(rock),
-              fillOpacity: 0.92,
-            }}
-            eventHandlers={{ click: () => onSelectSite?.(site.id) }}
-          >
-            {onSelectSite
-              ? <Tooltip direction="top" permanent={isSelected} opacity={1}>{site.mine_name || "Quarry / mine site"}</Tooltip>
-              : <Popup><SitePopup site={site} geo={geo} parcel={parcel} verification={verification} premium={premium} /></Popup>}
-          </CircleMarker>
+          <React.Fragment key={site.id}>
+            {(isSelected || isHovered) && (
+              <CircleMarker
+                interactive={false}
+                center={[Number(site.latitude), Number(site.longitude)]}
+                radius={isSelected ? 17 : 14}
+                pathOptions={{ color: "#1d4ed8", weight: 2, opacity: 0.55, fillColor: "#1d4ed8", fillOpacity: 0.12 }}
+              />
+            )}
+            <CircleMarker
+              center={[Number(site.latitude), Number(site.longitude)]}
+              radius={isSelected ? 10 : isHovered ? 9 : linked ? 8 : 6.5}
+              pathOptions={{
+                color: statusColor(statusGroup(site.mine_status)),
+                weight: isSelected ? 5 : linked ? 3 : 2,
+                fillColor: rockCategoryColor(rock),
+                fillOpacity: 0.95,
+              }}
+              eventHandlers={{ click: () => onSelectSite?.(site.id) }}
+            >
+              {onSelectSite
+                ? <Tooltip direction="top" permanent={isSelected || isHovered} opacity={1}>{site.mine_name || "Quarry / mine site"}</Tooltip>
+                : <Popup><SitePopup site={site} geo={geo} parcel={parcel} verification={verification} premium={premium} /></Popup>}
+            </CircleMarker>
+          </React.Fragment>
         );
       })}
     </MapContainer>
