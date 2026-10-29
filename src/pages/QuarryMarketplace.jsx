@@ -80,7 +80,7 @@ function QuarryDetail({ site, parcel, verification, premium, onClose }) {
         <button type="button" onClick={onClose} aria-label="Close quarry detail" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"><X className="h-4 w-4" /></button>
       </div>
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <span className="rounded-full bg-slate-900 px-2.5 py-1 font-bold text-white">{statusGroup(site.mine_status)}</span>
+        <span className="rounded-full bg-slate-700 px-2.5 py-1 font-bold text-white">{statusGroup(site.mine_status)}</span>
         {site.commodity && <span className="rounded-full bg-sky-100 px-2.5 py-1 font-semibold text-sky-900">{site.commodity}</span>}
         {acres && <span className="rounded-full bg-slate-100 px-2.5 py-1 font-semibold text-slate-800">{acres}</span>}
       </div>
@@ -139,6 +139,7 @@ export default function QuarryMarketplace() {
   const [geology, setGeology] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [retryToken, setRetryToken] = useState(0);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -148,6 +149,9 @@ export default function QuarryMarketplace() {
       setLoading(true);
       setError("");
       setSites([]);
+      setParcels([]);
+      setVerifications([]);
+      setGeology([]);
       try {
         const response = await base44.functions.invoke("get-public-quarry-list", { state });
         const rows = response?.data?.sites || response?.sites || [];
@@ -180,7 +184,7 @@ export default function QuarryMarketplace() {
     };
     load();
     return () => { cancelled = true; };
-  }, [checking, hasProfessional, state]);
+  }, [checking, hasProfessional, state, retryToken]);
 
   useEffect(() => {
     const next = {};
@@ -361,7 +365,7 @@ export default function QuarryMarketplace() {
                 </>
               )}
               <button type="button" onClick={clearFilters} className="min-h-10 rounded-lg px-3 text-xs font-bold text-blue-800">Clear all</button>
-              <button type="button" onClick={() => setFiltersOpen(false)} className="ml-auto min-h-10 rounded-lg bg-slate-900 px-4 text-xs font-bold text-white">Show map</button>
+              <button type="button" onClick={() => setFiltersOpen(false)} className="ml-auto min-h-10 rounded-lg bg-blue-700 px-4 text-xs font-bold text-white">Show map</button>
             </div>
           )}
         </div>
@@ -372,7 +376,7 @@ export default function QuarryMarketplace() {
           <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
             <p className="font-bold text-slate-900">We couldn't load the quarry map.</p>
             <p className="text-sm text-slate-600">{error}</p>
-            <button type="button" onClick={() => updateState(state === "TN" ? "GA" : "TN")} className="rounded-xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white">Try another state</button>
+            <button type="button" onClick={() => setRetryToken((n) => n + 1)} className="rounded-xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white">Retry map</button>
           </div>
         ) : (
           <QuarryMapCanvas
@@ -406,7 +410,7 @@ export default function QuarryMarketplace() {
           {areaBounds ? (
             <button type="button" onClick={() => setAreaBounds(null)} className="pointer-events-auto rounded-full border border-blue-200 bg-white px-4 py-2.5 text-xs font-extrabold text-blue-800 shadow-lg">Show all in {state}</button>
           ) : mapView.bounds && (
-            <button type="button" onClick={() => { setAreaBounds(mapView.bounds); setSelectedId(null); setResultsOpen(true); }} className="pointer-events-auto rounded-full bg-slate-900 px-4 py-2.5 text-xs font-extrabold text-white shadow-lg">Search this area</button>
+            <button type="button" onClick={() => { setAreaBounds(mapView.bounds); setSelectedId(null); setResultsOpen(true); }} className="pointer-events-auto rounded-full bg-blue-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-lg">Search this area</button>
           )}
         </div>
 
