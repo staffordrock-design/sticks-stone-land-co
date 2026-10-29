@@ -3,8 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Mountain, MapPinned, Bookmark, PlusCircle, UserRound, Briefcase, Landmark } from "lucide-react";
 
 const TABS = [
-  { to: "/", label: "Explore", icon: Mountain, match: (p) => p === "/" || p.startsWith("/listings") || p.startsWith("/mines") },
-  { to: "/search", label: "Map", icon: MapPinned, match: (p) => p.startsWith("/search") || p.startsWith("/mineral-intelligence") || p.startsWith("/quarry-intelligence") || p.startsWith("/land-intelligence") || p.startsWith("/us-geology-map") },
+  { to: "/", label: "Map", icon: MapPinned, match: (p) => p === "/" || p.startsWith("/search") || p.startsWith("/listings") || p.startsWith("/mines") || p.startsWith("/mineral-intelligence") || p.startsWith("/quarry-intelligence") || p.startsWith("/land-intelligence") || p.startsWith("/us-geology-map") },
+  { to: "/discover", label: "Discover", icon: Mountain, match: (p) => p === "/discover" },
   { to: "/watchlist", label: "Saved", icon: Bookmark, match: (p) => p.startsWith("/watchlist") || p.startsWith("/opportunities") },
   { to: "/sell", label: "List", icon: PlusCircle, match: (p) => p.startsWith("/sell") || p.startsWith("/seller-portal") || p.startsWith("/seller-dashboard") },
   { to: "/enterprise", label: "Enterprise", icon: Briefcase, match: (p) => p.startsWith("/enterprise") },
