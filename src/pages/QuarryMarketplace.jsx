@@ -265,9 +265,11 @@ export default function QuarryMarketplace() {
 
   const displayed = useMemo(() => areaBounds ? filtered.filter((site) => inBounds(site, areaBounds)) : filtered, [filtered, areaBounds]);
   const inView = useMemo(() => {
-    const rows = displayed.filter((site) => inBounds(site, mapView.bounds));
+    // Text searches cover every record in the selected state, not only pins
+    // currently visible in the viewport. Selecting a result flies to it.
+    const rows = query.trim() ? displayed : displayed.filter((site) => inBounds(site, mapView.bounds));
     return rows.sort((a, b) => String(a.mine_name || "").localeCompare(String(b.mine_name || "")));
-  }, [displayed, mapView.bounds]);
+  }, [displayed, mapView.bounds, query]);
   const selectedSite = displayed.find((s) => s.id === selectedId);
   const selectedParcel = selectedSite?.msha_mine_id ? parcelByMine.get(String(selectedSite.msha_mine_id)) : null;
   const selectedVerification = selectedSite ? (verificationBySite.get(selectedSite.id) || (selectedSite.msha_mine_id ? verificationBySite.get("msha:" + selectedSite.msha_mine_id) : null)) : null;
@@ -331,6 +333,7 @@ export default function QuarryMarketplace() {
               <input
                 value={query}
                 onChange={(event) => { setQuery(event.target.value); setSelectedId(null); setAreaBounds(null); }}
+                onKeyDown={(event) => { if (event.key === "Enter") { setResultsOpen(true); setResultLimit(30); setLayersOpen(false); } }}
                 placeholder="Find a quarry, county, rock type or mine ID"
                 aria-label="Search quarry records"
                 className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50 pl-10 pr-9 text-sm font-medium text-slate-950 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
@@ -432,8 +435,8 @@ export default function QuarryMarketplace() {
           <aside aria-label="Quarries in map view" className="absolute bottom-3 left-3 top-14 z-[550] flex w-[min(370px,calc(100%-24px))] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:bottom-5 sm:left-5 sm:top-4">
             <div className="flex items-start justify-between gap-2 border-b border-slate-100 px-4 py-3">
               <div>
-                <h2 className="text-base font-extrabold text-slate-950">Quarries on this map</h2>
-                <p className="mt-0.5 text-xs text-slate-500">{loading ? "Loading records…" : inView.length.toLocaleString() + " in view · " + displayed.length.toLocaleString() + " total matches"}</p>
+                <h2 className="text-base font-extrabold text-slate-950">{query.trim() ? "Search results" : "Quarries on this map"}</h2>
+                <p className="mt-0.5 text-xs text-slate-500">{loading ? "Loading records…" : inView.length.toLocaleString() + (query.trim() ? " matching records in " + state : " in view · " + displayed.length.toLocaleString() + " total matches")}</p>
               </div>
               <button type="button" onClick={() => setResultsOpen(false)} aria-label="Close results" className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700"><X className="h-4 w-4" /></button>
             </div>
@@ -441,7 +444,7 @@ export default function QuarryMarketplace() {
               {loading ? <div className="flex items-center gap-2 p-4 text-sm text-slate-600"><Loader2 className="h-4 w-4 animate-spin" />Loading quarries…</div> :
                 inView.length === 0 ? (
                   <div className="p-5 text-center text-sm leading-6 text-slate-600">
-                    No matching records in this map view. Move the map, change your filters, or select another state.
+                    No matching records. Try a different search term, move the map, or choose another state.
                     <button type="button" onClick={clearFilters} className="mt-3 block w-full rounded-xl bg-blue-700 px-3 py-2.5 text-xs font-bold text-white">Clear filters</button>
                   </div>
                 ) : (
