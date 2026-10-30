@@ -478,7 +478,7 @@ export default function Subscription() {
             <p className="font-semibold">Already paid? Don't purchase again.</p>
             <p className="mt-1">We couldn't confirm access yet. You can safely retry verification without another charge, or contact contact@ssrockholdings.com with your Stripe receipt.</p>
             <button type="button" onClick={() => window.location.reload()} disabled={loading} className="mt-3 rounded-lg bg-sky-700 px-4 py-2 font-bold text-white disabled:opacity-50">Retry payment verification</button>
-          </div>
+          </div>}
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
