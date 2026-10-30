@@ -12,9 +12,9 @@ const SUBSCRIPTION_PLANS = {
   },
 };
 
-// Reuse one $39.00 monthly Stripe price for new purchases on the existing product.
-// Existing subscriptions retain their price until explicitly migrated.
-const FALLBACK_STRIPE_PRICE_ID = 'price_1UO383HBH3xrClLV6PpcDgnJ';
+// The existing active live $39.00/month Stripe price. Do not silently create
+// another price or change what existing subscribers pay.
+const STRIPE_MONTHLY_PRICE_ID = 'price_1UO383HBH3xrClLV6PpcDgnJ';
 
 function randomSuffix() {
   const chars = 'abcdefghijklmnopqrstuvwxyz';
@@ -37,27 +37,18 @@ export default async function(req: Request) {
     if (!plan) return Response.json({ error: 'Invalid plan' }, { status: 400 });
 
     const stripeKey = secrets.get('STRIPE_SECRET_KEY');
-    const publishableKey = secrets.get('STRIPE_PUBLISHABLE_KEY');
-    if (!stripeKey || !publishableKey) {
-      return Response.json({ error: 'Stripe checkout is not fully configured' }, { status: 503 });
+    // Hosted Stripe Checkout only requires the secret key on the server.
+    // Don't reject valid purchases because the optional publishable key is missing.
+    if (!stripeKey) {
+      return Response.json({ error: 'Secure checkout is temporarily unavailable' }, { status: 503 });
     }
     const stripe = new Stripe(stripeKey, { apiVersion: '2026-06-24.dahlia' });
-    const lookupKey = 'ssrockholdings_professional_monthly_usd_39_00';
-    const matches = await stripe.prices.list({ active: true, lookup_keys: [lookupKey], limit: 1 });
-    let monthlyPrice = matches.data[0];
-    if (!monthlyPrice) {
-      const previousPrice = await stripe.prices.retrieve(FALLBACK_STRIPE_PRICE_ID);
-      const productId = typeof previousPrice.product === 'string' ? previousPrice.product : previousPrice.product.id;
-      monthlyPrice = await stripe.prices.create({
-        product: productId,
-        currency: plan.currency,
-        unit_amount: plan.unitAmount,
-        recurring: { interval: plan.interval },
-        lookup_key: lookupKey,
-      }, { idempotencyKey: lookupKey });
-    }
-    if (monthlyPrice.unit_amount !== plan.unitAmount || monthlyPrice.currency !== plan.currency || monthlyPrice.recurring?.interval !== plan.interval) {
-      throw new Error('The monthly subscription price is not configured correctly');
+    const monthlyPrice = await stripe.prices.retrieve(STRIPE_MONTHLY_PRICE_ID);
+    if (!monthlyPrice.active || monthlyPrice.livemode !== true ||
+        monthlyPrice.unit_amount !== plan.unitAmount ||
+        monthlyPrice.currency !== plan.currency ||
+        monthlyPrice.recurring?.interval !== plan.interval) {
+      return Response.json({ error: 'The monthly price is unavailable. Please contact S&S Rock Holdings support.' }, { status: 503 });
     }
     const subscriptionPriceId = monthlyPrice.id;
 
