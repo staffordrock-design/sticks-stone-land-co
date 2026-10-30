@@ -349,10 +349,13 @@ export default function Subscription() {
   };
 
   const startWebCheckout = async (planCode) => {
-    // Captured before checkout so an interrupted purchase can be recovered by email.
+    // Stripe collects the receipt email during secure checkout. Don't block a
+    // guest's purchase behind a second email form on our own page.
+    // A voluntarily provided email can still be used for checkout recovery.
     const buyerEmail = String(user?.email || guestEmail || "").trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(buyerEmail)) {
-      setPurchaseMessage("Enter the email address for your receipt first — we use it to send your access receipt and one reminder if checkout is interrupted.");
+    if (buyerEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(buyerEmail)) {
+      setPurchaseMessage("Please correct the optional email address, or clear it to continue directly to Stripe.");
+      document.getElementById("checkout-email")?.focus();
       return;
     }
     trackSubscriptionAction(user, "subscribe_cta_clicked", "web", planCode);
@@ -479,8 +482,8 @@ export default function Subscription() {
           <h2 id="subscription-options" className="mt-9 scroll-mt-6 font-heading text-xl font-bold">Subscription</h2>
           {!isNative && !user?.id && (
             <div className="mt-4 max-w-md rounded-2xl border border-border bg-muted/20 p-4">
-              <label htmlFor="checkout-email" className="text-sm font-bold text-foreground">Email for your receipt</label>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">No account needed. Your access receipt goes here, and we can send one reminder if checkout gets interrupted.</p>
+              <label htmlFor="checkout-email" className="text-sm font-bold text-foreground">Email for a checkout reminder <span className="font-normal text-muted-foreground">(optional)</span></label>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">You can leave this blank and go straight to secure Stripe checkout, where you'll enter your receipt email. Enter it here only if you'd like us to be able to send one reminder if checkout is interrupted.</p>
               <input
                 id="checkout-email"
                 type="email"
@@ -519,7 +522,7 @@ export default function Subscription() {
                 <div className="mt-2 text-sm font-semibold text-muted-foreground">One monthly membership · full quarry records · immediate access · cancel anytime</div>
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
-                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : `Subscribe for ${tier.priceLabel} · Secure Checkout`}</button>
+                  <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="min-h-12 rounded-xl bg-sky-700 px-4 py-3 text-base font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : `Subscribe for ${tier.priceLabel} · Continue to Stripe`}</button>
                   <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
                   <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                 </div>}
