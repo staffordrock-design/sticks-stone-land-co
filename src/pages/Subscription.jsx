@@ -67,6 +67,7 @@ export default function Subscription() {
   const [appleStoreAccess, setAppleStoreAccess] = useState({ active: false, professional: false, purchases: [], planCodes: [] });
   const [webAccess, setWebAccess] = useState({ active: false });
   const [guestEmail, setGuestEmail] = useState("");
+  const [verificationFailed, setVerificationFailed] = useState(false);
   const isNative = Capacitor.isNativePlatform();
   const isIOS = Capacitor.getPlatform() === "ios";
   const isAndroid = isNativeAndroid();
@@ -154,6 +155,7 @@ export default function Subscription() {
     (async () => {
       setLoading(true);
       setPurchaseMessage("Confirming your Full Quarry Intelligence subscription…");
+      setVerificationFailed(false);
       try {
         let verifiedPurchase = null;
         if (user?.id) {
@@ -177,7 +179,10 @@ export default function Subscription() {
           navigate(returnTo, { replace: true });
         }
       } catch (error) {
-        if (!cancelled) setPurchaseMessage(error?.message || "Could not confirm the web subscription yet.");
+        if (!cancelled) {
+          setVerificationFailed(true);
+          setPurchaseMessage(error?.message || "Could not confirm the web subscription yet.");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -469,6 +474,11 @@ export default function Subscription() {
           {!user?.id && !isNative && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to buy on the website.</strong> Continue straight to secure checkout. After payment, Full Quarry Intelligence unlocks on this browser; sign in later only if you want account-based features.</div>}
           {!user?.id && isAndroid && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Google Play requires an S&amp;S login to link your subscription.</strong> You can browse public quarry information first; when you subscribe, you will be asked to sign in.</div>}
           {purchaseMessage && <div role="status" aria-live="polite" className="mt-5 rounded-xl border border-border bg-muted/30 p-4 text-sm text-foreground">{purchaseMessage}</div>}
+          {verificationFailed && checkoutStatus === "success" && <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+            <p className="font-semibold">Already paid? Don't purchase again.</p>
+            <p className="mt-1">We couldn't confirm access yet. You can safely retry verification without another charge, or contact contact@ssrockholdings.com with your Stripe receipt.</p>
+            <button type="button" onClick={() => window.location.reload()} disabled={loading} className="mt-3 rounded-lg bg-sky-700 px-4 py-2 font-bold text-white disabled:opacity-50">Retry payment verification</button>
+          </div>
 
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
@@ -478,7 +488,6 @@ export default function Subscription() {
             </div>
           ) : null}
 
-          <SubscriptionWorkflow />
           <h2 id="subscription-options" className="mt-9 scroll-mt-6 font-heading text-xl font-bold">Subscription</h2>
           {!isNative && !user?.id && (
             <div className="mt-4 max-w-md rounded-2xl border border-border bg-muted/20 p-4">
@@ -523,26 +532,27 @@ export default function Subscription() {
                 <div className="mt-5 space-y-2">{tier.features.map((f) => <div key={f} className="flex gap-2 text-sm"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700"/><span>{f}</span></div>)}</div>
                 {!isNative && <div className="mt-6 grid gap-2">
                   <button onClick={() => startWebCheckout(`${tier.code}_monthly`)} disabled={!!buyingId} className="min-h-12 rounded-xl bg-sky-700 px-4 py-3 text-base font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === `${tier.code}_monthly` ? "Opening secure checkout…" : `Subscribe for ${tier.priceLabel} · Continue to Stripe`}</button>
-                  <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
+                  <p className="text-sm font-semibold text-foreground">Cancel anytime. Explore detailed quarry, parcel, geology, permit, and production intelligence.</p>
                   <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                 </div>}
                 {isNative && isIOS && (
                   <div className="mt-6 grid gap-2">
                     <button onClick={() => purchase(buyProductId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-sky-700 px-4 py-2.5 text-sm font-bold text-white hover:bg-sky-800 disabled:opacity-50">{buyingId === buyProductId ? "Connecting to Apple…" : storeLoading ? "Loading Apple subscription…" : monthlyStore?.priceString ? `Unlock Full Access · ${monthlyStore.priceString}/month` : "Apple subscription unavailable"}</button>
                     {priceMismatch && <p role="alert" className="text-sm text-red-700">Apple returned an unexpected subscription price. Purchases are disabled until store pricing is corrected.</p>}
-                    <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
+                    <p className="text-sm font-semibold text-foreground">Cancel anytime. Explore detailed quarry, parcel, geology, permit, and production intelligence.</p>
                     <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                   </div>
                 )}
                 {isNative && isAndroid && <div className="mt-6 grid gap-2">
                   <button onClick={() => purchase(buyProductId)} disabled={!monthlyStore || !!buyingId} className="rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50">{buyingId === buyProductId ? "Connecting to Google Play…" : storeLoading ? "Loading Google Play subscription…" : monthlyStore ? "Continue with Google Play" : "Google Play subscription unavailable"}</button>
                   {priceMismatch && <p role="alert" className="text-sm text-red-700">Google Play returned an unexpected subscription price. Purchases are disabled until store pricing is corrected.</p>}
-                  <p className="text-sm font-semibold text-foreground">Cancel anytime. If the intelligence isn&apos;t worth $39 a month to you, don&apos;t pay for it.</p>
+                  <p className="text-sm font-semibold text-foreground">Cancel anytime. Explore detailed quarry, parcel, geology, permit, and production intelligence.</p>
                   <p className="text-[11px] leading-4 text-muted-foreground">Billed monthly at $39. Renews automatically. Cancel anytime from your account.</p>
                 </div>}
               </div>;
             })}
           </div>
+          <div className="mt-8"><SubscriptionWorkflow /></div>
 
           <div className="mt-6 rounded-2xl border border-border bg-muted/30 p-5 text-xs leading-5 text-muted-foreground">
             <p className="font-semibold text-foreground">Subscription terms</p>
