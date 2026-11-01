@@ -1,4 +1,5 @@
 import { selectSummaryPermit, ownershipStatusLabel } from "@/lib/sourceInterpretation";
+import { statusGroup } from "@/lib/quarryStatus";
 import React, { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -553,7 +554,17 @@ export default function MineSiteDetail() {
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={() => navigate("/support")} className="inline-flex items-center gap-2 rounded-xl border border-sky-300 bg-sky-50 px-4 py-2 text-xs font-bold text-sky-950"><FileSearch className="h-4 w-4" />Custom research services</button>
             <span className="rounded-full bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white">{site.source}</span>
-            {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">{site.mine_status}</span>}
+            {/* Every status is shown with the source it came from: one unqualified
+                badge read as a contradiction when MSHA, TDEC and TDOT disagreed. */}
+            {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">MSHA mine status: {statusGroup(site.mine_status)}</span>}
+            {site.mine_status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">MSHA operating pattern: {site.mine_status}</span>}
+            {relatedPermits.filter((permit) => permit.permit_number && permit.status).slice(0, 3).map((permit) => (
+              <span key={permit.id || permit.permit_number} className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">TDEC permit {permit.permit_number} status: {permit.status}</span>
+            ))}
+            {tdotProducer?.status && <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">TDOT producer status: {tdotProducer.status}</span>}
+            {latestActivity?.employee_hours != null && (
+              <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">MSHA activity: {Number(latestActivity.employee_hours).toLocaleString()} employee hours · {[latestActivity.period, latestActivity.year].filter(Boolean).join(" ")}</span>
+            )}
             <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900">{recordStatusLabel(site)}</span>
             {hasProfessional && geologyRecord?.primary_rock && (
               <span className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-800">
@@ -614,11 +625,11 @@ export default function MineSiteDetail() {
             <Row label="Permittee" value={hasProfessional ? permittee : <LockedValue />} />
             <Row label="Controller" value={hasProfessional ? site.controller_name : <LockedValue />} />
             <Row label="Address" value={[site.address, site.city, site.state, site.zip].filter(Boolean).join(", ")} />
-            <Row label="Acreage" value={Number(site.acreage) > 0 ? Number(site.acreage).toLocaleString() : "Not available"} />
-            <Row label="Permitted acres" value={hasProfessional ? (Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit") : <LockedValue />} />
+            <Row label="Parcel acres (tax record)" value={Number(site.acreage) > 0 ? Number(site.acreage).toLocaleString() : "Not available"} />
+            <Row label="Permitted acres (TDEC permit)" value={hasProfessional ? (Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit") : <LockedValue />} />
             <Row label="Permit acreage basis" value={hasProfessional ? permitAcreageBasis : <LockedValue />} />
-            {hasProfessional && <><Row label="Summary permit" value={[primaryPermit?.permit_number, primaryPermit?.status].filter(Boolean).join(" · ")} /><p className="mt-3 text-xs text-muted-foreground">The summary prefers a source-labeled active permit. Other linked permits below may cover different activities or footprints; their acreages are not added. Confirm the controlling permit with the agency.</p></>}
-            <Row label="Parcel acres" value={hasProfessional ? (Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null) : <LockedValue />} />
+            {hasProfessional && <><Row label="Summary TDEC permit (number · status)" value={[primaryPermit?.permit_number, primaryPermit?.status].filter(Boolean).join(" · ")} /><p className="mt-3 text-xs text-muted-foreground">The summary prefers a source-labeled active permit. Other linked permits below may cover different activities or footprints; their acreages are not added. Confirm the controlling permit with the agency.</p></>}
+            <Row label="Parcel acres (tax record)" value={hasProfessional ? (Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null) : <LockedValue />} />
             <Row label="Category" value={site.category} />
             <Row label="Parcel" value={hasProfessional ? site.parcel_id : <LockedValue />} />
             <Row label="TDEC permit" value={site.tdec_permit_number} />
@@ -635,7 +646,7 @@ export default function MineSiteDetail() {
         {hasProfessional ? (<>
         <div className="mb-6 rounded-2xl border border-stone-300 bg-stone-950 p-6 text-stone-50">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><LockKeyhole className="h-4 w-4" /> Acquisition Diligence Snapshot</div><div className="mt-2 text-2xl font-bold">{diligenceReady}/{diligence.length} intelligence layers connected</div><p className="mt-1 max-w-2xl text-sm text-stone-300">A fast completeness check for buyers, operators and advisers before deeper title, engineering, reserve, environmental and financial diligence.</p></div>
+            <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-sky-300"><LockKeyhole className="h-4 w-4" /> Acquisition Diligence Snapshot</div><div className="mt-2 text-2xl font-bold">{diligenceReady} of {diligence.length} intelligence layers connected</div><p className="mt-1 max-w-2xl text-sm text-stone-300">A fast completeness check for buyers, operators and advisers before deeper title, engineering, reserve, environmental and financial diligence.</p></div>
             <div className="min-w-32 rounded-2xl border border-stone-700 bg-stone-900 px-5 py-4 text-center"><div className="text-3xl font-black text-sky-300">{diligencePct}%</div><div className="text-[11px] uppercase tracking-wider text-stone-400">data coverage</div></div>
           </div>
           <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{diligence.map((item) => <div key={item.label} className="flex gap-2 rounded-xl border border-stone-800 bg-stone-900/70 p-3">{item.ready ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-sky-300" />}<div><div className="text-xs font-bold">{item.label}</div><div className="mt-0.5 text-[11px] text-stone-400">{item.detail || "Not connected"}</div></div></div>)}</div>
@@ -683,8 +694,8 @@ export default function MineSiteDetail() {
                 <Row label="Parcel" value={ownershipVerification?.parcel_id || parcel?.parcel_id || liveParcel?.parcel_display_id || liveParcel?.parcel_id || site.parcel_id} />
                 <Row label="Owner" value={ownershipVerification?.owner_name || landOwner || liveParcel?.owner} />
                 <Row label="Verification status" value={ownershipStatusLabel(ownershipVerification, landOwner || liveParcel?.owner)} />
-                <Row label="Parcel acreage" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />
-                <Row label="Permitted acreage" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />
+                <Row label="Parcel acres (tax record)" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : null} />
+                <Row label="Permitted acres (TDEC permit)" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Not loaded from controlling permit"} />
                 <Row label="Property address" value={ownershipVerification?.property_address || parcel?.property_address || liveParcel?.situs_address || site.address} />
                 <Row label="Mailing address" value={ownershipVerification?.mailing_address || parcel?.mailing_address || liveParcel?.mailing_address} />
                 <Row label="Assessed" value={money(parcel?.assessed_value ?? liveParcel?.assessed_value)} />
@@ -777,7 +788,7 @@ export default function MineSiteDetail() {
                   <div className="mt-1 text-sm font-semibold text-sky-900">{opportunity?.band || "Early"} screening signal</div>
                 </div>
                 <div className="text-right text-xs leading-5 text-sky-900/80">
-                  <div>{opportunity?.connected?.length || 0} source layers connected</div>
+                  <div>{diligenceReady} of {diligence.length} intelligence layers connected</div>
                   <div>{opportunity?.violations ? `${opportunity.violations} environmental violation flags` : "No connected environmental violation flags"}</div>
                 </div>
               </div>
@@ -786,8 +797,8 @@ export default function MineSiteDetail() {
             <Row label="Rock / geology" value={opportunity?.rock || "Pending"} />
             <Row label="Land owner" value={landOwner || opportunity?.owner || "Pending"} />
             <Row label="Operator" value={operator || "Pending"} />
-            <Row label="Permitted acres" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Permit acreage pending"} />
-            <Row label="Parcel acres" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : "Pending"} />
+            <Row label="Permitted acres (TDEC permit)" value={Number(permittedAcreage) > 0 ? Number(permittedAcreage).toLocaleString() : "Permit acreage pending"} />
+            <Row label="Parcel acres (tax record)" value={Number(parcelAcreage) > 0 ? Number(parcelAcreage).toLocaleString() : "Pending"} />
             <Row label="Permit records" value={relatedPermits.length ? `${relatedPermits.length} connected` : (site.tdec_permit_number || site.npdes_permit_number ? "Permit identifier linked" : "Pending")} />
             <Row label="Environmental" value={relatedEnvironmental.length ? `${relatedEnvironmental.length} connected` : "No connected record yet"} />
             {profile && (
@@ -1048,7 +1059,7 @@ export default function MineSiteDetail() {
                   <Row label="Permittee" value={p.permittee_name} />
                   <Row label="Land owner" value={p.landowner_name || landOwner} />
                   <Row label="Operator" value={p.operator_name || operator} />
-                  <Row label="Permitted acres" value={Number(p.permitted_acres ?? site.permitted_acres) > 0 ? Number(p.permitted_acres ?? site.permitted_acres).toLocaleString() : "Not loaded"} />
+                  <Row label="Permitted acres (this permit)" value={Number(p.permitted_acres ?? site.permitted_acres) > 0 ? Number(p.permitted_acres ?? site.permitted_acres).toLocaleString() : "Not loaded"} />
                   <Row label="Acreage basis" value={p.acreage_basis || site.permitted_acres_basis} />
                 </div>
                 <div className="mt-3 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">

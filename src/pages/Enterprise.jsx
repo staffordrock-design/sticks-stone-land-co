@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight, Building2, CheckCircle2, FileSearch, FileText, Gem,
   Handshake, Layers, LineChart, Loader2, MapPin, Truck, Users,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { loadPublicStats } from "@/lib/publicStatsCache";
 
 const INTELLIGENCE_ITEMS = [
   { icon: MapPin, title: "County and state parcel searches" },
@@ -30,6 +31,29 @@ export default function Enterprise() {
   // Only the Quarry Site Workup CTA changes this, so the SalesLead records which
   // offer the inquiry came from. General inquiries keep the enterprise-page source.
   const [inquirySource, setInquirySource] = useState("Enterprise Page");
+  // Counts come from the stored inventory snapshot, labeled by scope, so this
+  // page can never drift from the counters shown elsewhere in the app.
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadPublicStats()
+      .then((data) => { if (!cancelled) setStats(data); })
+      .catch((error) => console.error("Enterprise stats load failed", error));
+    return () => { cancelled = true; };
+  }, []);
+
+  const recordCount = Number(stats?.recordCount) > 0 ? Number(stats.recordCount) : null;
+  const mappedCount = Number(stats?.mappedCount) > 0 ? Number(stats.mappedCount) : null;
+  const stateCount = Array.isArray(stats?.statesCovered) ? stats.statesCovered.length : null;
+  const statsLine = recordCount
+    ? [
+        `${recordCount.toLocaleString()} quarry records in the S&S database (all states).`,
+        mappedCount ? `${mappedCount.toLocaleString()} mapped quarry sites.` : null,
+        stateCount ? `${stateCount} states covered.` : null,
+        "Permits, ownership, and parcel records organized from public sources by a team raised in the aggregates business.",
+      ].filter(Boolean).join(" ")
+    : "Permits, ownership, and parcel records across the Southeast — organized from public sources by a team raised in the aggregates business.";
 
   const handleChange = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -71,7 +95,7 @@ export default function Enterprise() {
             Southeast Quarry Intelligence, Built by People Who Know Quarries
           </h1>
           <p className="mx-auto mt-5 max-w-3xl text-base font-medium leading-7 text-muted-foreground sm:text-lg">
-            22,506 mining sites. 18,394 mineral occurrences. Permits, ownership, and parcel records across eight states — verified by a team raised in the aggregates business.
+            {statsLine}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <a href="#contact" className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-sky-700 px-6 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Talk to us <ArrowRight className="h-4 w-4" /></a>

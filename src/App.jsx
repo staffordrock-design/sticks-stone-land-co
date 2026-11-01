@@ -317,6 +317,7 @@ const AuthenticatedApp = () => {
       <Route path="/seller-dashboard" element={<RequireSignedIn><PageTransition><SellerDashboard /></PageTransition></RequireSignedIn>} />
       <Route path="/buyer-profile" element={<RequireSignedIn><PageTransition><BuyerProfile /></PageTransition></RequireSignedIn>} />
       <Route path="/profile" element={<RequireSignedIn><PageTransition><Profile /></PageTransition></RequireSignedIn>} />
+      <Route path="/account" element={<RequireSignedIn><PageTransition><Profile /></PageTransition></RequireSignedIn>} />
       <Route path="/network" element={<PageTransition><Network /></PageTransition>} />
       <Route path="/network/intelligence" element={<PageTransition><NetworkIntel /></PageTransition>} />
       <Route path="/network/company/:companySlug" element={<PageTransition><CompanyNetworkDetail /></PageTransition>} />

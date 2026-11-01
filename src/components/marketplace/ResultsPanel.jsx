@@ -71,7 +71,7 @@ export default function ResultsPanel({
             {loading
               ? "Loading records…"
               : sites.length.toLocaleString() +
-                (query ? " matching records in " + stateCode : " in view · " + total.toLocaleString() + " matches")}
+                (query ? " matching records in " + stateCode : " in view · " + total.toLocaleString() + " matching records in " + stateCode)}
           </p>
         </div>
         {variant === "overlay" && (

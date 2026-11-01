@@ -22,6 +22,7 @@ export default async function(req) {
       stripe_browser_session_id,
       operation = 'site',
       entity_name,
+      entity_queries,
       query,
       sort,
       limit,
@@ -57,6 +58,34 @@ export default async function(req) {
 
     // --- Fetch premium data (service role bypasses RLS only after entitlement) ---
     const svc = base44.asServiceRole;
+
+    // One entitlement check for several map-layer datasets. The quarry map used
+    // to invoke this function once per layer, so a single page load paid four
+    // separate entitlement verifications and round trips.
+    if (operation === 'bundle') {
+      const requests = Array.isArray(entity_queries) ? entity_queries.slice(0, 8) : [];
+      const results = await Promise.all(requests.map(async (request) => {
+        const entityName = String(request?.entity_name || '');
+        if (!PREMIUM_ENTITY_NAMES.has(entityName)) {
+          return { entity_name: entityName, rows: [], error: 'not_allowed' };
+        }
+        const entity = svc.entities[entityName];
+        if (!entity) return { entity_name: entityName, rows: [], error: 'unavailable' };
+        const safeLimit = Math.max(1, Math.min(Number(request?.limit) || 50, 500));
+        try {
+          const rows = await entity.filter(
+            request?.query && typeof request.query === 'object' ? request.query : {},
+            String(request?.sort || '-updated_date'),
+            safeLimit,
+          );
+          return { entity_name: entityName, rows: rows || [] };
+        } catch (error) {
+          console.error('premium bundle filter failed', entityName, error);
+          return { entity_name: entityName, rows: [], error: 'filter_failed' };
+        }
+      }));
+      return Response.json({ entitled: true, results });
+    }
 
     if (operation === 'entity') {
       const entityName = String(entity_name || '');

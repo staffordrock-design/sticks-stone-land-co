@@ -11,7 +11,7 @@ import ResultsPanel from "@/components/marketplace/ResultsPanel";
 import MapLayersPanel from "@/components/marketplace/MapLayersPanel";
 import SavedSearchesPanel from "@/components/marketplace/SavedSearchesPanel";
 import { base44 } from "@/api/base44Client";
-import { premiumEntityQuery } from "@/lib/subscriptionAccess";
+import { premiumEntityBundle } from "@/lib/subscriptionAccess";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
@@ -99,22 +99,28 @@ export default function QuarryMarketplace() {
             (site) => site?.id && isPlausibleSoutheastCoordinate(site.latitude, site.longitude, site.state)
           )
         );
-        if (hasProfessional) {
-          try {
-            const [parcelRows, verifyRows, geologyRows, permitRows] = await Promise.all([
-              premiumEntityQuery("ParcelRecord", { state }, "-updated_date", 500),
-              premiumEntityQuery("ParcelOwnershipVerification", {}, "-verified_at", 500),
-              premiumEntityQuery("GeologyRecord", { state }, "-updated_date", 500),
-              premiumEntityQuery("TDECPermit", { state }, "-last_source_update", 300),
-            ]);
-            if (cancelled) return;
-            setParcels(parcelRows || []);
-            setVerifications(verifyRows || []);
-            setGeology(geologyRows || []);
-            setPermits(permitRows || []);
-          } catch (premiumError) {
-            console.error("Premium map data load failed", premiumError);
-          }
+        // The map is usable as soon as the public inventory lands. Premium
+        // overlays load behind it instead of holding the page in "loading".
+        setLoading(false);
+        if (!hasProfessional) return;
+
+        try {
+          // One batched call for all four overlay layers: a single entitlement
+          // check and round trip instead of one invocation per layer.
+          const bundle = await premiumEntityBundle([
+            { entity_name: "ParcelRecord", query: { state }, sort: "-updated_date", limit: 500 },
+            { entity_name: "ParcelOwnershipVerification", query: {}, sort: "-verified_at", limit: 500 },
+            { entity_name: "GeologyRecord", query: { state }, sort: "-updated_date", limit: 500 },
+            { entity_name: "TDECPermit", query: { state }, sort: "-last_source_update", limit: 300 },
+          ]);
+          if (cancelled) return;
+          const rowsFor = (name) => bundle.find((entry) => entry.entity_name === name)?.rows || [];
+          setParcels(rowsFor("ParcelRecord"));
+          setVerifications(rowsFor("ParcelOwnershipVerification"));
+          setGeology(rowsFor("GeologyRecord"));
+          setPermits(rowsFor("TDECPermit"));
+        } catch (premiumError) {
+          console.error("Premium map data load failed", premiumError);
         }
       } catch (failure) {
         if (!cancelled) setError(failure?.message || "The quarry map could not load.");
@@ -570,7 +576,7 @@ export default function QuarryMarketplace() {
                     className="pointer-events-auto inline-flex min-h-12 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-extrabold text-slate-900 shadow-xl lg:hidden"
                   >
                     <Search className="h-4 w-4 text-blue-700" />
-                    {loading ? "Loading…" : inView.length.toLocaleString() + (inView.length === 1 ? " result" : " results")}
+                    {loading ? "Loading…" : inView.length.toLocaleString() + (inView.length === 1 ? " record in view" : " records in view")}
                   </button>
                 </div>
               )}

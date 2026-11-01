@@ -37,6 +37,7 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [plan, setPlan] = useState(null);
   const [form, setForm] = useState({
     full_name: "",
     company: "",
@@ -98,6 +99,22 @@ export default function Profile() {
 
     return () => { cancelled = true; };
   }, [user?.id, user?.name]);
+
+  // Subscription management: the Subscribe page tells buyers to cancel from
+  // their account, so the account page has to show what plan is on the account.
+  useEffect(() => {
+    let cancelled = false;
+    if (!user?.id) { setPlan(null); return () => { cancelled = true; }; }
+    (async () => {
+      try {
+        const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, "-updated_date", 10);
+        if (!cancelled) setPlan(rows?.[0] || null);
+      } catch (planError) {
+        console.error("Subscription summary load failed", planError);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
@@ -283,6 +300,24 @@ export default function Profile() {
             {saving ? "Saving profile…" : record?.profile_complete ? "Save Profile" : "Save & Continue"}
           </button>
         </form>
+
+        <div className="mt-6 rounded-2xl border border-border bg-card p-5">
+          <div className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">Subscription &amp; billing</div>
+          <div className="mt-2 text-sm font-bold text-foreground">
+            {plan
+              ? `${plan.plan_code === "professional_annual" ? "Annual membership" : "Full Quarry Intelligence"} · ${String(plan.status || "").replace(/_/g, " ")}`
+              : "No subscription on this account"}
+          </div>
+          {plan?.expires_at && (
+            <div className="mt-1 text-xs text-muted-foreground">
+              Current access runs through {new Date(plan.expires_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+            </div>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link to="/subscribe" className="inline-flex min-h-10 items-center rounded-xl bg-sky-700 px-4 text-xs font-bold text-white">Manage subscription</Link>
+            <Link to="/support" className="inline-flex min-h-10 items-center rounded-xl border border-border px-4 text-xs font-bold">Billing help</Link>
+          </div>
+        </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           <Link to="/support" className="rounded-2xl border border-border bg-card p-4 text-sm font-semibold">Support</Link>

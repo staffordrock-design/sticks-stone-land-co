@@ -13,7 +13,8 @@ import { downloadGeologyCsv } from "@/utils/downloadGeologyCsv";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
-import { premiumEntityQuery, premiumAccessProofParams } from "@/lib/subscriptionAccess";
+import { premiumEntityQuery, premiumEntityBundle, premiumAccessProofParams } from "@/lib/subscriptionAccess";
+import { loadPublicStats } from "@/lib/publicStatsCache";
 import { base44 } from "@/api/base44Client";
 import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
@@ -67,7 +68,7 @@ export default function Home() {
   const [geology, setGeology] = useState([]);
   const [permits, setPermits] = useState([]);
   const [environmental, setEnvironmental] = useState([]);
-  const [comps, setComps] = useState([]);
+
   const [query, setQuery] = useState("");
   const [remoteSearchSites, setRemoteSearchSites] = useState([]);
   const [source, setSource] = useState("All");
@@ -129,21 +130,12 @@ export default function Home() {
         publicSites = [];
       }
 
-      // Phase 1 — only what the list needs to paint: the public inventory plus a
-      // single premium merge call.
-      const premiumSites = await loadMiningSiteInventory();
-
-      // Merge premium fields onto the public list by id. If the premium query
-      // returns nothing, paid users still see the populated public list. Unpaid
-      // users use the public list as-is (premium fields stay absent/locked).
-      let data = publicSites;
-      if (premiumReady && premiumSites.length) {
-        const byId = new Map(premiumSites.map((s) => [s.id, s]));
-        // Premium row first, public row second: both come from the same record,
-        // so the public row's stored screening values are never blanked out by a
-        // premium row that did not carry them.
-        data = publicSites.map((s) => ({ ...(byId.get(s.id) || {}), ...s }));
-      }
+      // Phase 1 — paint the public inventory immediately. Nothing premium is
+      // allowed in front of first paint: the list is usable while enrichment runs.
+      const painted = Array.from(new Map((publicSites || []).map((site) => [site.id, site])).values());
+      setSites(painted);
+      setInventoryUnavailable(painted.length === 0);
+      setLoading(false);
 
       if (!premiumReady) {
         setTeaserSites(publicSites);
@@ -160,40 +152,36 @@ export default function Home() {
         setSampleBundle(null);
       }
 
-      const siteList = Array.from(new Map((data || []).map((site) => [site.id, site])).values());
-
-      setSites(siteList);
-      setInventoryUnavailable(siteList.length === 0);
-      // Paint the list now; the page becomes usable while enrichment continues.
-      setLoading(false);
-
-      // Phase 2 — supplementary datasets, one request at a time. Firing all of
-      // them alongside the public list and stats burst past the backend limit
-      // (the intermittent 500s) and held the page until the slowest returned.
-      const compData = await safeLoad("QuarryComparable", base44.entities.QuarryComparable.list("-updated_date", 200));
-      if (stale()) return;
-      setComps(compData || []);
       if (!premiumReady) return;
 
-      const profileData = await safeLoad("QuarryPotentialProfile", premiumEntityQuery("QuarryPotentialProfile", {}, "-updated_date", limit));
+      // Phase 2 — premium enrichment runs behind the painted list. Extra map
+      // fields merge into the same rows by id, so a slower or thinner response
+      // never replaces what the page already shows.
+      const premiumSites = await loadMiningSiteInventory().catch(() => []);
       if (stale()) return;
-      setProfiles(profileData || []);
+      if (premiumSites.length) {
+        const byId = new Map(premiumSites.map((s) => [s.id, s]));
+        setSites((current) => Array.from(
+          new Map(current.map((site) => [site.id, { ...(byId.get(site.id) || {}), ...site }])).values()
+        ));
+      }
 
-      const parcelData = await safeLoad("ParcelRecord", premiumEntityQuery("ParcelRecord", {}, "-updated_date", 500));
+      // Phase 3 — one batched call for every premium map dataset instead of
+      // five sequential invocations, each paying its own entitlement check.
+      const bundle = await premiumEntityBundle([
+        { entity_name: "QuarryPotentialProfile", query: {}, sort: "-updated_date", limit },
+        { entity_name: "ParcelRecord", query: {}, sort: "-updated_date", limit: 500 },
+        { entity_name: "GeologyRecord", query: {}, sort: "-updated_date", limit },
+        { entity_name: "TDECPermit", query: {}, sort: "-last_source_update", limit },
+        { entity_name: "EnvironmentalRecord", query: {}, sort: "-last_source_update", limit },
+      ]);
       if (stale()) return;
-      setParcels(parcelData || []);
-
-      const geologyData = await safeLoad("GeologyRecord", premiumEntityQuery("GeologyRecord", {}, "-updated_date", limit));
-      if (stale()) return;
-      setGeology(geologyData || []);
-
-      const permitData = await safeLoad("TDECPermit", premiumEntityQuery("TDECPermit", {}, "-last_source_update", limit));
-      if (stale()) return;
-      setPermits(permitData || []);
-
-      const environmentalData = await safeLoad("EnvironmentalRecord", premiumEntityQuery("EnvironmentalRecord", {}, "-last_source_update", limit));
-      if (stale()) return;
-      setEnvironmental(environmentalData || []);
+      const rowsFor = (name) => bundle.find((entry) => entry.entity_name === name)?.rows || [];
+      setProfiles(rowsFor("QuarryPotentialProfile"));
+      setParcels(rowsFor("ParcelRecord"));
+      setGeology(rowsFor("GeologyRecord"));
+      setPermits(rowsFor("TDECPermit"));
+      setEnvironmental(rowsFor("EnvironmentalRecord"));
     } catch (error) {
       console.error("Home quarry inventory load failed", error);
       setInventoryUnavailable(true);
@@ -215,8 +203,7 @@ export default function Home() {
     let cancelled = false;
     (async () => {
       try {
-        const response = await base44.functions.invoke("get-public-stats", {});
-        const data = response?.data || response || {};
+        const data = await loadPublicStats();
         const count = Number(data?.mappedCount);
         if (!cancelled && Number.isFinite(count) && count > 0) setMappedTotal(count);
       } catch (error) {

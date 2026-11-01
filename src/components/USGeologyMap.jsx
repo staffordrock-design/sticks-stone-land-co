@@ -155,14 +155,14 @@ export default function USGeologyMap({ sites = [], listings = [], height = 640, 
             onClick={() => setShowQuarries((v) => !v)}
             className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${showQuarries ? "border-slate-800 bg-slate-800 text-white" : "border-border bg-background text-muted-foreground hover:bg-muted"}`}
           >
-            {showQuarries ? "✓ " : ""}Quarry sites ({validSites.length.toLocaleString()})
+            {showQuarries ? "✓ " : ""}Mapped quarry sites, Southeast ({validSites.length.toLocaleString()})
           </button>
           <button
             type="button"
             onClick={() => setShowListings((v) => !v)}
             className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${showListings ? "border-emerald-700 bg-emerald-700 text-white" : "border-border bg-background text-muted-foreground hover:bg-muted"}`}
           >
-            {showListings ? "✓ " : ""}Verified listings ({validListings.length})
+            {showListings ? "✓ " : ""}Verified S&amp;S listings ({validListings.length})
           </button>
         </div>
       </div>

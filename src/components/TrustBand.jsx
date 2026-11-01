@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MapPin, Database, RefreshCw, Layers, FileText } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { loadPublicStats } from "@/lib/publicStatsCache";
 
 function formatDate(value) {
   if (!value) return null;
@@ -20,8 +20,7 @@ export default function TrustBand() {
     const timer = setTimeout(() => {
       (async () => {
         try {
-          const response = await base44.functions.invoke("get-public-stats", {});
-          const data = response?.data || response || {};
+          const data = await loadPublicStats();
           if (!cancelled) setStats(data);
         } catch (error) {
           console.error("Public stats load failed", error);

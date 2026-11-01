@@ -92,6 +92,23 @@ export async function premiumEntityQuery(entityName, query = {}, sort = "-update
   return payload?.rows || [];
 }
 
+// Several premium datasets in one request: one entitlement check, one round
+// trip. Returns the endpoint's per-entity results in request order.
+export async function premiumEntityBundle(requests = []) {
+  if (!requests.length) return [];
+  const proof = await premiumAccessProofParams();
+  const response = await base44.functions.invoke("get-premium-site-data", {
+    operation: "bundle",
+    entity_queries: requests.slice(0, 8),
+    ...proof,
+  });
+  const payload = response?.data || response || {};
+  if (payload?.error || !payload?.entitled) {
+    throw new Error(payload?.error || "Full Quarry Intelligence subscription required");
+  }
+  return payload?.results || [];
+}
+
 export async function premiumEntityRecord(entityName, recordId) {
   if (!recordId) return null;
   const proof = await premiumAccessProofParams();
