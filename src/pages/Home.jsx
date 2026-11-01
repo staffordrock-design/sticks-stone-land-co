@@ -15,6 +15,7 @@ import { trackFunnelEvent } from "@/lib/funnelTracking";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { premiumEntityQuery, premiumEntityBundle, premiumAccessProofParams } from "@/lib/subscriptionAccess";
 import { loadPublicStats } from "@/lib/publicStatsCache";
+import { loadPublicQuarryList } from "@/lib/publicQuarryListCache";
 import { base44 } from "@/api/base44Client";
 import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
@@ -120,11 +121,7 @@ export default function Home() {
       try {
         // The proof params let the endpoint decide entitlement server-side and,
         // for entitled viewers only, include the stored S&S score and estimate.
-        const publicResponse = await base44.functions.invoke("get-public-quarry-list", {
-          state: stateParam,
-          ...(await premiumAccessProofParams()),
-        });
-        publicSites = publicResponse?.data?.sites || publicResponse?.sites || [];
+        publicSites = await loadPublicQuarryList(stateParam, await premiumAccessProofParams());
       } catch (error) {
         console.error("Public quarry list load failed", error);
         publicSites = [];

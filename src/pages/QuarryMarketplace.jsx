@@ -12,6 +12,7 @@ import MapLayersPanel from "@/components/marketplace/MapLayersPanel";
 import SavedSearchesPanel from "@/components/marketplace/SavedSearchesPanel";
 import { base44 } from "@/api/base44Client";
 import { premiumEntityBundle } from "@/lib/subscriptionAccess";
+import { loadPublicQuarryList } from "@/lib/publicQuarryListCache";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
@@ -91,11 +92,10 @@ export default function QuarryMarketplace() {
       setGeology([]);
       setPermits([]);
       try {
-        const response = await base44.functions.invoke("get-public-quarry-list", { state });
-        const rows = response?.data?.sites || response?.sites || [];
+        const rows = await loadPublicQuarryList(state);
         if (cancelled) return;
         setSites(
-          (Array.isArray(rows) ? rows : []).filter(
+          (rows || []).filter(
             (site) => site?.id && isPlausibleSoutheastCoordinate(site.latitude, site.longitude, site.state)
           )
         );
