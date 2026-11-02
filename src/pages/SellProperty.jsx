@@ -104,13 +104,13 @@ export default function SellProperty() {
           <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-8 text-center dark:border-emerald-900/50 dark:bg-emerald-950/40">
             <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-700 dark:text-emerald-400" />
             <h2 className="mt-4 font-heading text-2xl font-bold text-emerald-950 dark:text-emerald-100">Request received</h2>
-            <p className="mt-2 text-sm text-emerald-900 dark:text-emerald-200">Thank you, {form.name.split(" ")[0]}. An S&amp;S Rock Holdings representative will review your property and contact you at {form.email} within 2 business days.</p>
+            <p className="mt-2 text-sm text-emerald-900 dark:text-emerald-200">Thank you, {form.name.split(" ")[0]}. An S&amp;S Rock Holdings representative will review your property and contact you at {form.email} after reviewing the information submitted.</p>
             <div className="mx-auto mt-6 max-w-md rounded-2xl border border-slate-300 bg-white p-5 text-left dark:border-border dark:bg-card">
               <h3 className="text-sm font-bold text-foreground">What happens next</h3>
               <ol className="mt-3 space-y-2 text-xs text-muted-foreground">
                 <li className="flex gap-2"><span className="font-bold text-slate-900">1.</span> An S&amp;S analyst reviews your property and ownership summary.</li>
                 <li className="flex gap-2"><span className="font-bold text-slate-900">2.</span> We contact you to discuss listing, valuation, or next steps.</li>
-                <li className="flex gap-2"><span className="font-bold text-slate-900">3.</span> If listed, S&amp;S charges a transaction fee (typically 3–4%) only on a completed sale, per a separate written agreement.</li>
+                <li className="flex gap-2"><span className="font-bold text-slate-900">3.</span> Any marketing, research, or brokerage services and related fees would be agreed upon separately in writing, and brokerage services are provided only where appropriately licensed.</li>
               </ol>
               <p className="mt-3 text-xs text-muted-foreground">Your submission is <strong>confidential</strong> and is not automatically published.</p>
             </div>
@@ -145,12 +145,12 @@ export default function SellProperty() {
               <div className="rounded-xl border border-border bg-card p-4">
                 <Clock className="h-5 w-5 text-sky-700" />
                 <p className="mt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Review Time</p>
-                <p className="mt-1 text-sm text-foreground">We respond within 2 business days of submission.</p>
+                <p className="mt-1 text-sm text-foreground">We review your request and contact you about next steps.</p>
               </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <FileText className="h-5 w-5 text-sky-700" />
                 <p className="mt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">Fees</p>
-                <p className="mt-1 text-sm text-foreground">No upfront cost. Transaction fee (3–4%) only on completed sale.</p>
+                <p className="mt-1 text-sm text-foreground">Any services and fees will be agreed upon separately in writing.</p>
               </div>
             </div>
 
@@ -241,7 +241,7 @@ export default function SellProperty() {
                   <Building2 className="h-4 w-4" />
                   {saving ? "Submitting…" : "Request Confidential Property Review"}
                 </button>
-                <p className="mt-3 text-xs text-muted-foreground">No account required. S&amp;S Rock Holdings will contact you within 2 business days. Your information is saved as you type — it will be here if you create an account.</p>
+                <p className="mt-3 text-xs text-muted-foreground">No account required. S&amp;S Rock Holdings will contact you after reviewing the information submitted. Your information is saved as you type — it will be here if you create an account.</p>
               </div>
             </form>
           </>
