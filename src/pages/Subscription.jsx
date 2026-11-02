@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Check, Crown, Loader2, RotateCcw } from "lucide-react";
+import { Check, Crown, Gift, Loader2, RotateCcw } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import { base44 } from "@/api/base44Client";
@@ -68,6 +68,8 @@ export default function Subscription() {
   const [webAccess, setWebAccess] = useState({ active: false });
   const [guestEmail, setGuestEmail] = useState("");
   const [verificationFailed, setVerificationFailed] = useState(false);
+  const [trial, setTrial] = useState(null);
+  const [trialBusy, setTrialBusy] = useState(false);
   const isNative = Capacitor.isNativePlatform();
   const isIOS = Capacitor.getPlatform() === "ios";
   const isAndroid = isNativeAndroid();
@@ -142,6 +144,43 @@ export default function Subscription() {
 
     return () => { cancelled = true; };
   }, [user?.id, isNative, isIOS, isAndroid, adminPreview]);
+
+  // Free 7-day trial. A signed-in visitor who reaches this page without a paid
+  // membership starts their trial here, which is where every locked section
+  // sends them. The server allows one trial per account and hands back the
+  // existing trial instead of creating a second one.
+  useEffect(() => {
+    // Admins and owners already have full access; asking the server for a trial
+    // would only return internal_access and flash a misleading starting message.
+    if (!user?.id || isNative || user?.role === "admin") return undefined;
+    let cancelled = false;
+    setTrialBusy(true);
+    (async () => {
+      try {
+        const response = await base44.functions.invoke("start-free-trial", {});
+        const payload = response?.data || response || {};
+        if (payload?.error) throw new Error(payload.error);
+        if (cancelled) return;
+        const started = Boolean(payload?.started);
+        setTrial({
+          active: started || payload?.reason === "trial_active",
+          daysLeft: Number(payload?.days_left || 0),
+          endsAt: payload?.trial?.ends_at || "",
+          reason: payload?.reason || "",
+        });
+        if (started) {
+          trackSubscriptionAction(user, "trial_started", "web", `${payload?.days_left || 0} days`);
+          base44.analytics.track({ eventName: "trial_started" });
+        }
+      } catch (error) {
+        console.error("Free trial could not be started", error);
+        if (!cancelled) setTrial({ active: false, daysLeft: 0, reason: "error" });
+      } finally {
+        if (!cancelled) setTrialBusy(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, isNative]);
 
   useEffect(() => {
     if (checkoutStatus !== "cancelled") return;
@@ -469,7 +508,12 @@ export default function Subscription() {
         <div className="mt-8 rounded-3xl border border-border bg-card p-8 sm:p-10">
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Unlock the records behind the quarry</h1></div></div>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Get the ownership, parcel, geology, permit, production, environmental and opportunity intelligence that sits behind each quarry record. Full access unlocks immediately after purchase. {isIOS ? "Apple shows the current price and purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."}</p>
-          {!active && <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">View Membership</a>}
+          {!active && !trial?.active && !isNative && !user?.id && (
+            <Link to={`/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Start your 7-day free trial — no card required</Link>
+          )}
+          {!active && !trial?.active && (isNative || user?.id) && (
+            <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">View Membership</a>
+          )}
           {!user?.id && isIOS && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required on iPhone.</strong> Tap Subscribe below, review Apple&apos;s purchase terms, confirm, and the app unlocks immediately. You can <Link to={`/login?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="font-bold underline">sign in later</Link> only if you want account-based features such as saved opportunities and messages.</div>}
           {!user?.id && !isNative && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>No S&amp;S account is required to buy on the website.</strong> Continue straight to secure checkout. After payment, Full Quarry Intelligence unlocks on this browser; sign in later only if you want account-based features.</div>}
           {!user?.id && isAndroid && <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm leading-6 text-sky-950"><strong>Google Play requires an S&amp;S login to link your subscription.</strong> You can browse public quarry information first; when you subscribe, you will be asked to sign in.</div>}
@@ -480,6 +524,28 @@ export default function Subscription() {
             <button type="button" onClick={() => window.location.reload()} disabled={loading} className="mt-3 rounded-lg bg-sky-700 px-4 py-2 font-bold text-white disabled:opacity-50">Retry payment verification</button>
           </div>}
 
+          {!isNative && trialBusy && !trial && !active && (
+            <p className="mt-6 text-sm font-semibold text-sky-900">Starting your 7-day free trial…</p>
+          )}
+          {!isNative && trial?.active && (
+            <div className="mt-8 rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-emerald-950">
+              <div className="flex items-center gap-2 font-bold"><Gift className="h-5 w-5" /> Your 7-day free trial is active</div>
+              <p className="mt-1 text-sm">
+                {trial.daysLeft === 1 ? "1 day left" : `${trial.daysLeft} days left`}
+                {trial.endsAt ? ` — full access through ${new Date(trial.endsAt).toLocaleDateString()}` : ""}. No card was taken and nothing renews automatically.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <Link to={returnTo} className="inline-flex items-center rounded-xl bg-emerald-900 px-4 py-2.5 text-sm font-bold text-white">Open quarry intelligence</Link>
+              </div>
+              <p className="mt-3 text-xs">When the trial ends, Full Quarry Intelligence is $39/month. Subscribe below at any time to keep access without interruption.</p>
+            </div>
+          )}
+          {!isNative && !active && !trial?.active && ["trial_expired", "trial_already_used"].includes(trial?.reason) && (
+            <div className="mt-8 rounded-2xl border border-border bg-muted/30 p-5 text-sm">
+              <div className="font-bold text-foreground">Your free trial has ended</div>
+              <p className="mt-1 text-muted-foreground">Subscribe below to restore the ownership, parcel, geology, permit and production detail. Each account gets one free trial.</p>
+            </div>
+          )}
           {loading ? <p className="mt-8 text-sm text-muted-foreground">Checking access…</p> : active ? (
             <div className="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
               <div className="font-bold">S&S access active</div>

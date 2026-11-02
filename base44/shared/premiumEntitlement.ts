@@ -19,6 +19,16 @@ import { isOwnerUser } from './ownerAccess.ts';
 
 export const FULL_QUARRY_PLANS = new Set(['professional_monthly', 'marketplace_monthly']);
 export const ACTIVE_STATUSES = new Set(['active', 'grace_period']);
+export const TRIAL_DAYS = 7;
+
+// A free trial (SubscriptionTrial, started at signup by start-free-trial) grants
+// the same access as a paid membership until it ends. One rule for every
+// backend premium path; the frontend mirror is src/lib/trialAccess.js.
+export function trialIsCurrent(row: any) {
+  if (!row || String(row.status) !== 'Active') return false;
+  const endsAt = Date.parse(row.ends_at);
+  return Number.isFinite(endsAt) && endsAt > Date.now();
+}
 export const FULL_APPLE_PRODUCTS = new Set([
   'com.ssrockholdings.marketplace.monthly',
   'com.ssrockholdings.mobile.quarryintelligence.monthly199',
@@ -44,7 +54,9 @@ export async function checkSignedInUser(base44: any, user: any) {
   if (!user?.id) return false;
   try {
     const rows = await base44.entities.SubscriptionEntitlement.filter({ user_id: user.id }, '-updated_date', 20);
-    return (rows || []).some(isEntitledEntitlement);
+    if ((rows || []).some(isEntitledEntitlement)) return true;
+    const trials = await base44.entities.SubscriptionTrial.filter({ user_id: user.id }, '-created_date', 5);
+    return (trials || []).some(trialIsCurrent);
   } catch {
     return false;
   }

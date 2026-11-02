@@ -5,6 +5,7 @@ import { isNativeIOS, stableAppleSubscriptionAccess } from "@/lib/appleSubscript
 import { isNativeAndroid } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
+import { loadTrialState } from "@/lib/trialAccess";
 import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 import { isOwner } from "@/lib/ownerAccess";
 
@@ -26,15 +27,15 @@ export function useProfessionalAccess() {
 
   const [state, setState] = useState(() => (
     grantsImmediately
-      ? { hasProfessional: true, checking: false, checkedUserId: user?.id ?? null }
-      : { hasProfessional: false, checking: true, checkedUserId: null }
+      ? { hasProfessional: true, checking: false, checkedUserId: user?.id ?? null, trial: null }
+      : { hasProfessional: false, checking: true, checkedUserId: null, trial: null }
   ));
 
   useEffect(() => {
     let cancelled = false;
 
     if (user?.role === "admin" || isOwner(user) || isReviewDemoAccount(user?.email)) {
-      setState({ hasProfessional: true, checking: false, checkedUserId: user?.id ?? null });
+      setState({ hasProfessional: true, checking: false, checkedUserId: user?.id ?? null, trial: null });
       return () => { cancelled = true; };
     }
 
@@ -62,7 +63,7 @@ export function useProfessionalAccess() {
             } catch (_) {}
           }
           if (!cancelled) {
-            setState({ hasProfessional: appleProfessional || webActive, checking: false, checkedUserId: null });
+            setState({ hasProfessional: appleProfessional || webActive, checking: false, checkedUserId: null, trial: null });
           }
           return;
         }
@@ -80,8 +81,23 @@ export function useProfessionalAccess() {
           const webAccess = await verifySavedWebSubscriptionAccess();
           webProfessional = Boolean(webAccess?.active);
         }
+        // The 7-day free trial started at signup unlocks the same records a paid
+        // membership does; it is enforced on the server for every premium query.
+        let trial = { active: false, daysLeft: 0, ended: false, row: null };
+        if (!appleProfessional && !activeProfessional && !webProfessional) {
+          try {
+            trial = await loadTrialState(user.id);
+          } catch (error) {
+            console.error("Free trial check failed", error);
+          }
+        }
         if (!cancelled) {
-          setState({ hasProfessional: appleProfessional || activeProfessional || webProfessional, checking: false, checkedUserId: user.id });
+          setState({
+            hasProfessional: appleProfessional || activeProfessional || webProfessional || trial.active,
+            checking: false,
+            checkedUserId: user.id,
+            trial,
+          });
         }
       } catch {
         if (!cancelled) {
@@ -97,5 +113,6 @@ export function useProfessionalAccess() {
   return {
     hasProfessional: resolved ? state.hasProfessional : false,
     checking: resolved ? state.checking : true,
+    trial: resolved ? state.trial : null,
   };
 }

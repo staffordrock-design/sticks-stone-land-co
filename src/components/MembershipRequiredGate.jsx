@@ -7,6 +7,7 @@ import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptio
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { hasFullQuarryEntitlement } from "@/lib/subscriptionAccess";
+import { loadTrialState } from "@/lib/trialAccess";
 import { isOwner } from "@/lib/ownerAccess";
 import { verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 const EXEMPT_PATHS = new Set([
@@ -185,7 +186,18 @@ export default function MembershipRequiredGate({ children }) {
           }
         }
 
-        if (!cancelled) setAccessState({ loading: false, active: storeActive || accountActive || isReviewDemoAccount(user?.email), checkedPath: pathname, checkedUserId: userId });
+        // A live 7-day free trial opens the same routes a paid membership does.
+        let trialActive = false;
+        if (!storeActive && !accountActive) {
+          try {
+            const trial = await loadTrialState(user.id);
+            trialActive = Boolean(trial?.active);
+          } catch (error) {
+            console.error("Free trial check failed", error);
+          }
+        }
+
+        if (!cancelled) setAccessState({ loading: false, active: storeActive || accountActive || trialActive || isReviewDemoAccount(user?.email), checkedPath: pathname, checkedUserId: userId });
       } catch (error) {
         console.error("Membership access check failed", error);
         if (!cancelled) setAccessState({ loading: false, active: false, checkedPath: pathname, checkedUserId: userId });

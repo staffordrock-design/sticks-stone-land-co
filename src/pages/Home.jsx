@@ -401,7 +401,7 @@ export default function Home() {
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
           </nav>
           <div className="flex items-center gap-3">
-            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-500 sm:text-sm">Unlock — $39/mo</Link>}
+            {!hasProfessional && <Link to="/subscribe" className="rounded-lg bg-sky-600 px-3 py-2 text-xs font-bold text-white shadow-sm hover:bg-sky-500 sm:text-sm">Start free trial</Link>}
             <div className="hidden text-sm font-medium text-foreground sm:block">{user?.name || user?.email || "Public Access"}</div>
           </div>
         </div>
@@ -466,7 +466,7 @@ export default function Home() {
           </div>
           {!hasProfessional && (
             <Link to="/subscribe" className="inline-flex min-h-12 w-fit items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-              <TrendingUp className="h-4 w-4" /> Unlock Full Intelligence — $39/month
+              <TrendingUp className="h-4 w-4" /> Start your 7-day free trial
             </Link>
           )}
         </div>

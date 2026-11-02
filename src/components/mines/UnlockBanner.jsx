@@ -19,9 +19,9 @@ export default function UnlockBanner({ returnTo }) {
         to={href}
         className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800"
       >
-        Unlock Full Quarry Intelligence — $39/month <ArrowRight className="h-4 w-4" />
+        Start your 7-day free trial <ArrowRight className="h-4 w-4" />
       </Link>
-      <p className="mt-3 text-xs text-muted-foreground">Cancel anytime · No S&amp;S account required to buy</p>
+      <p className="mt-3 text-xs text-muted-foreground">No card required · Then $39/month if you keep it · Cancel anytime</p>
     </div>
   );
 }
