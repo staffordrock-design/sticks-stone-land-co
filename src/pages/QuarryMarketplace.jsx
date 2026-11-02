@@ -144,9 +144,11 @@ export default function QuarryMarketplace() {
       try {
         const page = await base44.entities.LandProperty.filter(
           { state },
-          { sort: "-created_date", limit: 200 }
+          "-created_date",
+          200
         );
-        if (!cancelled) setLandProperties(page?.items || []);
+        const landRows = Array.isArray(page) ? page : (Array.isArray(page?.items) ? page.items : []);
+        if (!cancelled) setLandProperties(landRows);
       } catch (landError) {
         console.error("Land listings load failed", landError);
         if (!cancelled) setLandProperties([]);
