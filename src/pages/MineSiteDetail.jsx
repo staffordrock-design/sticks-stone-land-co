@@ -18,6 +18,7 @@ import { trackFunnelEvent } from "@/lib/funnelTracking";
 import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { isSampleRecord, SAMPLE_RECORD_LABEL } from "@/lib/sampleRecord";
 import LockedPremiumSections from "@/components/mines/LockedPremiumSections";
+import ReserveLifeCard from "@/components/mines/ReserveLifeCard";
 import LockedValue from "@/components/mines/LockedValue";
 import UnlockBanner from "@/components/mines/UnlockBanner";
 
@@ -962,6 +963,8 @@ export default function MineSiteDetail() {
               </div>
             )}
           </Card>)}
+
+          {hasProfessional && <ReserveLifeCard site={site} />}
 
           {geologyRecord && (<Card title="Geology / Rock Identification" icon={Gem}>
             {geologyRecord ? (

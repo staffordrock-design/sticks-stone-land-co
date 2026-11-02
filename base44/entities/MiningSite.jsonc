@@ -304,6 +304,66 @@
     "screening_computed_at": {
       "type": "string",
       "description": "When the stored Opportunity Score and S&S Estimate were computed."
+    },
+    "reserve_acres": {
+      "type": "number",
+      "description": "Acreage basis used for the reserve-life calculation (permitted acreage preferred, otherwise parcel acreage)."
+    },
+    "reserve_acres_basis": {
+      "type": "string",
+      "description": "Which acreage figure the reserve screening used: Permitted acreage or Parcel acreage."
+    },
+    "reserve_rock_class": {
+      "type": "string",
+      "description": "Rock class that set depth, density, recovery and royalty assumptions."
+    },
+    "mineable_depth_ft": {
+      "type": "number",
+      "description": "Assumed mineable depth in feet for this rock class. A regional screening assumption, not a drilled depth."
+    },
+    "reserve_tons_low": {
+      "type": "number",
+      "description": "Stored screening reserve, low case, in short tons."
+    },
+    "reserve_tons_mid": {
+      "type": "number",
+      "description": "Stored screening reserve, midpoint case, in short tons."
+    },
+    "reserve_tons_high": {
+      "type": "number",
+      "description": "Stored screening reserve, high case, in short tons."
+    },
+    "annual_production_tons": {
+      "type": "number",
+      "description": "Modeled annual tonnage the remaining-life figure is divided by."
+    },
+    "remaining_life_years": {
+      "type": "number",
+      "description": "Screening remaining mine life in years: mid reserve tons divided by modeled annual tonnage."
+    },
+    "reserve_value_low": {
+      "type": "number",
+      "description": "Stored in-ground mineral value, low case, in USD."
+    },
+    "reserve_value_mid": {
+      "type": "number",
+      "description": "Stored in-ground mineral value, midpoint case, in USD."
+    },
+    "reserve_value_high": {
+      "type": "number",
+      "description": "Stored in-ground mineral value, high case, in USD."
+    },
+    "reserve_value_per_acre": {
+      "type": "number",
+      "description": "Stored in-ground mineral value per acre, midpoint, in USD."
+    },
+    "reserve_value_confidence": {
+      "type": "string",
+      "description": "Confidence in the reserve screening (High / Medium / Low) based on data completeness."
+    },
+    "reserve_computed_at": {
+      "type": "string",
+      "description": "When the reserve life and in-ground value screening were computed."
     }
   },
   "required": [
