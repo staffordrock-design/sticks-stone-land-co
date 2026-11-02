@@ -1,0 +1,73 @@
+{
+  "name": "Monthly Production Estimates",
+  "description": "Runs monthly on the 2nd at 06:30 UTC: refreshes USGS state aggregate production figures, refreshes MSHA metal/nonmetal mine activity for all 8 Southeast states, then rebuilds the S&S modeled production range for every quarry that has activity hours and a calibrated USGS commodity total.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 6 2 * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "monthly_production_estimates",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sync_usgs_production": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-usgs-aggregate-production",
+            "args": {}
+          },
+          "then": "sync_msha_activity",
+          "x-base44": {
+            "title": "Refresh USGS production",
+            "description": "Latest quarterly state aggregates"
+          }
+        }
+      },
+      {
+        "sync_msha_activity": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sync-msha-employment",
+            "args": {}
+          },
+          "then": "build_estimates",
+          "x-base44": {
+            "title": "Refresh mine activity",
+            "description": "MSHA hours for all Southeast states"
+          }
+        }
+      },
+      {
+        "build_estimates": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "build-production-estimates",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Rebuild production estimates",
+            "description": "S&S modeled range per quarry"
+          }
+        }
+      }
+    ]
+  }
+}
