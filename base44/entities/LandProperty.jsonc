@@ -1,0 +1,162 @@
+{
+  "name": "LandProperty",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Public listing headline, e.g. '186-Acre Cattle Farm with Frontage on Highway 411'."
+    },
+    "property_type": {
+      "type": "string",
+      "enum": [
+        "Farm & Ranch",
+        "Timber & Hunting",
+        "Mineral Potential"
+      ],
+      "description": "Land class shown on the map and in search. Quarries and mine sites stay in MiningSite and Listing; this entity covers farm, ranch, timber, hunting and mineral-potential land."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "For Sale",
+        "Under Contract",
+        "Available for Lease",
+        "Sold"
+      ],
+      "default": "For Sale"
+    },
+    "state": {
+      "type": "string"
+    },
+    "county": {
+      "type": "string"
+    },
+    "city": {
+      "type": "string"
+    },
+    "acreage": {
+      "type": "number"
+    },
+    "asking_price": {
+      "type": "number"
+    },
+    "price_per_acre": {
+      "type": "number"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
+    },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Short highlight tags, e.g. 'Cattle fencing', 'Spring-fed pond', 'Hardwood timber', 'County road frontage', 'Deeded mineral rights'."
+    },
+    "use_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What the land supports: Row crop, Pasture, Cattle, Timber, Hunting, Recreational, Homestead, Development, Mineral."
+    },
+    "mineral_rights": {
+      "type": "string",
+      "enum": [
+        "Included",
+        "Separate",
+        "Negotiable",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "water_features": {
+      "type": "string",
+      "description": "Ponds, creeks, springs, wells, or irrigation on the property."
+    },
+    "road_frontage": {
+      "type": "string",
+      "description": "State highway, county road, easement access, or none."
+    },
+    "primary_image": {
+      "type": "string"
+    },
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      }
+    },
+    "contact_name": {
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "contact_email": {
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "contact_phone": {
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "listing_source": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "is_example": {
+      "type": "boolean",
+      "default": false,
+      "description": "Example record shown so buyers can see how a land listing reads. Clearly badged as an example in the app; not an offer for sale."
+    }
+  },
+  "required": [
+    "title",
+    "property_type",
+    "state"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

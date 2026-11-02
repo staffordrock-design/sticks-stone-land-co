@@ -12,6 +12,7 @@ import {
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { rockCategoryColor, rockCategoryFor } from "@/lib/rockTypes";
+import { landMarkerColor } from "@/lib/landTypes";
 import TennesseeParcelLayer from "./TennesseeParcelLayer";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 
@@ -409,7 +410,7 @@ export default function QuarryMapCanvas({
               pathOptions={{
                 color: statusColor(statusGroup(site.mine_status)),
                 weight: isSelected ? 5 : linked ? 3 : 2,
-                fillColor: rockCategoryColor(rock),
+                fillColor: site.record_kind === "land" ? landMarkerColor(site.commodity) : rockCategoryColor(rock),
                 fillOpacity: 0.95,
               }}
               eventHandlers={{ click: () => onSelectSite?.(site.id) }}

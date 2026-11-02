@@ -17,6 +17,8 @@ import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
 import { isPlausibleSoutheastCoordinate } from "@/utils/coordinates";
 import { statusGroup } from "@/lib/quarryStatus";
+import LandPropertyCard from "@/components/land/LandPropertyCard";
+import { PROPERTY_FILTERS, landFilterFor, toLandRecord } from "@/lib/landTypes";
 
 const STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS"];
 const STATUSES = ["All", "Active", "Inactive / Idled", "Historical / Abandoned", "New / Potential"];
@@ -47,6 +49,7 @@ export default function QuarryMarketplace() {
   const [minAcres, setMinAcres] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [deedOnly, setDeedOnly] = useState(false);
+  const [propertyType, setPropertyType] = useState("all");
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false);
@@ -70,6 +73,7 @@ export default function QuarryMarketplace() {
   const [areaBounds, setAreaBounds] = useState(null);
 
   const [sites, setSites] = useState([]);
+  const [landProperties, setLandProperties] = useState([]);
   const [parcels, setParcels] = useState([]);
   const [verifications, setVerifications] = useState([]);
   const [geology, setGeology] = useState([]);
@@ -132,6 +136,25 @@ export default function QuarryMarketplace() {
     return () => { cancelled = true; };
   }, [checking, hasProfessional, state, retryToken]);
 
+  // Land listings (farms, ranches, timber/hunting, mineral acreage) load on
+  // their own so a quarry data problem never blanks the land side or vice versa.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const page = await base44.entities.LandProperty.filter(
+          { state },
+          { sort: "-created_date", limit: 200 }
+        );
+        if (!cancelled) setLandProperties(page?.items || []);
+      } catch (landError) {
+        console.error("Land listings load failed", landError);
+        if (!cancelled) setLandProperties([]);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [state]);
+
   useEffect(() => {
     const next = {};
     if (query.trim()) next.q = query.trim();
@@ -192,15 +215,20 @@ export default function QuarryMarketplace() {
   }, [geology]);
 
   const counties = useMemo(
-    () => ["All counties", ...Array.from(new Set(sites.map((site) => site.county).filter(Boolean))).sort()],
-    [sites]
+    () => [
+      "All counties",
+      ...Array.from(
+        new Set([...sites.map((site) => site.county), ...landProperties.map((row) => row.county)].filter(Boolean))
+      ).sort(),
+    ],
+    [sites, landProperties]
   );
   const commodities = useMemo(
     () => ["All materials", ...Array.from(new Set(sites.map((site) => site.commodity).filter(Boolean))).sort().slice(0, 80)],
     [sites]
   );
 
-  const filtered = useMemo(() => {
+  const quarryFiltered = useMemo(() => {
     const search = query.trim().toLowerCase();
     const acres = Number(minAcres);
     return sites.filter((site) => {
@@ -223,6 +251,29 @@ export default function QuarryMarketplace() {
       return true;
     });
   }, [sites, query, status, county, commodity, minAcres, verifiedOnly, deedOnly, parcelByMine, verificationBySite, geologyBySite]);
+
+  const landRecords = useMemo(() => landProperties.map(toLandRecord), [landProperties]);
+
+  const filteredLand = useMemo(() => {
+    if (propertyType === "quarry") return [];
+    const search = query.trim().toLowerCase();
+    const acres = Number(minAcres);
+    return landRecords.filter((row) => {
+      if (propertyType !== "all" && landFilterFor(row.commodity) !== propertyType) return false;
+      if (county !== "All counties" && row.county !== county) return false;
+      // Operating-status and courthouse filters describe quarry records only.
+      if (status !== "All" || verifiedOnly || deedOnly) return false;
+      if (search && !row._search.includes(search)) return false;
+      if (Number.isFinite(acres) && acres > 0 && Number(row.acreage || 0) < acres) return false;
+      return true;
+    });
+  }, [landRecords, propertyType, query, county, minAcres, status, verifiedOnly, deedOnly]);
+
+  // One map, one search: quarries and land travel through the same results.
+  const filtered = useMemo(() => {
+    const quarries = propertyType === "all" || propertyType === "quarry" ? quarryFiltered : [];
+    return [...quarries, ...filteredLand];
+  }, [quarryFiltered, filteredLand, propertyType]);
 
   const displayed = useMemo(
     () => (areaBounds ? filtered.filter((site) => inBounds(site, areaBounds)) : filtered),
@@ -372,8 +423,8 @@ export default function QuarryMarketplace() {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") { setResultsOpen(true); setResultLimit(30); setLayersOpen(false); }
                 }}
-                placeholder="Quarry name, county, owner, rock type or MSHA ID"
-                aria-label="Search quarry records"
+                placeholder="Quarry, farm, timber or land — name, county, owner or ID"
+                aria-label="Search property records"
                 className="h-12 w-full rounded-xl border border-slate-300 bg-slate-50 pl-10 pr-9 text-sm font-medium text-slate-950 outline-none placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:ring-2 focus:ring-blue-100"
               />
               {query && (
@@ -411,6 +462,35 @@ export default function QuarryMarketplace() {
               <span className="sm:hidden">Filter</span>
               {activeFilterCount ? " (" + activeFilterCount + ")" : ""}
             </button>
+          </div>
+
+          {/* Property type — switches the whole map and result set, not a layer. */}
+          <div className="-mx-3 mt-2 flex gap-1.5 overflow-x-auto px-3 pb-0.5 sm:mx-0 sm:px-0">
+            {PROPERTY_FILTERS.map((option) => {
+              const active = propertyType === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => {
+                    setPropertyType(option.id);
+                    setSelectedId(null);
+                    setResultsOpen(false);
+                    setAreaBounds(null);
+                    setResultLimit(30);
+                  }}
+                  className={
+                    "inline-flex min-h-9 shrink-0 items-center rounded-full border px-3 text-[11px] font-bold transition " +
+                    (active
+                      ? "border-slate-900 bg-slate-900 text-white shadow-sm"
+                      : "border-slate-300 bg-white text-slate-700 hover:border-slate-500")
+                  }
+                >
+                  {option.label}
+                </button>
+              );
+            })}
           </div>
 
           {filtersOpen && (
@@ -502,7 +582,7 @@ export default function QuarryMarketplace() {
                 hoveredId={hoveredId}
                 onSelectSite={chooseSite}
                 onViewport={setMapView}
-                viewportKey={state + "|" + query.trim() + "|" + county + "|" + commodity + "|" + status}
+                viewportKey={state + "|" + query.trim() + "|" + county + "|" + commodity + "|" + status + "|" + propertyType}
                 resizeKey={filtersOpen}
                 baseLayer={basemap}
                 showGeology={showGeology}
@@ -583,15 +663,19 @@ export default function QuarryMarketplace() {
 
               {!resultsOpen && selectedSite && (
                 <div className="pointer-events-none absolute inset-x-2 bottom-2 z-[540] sm:left-3 sm:right-auto sm:bottom-4 sm:w-[382px]">
-                  <PropertyCard
-                    site={selectedSite}
-                    parcel={selectedParcel}
-                    verification={selectedVerification}
-                    geology={selectedGeology}
-                    permits={selectedPermits}
-                    premium={hasProfessional}
-                    onClose={() => setSelectedId(null)}
-                  />
+                  {selectedSite.record_kind === "land" ? (
+                    <LandPropertyCard property={selectedSite._land} onClose={() => setSelectedId(null)} />
+                  ) : (
+                    <PropertyCard
+                      site={selectedSite}
+                      parcel={selectedParcel}
+                      verification={selectedVerification}
+                      geology={selectedGeology}
+                      permits={selectedPermits}
+                      premium={hasProfessional}
+                      onClose={() => setSelectedId(null)}
+                    />
+                  )}
                 </div>
               )}
 

@@ -3,9 +3,48 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight, ChevronDown, Loader2, MapPin, X } from "lucide-react";
 import { rockCategoryColor } from "@/lib/rockTypes";
 import { formatAcreage, statusGroup, statusStyle } from "@/lib/quarryStatus";
+import { formatPrice, landStatusStyle, landTypeStyle } from "@/lib/landTypes";
 
 function ResultRow({ site, selected, onChoose, onHover }) {
   const acres = formatAcreage(site.acreage);
+
+  // Land listings (farms, ranches, timber/hunting, mineral acreage) sit in the
+  // same results list as quarry records but carry their own badges.
+  if (site.record_kind === "land") {
+    const land = site._land || {};
+    const price = formatPrice(land.asking_price);
+    return (
+      <button
+        type="button"
+        onClick={() => onChoose(site.id)}
+        onMouseEnter={() => onHover?.(site.id)}
+        onMouseLeave={() => onHover?.(null)}
+        className={
+          "group w-full rounded-xl border p-3 text-left transition " +
+          (selected ? "border-emerald-600 bg-emerald-50 shadow-sm" : "border-slate-200 bg-white hover:border-emerald-300 hover:bg-slate-50")
+        }
+      >
+        <div className="flex items-start justify-between gap-2">
+          <span className="line-clamp-2 text-sm font-bold leading-5 text-slate-950">{site.mine_name || "Land for sale"}</span>
+          <MapPin className={"mt-0.5 h-4 w-4 shrink-0 " + (selected ? "text-emerald-700" : "text-slate-400")} />
+        </div>
+        <p className="mt-0.5 text-xs text-slate-600">
+          {[site.county ? site.county + " County" : null, site.state].filter(Boolean).join(", ") || "Location on record"}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-1">
+          <span className={"rounded-full px-2 py-0.5 text-[10px] font-bold " + landStatusStyle(land.status)}>
+            {land.status || "For Sale"}
+          </span>
+          <span className={"rounded-full px-2 py-0.5 text-[10px] font-bold " + landTypeStyle(land.property_type)}>
+            {land.property_type || "Land"}
+          </span>
+          {acres && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">{acres}</span>}
+          {price && <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-800">{price}</span>}
+        </div>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -63,10 +102,10 @@ export default function ResultsPanel({
       : "absolute inset-x-2 bottom-2 top-14 z-[550] flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl lg:hidden";
 
   return (
-    <aside aria-label="Quarry search results" className={shell}>
+    <aside aria-label="Property search results" className={shell}>
       <div className="flex items-start justify-between gap-2 border-b border-slate-100 px-4 py-3">
         <div className="min-w-0">
-          <h2 className="text-base font-extrabold text-slate-950">{query ? "Search results" : "Quarries on this map"}</h2>
+          <h2 className="text-base font-extrabold text-slate-950">{query ? "Search results" : "Properties on this map"}</h2>
           <p className="mt-0.5 text-xs text-slate-500">
             {loading
               ? "Loading records…"
@@ -89,7 +128,7 @@ export default function ResultsPanel({
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {loading ? (
           <div className="flex items-center gap-2 p-4 text-sm text-slate-600">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading quarries…
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading properties…
           </div>
         ) : sites.length === 0 ? (
           <div className="p-5 text-center text-sm leading-6 text-slate-600">
@@ -115,7 +154,7 @@ export default function ResultsPanel({
                 onClick={onShowMore}
                 className="flex w-full items-center justify-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-xs font-bold text-slate-800"
               >
-                Show more quarries <ChevronDown className="h-4 w-4" />
+                Show more properties <ChevronDown className="h-4 w-4" />
               </button>
             )}
           </>

@@ -21,6 +21,7 @@ import { isOwner } from '@/lib/ownerAccess';
 const Home = lazy(() => import('./pages/Home'));
 const QuarryMarketplace = lazy(() => import('./pages/QuarryMarketplace'));
 const ListingDetail = lazy(() => import('./pages/ListingDetail'));
+const LandPropertyDetail = lazy(() => import('./pages/LandPropertyDetail'));
 const MineSiteDetail = lazy(() => import('./pages/MineSiteDetail'));
 const AdminActivity = lazy(() => import('./pages/AdminActivity'));
 const AdminDataSync = lazy(() => import('./pages/AdminDataSync'));
@@ -288,6 +289,7 @@ const AuthenticatedApp = () => {
       <Route path="/search" element={<PageTransition><QuarryMarketplace /></PageTransition>} />
       <Route path="/quarry-intelligence" element={<PageTransition><QuarryIntelligence /></PageTransition>} />
       <Route path="/listings/:id" element={<PageTransition><ListingDetail /></PageTransition>} />
+      <Route path="/land/:id" element={<PageTransition><LandPropertyDetail /></PageTransition>} />
       <Route path="/mines/:id" element={<PageTransition><MineSiteDetail /></PageTransition>} />
       <Route path="/admin/activity" element={<RequireAdmin><AdminActivity /></RequireAdmin>} />
       <Route path="/admin/data-sync" element={<RequireAdmin><AdminDataSync /></RequireAdmin>} />

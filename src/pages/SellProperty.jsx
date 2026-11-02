@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { ArrowLeft, Building2, CheckCircle2, LockKeyhole, Shield, Clock, FileText, Upload } from "lucide-react";
 import BottomSheetSelect from "@/components/BottomSheetSelect";
 
-const PROPERTY_TYPES = ["Operating Quarry", "Potential Quarry Land", "Aggregate Operation", "Mineral Rights", "Royalty Interest", "Other"];
+const PROPERTY_TYPES = ["Operating Quarry", "Potential Quarry Land", "Aggregate Operation", "Farm / Ranch", "Timber / Hunting Land", "Land with Mineral Potential", "Mineral Rights", "Royalty Interest", "Other"];
 const CONSIDERATIONS = ["Selling", "Leasing", "Finding an operator", "Understanding the property's potential/value", "Exploring quarry potential", "Not sure yet"];
 const STATES = ["TN", "GA", "AL", "KY", "NC", "SC", "FL", "MS", "VA", "WV", "Other"];
 const CONFIDENTIALITY = ["Confidential — do not publish", "S&S may list after review", "Public listing OK after review"];
@@ -131,8 +131,8 @@ export default function SellProperty() {
             <div className="mb-8 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white"><Building2 className="h-7 w-7" /></div>
               <p className="mt-6 text-xs font-bold uppercase tracking-[0.2em] text-sky-700">For Property Owners</p>
-              <h1 className="mt-2 font-heading text-3xl font-bold text-foreground">List Your Quarry or Property</h1>
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Submit your property for a confidential S&amp;S review. No account needed — just fill out the form below and we'll contact you.</p>
+              <h1 className="mt-2 font-heading text-3xl font-bold text-foreground">List Your Land or Quarry</h1>
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">Quarries, farms, ranches, timber and hunting land, or acreage with mineral potential — submit it for a confidential S&amp;S review. No account needed — just fill out the form below and we'll contact you.</p>
             </div>
 
             {/* Process explanation */}
@@ -190,7 +190,7 @@ export default function SellProperty() {
                 <Field label="Approximate Acreage">
                   <input className="input" inputMode="decimal" value={form.acreage} onChange={(e) => set("acreage", e.target.value)} placeholder="e.g. 120" />
                 </Field>
-                <Field label="Rock / Mineral Type">
+                <Field label="Rock / Mineral Type (if any)">
                   <input className="input" value={form.commodity} onChange={(e) => set("commodity", e.target.value)} placeholder="Limestone, sand & gravel, granite, chert..." />
                 </Field>
                 <Field label="What are you considering?">
