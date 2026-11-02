@@ -337,6 +337,10 @@
       "type": "number",
       "description": "Modeled annual tonnage the remaining-life figure is divided by."
     },
+    "annual_royalty_value": {
+      "type": "number",
+      "description": "Annual royalty value in USD at the modeled tonnage and this rock class royalty rate."
+    },
     "remaining_life_years": {
       "type": "number",
       "description": "Screening remaining mine life in years: mid reserve tons divided by modeled annual tonnage."

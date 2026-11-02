@@ -61,6 +61,9 @@ export default function ReserveLifeCard({ site }) {
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground"><DollarSign className="h-3 w-3" /> Market value</div>
           <div className="mt-1 text-sm font-bold text-foreground">{marketMid > 0 ? money(marketMid) : "Not modeled"}</div>
           <div className="text-xs text-muted-foreground">{marketMid > 0 ? "comparable-sales basis" : "no comparable range stored"}</div>
+          {Number(site.annual_royalty_value) > 0 && (
+            <div className="mt-1 text-xs text-muted-foreground">Royalty at output: <strong className="text-foreground">{money(site.annual_royalty_value)}/yr</strong></div>
+          )}
         </div>
       </div>
 

@@ -393,7 +393,6 @@ export default function Home() {
             <Link to="/watchlist" className="hover:text-foreground">Saved</Link>
             <Link to="/sell" className="hover:text-foreground">List Property</Link>
             <Link to="/enterprise" className="font-semibold text-sky-800 hover:text-sky-700">Enterprise</Link>
-            <Link to="/courthouse-records" className="hover:text-foreground">Records</Link>
             <Link to="/data-sources" className="hover:text-foreground">How the Data Works</Link>
             <Link to="/support" className="hover:text-foreground">Help</Link>
             {user?.role === "admin" && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
@@ -512,7 +511,6 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-6 pb-10">
         <h2 className="mb-3 text-sm font-bold text-slate-800">More industry tools</h2>
         <div className="grid gap-2 sm:grid-cols-3">
-          <Link to="/courthouse-records" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-blue-800 hover:border-blue-300">Courthouse &amp; deed records →</Link>
           <Link to="/enterprise" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-blue-800 hover:border-blue-300">Enterprise intelligence →</Link>
           <Link to="/network" className="rounded-xl border border-slate-200 bg-white p-4 text-sm font-semibold text-blue-800 hover:border-blue-300">Industry network →</Link>
         </div>

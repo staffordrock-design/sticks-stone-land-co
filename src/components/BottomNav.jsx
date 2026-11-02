@@ -5,7 +5,7 @@ import { Mountain, MapPinned, Bookmark, PlusCircle, UserRound } from "lucide-rea
 // Five clear destinations; specialist tools remain available through Discover.
 const TABS = [
   { to: "/", label: "Map", icon: MapPinned, match: (p) => p === "/" || p.startsWith("/search") || p.startsWith("/listings") || p.startsWith("/mines") || p.startsWith("/mineral-intelligence") || p.startsWith("/quarry-intelligence") || p.startsWith("/land-intelligence") || p.startsWith("/us-geology-map") },
-  { to: "/discover", label: "Discover", icon: Mountain, match: (p) => p === "/discover" || p.startsWith("/enterprise") || p.startsWith("/courthouse-records") || p.startsWith("/data-sources") || p.startsWith("/intelligence") },
+  { to: "/discover", label: "Discover", icon: Mountain, match: (p) => p === "/discover" || p.startsWith("/enterprise") || p.startsWith("/data-sources") || p.startsWith("/intelligence") },
   { to: "/watchlist", label: "Saved", icon: Bookmark, match: (p) => p.startsWith("/watchlist") || p.startsWith("/opportunities") },
   { to: "/sell", label: "List", icon: PlusCircle, match: (p) => p.startsWith("/sell") || p.startsWith("/seller-portal") || p.startsWith("/seller-dashboard") },
   { to: "/profile", label: "Account", icon: UserRound, match: (p) => p.startsWith("/profile") || p.startsWith("/buyer-profile") || p.startsWith("/subscribe") },

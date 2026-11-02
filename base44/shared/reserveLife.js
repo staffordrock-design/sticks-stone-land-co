@@ -64,10 +64,13 @@ export function computeReserveLife({ site, geology, annualTons } = {}) {
 
   const rock = geology?.primary_rock || geology?.lithology || site.commodity || "";
   const model = reserveModelFor(rock);
+  // Coal is not quarry rock and is screened out of the inventory entirely.
+  if (model.category === "Coal / Carbonaceous") return null;
 
-  const midTons = tonsFor(acres, model.depth, model.density, model.recovery);
-  const lowTons = tonsFor(acres, model.depth * LOW_CASE.depth, model.density, model.recovery);
-  const highTons = tonsFor(acres, model.depth * HIGH_CASE.depth, model.density, model.recovery);
+  const workedAcres = acres * WORKED_FOOTPRINT;
+  const midTons = tonsFor(workedAcres, model.depth, model.density, model.recovery);
+  const lowTons = tonsFor(workedAcres, model.depth * LOW_CASE.depth, model.density, model.recovery);
+  const highTons = tonsFor(workedAcres, model.depth * HIGH_CASE.depth, model.density, model.recovery);
 
   const valueLow = lowTons * model.royalty * LOW_CASE.royalty;
   const valueMid = midTons * model.royalty;
@@ -82,7 +85,7 @@ export function computeReserveLife({ site, geology, annualTons } = {}) {
     Boolean(model.category),
     Boolean(geology?.primary_rock || geology?.lithology),
   ].filter(Boolean).length;
-  const confidence = signals >= 4 ? "High" : signals >= 3 ? "Medium" : "Low";
+  const confidence = signals >= 4 ? "High" : signals >= 2 ? "Medium" : "Low";
 
   return {
     reserve_acres: round(acres),
@@ -93,6 +96,7 @@ export function computeReserveLife({ site, geology, annualTons } = {}) {
     reserve_tons_mid: round(midTons),
     reserve_tons_high: round(highTons),
     annual_production_tons: rate ? round(rate) : null,
+    annual_royalty_value: rate ? round(rate * model.royalty) : null,
     remaining_life_years: lifeYears ? Math.round(lifeYears * 10) / 10 : null,
     reserve_value_low: round(valueLow),
     reserve_value_mid: round(valueMid),

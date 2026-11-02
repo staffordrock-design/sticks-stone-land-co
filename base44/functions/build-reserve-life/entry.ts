@@ -71,6 +71,22 @@ export default async function (req: Request) {
             annualTons: tonsBySite[site.id]?.tons || null,
           });
           if (!reserve) {
+            // Clear any figure stored under an earlier assumption set (e.g. coal,
+            // which is no longer valued as quarry rock) instead of leaving it stale.
+            updates.push({
+              id: site.id,
+              reserve_tons_low: null,
+              reserve_tons_mid: null,
+              reserve_tons_high: null,
+              reserve_value_low: null,
+              reserve_value_mid: null,
+              reserve_value_high: null,
+              reserve_value_per_acre: null,
+              remaining_life_years: null,
+              annual_production_tons: null,
+              annual_royalty_value: null,
+              reserve_computed_at: null,
+            });
             skipped += 1;
             continue;
           }

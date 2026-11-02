@@ -61,10 +61,24 @@
             "function_name": "build-production-estimates",
             "args": {}
           },
-          "then": "end",
+          "then": "reserve_life",
           "x-base44": {
             "title": "Rebuild production estimates",
             "description": "S&S modeled range per quarry"
+          }
+        }
+      },
+      {
+        "reserve_life": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "build-reserve-life",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Recompute reserve life and value",
+            "description": "Tons, remaining years, in-ground value"
           }
         }
       }
