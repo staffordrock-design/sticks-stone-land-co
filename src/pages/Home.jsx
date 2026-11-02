@@ -16,6 +16,7 @@ import { useProfessionalAccess } from "@/hooks/useProfessionalAccess";
 import { premiumEntityQuery, premiumEntityBundle, premiumAccessProofParams } from "@/lib/subscriptionAccess";
 import { loadPublicStats } from "@/lib/publicStatsCache";
 import { loadPublicQuarryList } from "@/lib/publicQuarryListCache";
+import { TRIAL_DAYS } from "@/lib/trialAccess";
 import { base44 } from "@/api/base44Client";
 import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
@@ -466,7 +467,7 @@ export default function Home() {
           </div>
           {!hasProfessional && (
             <Link to="/subscribe" className="inline-flex min-h-12 w-fit items-center gap-2 rounded-xl bg-sky-600 px-6 py-3 text-sm font-bold text-white shadow-lg hover:bg-sky-500">
-              <TrendingUp className="h-4 w-4" /> Start your 7-day free trial
+              <TrendingUp className="h-4 w-4" /> Start your {TRIAL_DAYS}-day free trial
             </Link>
           )}
         </div>

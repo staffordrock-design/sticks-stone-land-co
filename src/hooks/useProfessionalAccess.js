@@ -81,7 +81,7 @@ export function useProfessionalAccess() {
           const webAccess = await verifySavedWebSubscriptionAccess();
           webProfessional = Boolean(webAccess?.active);
         }
-        // The 7-day free trial started at signup unlocks the same records a paid
+        // The free trial started at signup unlocks the same records a paid
         // membership does; it is enforced on the server for every premium query.
         let trial = { active: false, daysLeft: 0, ended: false, row: null };
         if (!appleProfessional && !activeProfessional && !webProfessional) {

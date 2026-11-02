@@ -1,10 +1,10 @@
 import { base44 } from "@/api/base44Client";
 
-// The 7-day free trial (SubscriptionTrial, started by start-free-trial when a
+// The free trial (SubscriptionTrial, started by start-free-trial when a
 // signed-in visitor reaches /subscribe) grants the same access a paid membership
 // does. Both sides read it through this one rule: the backend mirror lives in
 // base44/shared/premiumEntitlement.ts (trialIsCurrent).
-export const TRIAL_DAYS = 7;
+export const TRIAL_DAYS = 3;
 
 export function trialIsActive(row) {
   if (!row || String(row.status) !== "Active") return false;

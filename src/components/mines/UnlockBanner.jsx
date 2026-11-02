@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Crown } from "lucide-react";
+import { TRIAL_DAYS } from "@/lib/trialAccess";
 
 // A page's single unlock prompt. Locked pages render their premium intelligence
 // in place (obscured) and place exactly one of these below it.
@@ -19,7 +20,7 @@ export default function UnlockBanner({ returnTo }) {
         to={href}
         className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-slate-800"
       >
-        Start your 7-day free trial <ArrowRight className="h-4 w-4" />
+        Start your {TRIAL_DAYS}-day free trial <ArrowRight className="h-4 w-4" />
       </Link>
       <p className="mt-3 text-xs text-muted-foreground">No card required · Then $39/month if you keep it · Cancel anytime</p>
     </div>

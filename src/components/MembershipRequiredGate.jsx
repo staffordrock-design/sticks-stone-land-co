@@ -186,7 +186,7 @@ export default function MembershipRequiredGate({ children }) {
           }
         }
 
-        // A live 7-day free trial opens the same routes a paid membership does.
+        // A live free trial opens the same routes a paid membership does.
         let trialActive = false;
         if (!storeActive && !accountActive) {
           try {

@@ -7,7 +7,7 @@ import { isNativeIOS, stableAppleSubscriptionAccess, syncCurrentAppleSubscriptio
 import { isNativeAndroid, syncCurrentGoogleSubscriptions } from "@/lib/googleSubscriptions";
 import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
-import { loadTrialState } from "@/lib/trialAccess";
+import { loadTrialState, TRIAL_DAYS } from "@/lib/trialAccess";
 import { isOwner } from "@/lib/ownerAccess";
 import { verifySavedWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 
@@ -104,12 +104,12 @@ export default function PaidAccessGate({ children }) {
             <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-5"><div className="text-xs font-bold uppercase tracking-wider text-sky-700">Full Quarry Intelligence</div><div className="mt-2 text-xs leading-5 text-muted-foreground">Full app access to quarry records, mapping, ownership, geology, regulatory, production and advanced screening.</div></div>
           </div>
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <Link to={subscribeHref} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />Start free 7-day trial</Link>
+            <Link to={subscribeHref} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white"><Crown className="h-4 w-4" />Start free {TRIAL_DAYS}-day trial</Link>
             <Link to="/" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Back to marketplace</Link>
             {!user?.id && !isNativeIOS() && <Link to="/register" className="inline-flex items-center rounded-xl border border-border px-5 py-3 text-sm font-bold text-foreground">Create account</Link>}
             {!user?.id && !isNativeIOS() && <Link to="/login" className="text-sm font-semibold text-sky-800 hover:underline">Sign in</Link>}
           </div>
-          <p className="mt-5 text-xs leading-5 text-muted-foreground">Start on the website with a 7-day free trial — no card required, then $39/month if you keep it. On iPhone, Apple shows the subscription price and purchase terms before confirmation. The subscription renews automatically until canceled. Custom reports and due-diligence research are separate professional services.</p>
+          <p className="mt-5 text-xs leading-5 text-muted-foreground">Start on the website with a {TRIAL_DAYS}-day free trial — no card required, then $39/month if you keep it. On iPhone, Apple shows the subscription price and purchase terms before confirmation. The subscription renews automatically until canceled. Custom reports and due-diligence research are separate professional services.</p>
         </div>
       </div>
     );

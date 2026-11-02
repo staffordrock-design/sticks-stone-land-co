@@ -19,7 +19,7 @@ import { isOwnerUser } from './ownerAccess.ts';
 
 export const FULL_QUARRY_PLANS = new Set(['professional_monthly', 'marketplace_monthly']);
 export const ACTIVE_STATUSES = new Set(['active', 'grace_period']);
-export const TRIAL_DAYS = 7;
+export const TRIAL_DAYS = 3;
 
 // A free trial (SubscriptionTrial, started at signup by start-free-trial) grants
 // the same access as a paid membership until it ends. One rule for every

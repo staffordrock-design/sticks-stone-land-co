@@ -12,6 +12,7 @@ import { isReviewDemoAccount } from "@/lib/reviewDemo";
 import { findFullQuarryEntitlement } from "@/lib/subscriptionAccess";
 import { getWebSubscriptionBrowserId, verifySavedWebSubscriptionAccess, getSavedWebSubscriptionAccess, clearWebSubscriptionAccess } from "@/lib/webSubscriptionAccess";
 import { trackFunnelEvent } from "@/lib/funnelTracking";
+import { TRIAL_DAYS } from "@/lib/trialAccess";
 import { trackVerifiedGoogleAdsPurchase } from "@/lib/googleAdsTracking";
 import SubscriptionWorkflow from "@/components/SubscriptionWorkflow";
 const STORE_TIMEOUT_MS = 15000;
@@ -145,7 +146,7 @@ export default function Subscription() {
     return () => { cancelled = true; };
   }, [user?.id, isNative, isIOS, isAndroid, adminPreview]);
 
-  // Free 7-day trial. A signed-in visitor who reaches this page without a paid
+  // Free trial. A signed-in visitor who reaches this page without a paid
   // membership starts their trial here, which is where every locked section
   // sends them. The server allows one trial per account and hands back the
   // existing trial instead of creating a second one.
@@ -509,7 +510,7 @@ export default function Subscription() {
           <div className="flex items-center gap-3"><Crown className="h-7 w-7 text-sky-600" /><div><p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">S&S Rock Holdings</p><h1 className="font-heading text-3xl font-bold">Unlock the records behind the quarry</h1></div></div>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">Get the ownership, parcel, geology, permit, production, environmental and opportunity intelligence that sits behind each quarry record. Full access unlocks immediately after purchase. {isIOS ? "Apple shows the current price and purchase terms before you confirm." : "Your checkout provider shows the current price and purchase terms before you confirm."}</p>
           {!active && !trial?.active && !isNative && !user?.id && (
-            <Link to={`/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Start your 7-day free trial — no card required</Link>
+            <Link to={`/register?returnTo=${encodeURIComponent(`/subscribe?returnTo=${encodeURIComponent(returnTo)}`)}`} className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">Start your {TRIAL_DAYS}-day free trial — no card required</Link>
           )}
           {!active && !trial?.active && (isNative || user?.id) && (
             <a href="#subscription-options" className="mt-5 inline-flex rounded-xl bg-sky-700 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-sky-800">View Membership</a>
@@ -525,11 +526,11 @@ export default function Subscription() {
           </div>}
 
           {!isNative && trialBusy && !trial && !active && (
-            <p className="mt-6 text-sm font-semibold text-sky-900">Starting your 7-day free trial…</p>
+            <p className="mt-6 text-sm font-semibold text-sky-900">Starting your {TRIAL_DAYS}-day free trial…</p>
           )}
           {!isNative && trial?.active && (
             <div className="mt-8 rounded-2xl border border-emerald-300 bg-emerald-50 p-5 text-emerald-950">
-              <div className="flex items-center gap-2 font-bold"><Gift className="h-5 w-5" /> Your 7-day free trial is active</div>
+              <div className="flex items-center gap-2 font-bold"><Gift className="h-5 w-5" /> Your {TRIAL_DAYS}-day free trial is active</div>
               <p className="mt-1 text-sm">
                 {trial.daysLeft === 1 ? "1 day left" : `${trial.daysLeft} days left`}
                 {trial.endsAt ? ` — full access through ${new Date(trial.endsAt).toLocaleDateString()}` : ""}. No card was taken and nothing renews automatically.

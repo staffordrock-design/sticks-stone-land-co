@@ -10,7 +10,7 @@ function daysLeft(endsAt: any) {
   return Math.max(0, Math.ceil((ms - Date.now()) / 86400000));
 }
 
-// Starts the one 7-day free trial an account may ever have. The client cannot
+// Starts the one free trial an account may ever have. The client cannot
 // choose the length, the plan or the price: those are fixed here and the write
 // runs as the service role, because SubscriptionTrial is admin-write only.
 export default async function (req: Request) {
