@@ -213,6 +213,40 @@ export default function AdminLeadInbox() {
   );
 }
 
+function SalesInquiryCard({ lead, updating, onStatus }) {
+  const stages = ["New", "Contacted", "Qualified", "Customer", "Closed"];
+  const callbackNumber = String(lead.notes || "").match(/(?:^|\n)Phone:\s*([^\n]+)/)?.[1]?.trim();
+
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-bold text-sky-900">{lead.source === "Homepage Lead Form" ? "Homepage inquiry" : "Enterprise inquiry"}</span>
+        <span className="text-xs text-slate-500">{formatDate(lead.created_at || lead.created_date)}</span>
+      </div>
+      <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h3 className="text-lg font-bold text-slate-950">{lead.name || lead.email || "Website visitor"}</h3>
+          {lead.company && <p className="mt-1 text-sm text-slate-600">{lead.company}</p>}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {lead.email && <a href={"mailto:" + lead.email} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-sky-800 hover:bg-slate-50"><Mail className="h-4 w-4" /> Email</a>}
+            {callbackNumber && <a href={"tel:" + callbackNumber.replace(/[^0-9+]/g, "")} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-sky-800 hover:bg-slate-50"><Phone className="h-4 w-4" /> Call</a>}
+          </div>
+        </div>
+        <label className="block text-xs font-semibold text-slate-700">
+          Stage
+          <select value={lead.status || "New"} disabled={updating} onChange={(e) => onStatus(lead, e.target.value)} className="input mt-1 block min-w-36 text-sm disabled:opacity-60">
+            {stages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
+          </select>
+        </label>
+      </div>
+      <div className="mt-4 rounded-xl bg-slate-50 p-4">
+        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Inquiry details</p>
+        <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-800">{lead.notes || lead.interest || "No details provided."}</p>
+      </div>
+    </article>
+  );
+}
+
 function LeadCard({ lead, updating, onStatus }) {
   const isBuyer = lead.lead_type === "Buyer";
   const isSeller = lead.lead_type === "Seller";
