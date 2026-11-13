@@ -5,6 +5,8 @@ import {
   SlidersHorizontal, X,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import { useAuth } from "@/lib/AuthContext";
+import { isOwner } from "@/lib/ownerAccess";
 import HomepageLeadForm from "@/components/HomepageLeadForm";
 import QuarryMapCanvas from "@/components/quarryMap/QuarryMapCanvas";
 import PropertyCard from "@/components/marketplace/PropertyCard";
@@ -38,6 +40,7 @@ function inBounds(site, bounds) {
 }
 
 export default function QuarryMarketplace() {
+  const { user } = useAuth();
   const { hasProfessional, checking } = useProfessionalAccess();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialState = searchParams.get("state");
@@ -404,6 +407,7 @@ export default function QuarryMarketplace() {
           <div className="flex items-center justify-between gap-2">
             <BrandLogo iconClassName="h-8 w-8" />
             <div className="flex items-center gap-1.5">
+              {(user?.role === "admin" || isOwner(user)) && <Link to="/admin/leads" className="hidden min-h-10 items-center rounded-xl border border-sky-200 px-3 text-xs font-bold text-sky-900 hover:bg-sky-50 sm:inline-flex">Lead Inbox</Link>}
               <button type="button" onClick={() => setLeadOpen(true)} className="hidden min-h-10 items-center rounded-xl bg-sky-700 px-3 text-xs font-extrabold text-white shadow-sm hover:bg-sky-800 sm:inline-flex">Request information</button>
               <button
                 type="button"
