@@ -22,6 +22,7 @@ import AppStoreBadge from "@/components/AppStoreBadge";
 import TrustBand from "@/components/TrustBand";
 import SampleIntelligenceRecord from "@/components/SampleIntelligenceRecord";
 import AudiencePaths from "@/components/AudiencePaths";
+import HomepageLeadForm from "@/components/HomepageLeadForm";
 import MembershipValueSection from "@/components/MembershipValueSection";
 import { SAMPLE_RECORD_ID } from "@/lib/sampleRecord";
 
@@ -450,9 +451,13 @@ export default function Home() {
             <button type="button" onClick={() => navigate(`/mines/${SAMPLE_RECORD_ID}`)} className="inline-flex min-h-12 items-center justify-center gap-2 text-sm font-bold text-sky-800 hover:underline">
               <Layers className="h-4 w-4" /> View a sample intelligence record
             </button>
+            <a href="#quarry-inquiry" className="ml-3 inline-flex min-h-12 items-center justify-center text-sm font-bold text-sky-800 hover:underline">Ask about a quarry — no signup</a>
           </div>
         </div>
       </section>
+
+      {/* Public lead capture before visitors reach the map or the paywall. */}
+      <HomepageLeadForm user={user} />
 
       {/* Interactive quarry map — the primary way to browse records */}
       <section id="quarry-intelligence" className="mx-auto max-w-7xl scroll-mt-28 px-4 py-10 sm:px-6">
