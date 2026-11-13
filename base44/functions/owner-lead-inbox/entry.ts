@@ -40,10 +40,12 @@ export default async function(req: Request) {
       const status = String(body?.status || '');
       if (!Object.prototype.hasOwnProperty.call(VALID_STAGES, entityName)
           || !/^[a-f\d]{24}$/i.test(leadId)
-          || !VALID_STAGES[entityName as keyof typeof VALID_STAGES]?.has(status)) {
+          || !(entityName === 'SalesLead' ? VALID_STAGES.SalesLead : VALID_STAGES.QuarryLeadIntake).has(status)) {
         return Response.json({ error: 'Invalid lead or stage.' }, { status: 400 });
       }
-      const changed = await service.entities[entityName as 'SalesLead' | 'QuarryLeadIntake'].update(leadId, { status });
+      const changed = entityName === 'SalesLead'
+        ? await service.entities.SalesLead.update(leadId, { status })
+        : await service.entities.QuarryLeadIntake.update(leadId, { status });
       return Response.json({ success: true, id: changed?.id || leadId, status });
     }
 
