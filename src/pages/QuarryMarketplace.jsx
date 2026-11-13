@@ -5,6 +5,7 @@ import {
   SlidersHorizontal, X,
 } from "lucide-react";
 import BrandLogo from "@/components/BrandLogo";
+import HomepageLeadForm from "@/components/HomepageLeadForm";
 import QuarryMapCanvas from "@/components/quarryMap/QuarryMapCanvas";
 import PropertyCard from "@/components/marketplace/PropertyCard";
 import ResultsPanel from "@/components/marketplace/ResultsPanel";
@@ -55,6 +56,7 @@ export default function QuarryMarketplace() {
   const [layersOpen, setLayersOpen] = useState(false);
   const [savedOpen, setSavedOpen] = useState(false);
   const [resultsOpen, setResultsOpen] = useState(false);
+  const [leadOpen, setLeadOpen] = useState(false);
   const [resultLimit, setResultLimit] = useState(30);
 
   const [basemap, setBasemap] = useState("street");
@@ -370,6 +372,18 @@ export default function QuarryMarketplace() {
     setResultLimit(30);
   };
 
+  useEffect(() => {
+    if (!leadOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event) => { if (event.key === "Escape") setLeadOpen(false); };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [leadOpen]);
+
   if (checking) {
     return (
       <div className="flex min-h-[65vh] items-center justify-center">
@@ -390,6 +404,7 @@ export default function QuarryMarketplace() {
           <div className="flex items-center justify-between gap-2">
             <BrandLogo iconClassName="h-8 w-8" />
             <div className="flex items-center gap-1.5">
+              <button type="button" onClick={() => setLeadOpen(true)} className="hidden min-h-10 items-center rounded-xl bg-sky-700 px-3 text-xs font-extrabold text-white shadow-sm hover:bg-sky-800 sm:inline-flex">Request information</button>
               <button
                 type="button"
                 onClick={() => { setSavedOpen((open) => !open); setLayersOpen(false); }}
@@ -494,6 +509,11 @@ export default function QuarryMarketplace() {
               );
             })}
           </div>
+
+          <button type="button" onClick={() => setLeadOpen(true)} className="mt-2 flex w-full items-center justify-between gap-3 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2.5 text-left text-xs font-bold text-sky-900 shadow-sm sm:hidden">
+            <span>Need help buying, selling, or researching quarry land?</span>
+            <span className="shrink-0 whitespace-nowrap underline">Ask S&amp;S →</span>
+          </button>
 
           {filtersOpen && (
             <div className="mt-2.5 flex max-h-[38dvh] flex-wrap items-end gap-2 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-3">
@@ -746,6 +766,14 @@ export default function QuarryMarketplace() {
           </>
         )}
       </main>
+      {leadOpen && (
+        <div role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setLeadOpen(false); }} className="fixed inset-0 z-[2000] overflow-y-auto bg-slate-950/70 px-2 py-4 sm:px-6 sm:py-8">
+          <div role="dialog" aria-modal="true" aria-label="Request quarry information" className="relative mx-auto max-w-5xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+            <button type="button" aria-label="Close inquiry form" onClick={() => setLeadOpen(false)} className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-100"><X className="h-5 w-5" /></button>
+            <HomepageLeadForm />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
