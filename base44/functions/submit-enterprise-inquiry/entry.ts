@@ -6,8 +6,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.49';
 // NotificationQueue (reusing the app's existing notification pattern).
 
 const OWNER_EMAIL = 'contact@ssrockholdings.com';
-// Only the Enterprise page's own source labels are accepted. Anything else
-// (including a missing value) falls back to the general enterprise-page source.
+// Only known public form sources are accepted. Unknown values fall back
+// to the enterprise-page source; a visitor cannot spoof a different channel.
 const ALLOWED_SOURCES = new Set(['Enterprise Page', 'Enterprise Page — Workup', 'Homepage Lead Form']);
 
 export default async function(req: any) {
