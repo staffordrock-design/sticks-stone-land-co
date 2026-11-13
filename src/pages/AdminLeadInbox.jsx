@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { isOwner } from "@/lib/ownerAccess";
 import {
   ArrowLeft,
   BadgeDollarSign,
@@ -23,6 +24,8 @@ const STAGES = ["All", "New", "Reviewing", "Contacted", "Qualified", "Deal", "Co
 
 export default function AdminLeadInbox() {
   const { user } = useAuth();
+  const canViewLeads = Boolean(user?.role === "admin" || isOwner(user));
+  const [loadError, setLoadError] = useState("");
   const [leads, setLeads] = useState([]);
   const [salesLeads, setSalesLeads] = useState([]);
   const [salesUpdating, setSalesUpdating] = useState("");
@@ -33,28 +36,27 @@ export default function AdminLeadInbox() {
   const [stageFilter, setStageFilter] = useState("All");
 
   const load = async () => {
-    if (user?.role !== "admin") {
+    if (!canViewLeads) {
       setLoading(false);
       return;
     }
     setLoading(true);
+    setLoadError("");
     try {
-      const [quarryResult, inquiryResult] = await Promise.allSettled([
-        base44.entities.QuarryLeadIntake.list("-created_at", 500),
-        base44.entities.SalesLead.list("-created_at", 500),
-      ]);
-      if (quarryResult.status === "fulfilled") setLeads(quarryResult.value || []);
-      else console.error("Failed to load quarry leads", quarryResult.reason);
-      if (inquiryResult.status === "fulfilled") setSalesLeads(inquiryResult.value || []);
-      else console.error("Failed to load website inquiries", inquiryResult.reason);
+      const response = await base44.functions.invoke("owner-lead-inbox", { action: "list" });
+      const payload = response?.data || response || {};
+      if (payload.error || !payload.success) throw new Error(payload.error || "Could not load leads.");
+      setLeads(payload.quarryLeads || []);
+      setSalesLeads(payload.salesLeads || []);
     } catch (error) {
-      console.error("Failed to load quarry leads", error);
+      console.error("Failed to load private leads", error);
+      setLoadError("Unable to load leads. Check that you are signed in to your S&S owner account, then refresh.");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { load(); }, [user?.role]);
+  useEffect(() => { load(); }, [user?.role, user?.email, user?.id]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -100,7 +102,9 @@ export default function AdminLeadInbox() {
     setSalesUpdating(lead.id);
     setSalesLeads((rows) => rows.map((row) => row.id === lead.id ? { ...row, status } : row));
     try {
-      await base44.entities.SalesLead.update(lead.id, { status });
+      const response = await base44.functions.invoke("owner-lead-inbox", { action: "update", entityName: "SalesLead", leadId: lead.id, status });
+      const result = response?.data || response || {};
+      if (!result.success) throw new Error(result.error || "Could not update lead.");
     } catch (error) {
       console.error("Failed to update website inquiry", error);
       setSalesLeads((rows) => rows.map((row) => row.id === lead.id ? { ...row, status: previous } : row));
@@ -115,7 +119,9 @@ export default function AdminLeadInbox() {
     setUpdating(lead.id);
     setLeads((rows) => rows.map((row) => row.id === lead.id ? { ...row, status } : row));
     try {
-      await base44.entities.QuarryLeadIntake.update(lead.id, { status });
+      const response = await base44.functions.invoke("owner-lead-inbox", { action: "update", entityName: "QuarryLeadIntake", leadId: lead.id, status });
+      const result = response?.data || response || {};
+      if (!result.success) throw new Error(result.error || "Could not update lead.");
     } catch (error) {
       console.error("Failed to update lead stage", error);
       setLeads((rows) => rows.map((row) => row.id === lead.id ? { ...row, status: prior } : row));
@@ -124,7 +130,7 @@ export default function AdminLeadInbox() {
     }
   };
 
-  if (user?.role !== "admin") {
+  if (!canViewLeads) {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="mx-auto max-w-3xl rounded-2xl border border-border bg-card p-8 text-center">
@@ -151,6 +157,7 @@ export default function AdminLeadInbox() {
       </header>
 
       <main className="mx-auto max-w-7xl px-5 py-8 sm:px-6">
+        {loadError && <p role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{loadError}</p>}
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">Private S&S Admin</p>
           <h1 className="mt-2 font-heading text-3xl font-bold text-foreground sm:text-4xl">Lead Inbox</h1>
