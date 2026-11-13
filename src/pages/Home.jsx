@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
+import { isOwner } from "@/lib/ownerAccess";
 import AppLoadingScreen from "@/components/AppLoadingScreen";
 const QuarryMapCanvas = lazy(() => import("@/components/quarryMap/QuarryMapCanvas"));
 import { Layers, TrendingUp, Search } from "lucide-react";
@@ -396,7 +397,7 @@ export default function Home() {
             <Link to="/enterprise" className="font-semibold text-sky-800 hover:text-sky-700">Enterprise</Link>
             <Link to="/data-sources" className="hover:text-foreground">How the Data Works</Link>
             <Link to="/support" className="hover:text-foreground">Help</Link>
-            {user?.role === "admin" && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
+            {(user?.role === "admin" || isOwner(user)) && <Link to="/admin/leads" className="font-semibold text-sky-700 hover:text-sky-800">Lead Inbox</Link>}
             {user?.role === "admin" && <Link to="/admin/conversions" className="font-semibold text-sky-700 hover:text-sky-800">Conversions</Link>}
             {user?.role === "admin" && <Link to="/admin/reports" className="font-semibold text-sky-700 hover:text-sky-800">Reports</Link>}
             {user?.role === "admin" && <button onClick={() => downloadGeologyCsv(geology, `SS-Geology-Data-${new Date().toISOString().slice(0,10)}.csv`)} className="font-semibold text-sky-700 hover:text-sky-800">Download Geology CSV</button>}
