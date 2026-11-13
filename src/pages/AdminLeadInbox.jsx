@@ -179,7 +179,7 @@ export default function AdminLeadInbox() {
               {STAGES.map((stage) => <option key={stage} value={stage}>{stage === "All" ? "All stages" : stage}</option>)}
             </select>
           </div>
-          <div className="mt-3 text-xs text-muted-foreground">Showing {filtered.length} of {leads.length} leads</div>
+          <div className="mt-3 text-xs text-muted-foreground">Showing {filteredSales.length} of {salesLeads.length} website inquiries and {filtered.length} of {leads.length} quarry pipeline leads</div>
         </div>
 
         <section className="mt-8" aria-label="Website and enterprise inquiries">
