@@ -58,7 +58,11 @@ export default function HomepageLeadForm({ user }) {
         throw new Error(data.error || "Your request could not be confirmed. Please try again.");
       }
       setSubmitted(true);
-      trackFunnelEvent({ page_type: "lead_capture", resource_id: "homepage_lead_submitted", path: "/", user });
+      try {
+        trackFunnelEvent({ page_type: "lead_capture", resource_id: "homepage_lead_submitted", path: "/", user });
+      } catch (trackingError) {
+        console.warn("Lead saved; optional analytics unavailable", trackingError);
+      }
     } catch (err) {
       setError(err?.message || "Could not send your request. Please try again.");
     } finally {
