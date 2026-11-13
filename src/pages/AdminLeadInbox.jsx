@@ -24,6 +24,8 @@ const STAGES = ["All", "New", "Reviewing", "Contacted", "Qualified", "Deal", "Co
 export default function AdminLeadInbox() {
   const { user } = useAuth();
   const [leads, setLeads] = useState([]);
+  const [salesLeads, setSalesLeads] = useState([]);
+  const [salesUpdating, setSalesUpdating] = useState("");
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState("");
   const [query, setQuery] = useState("");
@@ -37,8 +39,14 @@ export default function AdminLeadInbox() {
     }
     setLoading(true);
     try {
-      const rows = await base44.entities.QuarryLeadIntake.list("-created_at", 500);
-      setLeads(rows || []);
+      const [quarryResult, inquiryResult] = await Promise.allSettled([
+        base44.entities.QuarryLeadIntake.list("-created_at", 500),
+        base44.entities.SalesLead.list("-created_at", 500),
+      ]);
+      if (quarryResult.status === "fulfilled") setLeads(quarryResult.value || []);
+      else console.error("Failed to load quarry leads", quarryResult.reason);
+      if (inquiryResult.status === "fulfilled") setSalesLeads(inquiryResult.value || []);
+      else console.error("Failed to load website inquiries", inquiryResult.reason);
     } catch (error) {
       console.error("Failed to load quarry leads", error);
     } finally {
@@ -72,13 +80,34 @@ export default function AdminLeadInbox() {
     });
   }, [leads, query, typeFilter, stageFilter]);
 
+  const filteredSales = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return salesLeads.filter((lead) => !q || [lead.name, lead.email, lead.company, lead.interest, lead.source, lead.notes].filter(Boolean).join(" ").toLowerCase().includes(q));
+  }, [salesLeads, query]);
+
   const stats = useMemo(() => ({
-    total: leads.length,
-    newCount: leads.filter((l) => l.status === "New").length,
+    total: leads.length + salesLeads.length,
+    inquiries: salesLeads.length,
+    newCount: leads.filter((l) => l.status === "New").length + salesLeads.filter((l) => l.status === "New").length,
     buyers: leads.filter((l) => l.lead_type === "Buyer").length,
     sellers: leads.filter((l) => l.lead_type === "Seller").length,
     links: leads.filter((l) => l.lead_type === "Link My Quarry").length,
-  }), [leads]);
+  }), [leads, salesLeads]);
+
+  const setSalesStatus = async (lead, status) => {
+    if (!lead?.id || status === lead.status) return;
+    const previous = lead.status;
+    setSalesUpdating(lead.id);
+    setSalesLeads((rows) => rows.map((row) => row.id === lead.id ? { ...row, status } : row));
+    try {
+      await base44.entities.SalesLead.update(lead.id, { status });
+    } catch (error) {
+      console.error("Failed to update website inquiry", error);
+      setSalesLeads((rows) => rows.map((row) => row.id === lead.id ? { ...row, status: previous } : row));
+    } finally {
+      setSalesUpdating("");
+    }
+  };
 
   const setStatus = async (lead, status) => {
     if (!lead?.id || status === lead.status) return;
@@ -125,15 +154,16 @@ export default function AdminLeadInbox() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-700">Private S&S Admin</p>
           <h1 className="mt-2 font-heading text-3xl font-bold text-foreground sm:text-4xl">Lead Inbox</h1>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">Every buyer, seller and quarry-link request from the app in one place. Call or email the lead, open the quarry record, and move the opportunity through your pipeline.</p>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">New homepage and enterprise inquiries appear here alongside buyer, seller and quarry-link requests. Follow up by email, review the request, and update each lead as you work.</p>
         </div>
 
-        <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-6">
           <Stat icon={Users} label="All leads" value={stats.total} />
           <Stat icon={RefreshCw} label="New" value={stats.newCount} />
           <Stat icon={ShoppingCart} label="Buyers" value={stats.buyers} />
           <Stat icon={Handshake} label="Sellers" value={stats.sellers} />
           <Stat icon={Link2} label="Quarry links" value={stats.links} />
+          <Stat icon={Mail} label="Website inquiries" value={stats.inquiries} />
         </div>
 
         <div className="mt-7 rounded-2xl border border-border bg-card p-4">
@@ -152,6 +182,19 @@ export default function AdminLeadInbox() {
           <div className="mt-3 text-xs text-muted-foreground">Showing {filtered.length} of {leads.length} leads</div>
         </div>
 
+        <section className="mt-8" aria-label="Website and enterprise inquiries">
+          <h2 className="font-heading text-xl font-bold text-foreground">Homepage and enterprise inquiries</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Free information requests are stored here privately, even if the visitor never signs up or buys a subscription.</p>
+          {loading ? <p className="mt-4 text-sm text-muted-foreground">Loading inquiries…</p> : filteredSales.length === 0 ? (
+            <p className="mt-4 rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">No matching website inquiries yet.</p>
+          ) : (
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              {filteredSales.map((lead) => <SalesInquiryCard key={lead.id} lead={lead} updating={salesUpdating === lead.id} onStatus={setSalesStatus} />)}
+            </div>
+          )}
+        </section>
+
+        <h2 className="mt-9 font-heading text-xl font-bold text-foreground">Quarry buyer, seller and link requests</h2>
         {loading ? (
           <div className="mt-6 rounded-2xl border border-border bg-card p-10 text-center text-sm text-muted-foreground">Loading leads…</div>
         ) : filtered.length === 0 ? (
